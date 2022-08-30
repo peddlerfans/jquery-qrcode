@@ -8,8 +8,8 @@
   "version": "1.0.18",
   "scripts": {
     "dev": "vite",
-    "unittest" : "echo unittest",
-    "test" : "echo test",
+    "unittest": "echo unittest",
+    "test": "echo test",
     "stage": "vite --mode staging",
     "prod": "vite --mode production",
     "build": "vue-tsc --noEmit && vite build",
@@ -19,6 +19,7 @@
   "dependencies": {
     "ant-design-vue": "^3.2.11",
     "axios": "^0.27.2",
+    "jointjs": "^3.5.5",
     "lodash": "^4.17.21",
     "nprogress": "^0.2.0",
     "overlayscrollbars": "^1.13.2",

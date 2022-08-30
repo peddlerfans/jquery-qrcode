@@ -718,6 +718,13 @@
     "follow-redirects" "^1.14.9"
     "form-data" "^4.0.0"
 
+"backbone@~1.4.1":
+  "integrity" "sha512-ADy1ztN074YkWbHi8ojJVFe3vAanO/lrzMGZWUClIP7oDD/Pjy2vrASraUP+2EVCfIiTtCW4FChVow01XneivA=="
+  "resolved" "https://r.cnpmjs.org/backbone/-/backbone-1.4.1.tgz"
+  "version" "1.4.1"
+  dependencies:
+    "underscore" ">=1.8.3"
+
 "balanced-match@^1.0.0":
   "integrity" "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="
   "resolved" "https://r2.cnpmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
@@ -1009,6 +1016,14 @@
   "integrity" "sha512-/WwNkdXfckNgw6S5R125rrW8ez139lBHWouiBvX8dfMFtcn6V81REDqnH7+CRpRipfYlyU1CmOnOxrmGcFOjeA=="
   "resolved" "https://r.cnpmjs.org/csstype/-/csstype-2.6.20.tgz"
   "version" "2.6.20"
+
+"dagre@~0.8.5":
+  "integrity" "sha512-/aTqmnRta7x7MCCpExk7HQL2O4owCT2h8NT//9I1OQ9vt29Pa0BzSAkR5lwFUcQ7491yVi/3CXU9jQ5o0Mn2Sw=="
+  "resolved" "https://r2.cnpmjs.org/dagre/-/dagre-0.8.5.tgz"
+  "version" "0.8.5"
+  dependencies:
+    "graphlib" "^2.1.8"
+    "lodash" "^4.17.15"
 
 "dayjs@^1.10.5":
   "integrity" "sha512-F4LXf1OeU9hrSYRPTTj/6FbO4HTjPKXvEIC1P2kcnFurViINCVk3ZV0xAS3XVx9MkMsXbbqlK6hjseaYbgKEHw=="
@@ -1383,6 +1398,13 @@
   "resolved" "https://r.cnpmjs.org/graceful-fs/-/graceful-fs-4.2.10.tgz"
   "version" "4.2.10"
 
+"graphlib@^2.1.8", "graphlib@~2.1.8":
+  "integrity" "sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A=="
+  "resolved" "https://r2.cnpmjs.org/graphlib/-/graphlib-2.1.8.tgz"
+  "version" "2.1.8"
+  dependencies:
+    "lodash" "^4.17.15"
+
 "has-ansi@^2.0.0":
   "integrity" "sha512-C8vBJ8DwUCx19vhm7urhTuUsr4/IyP6l4VzNQDv+ryHQObW3TTTp9yB68WpYgRe2bbaGuZ/se74IqFeVnMnLZg=="
   "resolved" "https://r2.cnpmjs.org/has-ansi/-/has-ansi-2.0.0.tgz"
@@ -1634,6 +1656,22 @@
   "resolved" "https://r2.cnpmjs.org/isobject/-/isobject-3.0.1.tgz"
   "version" "3.0.1"
 
+"jointjs@^3.5.5":
+  "integrity" "sha512-iuSWl/itGuB7XoKzx3lrr7fq0VWdJb9qX9NDvIyZcAsUCJ47L7eQZWazRtWM87W3bEqYZvEG/9/SfWgPN31CAg=="
+  "resolved" "https://r.cnpmjs.org/jointjs/-/jointjs-3.5.5.tgz"
+  "version" "3.5.5"
+  dependencies:
+    "backbone" "~1.4.1"
+    "dagre" "~0.8.5"
+    "graphlib" "~2.1.8"
+    "jquery" "~3.6.0"
+    "lodash" "~4.17.21"
+
+"jquery@~3.6.0":
+  "integrity" "sha512-opJeO4nCucVnsjiXOE+/PcCgYw9Gwpvs/a6B1LL/lQhwWwpbVEVYDZ1FokFr8PRc7ghYlrFPuyHuiiDNTQxmcw=="
+  "resolved" "https://r.cnpmjs.org/jquery/-/jquery-3.6.1.tgz"
+  "version" "3.6.1"
+
 "js-base64@^2.1.9":
   "integrity" "sha512-pZe//GGmwJndub7ZghVHz7vjb2LgC1m8B07Au3eYqeqv9emhESByMXxaEgkUkEqJe87oBbSniGYoQNIBklc7IQ=="
   "resolved" "https://r2.cnpmjs.org/js-base64/-/js-base64-2.6.4.tgz"
@@ -1725,7 +1763,7 @@
   "resolved" "https://r2.cnpmjs.org/lodash-es/-/lodash-es-4.17.21.tgz"
   "version" "4.17.21"
 
-"lodash@^4.17.21":
+"lodash@^4.17.15", "lodash@^4.17.21", "lodash@~4.17.21":
   "integrity" "sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg=="
   "resolved" "https://r2.cnpmjs.org/lodash/-/lodash-4.17.21.tgz"
   "version" "4.17.21"
@@ -2467,6 +2505,11 @@
   "integrity" "sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ=="
   "resolved" "https://r.cnpmjs.org/typescript/-/typescript-4.7.4.tgz"
   "version" "4.7.4"
+
+"underscore@>=1.8.3":
+  "integrity" "sha512-BQFnUDuAQ4Yf/cYY5LNrK9NCJFKriaRbD9uR1fTeXnBeoa97W0i41qkZfGO9pSo8I5KzjAcSY2XYtdf0oKd7KQ=="
+  "resolved" "https://r.cnpmjs.org/underscore/-/underscore-1.13.4.tgz"
+  "version" "1.13.4"
 
 "union-value@^1.0.0":
   "integrity" "sha512-tJfXmxMeWYnczCVs7XAEvIV7ieppALdyepWMkHkwciRpZraG/xwT+s2JN8+pr1+8jCRf80FFzvr+MpQeeoF4Xg=="

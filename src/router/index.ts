@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Layout from '@/layout/index.vue'
+import mbtmodeler from '@/views/JsModeler.vue'
 import { GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -13,9 +14,18 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: '首页', icon: HomeOutlined }
+    },
+    {
+      path: 'mbtmodeler',
+      name: 'mbtmodeler',
+      component: () => import('@/views/JsModeler.vue'),
+      meta: { title: 'MBTModeler', icon: HomeOutlined }
     }
   ]
 }
+
+
+
 
 const constantRoutes: RouteRecordRaw[] = [
   {
