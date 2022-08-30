@@ -1,92 +1,100 @@
-# mbt-frontend
+<p align="center">
+  <img src="https://1esse.github.io/vue-clownfish-admin/assets/logo.dadfed0b.png" alt="logo">
+</p>
+<h3 align="center">Vite + Vue3 + Antd + Typescript 管理后台前端简易框架</h3>
+<p align="center">
+  <a href="https://github.com/vuejs/core">
+    <img src="https://img.shields.io/badge/vue-3.2.37-brightgreen.svg" alt="vue">
+  </a>
+  <a href="https://github.com/vitejs/vite">
+    <img src="https://img.shields.io/badge/vite-3.0.0-brightgreen.svg" alt="vue">
+  </a>
+  <a href="https://github.com/vuejs/pinia">
+    <img src="https://img.shields.io/badge/pinia-2.0.16-brightgreen.svg" alt="vue">
+  </a>
+  <a href="https://github.com/vuejs/router">
+    <img src="https://img.shields.io/badge/vueRouter-4.1.2-brightgreen.svg" alt="vue">
+  </a>
+  <a href="https://github.com/vueComponent/ant-design-vue">
+    <img src="https://img.shields.io/badge/antdv-3.2.10-brightgreen.svg" alt="element-ui">
+  </a>
+  <a href="https://github.com/1esse/vue-clownfish-admin/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="license">
+  </a>
+  <a href="https://github.com/1esse/vue-clownfish-admin/releases">
+    <img src="https://img.shields.io/github/v/release/1esse/vue-clownfish-admin.svg" alt="GitHub release">
+  </a>
+</p>
+
+#### 这里是antd版本，如果你更倾向于使用element-plus，请[点击这里](https://github.com/1esse/vue-clownfish-admin-elem)。
+
+## ✨ 最新版本 v1.0.18
+1. tabs不再局限于菜单页保持一致，可添加任意路径的路由，包括hidden页
+2. 关闭tab标签页可以弹窗确认
+3. 优化路由监听
+
+## 🐬 简介
+[vue-clownfish-admin](https://github.com/1esse/vue-clownfish-admin) 是一个由Vue最新技术栈开发的后台管理前端简易框架。基于vue3，集成vue3最新生态系统的核心库实现。主要的技术栈有
+[ES2015+](http://es6.ruanyifeng.com/)，[typescript](https://www.typescriptlang.org/zh/)，[vue3](https://staging-cn.vuejs.org)，[pinia](https://pinia.vuejs.org/)，[vue-router](https://router.vuejs.org/zh/)，[vite](https://cn.vitejs.dev/)，[antd](https://antdv.com/)，了解这些技术会让你更容易入手此项目。此项目基于`vite`构建，并使用`vue3`作为开发技术，所以[只针对现代浏览器做开发](https://cn.vitejs.dev/guide/build.html#browser-compatibility)，不支持低版本的浏览器（如ie），如有需要请自行添加`polyfill`进行适配。
++ [在线预览](https://1esse.github.io/vue-clownfish-admin)
 
 
+## 🦑 优势
++ 几乎使用当前前端最新技术开发（vite, vue3, ts, pinia, csswg）
++ 布局组件解耦，可轻易切换，替代组件
++ 框架实现代码行数少，通俗易懂容易上手
 
-## Getting started
+## 🐟了解这些可能会有帮助
+1. 定义在src/components下的组件，可在页面的template直接使用，不必导入（tsx除外）。
+2. 本项目采用[vite官方推荐的css编写方式](https://www.vitejs.net/guide/features.html#css-pre-processors)，如果你用的vscode编辑器，可下载language-postcss插件进行代码高亮。如果你不喜欢用postcss-nesting，也可以下载其他css预处理器依赖如scss，less等，不会造成冲突。
+3. 不需要对flex，grid等css样式进行多浏览器适配，框架已配置了自动适配。
+4. 大部分场景推荐使用rem代替px以适配更多不同分辨率屏幕
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## 🐳 主要功能
++ 根据路由配置自动生成侧边栏菜单（支持多层嵌套和外链）
++ 根据当前路由信息动态生成面包屑
++ 导航标签页（右键弹出菜单，支持页面刷新，关闭）
++ 侧边栏菜单、面包屑、标签页都支持icon图标(antd图标和svg)
++ 根据路由配置动态缓存页面
++ 路由权限配置
++ 自动注册全局组件（antd组件及components/*.vue）
++ 支持原生CSS变量和CSSWG草案规定进行开发，编写符合未来标准的css
++ 自动为css代码添加前缀，使样式适配不同浏览器
++ 支持使用JSX/TSX进行开发
++ 支持mock模拟接口
++ 多环境配置
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 🦀 开发准备
+    # 克隆项目
+    git clone https://github.com/1esse/vue-clownfish-admin.git
+    
+    # 进入目录
+    cd vue-clownfish-admin
+    
+    # 下载依赖包
+    npm install # 使用npm
+    yarn # 使用yarn
+    
+    # 启动项目
+    npm run dev # 使用npm
+    yarn dev # 使用yarn
 
-## Add your files
+## 🐠 scripts命令
++ dev：本地开发
++ stage: 预发布环境开发
++ build：打包项目代码
++ build:stage: 打包预发布环境代码
++ preview：预览打包后的项目
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+## 🦐 预览项目
+[在线预览](https://1esse.github.io/vue-clownfish-admin)
 
-```
-cd existing_repo
-git remote add origin https://gitlab.com/itea-tech/itea-oppo/mbt-frontend.git
-git branch -M main
-git push -uf origin main
-```
+## 🐡 其他
+项目基本架构搭建完成，即将启动页面功能解决方案的开发。如果你有你的想法，也欢迎提pr参与项目开发。
 
-## Integrate with your tools
+遇到项目任何问题欢迎提[issue](https://github.com/1esse/vue-clownfish-admin/issues/new)。
 
-- [ ] [Set up project integrations](https://gitlab.com/itea-tech/itea-oppo/mbt-frontend/-/settings/integrations)
+## 🐙 License
+[MIT License](https://github.com/1esse/vue-clownfish-admin/blob/master/LICENSE)
 
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Copyright	&copy; 2022-present ZhaoJieXin
