@@ -8,6 +8,8 @@
   "version": "1.0.18",
   "scripts": {
     "dev": "vite",
+    "unittest" : "echo unittest",
+    "test" : "echo test",
     "stage": "vite --mode staging",
     "prod": "vite --mode production",
     "build": "vue-tsc --noEmit && vite build",
