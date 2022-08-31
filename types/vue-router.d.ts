@@ -53,7 +53,7 @@ declare global {
 declare module 'vue-router' {
   interface RouteMeta extends VRouteMeta {
     /** 标题 */
-    title: string | Title18n;
+    title?: string | Title18n;
     /** 当前菜单类型 0: 目录 | 1: 菜单 | 2: 权限 */
     type?: 0 | 1 | 2;
     /** 当前路由权限 */
