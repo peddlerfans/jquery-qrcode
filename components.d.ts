@@ -31,6 +31,8 @@ declare module '@vue/runtime-core' {
     RouterView: typeof import('vue-router')['RouterView']
     Scrollbar: typeof import('./src/components/Scrollbar.vue')['default']
     Shadow: typeof import('./src/components/Shadow.vue')['default']
+    SplitPanel: typeof import('./src/components/basic/split-panel/index.vue')['default']
     SvgIcon: typeof import('./src/components/SvgIcon.vue')['default']
+    TitleI18n: typeof import('./src/components/basic/title-i18n/index.vue')['default']
   }
 }

@@ -19,7 +19,13 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'mbtmodeler',
       name: 'mbtmodeler',
       component: () => import('@/views/JsModeler.vue'),
-      meta: { title: 'MBTModeler', icon: HomeOutlined }
+      meta: { title: 'MBTModeler', icon: TableOutlined }
+    },
+    {
+      path: 'awmodeler',
+      name: 'awmodeler',
+      component: () => import('@/views/awmodeler.vue'),
+      meta: { title: 'AWModeler', icon: BlockOutlined }
     }
   ]
 }

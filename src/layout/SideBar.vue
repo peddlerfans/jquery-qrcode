@@ -28,7 +28,7 @@ const sidebar = sidebarStore()
 sidebar.refreshSidebar()
 
 watch(() => route.path, () => {
-  selectedKeys.value = [route.meta.belongs || route.path]
+  // selectedKeys.value = [route.meta.belongs || route.path]
   // 如果该路由设置页面缓存则推进缓存组
   if (route.meta.keepAlive && !keepAlivePages?.has(route.name as string)) {
     keepAlivePages?.add(route.name as string)
@@ -40,7 +40,7 @@ const getNavIcon = (item: RouteMeta | undefined) => {
   if (typeof item.icon === 'string') {
     return <SvgIcon iconName={item.icon as string} />
   }
-  return h(item?.icon as Component)
+  // return h(item?.icon as Component)
 }
 
 const MenuItemLink = (props: { route: RouteRecordRaw, url: string }, { slots }: { slots: Slots }) => {

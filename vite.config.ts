@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-import path from 'path'
+import path, { resolve } from 'path'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import postcssNesting from 'postcss-nesting'
 import autoprefixer from 'autoprefixer'
@@ -28,6 +28,11 @@ export default defineConfig({
     })
   ],
   css: {
+    preprocessorOptions: {
+      less: {
+        javascriptEnabled: true
+      }
+    },
     postcss: {
       plugins: [
         postcssNesting,
@@ -48,8 +53,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/src'
-    }
+      "@": resolve(__dirname, 'src'), // 路径别名
+    },
+    extensions: ['.js', '.json', '.ts'] // 使用路径别名时想要省略的后缀名，可以自己 增减
+
   },
   server: {
     open: false,
