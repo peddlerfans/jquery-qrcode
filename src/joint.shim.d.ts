@@ -1,6 +1,6 @@
 import jointjs from 'jointjs'
-import {PathParserOptions} from 'vue-router'
-
+import { PathParserOptions } from 'vue-router'
+import 'vue-router';
 declare module 'jointjs' {
 
     namespace dia {
@@ -18,13 +18,19 @@ declare module 'jointjs' {
 }
 
 
-declare interface _RouteRecordBase extends PathParserOptions {
+declare module 'vue-router' {
+    //    interface RouteMeta {
+    //      requiresAuth?: boolean
+    //    }
+    interface _RouteRecordBase extends PathParserOptions {
 
-    meta?: any
+        meta?: any
+    }
+    interface RouteMeta extends VRouteMeta {
+        icon?: any;
+    }
+    type RouteRecordRaw = RouteRecordSingleView | RouteRecordSingleViewWithChildren | RouteRecordMultipleViews | RouteRecordMultipleViewsWithChildren | RouteRecordRedirect | any;
+
+
 }
 
-declare interface RouteMeta extends VRouteMeta {
-    icon?:any;
-}
-
-declare type RouteRecordRaw = RouteRecordSingleView | RouteRecordSingleViewWithChildren | RouteRecordMultipleViews | RouteRecordMultipleViewsWithChildren | RouteRecordRedirect |any;
