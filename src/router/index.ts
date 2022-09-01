@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Layout from '@/layout/index.vue'
-import mbtmodeler from '@/views/JsModeler.vue'
+import mbtmodeler from '@/views/mbtmodeler.vue'
+import mbtstore from '@/views/mbtstore.vue'
 import { GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -13,14 +14,27 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
-      meta: { title: '首页', icon: HomeOutlined }
+      meta: { title: 'Dashboard', icon: HomeOutlined }
     },
     {
-      path: 'mbtmodeler',
-      name: 'mbtmodeler',
-      component: () => import('@/views/JsModeler.vue'),
-      meta: { title: 'MBTModeler', icon: TableOutlined }
+      path: 'mbtstore',
+      name: 'mbtstore',
+      component: () => import('@/views/mbtstore.vue'),
+      meta: { title: 'MBTStore', icon: TableOutlined }
     },
+    {
+      path: 'templatemanager',
+      name: 'templatemanager',
+      component: () => import('@/views/templatemanager.vue'),
+      meta: { title: 'Template Manager', icon: TableOutlined }
+    },
+    // {
+    //   path: 'mbtmodeler',
+    //   name: 'mbtmodeler',
+    //   component: () => import('@/views/mbtmodeler.vue'),
+    //   // meta: { title: 'MBTModeler', icon: TableOutlined }
+    // },
+
     {
       path: 'awmodeler',
       name: 'awmodeler',
