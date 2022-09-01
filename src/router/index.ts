@@ -77,13 +77,8 @@ export const routes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
-  },
-  {
-    path: '/https://github.com/1esse/vue-clownfish-admin',
-    component: undefined,
-    redirect: 'https://github.com/1esse/vue-clownfish-admin',
-    meta: { title: 'github', icon: GithubOutlined, external: true }
   }
+
 ]
 
 const router = createRouter({

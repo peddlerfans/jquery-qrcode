@@ -1,6 +1,14 @@
 // import type { BaseResponse } from '@/utils/request';
-// import { request } from '@/utils/request';
+// import  request  from '@/utils/request';
 
+
+
+// export function getAWInfo() {
+//   return request<API.AWInfo>({
+//     url: 'api/hlfs?search=',
+//     method: 'get',
+//   });
+// }
 // export function updateAccountInfo(data: any) {
 //   return request<BaseResponse<any>>({
 //     url: 'account/update',

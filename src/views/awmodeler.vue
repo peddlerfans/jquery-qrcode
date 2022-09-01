@@ -1,9 +1,9 @@
-<script lang="ts">
-export default { name: 'AWModeler' }
-</script>
+<!-- <script lang="ts">
+export default { name: 'AWModeler'}
+</script> -->
 
 <script setup lang="ts">
-    import { ref, reactive, computed } from 'vue';
+    import { ref, reactive, computed,onBeforeMount } from 'vue';
     import type { TreeProps } from 'ant-design-vue';
   import {
     SyncOutlined,
@@ -17,10 +17,11 @@ export default { name: 'AWModeler' }
   // import type { LoadDataParams } from '@/components/core/dynamic-table';
   // import type { TreeDataItem } from '@/core/permission/utils';
   import { SplitPanel } from '@/components/basic/split-panel';
+  import request from "@/utils/request"
   // import { useTable } from '@/components/core/dynamic-table';
   // import {
 
-  //   getAWList,
+  //   getAWInfo
 
   // } from '@/api/aw';
   // import { createDept, deleteDept, updateDept, getDeptList, transferDept } from '@/api/system/dept';
@@ -30,7 +31,19 @@ export default { name: 'AWModeler' }
   // defineOptions({
   //   name: 'SystemUser',
   // });
-
+  interface AWInfo {
+    name: string,
+    description: string,
+    path: string,
+    tags: string[],
+    params: string[],
+    name_hash: string,
+    description_hash: string,
+    _id: string,
+    _highlight: {
+        description: string[]            
+    }
+  };
   interface State {
     expandedKeys: number[];
     // departmentIds: number[];
@@ -47,6 +60,7 @@ export default { name: 'AWModeler' }
     // departmentIds: [],
     // deptTree: [],
   });
+
 
   const rowSelection = ref({
     selectedRowKeys: [] as number[],

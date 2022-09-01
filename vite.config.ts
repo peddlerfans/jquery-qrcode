@@ -60,6 +60,20 @@ export default defineConfig({
   },
   server: {
     open: false,
-    port: 7777
+    port: 7777,
+    proxy: {
+      "/api": {
+        // target: 'https://mbt-dev.oppo.itealab.net/api/',
+        target:'https://www.baidu.com',
+        changeOrigin: true,
+        secure: false,
+        // headers: {                  
+        //   Referer: 'https://mbt-dev.oppo.itealab.net'
+        // },
+        rewrite: (path:string) => {
+          console.log('...kkkkkk....',path)
+          return path.replace(/^\/api/, '')}
+      }
+    }
   }
 })
