@@ -3,7 +3,7 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined,ApartmentOutlined
+  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -77,25 +77,19 @@ export const routes: RouteRecordRaw[] = [
     path: '/templatemanager',
     name: 'Templatemanager',
     component: Layout,
-    redirect: { name: 'templatemanager' },
+    redirect: { name: 'Templatemanager' },
     meta: { breadcrumb: false },
     children: [
       {
         path: 'index',
-        name: 'templatemanager',
+        name: 'Templatemanager',
         component: () => import('@/views/templatemanager.vue'),
         meta: { title: 'Template Manager', icon: ProfileOutlined, keepAlive: true }
       }
     ]
   }
-  ,
-  {
-    path: '/mbtmodeler',
-    name: 'mbtmodeler',
-    component: () => import('@/views/mbtmodeler.vue'),
-    meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
-  },
 
+  ,
   {
     path: '/awmodeler',
     name: 'Awmodeler',
@@ -128,7 +122,22 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   }
+  ,
+  {
+    path: '/mbtmodeler',
+    name: 'Mbtmodeler',
+    component: Layout,
+    redirect: { name: 'mbtmodeler' },    
+    children: [
+      {
+        path: 'index',
+        name: 'templatemanager',
+        component: () => import('@/views/mbtmodeler.vue'),
+        meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
+      }
+    ]
 
+  }
 ]
 
 const router = createRouter({
