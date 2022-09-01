@@ -75,36 +75,36 @@ export const routes: RouteRecordRaw[] = [
 
   {
     path: '/mbtstore',
-    name: 'mbtstore',
+    name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
     meta: { breadcrumb: false },
-    children:[
+    children: [
       {
-      path:'index',
-      name:'mbtstore',
-      component: () => import('@/views/mbtstore.vue'),
-      meta: { title: 'MBTStore', icon: AppstoreAddOutlined ,keepAlive: true }
+        path: 'index',
+        name: 'mbtstore',
+        component: () => import('@/views/mbtstore.vue'),
+        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
-    
+
   },
   {
     path: '/templatemanager',
-    name: 'templatemanager',
+    name: 'Templatemanager',
     component: Layout,
     redirect: { name: 'templatemanager' },
     meta: { breadcrumb: false },
-    children:[
+    children: [
       {
-      path:'index',
-      name:'templatemanager',
-      component: () => import('@/views/templatemanager.vue'),
-      meta: { title: 'Template Manager', icon: ProfileOutlined ,keepAlive: true }
+        path: 'index',
+        name: 'templatemanager',
+        component: () => import('@/views/templatemanager.vue'),
+        meta: { title: 'Template Manager', icon: ProfileOutlined, keepAlive: true }
       }
     ]
-  }   
- ,
+  }
+  ,
   {
     path: '/mbtmodeler',
     name: 'mbtmodeler',
@@ -114,19 +114,19 @@ export const routes: RouteRecordRaw[] = [
 
   {
     path: '/awmodeler',
-    name: 'awmodeler',
+    name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
     meta: { breadcrumb: false },
-    children:[
+    children: [
       {
-      path:'index',
-      name:'awmodeler',
-      component: () => import('@/views/awmodeler.vue'),
-      meta: { title: 'AWModeler', icon: ApiOutlined ,keepAlive: true }
+        path: 'index',
+        name: 'awmodeler',
+        component: () => import('@/views/awmodeler.vue'),
+        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
       }
     ]
-  }   
+  }
 
 
 ]
