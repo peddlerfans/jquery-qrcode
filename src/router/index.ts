@@ -3,7 +3,7 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined
+  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined,ApartmentOutlined
 } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -56,22 +56,6 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
-
-  // {
-  //   path: '/modal',
-  //   name: 'Modal',
-  //   component: Layout,
-  //   redirect: { name: 'modal' },
-  //   meta: { breadcrumb: false },
-  //   children: [
-  //     {
-  //       path: 'index',
-  //       name: 'modal',
-  //       component: () => import('@/views/modal.vue'),
-  //       meta: { title: '模态框', icon: BlockOutlined, keepAlive: true }
-  //     }
-  //   ]
-  // },
 
   {
     path: '/mbtstore',
@@ -127,7 +111,23 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   }
+  ,
 
+  {
+    path: '/account',
+    name: 'Account',
+    component: Layout,
+    redirect: { name: 'account' },
+    meta: { breadcrumb: false },
+    children: [
+      {
+        path: 'index',
+        name: 'account',
+        component: () => import('@/views/account.vue'),
+        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+      }
+    ]
+  }
 
 ]
 

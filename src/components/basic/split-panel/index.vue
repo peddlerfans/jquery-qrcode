@@ -99,6 +99,7 @@
     .left-content,
     .right-content {
       overflow: auto;
+     
     }
   }
   

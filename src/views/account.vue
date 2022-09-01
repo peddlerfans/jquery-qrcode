@@ -1,6 +1,6 @@
-<!-- <script lang="ts">
-export default { name: 'AWModeler'}
-</script> -->
+<script lang="ts">
+export default { name: 'Account' }
+</script>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount } from 'vue';
@@ -116,7 +116,9 @@ const treeData: TreeProps['treeData'] = [
       <SplitPanel>
         <template #left-content>
           <div class="flex justify-between">
-            <!-- <div>组织架构</div> -->
+            <!-- <div>
+              <p style="height:16px!important;">组织1架构</p>
+            </div> -->
             <Space>
               <Tooltip v-if="true" placement="top">
                 <template #title>新增部门 </template>
@@ -148,7 +150,9 @@ const treeData: TreeProps['treeData'] = [
           </Tree>
         </template>
         <template #right-content>
-          <!-- Show the details of AW -->
+          <!-- <p>
+            Show the details of organization
+          </p> -->
         </template>
       </SplitPanel>
     </section>
@@ -156,10 +160,10 @@ const treeData: TreeProps['treeData'] = [
 </template>
 
 <style scoped lang="postcss">
-  .main {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-  </style>
+.main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+</style>
