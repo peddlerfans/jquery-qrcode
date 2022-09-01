@@ -1,8 +1,10 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Layout from '@/layout/index.vue'
-import mbtmodeler from '@/views/mbtmodeler.vue'
-import mbtstore from '@/views/mbtstore.vue'
-import { GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons-vue'
+import {
+  GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
+  DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
+  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined
+} from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
   path: '/',
@@ -15,34 +17,10 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: 'Dashboard', icon: HomeOutlined }
-    },
-    {
-      path: 'mbtstore',
-      name: 'mbtstore',
-      component: () => import('@/views/mbtstore.vue'),
-      meta: { title: 'MBTStore', icon: TableOutlined }
-    },
-    {
-      path: 'templatemanager',
-      name: 'templatemanager',
-      component: () => import('@/views/templatemanager.vue'),
-      meta: { title: 'Template Manager', icon: TableOutlined }
-    },
-    // {
-    //   path: 'mbtmodeler',
-    //   name: 'mbtmodeler',
-    //   component: () => import('@/views/mbtmodeler.vue'),
-    //   // meta: { title: 'MBTModeler', icon: TableOutlined }
-    // },
-
-    {
-      path: 'awmodeler',
-      name: 'awmodeler',
-      component: () => import('@/views/awmodeler.vue'),
-      meta: { title: 'AWModeler', icon: BlockOutlined }
     }
   ]
 }
+
 
 
 
@@ -77,7 +55,79 @@ export const routes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
-  }
+  },
+
+  // {
+  //   path: '/modal',
+  //   name: 'Modal',
+  //   component: Layout,
+  //   redirect: { name: 'modal' },
+  //   meta: { breadcrumb: false },
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       name: 'modal',
+  //       component: () => import('@/views/modal.vue'),
+  //       meta: { title: '模态框', icon: BlockOutlined, keepAlive: true }
+  //     }
+  //   ]
+  // },
+
+  {
+    path: '/mbtstore',
+    name: 'mbtstore',
+    component: Layout,
+    redirect: { name: 'mbtstore' },
+    meta: { breadcrumb: false },
+    children:[
+      {
+      path:'index',
+      name:'mbtstore',
+      component: () => import('@/views/mbtstore.vue'),
+      meta: { title: 'MBTStore', icon: AppstoreAddOutlined ,keepAlive: true }
+      }
+    ]
+    
+  },
+  {
+    path: '/templatemanager',
+    name: 'templatemanager',
+    component: Layout,
+    redirect: { name: 'templatemanager' },
+    meta: { breadcrumb: false },
+    children:[
+      {
+      path:'index',
+      name:'templatemanager',
+      component: () => import('@/views/templatemanager.vue'),
+      meta: { title: 'Template Manager', icon: ProfileOutlined ,keepAlive: true }
+      }
+    ]
+  }   
+ ,
+  {
+    path: '/mbtmodeler',
+    name: 'mbtmodeler',
+    component: () => import('@/views/mbtmodeler.vue'),
+    meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
+  },
+
+  {
+    path: '/awmodeler',
+    name: 'awmodeler',
+    component: Layout,
+    redirect: { name: 'awmodeler' },
+    meta: { breadcrumb: false },
+    children:[
+      {
+      path:'index',
+      name:'awmodeler',
+      component: () => import('@/views/awmodeler.vue'),
+      meta: { title: 'AWModeler', icon: ApiOutlined ,keepAlive: true }
+      }
+    ]
+  }   
+
 
 ]
 

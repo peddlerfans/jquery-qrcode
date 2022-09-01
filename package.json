@@ -1,11 +1,11 @@
 {
-  "name": "clown-fish-admin",
+  "name": "mbt",
   "author": {
-    "name": "ZhaoJieXin",
-    "email": "572116385@qq.com",
-    "url": "https://1esse.github.io/vue-clownfish-admin/"
+    "name": "David",
+    "email": "familydai7@gmail.com",
+    "url": ""
   },
-  "version": "1.0.18",
+  "version": "1.0.0",
   "scripts": {
     "dev": "vite",
     "unittest": "echo unittest",
