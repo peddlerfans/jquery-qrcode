@@ -3,7 +3,7 @@ import { EnvType, SwitchType } from "types/app"
 /**
  * app标题
  */
-export const appTitle = 'Clownfish Admin'
+export const appTitle = 'MBTesting @ ITEA Technologies'
 
 /**
  * 使用mock代理api请求：on开，off关  
