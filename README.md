@@ -36,7 +36,7 @@
 3. 大部分场景推荐使用rem代替px以适配更多不同分辨率屏幕
 
 ## 🐳 主要功能
-+ 测试模型
++ 工作台
 + 模版配置
 + 测试模型
 + 关键词（AW）
@@ -69,6 +69,5 @@
 [在线预览](https://mbt-dev.oppo.itealab.net)
 
 ## 🐙 License
-[MIT License]
 
 Copyright	&copy; 2022-present Itea Technologies
