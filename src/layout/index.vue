@@ -93,6 +93,10 @@
     flex-direction: column;
   }
   .content-view {
-    padding: 1rem;
+    padding: 0.2rem;
+  }
+
+  #content-window {
+    padding: 0.2rem;
   }
   </style>

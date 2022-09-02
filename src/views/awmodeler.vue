@@ -17,33 +17,33 @@ import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-v
 // import type { LoadDataParams } from '@/components/core/dynamic-table';
 // import type { TreeDataItem } from '@/core/permission/utils';
 import { SplitPanel } from '@/components/basic/split-panel';
-import request from "@/utils/request"
-// import { useTable } from '@/components/core/dynamic-table';
-// import {
 
-//   getAWInfo
 
-// } from '@/api/aw';
-// import { createDept, deleteDept, updateDept, getDeptList, transferDept } from '@/api/system/dept';
-// import { useFormModal } from '@/hooks/useModal/index';
-// import { formatDept2Tree, findChildById } from '@/core/permission/utils';
 
-// defineOptions({
-//   name: 'SystemUser',
-// });
-interface AWInfo {
-  name: string,
-  description: string,
-  path: string,
-  tags: string[],
-  params: string[],
-  name_hash: string,
-  description_hash: string,
-  _id: string,
-  _highlight: {
-    description: string[]
-  }
-};
+
+
+import { awStore } from '@/stores/aw'
+import { message } from 'ant-design-vue/es'
+import { useRouter } from 'vue-router'
+import { Stores } from 'types/stores';
+
+// interface LoginForm {
+//   username: string
+//   password: string
+//   remember: boolean
+// }
+// const form = reactive<LoginForm>({
+//   username: 'david',
+//   password: '123456',
+//   remember: true
+// })
+// const loading = reactive({
+//   login: false
+// })
+const router = useRouter()
+const aw = awStore()
+
+
 interface State {
   expandedKeys: number[];
   // departmentIds: number[];
@@ -70,16 +70,30 @@ const rowSelection = ref({
   // },
 });
 
-
+const aws = reactive<Stores.aw>({ name: '',
+    description: '',
+    path: '',
+    tags: [],
+    params: [],
+    name_hash: '',
+    description_hash: '',
+    _id: '',
+    _highlight: {
+        description: []            
+    }});
 /**
  * 获取aw列表
  */
-const fetchAWList = async () => {
-  // deptListLoading.value = true;
-  // const dept = await getDeptList().finally(() => (deptListLoading.value = false));
-  // state.deptTree = formatDept2Tree(dept);
-  // state.expandedKeys = [...state.expandedKeys, ...state.deptTree.map((n) => Number(n.key))];
-};
+ function getAWInfo() {
+  aw.getAW('同时').then(res => {
+    console.log('res from axios get aw:',res)
+    return res;
+  }).catch(err => {
+    
+    message.error(err)
+  })
+  
+}
 
 
 const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
@@ -107,16 +121,20 @@ const treeData: TreeProps['treeData'] = [
   },
 ];
 
+const awList = computed(() => {
+  return getAWInfo()
+})
 </script>
 
 <template>
-  <main class="main">
-    <section class="block shadow flex-center"
-      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
+  <main class="main"> 
+    <!-- <section class="block shadow flex-center"
+      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">  -->
       <SplitPanel>
         <template #left-content>
           <div class="flex justify-between">
             <!-- <div>组织架构</div> -->
+            {{awList}}
             <Space>
               <Tooltip v-if="true" placement="top">
                 <template #title>新增部门 </template>
@@ -151,8 +169,8 @@ const treeData: TreeProps['treeData'] = [
           <!-- Show the details of AW -->
         </template>
       </SplitPanel>
-    </section>
-  </main>
+   <!-- </section> -->
+   </main>
 </template>
 
 <style scoped lang="postcss">
