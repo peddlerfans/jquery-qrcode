@@ -24,9 +24,9 @@ const user = userStore()
 
 function login() {
   loading.login = true
-  user.login(form.username, form.password).then(_ => {
+  user.login(form.username, form.password).then((_:any)=> {
     router.replace('/dashboard')
-  }).catch(err => {
+  }).catch((err :any)=> {
     loading.login = false
     message.error(err)
   })

@@ -22,10 +22,10 @@ import { SplitPanel } from '@/components/basic/split-panel';
 
 
 
-import { awStore } from '@/stores/aw'
+// import { awStore } from '@/stores/aw'
 import { message } from 'ant-design-vue/es'
 import { useRouter } from 'vue-router'
-import { Stores } from 'types/stores';
+// import { Stores } from 'types/stores';
 
 // interface LoginForm {
 //   username: string
@@ -41,7 +41,7 @@ import { Stores } from 'types/stores';
 //   login: false
 // })
 const router = useRouter()
-const aw = awStore()
+// const aw = awStore()
 
 
 interface State {
@@ -70,30 +70,30 @@ const rowSelection = ref({
   // },
 });
 
-const aws = reactive<Stores.aw>({ name: '',
-    description: '',
-    path: '',
-    tags: [],
-    params: [],
-    name_hash: '',
-    description_hash: '',
-    _id: '',
-    _highlight: {
-        description: []            
-    }});
-/**
- * 获取aw列表
- */
- function getAWInfo() {
-  aw.getAW('同时').then(res => {
-    console.log('res from axios get aw:',res)
-    return res;
-  }).catch(err => {
+// const aws = reactive<Stores.aw>({ name: '',
+//     description: '',
+//     path: '',
+//     tags: [],
+//     params: [],
+//     name_hash: '',
+//     description_hash: '',
+//     _id: '',
+//     _highlight: {
+//         description: []            
+//     }});
+// /**
+//  * 获取aw列表
+//  */
+//  function getAWInfo() {
+//   aw.getAW('同时').then(res => {
+//     console.log('res from axios get aw:',res)
+//     return res;
+//   }).catch(err => {
     
-    message.error(err)
-  })
+//     message.error(err)
+//   })
   
-}
+// }
 
 
 const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
@@ -121,9 +121,9 @@ const treeData: TreeProps['treeData'] = [
   },
 ];
 
-const awList = computed(() => {
-  return getAWInfo()
-})
+// const awList = computed(() => {
+//   return getAWInfo()
+// })
 </script>
 
 <template>
@@ -134,7 +134,7 @@ const awList = computed(() => {
         <template #left-content>
           <div class="flex justify-between">
             <!-- <div>组织架构</div> -->
-            {{awList}}
+            <!-- {{awList}} -->
             <Space>
               <Tooltip v-if="true" placement="top">
                 <template #title>新增部门 </template>
