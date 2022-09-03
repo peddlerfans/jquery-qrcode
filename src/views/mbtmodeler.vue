@@ -62,15 +62,18 @@ onMounted(() => {
       $("body").on("mouseup.fly", (e:any)=> {
         var x = e.pageX,
           y = e.pageY,
-          target = modeler.paper.el.offset();
+          target = modeler.paper.options.el;
           
 
         // Dropped over paper ?
+        // joint.dia.Paper({
+        // el: $("#flyPaper"),
+
         if (
           (x as number) > target.left &&
-          (x as number) < target.left + modeler.paper.el.width() &&
+          (x as number) < target.left + modeler.paper.options.el.width()
           (y as number) > target.top &&
-          (y as number) < target.top + modeler.paper.el.height()
+          (y as number) < target.top + modeler.paper.options.el.height()
         ) {
           var s = flyShape.clone();
           // s.position(x as number- target.left - offset.x, y as number - target.top - offset.y);

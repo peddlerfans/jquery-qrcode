@@ -17,6 +17,8 @@ declare module 'jointjs' {
     namespace dia {
 
         namespace Paper {
+            type el = any;
+
             interface Options {
                 model?: Graph;
                 el?: any;
@@ -27,9 +29,15 @@ declare module 'jointjs' {
         interface CellView {
             model?: Cell;
         }
-        
+        // class Paper  {
+        //     [x: string]: any;
+        //     el?:any;
+        //     // $el?:HTMLElement |any;
+        // }    
+    // }
+    // class Paper  {
+    //     el:any;
     }
-
 }
 
 
