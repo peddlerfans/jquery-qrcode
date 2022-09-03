@@ -1,14 +1,17 @@
 import * as joint from "jointjs";
 import { dia, shapes } from "jointjs";
 
+// import * as $ from 'jquery';
+import $ from "jquery";
 import { Ref, ref } from "vue";
 
 export class Stencil {
   states: object;
-  linkAttrs: object;
-  transitions: []=[];
+  linkAttrs: object = {};
+  transitions: [] = [];
   paper: dia.Paper;
   graph: dia.Graph = new joint.dia.Graph();
+
   constructor(canvas: any) {
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 10, y: 10 },
@@ -118,6 +121,7 @@ export class Stencil {
       gridSize: 10,
       drawGrid: true,
     });
+    
     // this.paper.on("element:mouseenter", (elementView) => {
     //   // if (!elementView.hasTools()) {
     //   //     elementView.addTools(this.toolsView)
@@ -191,7 +195,7 @@ export class Stencil {
     // console.log("xxxxxxx1", this.graph);
     // console.log("xxxxxxx2", this.states);
 
-    Object.keys(this.states).forEach((key:string) => {
+    Object.keys(this.states).forEach((key: string) => {
       // console.log(key);
       this.graph.addCell(this.states[key as keyof typeof this.states]);
     });
@@ -249,3 +253,5 @@ export class Stencil {
     // console.log(this.graph);
   }
 }
+
+

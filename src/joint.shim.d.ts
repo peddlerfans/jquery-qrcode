@@ -1,6 +1,17 @@
 import jointjs from 'jointjs'
 import { PathParserOptions } from 'vue-router'
 import 'vue-router';
+import { any } from 'vue-types';
+import $ from 'jquery'
+
+
+declare module JQuery {
+    namespace JQuery {
+        interface JQuery<TElement = HTMLElement> extends Iterable<TElement> {
+
+        }
+    }
+}
 declare module 'jointjs' {
 
     namespace dia {
@@ -13,6 +24,10 @@ declare module 'jointjs' {
             }
 
         }
+        interface CellView {
+            model?: Cell;
+        }
+        
     }
 
 }

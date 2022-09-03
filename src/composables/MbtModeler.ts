@@ -1,6 +1,6 @@
 import * as joint from "jointjs";
 import { dia, shapes } from "jointjs";
-import { join } from "path";
+// import { join } from "path";
 import { Ref, ref } from "vue";
 
 export class test extends joint.shapes.standard.Rectangle {

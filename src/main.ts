@@ -14,6 +14,7 @@ import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
 
+
 mockEnv.includes(import.meta.env.MODE as EnvType) && mock === 'on' && enableMock()
 
 createApp(App).use(createPinia()).use(router).mount('#app')
