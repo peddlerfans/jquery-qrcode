@@ -1,87 +1,101 @@
-<script lang="ts">
-    export default {name: 'mbtmodeler'}
-</script>
-
 <script setup lang="ts">
-import * as joint from 'jointjs'
+import { MbtModeler } from "@/composables/MbtModeler";
+import { Stencil } from "@/composables/stencil";
+import * as joint from "jointjs";
 // import {Paper} from 'jointjs'
-import {ref,onMounted} from 'vue'
-import type { Ref } from 'vue'
-import {dia ,util, config, g,Vectorizer,VElement,shapes,highlighters,env,
-layout,mvc,routers,connectors,anchors,attributes,elementTools,linkTools} from 'jointjs'
-const paper:Ref<dia.Paper | null> = ref(null);
- 
-const paper2:Ref<dia.Paper | null> = ref(null)
-const canvas= ref(HTMLElement)
-const canvas2 = ref(HTMLElement)
+import { ref, onMounted } from "vue";
+import type { Ref } from "vue";
 
+const canvas = ref(HTMLElement);
+const stencilcanvas = ref(HTMLElement);
+let showPropPanel: Ref<boolean> = ref(false);
 
-function init() {
-    let graph = new joint.dia.Graph
-    let graph2 = new joint.dia.Graph
-    console.log('graph:',graph)
-    
-    paper.value = new joint.dia.Paper({ 
-        el: canvas.value,
-        model: graph,
-        width: 900,
-        height: 300,
-        gridSize: 1
-    })
-    paper2.value = new joint.dia.Paper({
-        el: canvas2.value,
-        model: graph2,
-        width: 900,
-        height: 300,
-        gridSize: 1
-    })
-    console.log('paper:',paper)
-    let rect = new joint.shapes.standard.Rectangle()
-    rect.position(100, 30)
-    rect.resize(100, 40)
-    rect.attr({
-        body: {
-            fill: 'blue'
-        },
-        label: {
-            text: 'Start',
-            fill: 'white'
-        }
-    })
-    rect.addTo(graph)
-
-    let rect2 = rect.clone()
-    rect2.translate(300, 0)
-    rect2.attr('label/text', 'End')
-    rect2.addTo(graph)
-
-
-    let link = new joint.shapes.standard.Link()
-    link.source(rect)
-    link.target(rect2)
-    link.addTo(graph)
+function onClose() {
+  showPropPanel.value = false;
 }
-onMounted(() => {
-    init()
-})
 
+function onShow(cell?: any) {
+  console.log(cell);
+  showPropPanel.value = true;
+}
+
+let modeler;
+let stencil;
+onMounted(() => {
+  // init()
+  stencil = new Stencil(stencilcanvas);
+  modeler = new MbtModeler(canvas);
+  modeler.paper.on("element:pointerclick", (event) => {
+    console.log(event);
+  });
+});
 </script>
 
 <template>
-      <section class="block shadow flex-center" style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
-        <div class="canvas" ref="canvas"></div>
-    <div class="canvas2" ref="canvas2"></div>
-  </section>
+  <section
+    class="block shadow flex-center"
+    style="
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      color: var(--gray);
+      font-size: 5rem;
+    "
+  >
+    <!-- <div
+      :style="{
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        border: '1px solid #ebedf0',
+        borderRadius: '2px',
 
+        textAlign: 'center',
+        width: '100%',
+      }"
+    > -->
+    <SplitPanel>
+      <template #left-content>
+        <div class="stencil" ref="stencilcanvas"></div>
+      </template>
+      <template #right-content>
+        <div class="canvas" ref="canvas"></div>
+      </template>
+    </SplitPanel>
+    <!-- <a-drawer
+        title="Basic Drawer"
+        placement="right"
+        :closable="true"
+        :visible="showPropPanel"
+        :get-container="false"
+        :style="{ position: 'absolute' }"
+        @close="onClose"
+      >
+        <p>Some contents...</p>
+      </a-drawer> 
+    </div>-->
+  </section>
 </template>
 
-<style>
+<style scoped>
 .canvas {
-    margin:10px;
-    background-color:#3BA6F5;
+  margin: 10px;
 }
-.canvas2 {
-    margin:10px;
-    background-color:#F84C5D;
+.stencil {
+  height: "100%";
+  overflow: "hidden";
+  position: "relative";
+  margin: 10px;
+  width: 100px;
+  background-color: #47cf73;
 }
+
+.split-wrapper  .scalable {
+     
+      width: 20px;
+      max-width: 5vw;
+      
+     
+    }
+  
 </style>

@@ -131,9 +131,9 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'templatemanager',
+        name: 'Mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
-        meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
+        meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }
     ]
 
