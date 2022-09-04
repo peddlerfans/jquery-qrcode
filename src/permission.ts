@@ -9,7 +9,7 @@ import { message } from 'ant-design-vue'
 NProgress.configure({ showSpinner: false })
 
 const whitelist: string[] = ['/login', '/404']
-let scrollTimeout: NodeJS.Timeout | null = null
+let scrollTimeout: any | null = null
 let contentWindowDom: HTMLElement | null = null
 
 router.beforeEach(async (to, from, next) => {

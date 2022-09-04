@@ -2,10 +2,10 @@
 import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
-import {dia} from 'jointjs'
+import { dia } from "jointjs";
 import { ref, onMounted } from "vue";
 import type { Ref } from "vue";
-import $ from 'jquery';
+import $ from "jquery";
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
@@ -15,78 +15,80 @@ function onClose() {
 }
 
 function onShow(cell?: any) {
-  console.log(cell);
+  
   showPropPanel.value = true;
 }
 
-let modeler:MbtModeler;
-let stencil:Stencil;
+let modeler: MbtModeler;
+let stencil: Stencil;
 onMounted(() => {
-  // init()
+  
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
-      $("body").append(
-        '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
-      );
-      let flyGraph = new joint.dia.Graph();
-      let flyPaper = new joint.dia.Paper({
-        el: $("#flyPaper"),
-        model: flyGraph,
-        interactive: false,
-      });
-      let flyShape = cellView.model!.clone(),
-        pos = cellView.model!.position(),
-        offset = {
-          x: x - pos.x,
-          y: y - pos.y,
-        };
+    $("body").append(
+      '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
+    );
+    let flyGraph = new joint.dia.Graph();
+    let flyPaper = new joint.dia.Paper({
+      el: $("#flyPaper"),
+      model: flyGraph,
+      interactive: false,
+    });
+    
+    let flyShape = cellView.model!.clone();
+    
+    let pos = cellView.model!.position();
+    
+    let offset = {
+      x: x - pos.x,
+      y: y - pos.y,
+    };
+    
 
-      // flyShape.position(0, 0);
-      flyShape.position();
-      flyGraph.addCell(flyShape);
-      
-        $("#flyPaper").offset({
-          left: (e.pageX as number) - offset.x,
-          top: (e.pageY as number) - offset.y,
-        });
-      
+    flyShape.position(0, 0);
+    // flyShape.position();
+    flyGraph.addCell(flyShape);
+    
 
-      $("body").on("mousemove.fly", (e:any)=> {
-        $("#flyPaper").offset({
-          left: (e.pageX as number) - offset.x,
-          top: (e.pageY as number) - offset.y,
-        });
-      });
+    $("#flyPaper").offset({
+      left: (e.pageX as number) - offset.x,
+      top: (e.pageY as number) - offset.y,
+    });
 
-      $("body").on("mouseup.fly", (e:any)=> {
-        var x = e.pageX,
-          y = e.pageY,
-          target = modeler.paper.options.el;
-          
-
-        // Dropped over paper ?
-        // joint.dia.Paper({
-        // el: $("#flyPaper"),
-
-        if (
-          (x as number) > target.left &&
-          (x as number) < target.left + modeler.paper.options.el.width()
-          (y as number) > target.top &&
-          (y as number) < target.top + modeler.paper.options.el.height()
-        ) {
-          var s = flyShape.clone();
-          // s.position(x as number- target.left - offset.x, y as number - target.top - offset.y);
-          s.position();
-          modeler.graph.addCell(s);
-        }
-        $("body").off("mousemove.fly").off("mouseup.fly");
-        flyShape.remove();
-        $("#flyPaper").remove();
+    $("body").on("mousemove.fly", (e: any) => {
+      $("#flyPaper").offset({
+        left: (e.pageX as number) - offset.x,
+        top: (e.pageY as number) - offset.y,
       });
     });
+
+    $("body").on("mouseup.fly", (e: any) => {
+    
+      var x = e.pageX,
+        y = e.pageY,
+        target = modeler.paper.$el.offset();
+
+      let paperwidth: number = modeler.paper.$el.width();
+      let paperheight: number = modeler.paper.$el.height();
+      let targetwidth = target.left + paperwidth;
+      let targetheight = target.top + paperheight;
+
+      if (x > target.left && x < targetwidth && y > target.top && y < targetheight) {
+        var s = flyShape.clone();
+        s.position(
+          x - target.left - offset.x,
+          y - target.top - offset.y
+        );
+        modeler.graph.addCell(s);
+      }
+      $("body").off("mousemove.fly").off("mouseup.fly");
+      flyShape.remove();
+      $("#flyPaper").remove();
+    });
+  });
   modeler.paper.on("element:pointerclick", (event) => {
-    console.log(event);
+    
   });
 });
 </script>
@@ -150,12 +152,8 @@ onMounted(() => {
   background-color: #47cf73;
 }
 
-.split-wrapper  .scalable {
-     
-      width: 20px;
-      max-width: 5vw;
-      
-     
-    }
-  
+.split-wrapper .scalable {
+  width: 20px;
+  max-width: 5vw;
+}
 </style>

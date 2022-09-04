@@ -4,7 +4,6 @@ import 'vue-router';
 import { any } from 'vue-types';
 import $ from 'jquery'
 
-
 declare module JQuery {
     namespace JQuery {
         interface JQuery<TElement = HTMLElement> extends Iterable<TElement> {
@@ -14,11 +13,13 @@ declare module JQuery {
 }
 declare module 'jointjs' {
 
-    namespace dia {
+    export namespace dia {
+        interface Paper {
+            $el?:any
+        }
 
         namespace Paper {
-            type el = any;
-
+            
             interface Options {
                 model?: Graph;
                 el?: any;
@@ -26,34 +27,16 @@ declare module 'jointjs' {
             }
 
         }
+        interface Cell {
+            position(x:number,y:number,opt?:any) : any;
+        }
+       
         interface CellView {
             model?: Cell;
         }
-        // class Paper  {
-        //     [x: string]: any;
-        //     el?:any;
-        //     // $el?:HTMLElement |any;
-        // }    
-    // }
-    // class Paper  {
-    //     el:any;
+
     }
 }
 
 
-declare module 'vue-router' {
-    //    interface RouteMeta {
-    //      requiresAuth?: boolean
-    //    }
-    interface _RouteRecordBase extends PathParserOptions {
-
-        meta?: any
-    }
-    interface RouteMeta extends VRouteMeta {
-        icon?: any;
-    }
-    type RouteRecordRaw = RouteRecordSingleView | RouteRecordSingleViewWithChildren | RouteRecordMultipleViews | RouteRecordMultipleViewsWithChildren | RouteRecordRedirect | any;
-
-
-}
 
