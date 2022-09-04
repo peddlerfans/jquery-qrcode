@@ -18,7 +18,6 @@ export const awStore = defineStore(
                     request.get("/api/hlfs", { params: data }).then(
                         (res) => {
                             console.log(res);
-
                         }
                     )
                 })
@@ -27,12 +26,10 @@ export const awStore = defineStore(
             // 获取属性结构的数据
             async queryTree() {
                 return new Promise((resolve, reject) => {
-                    request.get("/api/hlfs/_tree").then((res) => {
-                        console.log(res);
-                        if (res.data) {
-
-
-                            this.treeData = res.data
+                    request.get<any>("/api/hlfs/_tree").then((res) => {
+                        if (res) {
+                            this.treeData = res
+                            console.log(this.treeData);
                         } else {
                             reject(new Error("请求失败"))
                         }

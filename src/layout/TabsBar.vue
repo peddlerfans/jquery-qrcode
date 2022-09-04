@@ -141,14 +141,9 @@ function showTabMenu(e: MouseEvent, tab: RouteLocationNormalizedLoaded) {
   menuPanelDom.value.showPanel()
 }
 </script>
-
 <template>
-<<<<<<< HEAD
-=======
-
   <!-- 顶部导航栏 -->
 
->>>>>>> cfb6473... 解析树形数据渲染表格
   <Scrollbar ref="scrollbarDom" height="2rem" direction="horizontal" :speed="3">
     <div class="tabs">
       <RouterLink ref="tabDoms" v-for="tab in tabs" :key="tab.path" :to="tab.path" class="tab"

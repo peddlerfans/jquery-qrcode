@@ -4,8 +4,7 @@ import { getCookie } from '.'
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
-<<<<<<< HEAD
-  withCredentials: true,
+  // withCredentials: true,
   timeout: 60000
 })
 
@@ -27,12 +26,12 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   response => {
     const { code, msg } = response.data
-    if (code !== 200) {
-      message.error(`错误码${code}：${msg || '未知错误'}`, 5)
-      return Promise.reject(new Error(msg || '未知错误'))
-    } else {
-      return response.data
-    }
+    // if (code !== 200) {
+    //   message.error(`错误码${code}：${msg || '未知错误'}`, 5)
+    //   return Promise.reject(new Error(msg || '未知错误'))
+    // } else {
+    return response.data
+    // }
   },
   error => {
     console.error(error)
@@ -40,46 +39,7 @@ request.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-=======
-  // withCredentials: true,
-  timeout: 60000
-})
-
-// const token = getCookie('token')
-
-// request.interceptors.request.use(
-//   config => {
-//     if (config.headers && token) {
-//       config.headers['Authorization'] = token
-//     }
-//     return config
-//   },
-//   error => {
-//     console.error(error)
-//     return Promise.reject(error)
-//   }
-// )
-
-// request.interceptors.response.use(
-//   response => {
-//     const { code, msg } = response.data
-//     if (code !== 200) {
-//       message.error(`错误码${code}：${msg || '未知错误'}`, 5)
-//       return Promise.reject(new Error(msg || '未知错误'))
-//     } else {
-//       return response.data
-//     }
-//   },
-//   error => {
-//     console.error(error)
-//     message.error(error.message, 5)
-//     return Promise.reject(error)
-//   }
-// )
->>>>>>> cfb6473... 解析树形数据渲染表格
-
 export default request
-
 /*
 import axios from 'axios';
 import { message as $message } from 'ant-design-vue';

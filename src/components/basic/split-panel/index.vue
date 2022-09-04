@@ -65,10 +65,7 @@
       max-width: 50vw;
       min-width: 100px;
       overflow: auto;
-<<<<<<< HEAD
-=======
       top: 1rem;
->>>>>>> cfb6473... 解析树形数据渲染表格
 
       .left-content {
         height: 100%;
@@ -103,10 +100,6 @@
     .left-content,
     .right-content {
       overflow: auto;
-<<<<<<< HEAD
-=======
-     
->>>>>>> cfb6473... 解析树形数据渲染表格
     }
   }
   

@@ -3,7 +3,7 @@ export default { name: 'AWModeler'}
 </script>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onBeforeMount ,defineComponent, UnwrapRef} from 'vue';
+import { ref, reactive, computed, onBeforeMount ,defineComponent, UnwrapRef,onMounted} from 'vue';
 import type { FormProps, TreeProps } from 'ant-design-vue';
 import {
   SyncOutlined,
@@ -22,13 +22,17 @@ import { SplitPanel } from '@/components/basic/split-panel';
 
 // 导入pinia中的请求
 import { awStore } from "@/stores/awtable"
-import { tryOnMounted } from '_@vueuse_shared@9.1.1@@vueuse/shared';
+import { nextTick } from 'process';
 const awTab = awStore()
-tryOnMounted(() => {
-  awTab.queryTree()
+onMounted(() => {
+  awTab.queryTree() 
+  // nextTick(()=>{
+// console.log(awTab.treeData);
+  // })
+  
 })
 
-console.log(awTab.treeData, );
+
 
 // 处理树形结构的数据
 function handleTree(arr:Array<string>) {
@@ -245,6 +249,7 @@ const data = reactive<Object[]>(
             <Space>
               <Tooltip v-if="true" placement="top">
                 <template #title>新增部门 </template>
+                
                 <!-- <PlusOutlined @click="openDeptModal({})" /> -->
               </Tooltip>
               <Tooltip placement="top">

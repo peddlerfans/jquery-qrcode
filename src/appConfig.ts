@@ -1,20 +1,12 @@
 import { EnvType, SwitchType } from "types/app"
-<<<<<<< HEAD
 
-/**
- * app标题
- */
-export const appTitle = 'Clownfish Admin'
-
-=======
-import {ref} from 'vue';
+import { ref } from 'vue';
 /**
  * app标题
  */
 export const appTitle = 'MBTesting @ ITEA Technologies'
 /** 提供动态固定头部 */
 export const fixedHeader = ref(true)
->>>>>>> cfb6473... 解析树形数据渲染表格
 /**
  * 使用mock代理api请求：on开，off关  
  */

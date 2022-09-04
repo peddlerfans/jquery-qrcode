@@ -6,13 +6,6 @@ export default {name: 'MBTStore'}
 </script>
 
 <template>
-<<<<<<< HEAD
-  <section class="block shadow flex-center" style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
-    To be continued
-  </section>
-</template>
-
-=======
 
 <main>
   <header class="block shadow">头部</header>
@@ -45,6 +38,5 @@ background-color: #fff;
 border-radius: 0.7rem;
 }
 </style>
->>>>>>> cfb6473... 解析树形数据渲染表格
 <style>
 </style>

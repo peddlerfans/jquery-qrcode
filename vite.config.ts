@@ -20,10 +20,7 @@ export default defineConfig({
     vue(),
     vueJsx(),
     Components({
-<<<<<<< HEAD
-=======
       dirs: ['src/components', 'src/views'],
->>>>>>> cfb6473... 解析树形数据渲染表格
       resolvers: [AntDesignVueResolver()]
     }),
     createSvgIconsPlugin({
@@ -67,25 +64,12 @@ export default defineConfig({
     port: 7777,
     proxy: {
       "/api": {
-<<<<<<< HEAD
-        // target: 'https://mbt-dev.oppo.itealab.net/api/',
-        target:'https://www.baidu.com',
-        changeOrigin: true,
-        secure: false,
-        // headers: {                  
-        //   Referer: 'https://mbt-dev.oppo.itealab.net'
-        // },
-        rewrite: (path:string) => {
-          console.log('...kkkkkk....',path)
-          return path.replace(/^\/api/, '')}
-=======
         target: 'https://mbt-dev.oppo.itealab.net/api/',
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => {
           return path.replace(/^\/api/, '')
         }
->>>>>>> cfb6473... 解析树形数据渲染表格
       }
     }
   }

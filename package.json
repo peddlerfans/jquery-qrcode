@@ -1,13 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "clown-fish-admin",
-  "author": {
-    "name": "ZhaoJieXin",
-    "email": "572116385@qq.com",
-    "url": "https://1esse.github.io/vue-clownfish-admin/"
-  },
-  "version": "1.0.18",
-=======
   "name": "mbt",
   "author": {
     "name": "David",
@@ -15,7 +6,6 @@
     "url": ""
   },
   "version": "1.0.0",
->>>>>>> cfb6473... 解析树形数据渲染表格
   "scripts": {
     "dev": "vite",
     "unittest": "echo unittest",
@@ -54,7 +44,7 @@
     "@types/nprogress": "0.2.0",
     "@types/overlayscrollbars": "1.12.1",
     "@types/qs": "6.9.7",
-    "@vitejs/plugin-vue": "3.0.3",
+    "@vitejs/plugin-vue": "^3.0.3",
     "@vitejs/plugin-vue-jsx": "2.0.0",
     "autoprefixer": "10.4.8",
     "mockjs": "1.1.0",
