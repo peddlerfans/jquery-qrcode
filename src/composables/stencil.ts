@@ -1,5 +1,6 @@
+import { ConsoleSqlOutlined } from "@ant-design/icons-vue";
 import * as joint from "jointjs";
-import { dia } from "jointjs";
+import { dia ,g} from "jointjs";
 
 export class Stencil {
   states: object;
@@ -55,9 +56,9 @@ export class Stencil {
     });
 
 
-    let gateway = new joint.shapes.uml.State({
-      position: { x: 10, y: 90 },
-      size: { width: 140, height: 70 },      
+    let umlstate = new joint.shapes.uml.State({
+      position: { x: 10, y: 100 },
+      size: { width: 70, height: 70 },      
       attrs: {
           root: {
               highlighterSelector: 'body'
@@ -76,12 +77,77 @@ export class Stencil {
     });
 
 
+    let RhombusShape = dia.Element.define('RHOMBUS', {
+      size: { width: 70, height: 35 },
+      attrs: {
+          root: {
+              highlighterSelector: 'body'
+          },
+          body: {
+              d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
+              ...this.bodyAttributes
+          },
+          label: {
+              text: 'X',
+              ...this.labelAttributes
+          }
+      }
+  }, {
+      markup: [{
+          tagName: 'path',
+          selector: 'body'
+      }, {
+          tagName: 'text',
+          selector: 'label'
+      }],
+  
+      getConnectToolMarkup() {
+          const { width, height } = this.size();
+          return [{
+              tagName: 'path',
+              attributes: {
+                  d: `M ${width/2} 0 ${width} ${height/2} ${width/2} ${height} 0 ${height/2} Z`,
+                  ...this.connectToolAttributes
+              }
+          }];
+      },
+  
+      getCurveDirection(point:g.Point) {
+          const bbox = this.getBBox();
+          const angle = bbox.center().angleBetween(point, bbox.topMiddle());
+          if (angle % 90 === 0) {
+              return 'auto';
+          }
+          let ratio = bbox.height / bbox.width;
+          if ((angle % 180) < 90) {
+              ratio = 1 / ratio;
+          }
+          return 360 - Math.floor(angle / 90) * 90 + g.toDeg(Math.atan(ratio));
+      },
+  
+      getClosestBoundaryPoint(bbox:any, point:g.Point) {
+          const rhombus = new g.Polygon([
+              bbox.topMiddle(),
+              bbox.rightMiddle(),
+              bbox.bottomMiddle(),
+              bbox.leftMiddle(),
+          ]);
+          return rhombus.closestPoint(point);
+      }
+  });
+
+  let rhombus = new RhombusShape({
+    position: { x: 10, y: 200 }
+});
     this.states = {};
     Object.assign(this.states, { s0: s0 });
  
     Object.assign(this.states, { se: se });
-    Object.assign(this.states,{gateway:gateway});
-
+    Object.assign(this.states,{umlstate:umlstate});
+    Object.assign(this.states,{rhombus:rhombus});
+    console.log('1:',s0);
+      console.log('2:',rhombus);
+debugger
     this.paper = new joint.dia.Paper({
       el: canvas.value,
       model: this.graph,
