@@ -44,7 +44,16 @@ export class MbtModeler {
   boundaryTool = new joint.elementTools.Boundary();
   removeButton = new joint.elementTools.Remove();
   connectButton = new joint.elementTools.Connect();
-
+  customNamespace : joint.dia.Paper.Options['cellViewNamespace'] ={};
+  Shape = joint.dia.Element.define('shapeGroup.Shape', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
   toolsView = new joint.dia.ToolsView({
     tools: [this.boundaryTool, this.removeButton, this.connectButton],
   });
@@ -55,8 +64,18 @@ export class MbtModeler {
     return rect;
   }
   setupElementTool() {}
+  setupNamespace() {
+    Object.assign(this.customNamespace, {
+      shapeGroup: 
+          this.Shape
+      
+  });
+  }
+  
+
+  
   constructor(canvas: any) {
-   
+    this.setupNamespace();
     this.paper = new joint.dia.Paper({
       el: canvas.value,
       model: this.graph,
@@ -64,6 +83,7 @@ export class MbtModeler {
       height: "100%",
       gridSize: 10,
       drawGrid: true,
+      cellViewNamespace: this.customNamespace ,
       defaultLink: new joint.shapes.standard.Link({
         router: { name: "manhattan" },
         connector: { name: "rounded" },

@@ -14,19 +14,22 @@ declare module JQuery {
 declare module 'jointjs' {
 
     export namespace dia {
-        interface Paper {
-            $el?:any
-        }
 
         namespace Paper {
             
-            interface Options {
+            interface Options extends mvc.ViewOptions<Graph> {
                 model?: Graph;
                 el?: any;
 
             }
 
         }
+        interface Paper {
+            $el?:any,
+            // Options?:mvc.ViewOptions<Graph> 
+
+        }
+
         interface Cell {
             position(x:number,y:number,opt?:any) : any;
         }
