@@ -75,17 +75,29 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/templatemanager',
-    name: 'Templatemanager',
+    name: 'templatemanager',
     component: Layout,
-    redirect: { name: 'Templatemanager' },
-    meta: { breadcrumb: false },
+    redirect: { name: 'staticTemplate' },
+    meta: { title:'Template Manager',icon:ExportOutlined,breadcrumb: false },
     children: [
       {
-        path: 'index',
-        name: 'Templatemanager',
-        component: () => import('@/views/templatemanager.vue'),
-        meta: { title: 'Template Manager', icon: ProfileOutlined, keepAlive: true }
+        path: 'meta',
+        name: 'metaTemplate',
+        component: () => import('@/views/metatemplate.vue'),
+        meta: { title: 'Meta Template', icon: FieldBinaryOutlined, keepAlive: true }
+      },
+      {
+        path: 'static',
+        name: 'staticTemplate',
+        component: () => import('@/views/statictemplate.vue'),
+        meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
+      },{
+        path: 'dynamic',
+        name: 'pairwiseTemplate',
+        component: () => import('@/views/dynamictemplate.vue'),
+        meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
       }
+
     ]
   }
 
