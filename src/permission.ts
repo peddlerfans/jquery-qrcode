@@ -6,6 +6,7 @@ import { getCookie, removeCookie } from './utils'
 import { userStore } from './stores/user'
 import { message } from 'ant-design-vue'
 
+
 NProgress.configure({ showSpinner: false })
 
 const whitelist: string[] = ['/login', '/404']

@@ -1,23 +1,28 @@
-import { defineStore } from "pinia"
+import { defineStore, Store } from "pinia"
 import { RouteRecordRaw } from "vue-router"
 import request from "@/utils/request"
+import { Stores } from "types/stores"
 
 export const awStore = defineStore(
     "awstore",
     {
-        state: () => {
-            return {
-                treeData: [],
-                tableData: []
-            }
-        },
+        state: (): Stores.awdata => ({
+            searchobj: {
+                search: "",
+                size: 20
+            },
+            treeDatas: [],
+            tableData: []
+
+        }),
         actions: {
             // 获取基础数据的接口
-            async query(data: any) {
+            async query(data?: any) {
                 return new Promise((resolve, reject) => {
-                    request.get("/api/hlfs", { params: data }).then(
+                    request.get("/api/hlfs", { params: data || this.searchobj }).then(
                         (res) => {
-                            console.log(res);
+                            this.tableData = res.data
+                            console.log(this.tableData);
                         }
                     )
                 })
@@ -28,8 +33,8 @@ export const awStore = defineStore(
                 return new Promise((resolve, reject) => {
                     request.get<any>("/api/hlfs/_tree").then((res) => {
                         if (res) {
-                            this.treeData = res
-                            console.log(this.treeData);
+                            this.treeDatas = res
+                            console.log(this.treeDatas);
                         } else {
                             reject(new Error("请求失败"))
                         }
@@ -37,6 +42,16 @@ export const awStore = defineStore(
                     })
                 })
             }
+        },
+        persist: {
+            enabled: true,
+            strategies: [
+                {
+                    key: "tableData",
+                    storage: window.localStorage,
+                    paths: ["tableData"]
+                }
+            ]
         }
     }
 )
