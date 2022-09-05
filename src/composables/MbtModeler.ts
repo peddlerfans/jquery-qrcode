@@ -3,6 +3,8 @@ import { dia, shapes } from "jointjs";
 // import { join } from "path";
 import { Ref, ref } from "vue";
 
+
+
 export class test extends joint.shapes.standard.Rectangle {
   constructor() {
     super();
@@ -62,6 +64,16 @@ export class MbtModeler {
       height: "100%",
       gridSize: 10,
       drawGrid: true,
+      defaultLink: new joint.shapes.standard.Link({
+        router: { name: "manhattan" },
+        connector: { name: "rounded" },
+        attrs: {
+          line: {
+            stroke: "#333333",
+            strokeWidth: 3,
+          },
+        },
+      })
     });
     this.paper.on("element:mouseenter", (elementView) => {
       elementView.showTools();

@@ -1,17 +1,30 @@
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 
-// import * as $ from 'jquery';
-// import $ from "jquery";
-// import { Ref, ref } from "vue";
-
 export class Stencil {
   states: object;
   linkAttrs: object = {};
   transitions: [] = [];
   paper: dia.Paper;
   graph: dia.Graph = new joint.dia.Graph();
-
+  bodyAttributes = {
+    fill: "#FCFCFC",
+    stroke: "#333333",
+    strokeWidth: 2,
+    cursor: "grab",
+  };
+  labelAttributes = {
+    textVerticalAnchor: "middle",
+    textAnchor: "middle",
+    x: "calc(.5*w)",
+    y: "calc(.5*h)",
+    fill: "#333333",
+    fontSize: 18,
+    fontWeight: "bold",
+    fontFamily: "sans-serif",
+    fontVariant: "small-caps",
+    pointerEvents: "none",
+  };
   constructor(canvas: any) {
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 10, y: 10 },
@@ -41,10 +54,33 @@ export class Stencil {
       },
     });
 
+
+    let gateway = new joint.shapes.uml.State({
+      position: { x: 10, y: 90 },
+      size: { width: 140, height: 70 },      
+      attrs: {
+          root: {
+              highlighterSelector: 'body'
+          },
+          body: {
+              d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
+              ...this.bodyAttributes
+          },
+          label: {
+              text: 'Rhombus',
+              ...this.labelAttributes
+          }
+      }
+
+
+    });
+
+
     this.states = {};
     Object.assign(this.states, { s0: s0 });
  
     Object.assign(this.states, { se: se });
+    Object.assign(this.states,{gateway:gateway});
 
     this.paper = new joint.dia.Paper({
       el: canvas.value,
