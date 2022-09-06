@@ -6,6 +6,7 @@ import { dia } from "jointjs";
 import { ref, onMounted } from "vue";
 import type { Ref } from "vue";
 import $ from "jquery";
+
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);

@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+import { defineConfig,loadEnv } from 'vite'
+
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
@@ -8,16 +9,20 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import postcssNesting from 'postcss-nesting'
 import autoprefixer from 'autoprefixer'
 import flexbugsFixes from 'postcss-flexbugs-fixes'
+// import { viteMockServe } from "vite-plugin-mock";
 
 function resolvePath(src: string) {
   return path.resolve(__dirname, src)
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default  defineConfig({
   base: '/',
   plugins: [
     vue(),
+    // viteMockServe({
+    //   supportTs: true, 
+    // }),
     vueJsx(),
     Components({
       resolvers: [AntDesignVueResolver()]
@@ -27,6 +32,7 @@ export default defineConfig({
       symbolId: 'svg-[dir]-[name]',
     })
   ],
+  
   css: {
     preprocessorOptions: {
       less: {
@@ -60,15 +66,23 @@ export default defineConfig({
   },
   server: {
     open: false,
-    port: 7777,
-    proxy: {
-      "/api": {
-        target: 'https://mbt-dev.oppo.itealab.net/',
-        changeOrigin: true,
-        secure: false
-      //   rewrite: (path:string) => {
-      //     return path.replace(/^\/api/, '')}
-      }
-    }
+    port: 7777
+    // proxy: {
+    //   "/api": {
+    //     target: 'https://mbt-dev.oppo.itealab.net/api',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path:string) => {
+    //       return path.replace(/^\/api/, '')}
+    //   },
+    //   "/mbtapi": {
+    //     target: 'https://flows.iteatechnologies.com',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path:string) => {
+    //       return path.replace(/^\/mbtapi/, '')}
+      
+    //   }
+    // }
   }
 })

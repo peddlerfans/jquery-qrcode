@@ -19,4 +19,24 @@ export namespace Stores {
         description: string[]            
     }
   }
+
+  interface resourceschema{
+    name:string,
+    type:string
+  }
+  interface mbt {
+    name: string,
+    description: string,
+    tags: string[],
+    modelDefinition:object,
+    dataDefinition: {
+      resources:resourceschema[],
+      dataType:string,
+      dataUrl:string,
+      data:object,
+      metaTemplate:string,
+      meta:object
+
+    }
+  }
 }

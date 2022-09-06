@@ -8,6 +8,7 @@ type GlobModule = {
 }
 
 function collectApis(): MockApi.obj[] {
+  debugger
   const mockApis = []
   const apiModules = import.meta.glob('./api/*.ts', { eager: true })
 
@@ -36,6 +37,7 @@ function enableMock(timeout: string | number = '100-1000') {
 
   const mockApis = collectApis()
   for (const api of mockApis) {
+    debugger
     Mock.mock(new RegExp(api.url), api.type || 'get', (options: MockApi.request) => {
       // 如果传过来的body是序列化且有值，则解析body内容
       if (typeof options.body === 'string' && options.body) {

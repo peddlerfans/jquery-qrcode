@@ -145,9 +145,7 @@ export class Stencil {
     Object.assign(this.states, { se: se });
     Object.assign(this.states,{umlstate:umlstate});
     Object.assign(this.states,{rhombus:rhombus});
-    console.log('1:',s0);
-      console.log('2:',rhombus);
-debugger
+
     this.paper = new joint.dia.Paper({
       el: canvas.value,
       model: this.graph,
