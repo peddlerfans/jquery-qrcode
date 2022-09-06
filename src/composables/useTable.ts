@@ -60,7 +60,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
   }
 
   function updateTable({ fetchUrl }: { fetchUrl?: string } = {}) {
-    debugger
+    
     if (!fetchUrl) fetchUrl = updateTableOptions.fetchUrl
     if (!fetchUrl) return console.warn('表格更新失败，请检查参数{fetchUrl}')
     selectedRowKeys.value = []
@@ -71,8 +71,9 @@ export default function ({ table, columns, pagination, updateTableOptions }:
         perPage: _pagination.pageSize
       }
     }).then(res => {
-      
+      // console.log('res:',res)
       _dataSource.value = res.data?.data
+      
       _pagination.total = res.data?.total
     }).catch(e=>{
       console.log('err:',e)

@@ -1,6 +1,6 @@
 import { Stores } from '../../types/stores'
 import { MockApi } from '../mockapi'
-debugger
+
 const mbtlist: Stores.mbt[] = [
 
     {
@@ -148,11 +148,11 @@ export default <MockApi.obj[]>[
                 data: null
             }
             // 获取token
-            debugger
+
             const mbtname = options.url.slice(options.url.indexOf('/') + 1)
-            console.log('kkkkkk:',mbtname)
+            
             if (!mbtname) return failRes
-            console.log('mbtlist:',mbtlist)
+            
             const mbt = mbtlist.values
             if (!mbt) return failRes
             return {
