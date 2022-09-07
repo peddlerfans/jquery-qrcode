@@ -65,7 +65,6 @@
       max-width: 50vw;
       min-width: 100px;
       overflow: auto;
-      top: 1rem;
 
       .left-content {
         height: 100%;
@@ -95,11 +94,13 @@
 
     .right-content {
       flex: 1;
+      padding: 1.25rem 0;
     }
 
     .left-content,
     .right-content {
       overflow: auto;
+     
     }
   }
   

@@ -1,36 +1,45 @@
 import jointjs from 'jointjs'
 import { PathParserOptions } from 'vue-router'
 import 'vue-router';
+import { any } from 'vue-types';
+import $ from 'jquery'
+
+declare module JQuery {
+    namespace JQuery {
+        interface JQuery<TElement = HTMLElement> extends Iterable<TElement> {
+
+        }
+    }
+}
 declare module 'jointjs' {
 
-    namespace dia {
+    export namespace dia {
 
         namespace Paper {
-            interface Options {
+            
+            interface Options extends mvc.ViewOptions<Graph> {
                 model?: Graph;
                 el?: any;
 
             }
 
         }
-    }
+        interface Paper {
+            $el?:any,
+            // Options?:mvc.ViewOptions<Graph> 
 
+        }
+
+        interface Cell {
+            position(x:number,y:number,opt?:any) : any;
+        }
+       
+        interface CellView {
+            model?: Cell;
+        }
+
+    }
 }
 
 
-declare module 'vue-router' {
-    //    interface RouteMeta {
-    //      requiresAuth?: boolean
-    //    }
-    interface _RouteRecordBase extends PathParserOptions {
-
-        meta?: any
-    }
-    interface RouteMeta extends VRouteMeta {
-        icon?: any;
-    }
-    type RouteRecordRaw = RouteRecordSingleView | RouteRecordSingleViewWithChildren | RouteRecordMultipleViews | RouteRecordMultipleViewsWithChildren | RouteRecordRedirect | any;
-
-
-}
 

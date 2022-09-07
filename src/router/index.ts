@@ -1,6 +1,5 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Layout from '@/layout/index.vue'
-
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
@@ -18,10 +17,14 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: 'Dashboard', icon: HomeOutlined }
-
     }
   ]
 }
+
+
+
+
+
 const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/redirect',
@@ -72,17 +75,29 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/templatemanager',
-    name: 'Templatemanager',
+    name: 'templatemanager',
     component: Layout,
-    redirect: { name: 'Templatemanager' },
-    meta: { breadcrumb: false },
+    redirect: { name: 'staticTemplate' },
+    meta: { title: 'Template Manager', icon: ExportOutlined, breadcrumb: false },
     children: [
       {
-        path: 'index',
-        name: 'Templatemanager',
-        component: () => import('@/views/templatemanager.vue'),
-        meta: { title: 'Template Manager', icon: ProfileOutlined, keepAlive: true }
+        path: 'meta',
+        name: 'metaTemplate',
+        component: () => import('@/views/metatemplate.vue'),
+        meta: { title: 'Meta Template', icon: FieldBinaryOutlined, keepAlive: true }
+      },
+      {
+        path: 'static',
+        name: 'staticTemplate',
+        component: () => import('@/views/statictemplate.vue'),
+        meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
+      }, {
+        path: 'dynamic',
+        name: 'pairwiseTemplate',
+        component: () => import('@/views/dynamictemplate.vue'),
+        meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
       }
+
     ]
   }
 
@@ -91,12 +106,12 @@ export const routes: RouteRecordRaw[] = [
     path: '/awmodeler',
     name: 'Awmodeler',
     component: Layout,
-    redirect: { name: 'awmodeler' },
+    redirect: { name: 'AWModeler' },
     meta: { breadcrumb: false },
     children: [
       {
         path: 'index',
-        name: 'awmodeler',
+        name: 'AWModeler',
         component: () => import('@/views/awmodeler.vue'),
         meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
       }
@@ -128,9 +143,9 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'templatemanager',
+        name: 'Mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
-        meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
+        meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }
     ]
 

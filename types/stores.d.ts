@@ -5,12 +5,38 @@ export namespace Stores {
     sex?: 'male' | 'female' | 'unknown'
     token?: string
   }
-  interface awdata {
-    searchobj: {
-      search: string,
-      size: number
+
+  interface aw {
+    name: string,
+    description: string,
+    path: string,
+    tags: string[],
+    params: string[],
+    name_hash: string,
+    description_hash: string,
+    _id: string,
+    _highlight: {
+        description: string[]            
     }
-    treeDatas: Array<string>
-    tableData: Array<any>
+  }
+
+  interface resourceschema{
+    name:string,
+    type:string
+  }
+  interface mbt {
+    name: string,
+    description: string,
+    tags: string[],
+    modelDefinition:object,
+    dataDefinition: {
+      resources:resourceschema[],
+      dataType:string,
+      dataUrl:string,
+      data:object,
+      metaTemplate:string,
+      meta:object
+
+    }
   }
 }

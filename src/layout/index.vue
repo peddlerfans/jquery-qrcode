@@ -31,8 +31,6 @@
   
   <template>
     <ALayout>
-      <!-- 侧边栏 -->
-
       <ALayoutSider v-if="!_isMobile" v-model:collapsed="sidebarRelated.collapsed" collapsible :trigger="null"
         :width="sidebarRelated.width" :collapsedWidth="sidebarRelated.collapsedWidth" breakpoint="md">
         <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
@@ -44,32 +42,26 @@
         </div>
       </ALayoutSider>
       <ALayout>
-        <!-- 顶部导航栏 -->
-
         <ALayoutHeader v-if="fixedHeader">
           <HeadBar></HeadBar>
           <TabsBar :withIcons="true"></TabsBar>
         </ALayoutHeader>
-        
         <ALayoutContent id="content-window">
           <div v-if="!fixedHeader" style="padding: 0 1rem;">
             <HeadBar></HeadBar>
             <TabsBar :withIcons="true"></TabsBar>
           </div>
           <RouterView v-slot="{ Component, route }" class="content-view">
-
-            <!-- 组件显示区域 -->
             <Transition :name="transitions.fadeScale" mode="out-in" appear>
               <!-- 
                 vite的hmr和keepalive组件冲突会导致路由失效，
                 https://github.com/vuejs/core/pull/5165
                 开发过程注释掉keepalive
               -->
-              <KeepAlive :include="Array.from(keepAlivePages)" :max="10">
+              <!-- <KeepAlive :include="Array.from(keepAlivePages)" :max="10"> -->
                 <component :is="Component" :key="route.name" />
-              </KeepAlive>
+              <!-- </KeepAlive> -->
             </Transition>
-            
           </RouterView>
         </ALayoutContent>
       </ALayout>
@@ -101,6 +93,10 @@
     flex-direction: column;
   }
   .content-view {
-    padding: 1rem;
+    padding: 0.2rem;
+  }
+
+  #content-window {
+    padding: 0.2rem;
   }
   </style>

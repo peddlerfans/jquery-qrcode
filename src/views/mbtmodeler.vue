@@ -1,87 +1,160 @@
-<script lang="ts">
-    export default {name: 'mbtmodeler'}
-</script>
-
 <script setup lang="ts">
-import * as joint from 'jointjs'
-// import {Paper} from 'jointjs'
-import {ref,onMounted} from 'vue'
-import type { Ref } from 'vue'
-import {dia ,util, config, g,Vectorizer,VElement,shapes,highlighters,env,
-layout,mvc,routers,connectors,anchors,attributes,elementTools,linkTools} from 'jointjs'
-const paper:Ref<dia.Paper | null> = ref(null);
- 
-const paper2:Ref<dia.Paper | null> = ref(null)
-const canvas= ref(HTMLElement)
-const canvas2 = ref(HTMLElement)
+import { MbtModeler } from "@/composables/MbtModeler";
+import { Stencil } from "@/composables/stencil";
+import * as joint from "jointjs";
+import { dia } from "jointjs";
+import { ref, onMounted } from "vue";
+import type { Ref } from "vue";
+import $ from "jquery";
 
+const canvas = ref(HTMLElement);
+const stencilcanvas = ref(HTMLElement);
+let showPropPanel: Ref<boolean> = ref(false);
 
-function init() {
-    let graph = new joint.dia.Graph
-    let graph2 = new joint.dia.Graph
-    console.log('graph:',graph)
-    
-    paper.value = new joint.dia.Paper({ 
-        el: canvas.value,
-        model: graph,
-        width: 900,
-        height: 300,
-        gridSize: 1
-    })
-    paper2.value = new joint.dia.Paper({
-        el: canvas2.value,
-        model: graph2,
-        width: 900,
-        height: 300,
-        gridSize: 1
-    })
-    console.log('paper:',paper)
-    let rect = new joint.shapes.standard.Rectangle()
-    rect.position(100, 30)
-    rect.resize(100, 40)
-    rect.attr({
-        body: {
-            fill: 'blue'
-        },
-        label: {
-            text: 'Start',
-            fill: 'white'
-        }
-    })
-    rect.addTo(graph)
-
-    let rect2 = rect.clone()
-    rect2.translate(300, 0)
-    rect2.attr('label/text', 'End')
-    rect2.addTo(graph)
-
-
-    let link = new joint.shapes.standard.Link()
-    link.source(rect)
-    link.target(rect2)
-    link.addTo(graph)
+function onClose() {
+  showPropPanel.value = false;
 }
-onMounted(() => {
-    init()
-})
 
+function onShow(cell?: any) {
+  
+  showPropPanel.value = true;
+}
+
+let modeler: MbtModeler;
+let stencil: Stencil;
+onMounted(() => {
+  
+  stencil = new Stencil(stencilcanvas);
+  modeler = new MbtModeler(canvas);
+  stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
+    $("body").append(
+      '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
+    );
+    let flyGraph = new joint.dia.Graph();
+    let flyPaper = new joint.dia.Paper({
+      el: $("#flyPaper"),
+      model: flyGraph,
+      interactive: false,
+    });
+    
+    let flyShape = cellView.model!.clone();
+    
+    let pos = cellView.model!.position();
+    
+    let offset = {
+      x: x - pos.x,
+      y: y - pos.y,
+    };
+    
+
+    flyShape.position(0, 0);
+    // flyShape.position();
+    flyGraph.addCell(flyShape);
+    
+
+    $("#flyPaper").offset({
+      left: (e.pageX as number) - offset.x,
+      top: (e.pageY as number) - offset.y,
+    });
+
+    $("body").on("mousemove.fly", (e: any) => {
+      $("#flyPaper").offset({
+        left: (e.pageX as number) - offset.x,
+        top: (e.pageY as number) - offset.y,
+      });
+    });
+
+    $("body").on("mouseup.fly", (e: any) => {
+    
+      var x = e.pageX,
+        y = e.pageY,
+        target = modeler.paper.$el.offset();
+
+      let paperwidth: number = modeler.paper.$el.width();
+      let paperheight: number = modeler.paper.$el.height();
+      let targetwidth = target.left + paperwidth;
+      let targetheight = target.top + paperheight;
+
+      if (x > target.left && x < targetwidth && y > target.top && y < targetheight) {
+        var s = flyShape.clone();
+        s.position(
+          x - target.left - offset.x,
+          y - target.top - offset.y
+        );
+        modeler.graph.addCell(s);
+      }
+      $("body").off("mousemove.fly").off("mouseup.fly");
+      flyShape.remove();
+      $("#flyPaper").remove();
+    });
+  });
+  modeler.paper.on("element:pointerclick", (event) => {
+    
+  });
+});
 </script>
 
 <template>
-      <section class="block shadow flex-center" style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
-        <div class="canvas" ref="canvas"></div>
-    <div class="canvas2" ref="canvas2"></div>
-  </section>
+  <section
+    class="block shadow flex-center"
+    style="
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      color: var(--gray);
+      font-size: 5rem;
+    "
+  >
+    <!-- <div
+      :style="{
+        height: '100%',
+        overflow: 'hidden',
+        position: 'relative',
+        border: '1px solid #ebedf0',
+        borderRadius: '2px',
 
+        textAlign: 'center',
+        width: '100%',
+      }"
+    > -->
+    <SplitPanel>
+      <template #left-content>
+        <div class="stencil" ref="stencilcanvas"></div>
+      </template>
+      <template #right-content>
+        <div class="canvas" ref="canvas"></div>
+      </template>
+    </SplitPanel>
+    <!-- <a-drawer
+        title="Basic Drawer"
+        placement="right"
+        :closable="true"
+        :visible="showPropPanel"
+        :get-container="false"
+        :style="{ position: 'absolute' }"
+        @close="onClose"
+      >
+        <p>Some contents...</p>
+      </a-drawer> 
+    </div>-->
+  </section>
 </template>
 
-<style>
+<style scoped>
 .canvas {
-    margin:10px;
-    background-color:#3BA6F5;
+  margin: 10px;
 }
-.canvas2 {
-    margin:10px;
-    background-color:#F84C5D;
+.stencil {
+  height: "100%";
+  overflow: "hidden";
+  position: "relative";
+  margin: 10px;
+  width: 100px;
+  background-color: #47cf73;
+}
+
+.split-wrapper .scalable {
+  width: 20px;
+  max-width: 5vw;
 }
 </style>

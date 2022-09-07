@@ -3,7 +3,7 @@ export default { name: 'AWModeler'}
 </script>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onBeforeMount ,defineComponent, UnwrapRef,onMounted, onActivated, nextTick} from 'vue';
+import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
 import type { FormProps, TableProps, TreeProps } from 'ant-design-vue';
 import {
   SyncOutlined,
@@ -12,19 +12,61 @@ import {
   DeleteOutlined,
   ExclamationCircleOutlined,
   SwapOutlined,
-  SmileOutlined,
-    DownOutlined,
+SmileOutlined,
+DownOutlined,
 } from '@ant-design/icons-vue';
 import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
 // import type { LoadDataParams } from '@/components/core/dynamic-table';
 // import type { TreeDataItem } from '@/core/permission/utils';
 import { SplitPanel } from '@/components/basic/split-panel';
-
-// 导入pinia中的请求
-// import {storeToRefs} from "pinia" 
-// import { awStore } from "@/stores/awtable"
+import { message } from 'ant-design-vue/es'
+import { useRouter } from 'vue-router'
 import request from '@/utils/request';
 import { cloneDeep } from 'lodash-es';
+import { Rule } from 'ant-design-vue/es/form';
+import { string } from 'vue-types';
+const router = useRouter()
+// const aw = awStore()
+
+interface State {
+  expandedKeys: number[];
+  // departmentIds: number[];
+  // deptTree: TreeDataItem[];
+}
+
+// const [DynamicTable, dynamicTableInstance] = useTable();
+// const [showModal] = useFormModal();
+
+// const deptListLoading = ref(false);
+
+const state = reactive<State>({
+  expandedKeys: [],
+  // departmentIds: [],
+  // deptTree: [],
+});
+// const aws = reactive<Stores.aw>({ name: '',
+//     description: '',
+//     path: '',
+//     tags: [],
+//     params: [],
+//     name_hash: '',
+//     description_hash: '',
+//     _id: '',
+//     _highlight: {
+//         description: []
+//     }});
+// /**
+//  * 获取aw列表
+//  */
+//  function getAWInfo() {
+//   aw.getAW('同时').then(res => {
+//     console.log('res from axios get aw:',res)
+//     return res;
+//   }).catch(err => {
+
+//     message.error(err)
+//   })
+
 interface tableSearch {
   search:string
   size:number
@@ -34,18 +76,19 @@ let searchobj: tableSearch = reactive({
   search: "",
   size:20
 })
-async function query(data?: any) {  
-  let rst=await request.get("/api/hlfs", { params: data || searchobj })
+onMounted(() => {
+  query()    
+}) 
+async function query(data?: any) {    
+  let rst = await request.get("/api/hlfs", { params: data || searchobj })
+  
   if (rst.data) {
-    
-    tableData.value=rst.data
+      tableData.value = rst.data
+      return rst.data
   }
 }
-    console.log(tableData);
-onMounted(() => {
-    query()
-}) 
-
+console.log(tableData);
+    
 
 // 表单的数据
 interface FormState {
@@ -61,60 +104,214 @@ const handleFinish: FormProps['onFinish'] = (values: any) => {
     };
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
-    };
+};
+// 表单验证
+let checkName = async (_rule: Rule, value: string) => {
+  let rst = await query({ search: value })  
+  if (!value) {
+    return Promise.reject("Please input your name!")
+  }else if (rst.length == 1) {
+    return Promise.reject("The name already exists")
+  } else {
+    return Promise.resolve();
+  }
+  
+}
+let checkDesc = async (_rule: Rule, value: string) => {
+  let rst = await query({ search: value })  
+  if (!value) {
+    return Promise.reject("Please input your name!")
+  }else if (rst.length == 1) {
+    return Promise.reject("The description already exists")
+  } else {
+    return Promise.resolve();
+  }
+  
+} 
+let checktem = async (_rule: Rule, value: string) => { 
+  
+  if (!value) {    
+    rules.template_en[0].required=false
+    return Promise.reject("Template or templ is required")
+  } else {
+    return Promise.resolve();
+  }
+}
+let checkTemen = async (_rule: Rule, value: string) => {
+  if (!value) {
+  console.log(rules.template_en[0].required);
+   
+    return Promise.reject("Please input your template_en!")
+  } else {
+    return Promise.resolve()
+      
+  }
+}
+let rules: Record<string, Rule[]> = {
+  name: [{ required: true, validator: checkName, trigger: 'blur' }],
+  description: [{required: true, validator: checkDesc, trigger: 'blur' }],
+  template: [{ required: true, validator: checktem, trigger: 'blur' }],
+  template_en: [{ required: true, validator: checkTemen, trigger: 'blur' }],
+      
+};
+    console.log(rules.template[0].required);
+    
+    
 
 // 模态窗数据
     const visible = ref<boolean>(false);
-
     const showModal = () => {
       visible.value = true;
     };
-
     const handleOk = () => {
-      visible.value = false;
+      onFinishForm(modelstates)
+      clear()
 };
+// 关闭模态窗触发事件
+const closemodel = () => {
+  visible.value = false;
+  clear()
+}
+// 清除模态窗数据
+const clear = () => {
+  modelstates.value = {
+      name: "",
+      description: '',
+      template: "",
+    _id: "",
+    template_en: "",
+    params:[],
+    tags:[]
+  }      
+}
 // 模态窗表单
+interface paramsobj {
+    name: string,
+    type: string;
+  
+}
 interface ModelState {
   name: string;
   description: string;
   template: string;
-  _id:string
+  template_en:string
+  _id: string;
+  tags: Array<string>;
+    params:Array<paramsobj>
 }
 
+// 点击添加params的函数
 
+
+
+let obj = ref<paramsobj>({ name: "", type: "" })
 // 添加功能的函数
-async function saveAw (data:any) {
-        let rst = await request.post("/api/hlfs", data)
+async function saveAw(data: any) {
+  
+  let rst = await request.post("/api/hlfs", data)
         console.log(rst);
-        
       }
 
-    let modelstates = reactive<ModelState>({
+    let modelstates = ref<ModelState>({
       name: '',
       description: '',
       template: "",
-      _id:""
+      template_en:"", 
+      _id: "",
+      params:[],
+      tags:[]
     });
-const onFinishForm = (values: any) => {
-      
-  if (modelstates._id) {
-        updateAw(`/api/hlfs/${modelstates._id}`,values  )
-  } else {
-        saveAw(values)
-      }
-      handleOk()
-      query()
-    };
+    
+    // 添加parmas的函数
+    function addparams(item:any) {
+  console.log(item);
+  modelstates.value.params.push(item)
+      console.log(modelstates.value.params)
+  
+}
+  // 删除params的函数
+function closepar(item:any) {
+  console.log(item);
+  const parry = modelstates.value.params.filter(paramsitem => paramsitem.name !== item.name)
+  modelstates.value.params=parry
+ }
 
+
+const onFinishForm = async (modelstates: any) => {
+modelstates.value.tags=states.tags
+  // 判断修改或添加
+      if (modelstates.value._id) {
+       await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+        message.success("Modified successfully")
+      } else {
+        delete modelstates.value._id
+        await saveAw(modelstates.value)
+        message.success("Added successfully") 
+      }
+    // }
+      query()
+  visible.value = false;
+      
+    };
     const onFinishFailedForm = (errorInfo: any) => {
       console.log('Failed:', errorInfo);
 };
+// 添加的表单tags
+interface statesTs {
+  tags: Array<string>
+  inputVisible: Boolean;
+  inputValue:string
+}
+let inputRef = ref();
+    let states = reactive<statesTs>({
+      tags: [],
+      inputVisible: false,
+      inputValue: '',
+    });
+
+    const handleClose = (removedTag: string) => {
+      const tags = states.tags.filter(tag => tag !== removedTag);
+      console.log(tags);
+      states.tags = tags;
+    };
+    const showInput = () => {
+      states.inputVisible = true;
+      nextTick(() => {
+        inputRef.value.focus();
+        })
+    };
+
+const handleInputConfirm = () => {
+  let tags = states.tags;
+  if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
+    tags = [...tags, states.inputValue];
+  }
+  Object.assign(states, {
+    tags,
+    inputVisible: false,
+    inputValue: '',
+ });  
+}
+
+
     // 删除功能
 async function delaw(key:any) {
-      let rst=await request.delete(`/api/hlfs/${key._id}`)
+  let rst = await request.delete(`/api/hlfs/${key._id}`)
+      query()
       console.log(rst);
       
-    }
+}
+const confirm = (e: MouseEvent) => {
+      delaw(e)
+      query()
+      message.success('Delete on Successed');
+    };
+
+    const cancel = (e: MouseEvent) => {
+      console.log(e);
+      message.error('Cancel deletion');
+    };
+    
 
 
     // 修改功能4
@@ -122,7 +319,6 @@ async function delaw(key:any) {
 async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
       console.log(rst);
-      
     }
 
 
@@ -133,133 +329,25 @@ interface DataItem {
 }
 
 // 修改的函数
-const edit = (obj:[]) => {
-  console.log(obj);
+const edit = (rowobj:any) => {
+  
   showModal()
-  // let{name:string
-  //     description: '',
-  //     template: "",
-  //     _id:""}=[...obj]
+  modelstates.value.name=rowobj.name
+  modelstates.value.description=rowobj.description
+  modelstates.value.template=rowobj.template
+  modelstates.value._id = rowobj._id
+  states.tags = rowobj.tags
+  modelstates.value.params = rowobj.params
+  
+  // let{name  description:,  template: _id:""}={...obj}
 }
-
-
-// 编辑弹窗的设置
-//     const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
-// const edit = (key: string) => {   
-//       console.log(key);
-      
-//   editableData[key] = cloneDeep((tableData.value as any).map((item: { _id: string; },index:string) => {
-//     if (key === item._id) {
-//           return item
-//         }
-//       }));
-//       console.log(editableData[key]);
-
-//     };
-//     const save = (key: string) => { 
-//       let updateobj = Object.assign((tableData.value as any).map((item: { _id: string; }) => {
-//          if (key === item._id) {
-//           return (tableData.value as any)[key]
-//         }
-//       })[key], editableData[key]);
-//       updateAw(`/api/hlfs/:id=${updateobj._id}`,updateobj)
-//       console.log(key,updateobj);
-      
-//       delete editableData[key];
-//     };
-//     const cancel = (key: string) => {
-//       delete editableData[key];
-// };
-
 const rowSelection: TableProps['rowSelection'] = {
   onChange: (selectedRowKeys: string[], selectedRows: any) => {
     console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
   },
 }
 
-    // 查询高级功能
-// interface AWInfo {
-//   name: string,
-//   description: string,
-//   path: string,
-//   tags: string[],
-//   params: string[],
-//   name_hash: string,
-//   description_hash: string,
-//   _id: string,
-//   _highlight: {
-//     description: string[]
-//   }
-// };
-interface State {
-  expandedKeys: number[];
-  departmentIds: number[];
-  // deptTree: TreeDataItem[];
-}
-
-// const [DynamicTable, dynamicTableInstance] = useTable();
-// const [showModal] = useFormModal();
-
-// const deptListLoading = ref(false);
-
-const state = reactive<State>({
-  expandedKeys: [],
-  departmentIds: [],
-  // deptTree: [],
-});
-
-
-// const rowSelection = ref({
-  // selectedRowKeys: [] as number[],
-  // onChange: (selectedRowKeys: number[], selectedRows: TableListItem[]) => {
-  //   console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-  //   rowSelection.value.selectedRowKeys = selectedRowKeys;
-  // },
-// });
-
-
-/**
- * 获取aw列表
- */
-const fetchAWList = async () => {
-  // deptListLoading.value = true;
-  // const dept = await getDeptList().finally(() => (deptListLoading.value = false));
-  // state.deptTree = formatDept2Tree(dept);
-  // state.expandedKeys = [...state.expandedKeys, ...state.deptTree.map((n) => Number(n.key))];
-};
-
-const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
-const treeData: TreeProps['treeData'] = [
-  {
-    title: 'parent 1',
-    key: '0-0',
-    children: [
-      {
-        title: 'parent 1-0',
-        key: '0-0-0',
-        disabled: true,
-        children: [
-          { title: 'leaf', key: '0-0-0-0', disableCheckbox: true },
-          { title: 'leaf', key: '0-0-0-1' },
-        ],
-      },
-      {
-        title: 'parent 1-1',
-        key: '0-0-1',
-        children: [{ key: '0-0-1-0', title: 'sss' }],
-      },
-    ],
-  },
-];
-// watch(() => [...tableData], (now, old) => {
-//     console.log(now, old)
-// })
-// const data=ref((tableData.value as any).map((item:any,index:any)=>{
-//   return {...item,key:index}
-// }))
-// console.log(data);
-
-
+// }
 // 表格的结构
 const columns = reactive<Object[]>(
   [
@@ -272,15 +360,39 @@ const columns = reactive<Object[]>(
     title: 'description',
     dataIndex: 'description',
     key: 'description',
+    },
+    {
+      title: 'template',
+      dataIndex: 'template',
+    key:'template'
+    },
+   {
+      title: 'tags',
+      dataIndex: 'tags',
+    key:'tags'
+    },
+  {
+      title: 'params',
+      dataIndex: 'params',
+    key:'params'
   },
   {
     title: 'Action',
     dataIndex: 'action',
-
     key: 'action',
   },
 ]
 )
+const expend = (isExpand:any,rected:any) => {
+  console.log(isExpand,rected);
+  
+}
+
+// 子表格的结构
+const innerColumns= [
+  { title: 'Name', dataIndex: 'name', key: 'name' },
+  { title: 'type', key: 'type', dataIndex: 'type' },
+]
  defineComponent({
   components: {
     SmileOutlined,
@@ -289,50 +401,101 @@ const columns = reactive<Object[]>(
 })
 
 const wrapperCol={span:24,offset:12}
+
+
+
+const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
+
+const treeData: TreeProps['treeData'] = [
+   {
+        title: 'parent 1',
+        key: '0-0',
+        children: [
+          {
+            title: 'parent 1-0',
+            key: '0-0-0',
+            children: [
+              { title: 'leaf', key: '0-0-0-0' },
+              {
+                key: '0-0-0-1',
+              },
+              { title: 'leaf', key: '0-0-0-2' },
+            ],
+          },
+          {
+            title: 'parent 1-1',
+            key: '0-0-1',
+            children: [{ title: 'leaf', key: '0-0-1-0' }],
+          },
+          {
+            title: 'parent 1-2',
+            key: '0-0-2',
+            children: [
+              { title: 'leaf 1', key: '0-0-2-0' },
+              {
+                title: 'leaf 2',
+                key: '0-0-2-1',
+              },
+            ],
+          },
+        ],
+  },
+       {
+        title: 'parent 2',
+        key: '0-1',
+        children: [
+          {
+            title: 'parent 2-0',
+            key: '0-1-0',
+            children: [
+              { title: 'leaf', key: '0-1-0-0' },
+              { title: 'leaf', key: '0-1-0-1' },
+            ],
+          },
+        ],
+      },
+];
+const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
+      console.log('selected', selectedKeys, info);
+    };
 </script>
 
 <template>
-  <main class="main">
-    <section class="block shadow flex-center"
-      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
+  <main class="main"> 
       <SplitPanel>
         <template #left-content>
           <div class="flex justify-between">
-            <!-- <div>组织架构</div> -->
             <Space>
               <Tooltip v-if="true" placement="top">
                 <template #title>新增部门 </template>
-                
-                <!-- <PlusOutlined @click="openDeptModal({})" /> -->
               </Tooltip>
               <Tooltip placement="top">
                 <template #title>刷新 </template>
-                <!-- <SyncOutlined :spin="deptListLoading"  /> -->
               </Tooltip>
             </Space>
           </div>
-          <Tree v-model:expandedKeys="expandedKeys" auto-expand-parent :tree-data="treeData">
-            <template #title="{ key, title, formData }">
-              <Dropdown :trigger="['contextmenu']">
-                <span>{{ title }}</span>
-                <template #overlay>
-                  <Menu>
-                    <Menu.Item key="1">
-                      编辑
-                      <EditOutlined />
-                    </Menu.Item>
-                    <!-- <Menu.Item key="2" :disabled="!$auth('sys.dept.delete')" @click="delDept(key)">
-                  删除 <DeleteOutlined />
-                </Menu.Item> -->
-                  </Menu>
-                </template>
-              </Dropdown>
-            </template>
-          </Tree>
+          <a-tree
+      :show-line="true"
+      :default-expanded-keys="['0-0-0']"
+      :tree-data="treeData"
+      @select="onSelect"
+    >
+      <template #icon><carry-out-outlined /></template>
+      <template #title="{ dataRef }">
+        <template v-if="dataRef.key === '0-0-0-1'">
+          <div>multiple line title</div>
+          <div>multiple line title</div>
+        </template>
+        <template v-else>{{ dataRef.title }}</template>
+      </template>
+      <template #switcherIcon="{ dataRef, defaultIcon }">
+        <SmileTwoTone v-if="dataRef.key === '0-0-2'" />
+        <component :is="defaultIcon" v-else />
+      </template>
+    </a-tree>
         </template>
         <template #right-content>
-
-          <!-- 表单的查询 -->
+           <!-- 表单的查询 -->
        <a-row>
         <a-col :span="20">
            <AForm  layout="inline"
@@ -341,10 +504,10 @@ const wrapperCol={span:24,offset:12}
     @finish="handleFinish"
     @finishFailed="handleFinishFailed"
     :wrapperCol="wrapperCol">
-    <a-form-item label="name" :wrapper-col="{span:20}">
+    <!-- <a-form-item label="name" :wrapper-col="{span:20}">
       <a-input placeholder="name"></a-input>
-    </a-form-item>
- <a-form-item  label="description" :wrapper-col="{span:20}">
+    </a-form-item> -->
+ <a-form-item  label="search" :wrapper-col="{span:20}">
 
       <a-input v-model:value="formState.search" placeholder="hlf"></a-input>
 
@@ -355,53 +518,108 @@ const wrapperCol={span:24,offset:12}
           </AForm>
         </a-col>
         <a-col :span="4"><a-button type="primary" @click="showModal" >
-        <template #icon><plus-outlined /></template>
-      Save Aw</a-button>
+        <template #icon><plus-outlined /></template></a-button>
        </a-col>
        </a-row>
-
-
           <!-- 模态窗 -->
            <div>
-    
-       
-    <a-modal v-model:visible="visible" title="Basic Modal" @ok="handleOk">
-      <a-form
-    :model="modelstates"
-    name="basic"
-    :label-col="{ span: 8 }"
-    :wrapper-col="{ span: 16 }"
-    autocomplete="off"
-    @finish="onFinishForm"
-    @finishFailed="onFinishFailedForm"
-  >
-    <a-form-item
-      label="name"
-      name="name"
-      :rules="[{ required: true, message: 'Please input your username!' }]"
+    <a-modal v-model:visible="visible" 
+    :title="modelstates._id? 'Update':'Save'"
+    @cancel="closemodel"
+    @ok="handleOk"
+    :width="700"
     >
-      <a-input v-model:value="modelstates.name" />
-    </a-form-item>
-
-    <a-form-item
-      label="description"
-      name="description"
-      :rules="[{ required: true, message: 'Please input your password!' }]"
+    <template #footer>
+      <a-button @click="closemodel">cancel</a-button>
+      <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
+    </template>
+        <a-form
+      :model="modelstates"
+      :rules="rules"
+      name="basic"
+      :label-col="{ span: 6 }"
+      :wrapper-col="{ span: 16 }"
+      autocomplete="off"
+      @finish="onFinishForm"
+      @finishFailed="onFinishFailedForm"
     >
-      <a-input v-model:value="modelstates.description" />
-    </a-form-item>
+      <a-form-item
+        label="name"
+        name="name"
+      >
+        <a-input v-model:value="modelstates.name" />
+      </a-form-item>
 
-    <a-form-item
-      label="template"
-      name="name"
-      :rules="[{ required: true, message: 'Please input your username!' }]"
-    >
-      <a-input v-model:value="modelstates.template" />
-    </a-form-item>
+      <a-form-item
+        label="description"
+        name="description"
+      >
+        <a-input v-model:value="modelstates.description" />
+      </a-form-item>
 
-    <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-      <a-button type="primary" html-type="submit">Submit</a-button>
-    </a-form-item>
+      <a-form-item
+        label="template"
+        name="template"
+      >
+        <a-input  v-model:value="modelstates.template" />
+      </a-form-item>
+      <a-form-item
+        label="template_en"
+        name="template_en"
+      >
+        <a-input v-model:value="modelstates.template_en" />
+      </a-form-item>
+
+
+      <a-form-item 
+      label="params"
+      
+      >
+      <template v-for="item in modelstates.params">
+        <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
+        </template>
+      </a-form-item>
+      <a-form-item
+      name="params"
+      label=" ">
+      <!-- <template v-for="item in modelstates.params"> -->
+      <a-input v-model:value="obj.name" placeholder="Parameter name"/>
+      <a-input v-model:value="obj.type" placeholder="Parameter type"/>
+      <a-button @click="addparams(obj)" type="primary">+</a-button>
+      <!-- </template> -->
+      </a-form-item>
+
+<!-- tags标签 -->
+      <a-form-item
+      label="tags"
+      name="tags" >
+      <template v-for="(tag, index) in states.tags" :key="tag">
+        <a-tooltip v-if="tag.length > 20" :title="tag">
+          <a-tag :closable="true" @close="handleClose(tag)">
+            {{ `${tag.slice(0, 20)}...` }}
+          </a-tag>
+        </a-tooltip>
+        <a-tag v-else-if="tag.length==0"></a-tag>
+        <a-tag v-else :closable="true" @close="handleClose(tag)">
+          {{tag}}
+        </a-tag>  
+      </template>
+          <a-input
+            v-if="states.inputVisible"
+            ref="inputRef"
+            v-model:value="states.inputValue"
+            type="text"
+            size="small"
+            :style="{ width: '78px' }"
+            @blur="handleInputConfirm"
+            @keyup.enter="handleInputConfirm"
+          />
+        <a-tag v-else style="background: #fff; border-style: dashed" 
+        @click="showInput">
+          <plus-outlined />
+          New Tag
+        </a-tag>
+      </a-form-item>
   </a-form>
     </a-modal>
   </div>
@@ -409,7 +627,13 @@ const wrapperCol={span:24,offset:12}
           
           <!-- 表格的结构 -->
 
-          <a-table :columns="columns" :data-source="tableData" :row-selection="rowSelection">
+    <a-table bordered
+    row-key="record=>record._id" 
+      :columns="columns" 
+      :data-source="tableData" 
+      :row-selection="rowSelection"
+      class="components-table-demo-nested"
+      @expand="expend">
       <template #headerCell="{ column }">
         <template v-if="column.key === 'name'">
           <span>
@@ -420,41 +644,64 @@ const wrapperCol={span:24,offset:12}
     </template>
 
     <template #bodyCell="{ column,text, record }">
-      <template v-if="['name', 'description', ].includes(column.dataIndex)">
-        <!-- <div>
-          <a-input
-            v-if="editableData[record._id]"
-            v-model:value="editableData[record.key][column.dataIndex]"
-            style="margin: -5px 0"
-          />
-          <template v-else>
-            {{ text }}
+          <!-- <template v-if="['name', 'description','template','tags'].includes(column.dataIndex)">
+          </template> -->
+          <template v-if="column.key === 'tags'">
+              <span>
+                <a-tag
+                  v-for="tag in record.tags"
+                  :key="tag"
+                  :color="tag === 'test' ? 'volcano' : 'red'"
+                >
+                  {{ tag.toUpperCase() }}
+                </a-tag>
+              </span>
           </template>
-        </div> -->
-      </template>
-      <template v-else-if="column.key === 'action'">
-        <!-- <span>
-           <div class="editable-row-operations">
-          <span v-if="editableData[record.key]">
-            <a-typography-link @click="save(record.key)">Save</a-typography-link>
-            <a-popconfirm title="Sure to cancel?" @confirm="cancel(record.key)">
-              <a>Cancel</a>
-            </a-popconfirm>
-          </span> -->
-          <span >
-            <a @click="edit(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a @click="delaw(record)">del</a>
-          </span>
-        <!-- </div> -->
-        <!-- </span> -->
-      </template>
+          <template v-if="column.key === 'params'">
+              <span>
+                <a-tag
+                  v-for="tag in record.params"
+                  :key="tag"
+                >
+                  {{ tag.toUpperCase() }}
+                </a-tag>
+              </span>
+          </template>
+          
+          <template v-else-if="column.key === 'action'">
+              <span >
+                  <a @click="edit(record)">Edit</a>
+                    <a-divider type="vertical" />
+                        <a-popconfirm
+                          title="Are you sure delete this task?"
+                          ok-text="Yes"
+                          cancel-text="No"
+                          @confirm="confirm(record)"
+                          @cancel="cancel"
+                        >
+                      <a >Delete</a>
+                    </a-popconfirm>
+              </span>
+          </template>
     </template>
-  </a-table>
+    <!-- 嵌套的子表格 -->
+   
+      <a-table 
+      slot="expandedRowRender" 
+      slot-scope="record"
+      :columns="innerColumns" 
+      :rowKey="item=>item.key"
+      :data-source="record.params" 
+      >
+        <template #bodyCell="{ column,record }">
+        
+        </template>
+        </a-table>
+      </a-table>
         </template>
       </SplitPanel>
-    </section>
-  </main>
+   <!-- </section> -->
+   </main>
 </template>
 
 <style scoped lang="postcss">
@@ -464,7 +711,16 @@ const wrapperCol={span:24,offset:12}
     height: 100%;
     overflow: hidden;
   }
-  .ant-form{
-    margin-bottom: 1rem;
+  .ant-table-wrapper{
+    margin-top: 1.875rem;
+  }
+  .right-content{
+  padding: 1.25rem 0;
+  }
+  .ant-form-item{
+    margin-bottom: 1.25rem;
+  }
+  .btn_ok{
+    width:4.375rem
   }
   </style>

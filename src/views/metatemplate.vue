@@ -1,7 +1,3 @@
-<script lang="ts">
-export default { name: 'Account' }
-</script>
-
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount } from 'vue';
 import type { TreeProps } from 'ant-design-vue';
@@ -14,46 +10,18 @@ import {
   SwapOutlined,
 } from '@ant-design/icons-vue';
 import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
-// import type { LoadDataParams } from '@/components/core/dynamic-table';
-// import type { TreeDataItem } from '@/core/permission/utils';
+
 import { SplitPanel } from '@/components/basic/split-panel';
 import request from "@/utils/request"
-// import { useTable } from '@/components/core/dynamic-table';
-// import {
 
-//   getAWInfo
 
-// } from '@/api/aw';
-// import { createDept, deleteDept, updateDept, getDeptList, transferDept } from '@/api/system/dept';
-// import { useFormModal } from '@/hooks/useModal/index';
-// import { formatDept2Tree, findChildById } from '@/core/permission/utils';
-
-// defineOptions({
-//   name: 'SystemUser',
-// });
-interface AWInfo {
-  name: string,
-  description: string,
-  path: string,
-  tags: string[],
-  params: string[],
-  name_hash: string,
-  description_hash: string,
-  _id: string,
-  _highlight: {
-    description: string[]
-  }
-};
 interface State {
   expandedKeys: number[];
   // departmentIds: number[];
   // deptTree: TreeDataItem[];
 }
 
-// const [DynamicTable, dynamicTableInstance] = useTable();
-// const [showModal] = useFormModal();
 
-// const deptListLoading = ref(false);
 
 const state = reactive<State>({
   expandedKeys: [],
@@ -72,13 +40,10 @@ const rowSelection = ref({
 
 
 /**
- * 获取aw列表
+ * 获取metaTemplate列表
  */
-const fetchAWList = async () => {
-  // deptListLoading.value = true;
-  // const dept = await getDeptList().finally(() => (deptListLoading.value = false));
-  // state.deptTree = formatDept2Tree(dept);
-  // state.expandedKeys = [...state.expandedKeys, ...state.deptTree.map((n) => Number(n.key))];
+const fetchMetaTemplate = async () => {
+
 };
 
 
