@@ -45,6 +45,17 @@ const {
         return opt.value.toString();
       }
       else return opt.value}) },
+    { title: 'operations', dataIndex: 'operations', key: 'operations', width: 100, customRender:((opt)=>{ 
+      console.log(opt.value);
+      return        
+          `<span>open</span>`
+    //   title: '操作',
+    //   width: 160,
+    //   dataIndex: 'ACTION',
+    //   onClick: () => openMenuModal(opt.value),
+    // }]
+    })},
+
 
   ],
   updateTableOptions: {
@@ -53,7 +64,13 @@ const {
     // '/mbtapi/mbt-models'
   }
 })
+function openMenuModal(){
+  alert('good')
+}
+  
 
+
+ 
 onBeforeMount(() => {
 
   updateTable()
