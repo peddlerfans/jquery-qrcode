@@ -111,8 +111,13 @@ const treeData: TreeProps['treeData'] = [
 
 <template>
   <main class="main">
+<<<<<<< HEAD
     <!-- <section class="block shadow flex-center"
       style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;"> -->
+=======
+    <section class="block shadow flex-center"
+      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
+>>>>>>> 3e242a4... 更新
       <SplitPanel>
         <template #left-content>
           <div class="flex justify-between">
@@ -155,7 +160,11 @@ const treeData: TreeProps['treeData'] = [
           </p> -->
         </template>
       </SplitPanel>
+<<<<<<< HEAD
     <!-- </section> -->
+=======
+    </section>
+>>>>>>> 3e242a4... 更新
   </main>
 </template>
 

@@ -24,9 +24,15 @@ const user = userStore()
 
 function login() {
   loading.login = true
+<<<<<<< HEAD
   user.login(form.username, form.password).then((_:any)=> {
     router.replace('/dashboard')
   }).catch((err :any)=> {
+=======
+  user.login(form.username, form.password).then(_ => {
+    router.replace('/dashboard')
+  }).catch(err => {
+>>>>>>> 3e242a4... 更新
     loading.login = false
     message.error(err)
   })

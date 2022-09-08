@@ -5,6 +5,7 @@ export namespace Stores {
     sex?: 'male' | 'female' | 'unknown'
     token?: string
   }
+<<<<<<< HEAD
 
   interface aw {
     name: string,
@@ -39,4 +40,6 @@ export namespace Stores {
 
     }
   }
+=======
+>>>>>>> 3e242a4... 更新
 }

@@ -6,4 +6,7 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3e242a4... 更新

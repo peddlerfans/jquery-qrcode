@@ -65,6 +65,13 @@
       max-width: 50vw;
       min-width: 100px;
       overflow: auto;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+      top: 1rem;
+>>>>>>> cfb6473... 解析树形数据渲染表格
+>>>>>>> 3e242a4... 更新
 
       .left-content {
         height: 100%;
@@ -99,7 +106,14 @@
     .left-content,
     .right-content {
       overflow: auto;
+<<<<<<< HEAD
      
+=======
+<<<<<<< HEAD
+=======
+     
+>>>>>>> cfb6473... 解析树形数据渲染表格
+>>>>>>> 3e242a4... 更新
     }
   }
   
