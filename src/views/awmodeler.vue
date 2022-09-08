@@ -27,19 +27,6 @@ import { message } from 'ant-design-vue/es'
 import { useRouter } from 'vue-router'
 // import { Stores } from 'types/stores';
 
-// interface LoginForm {
-//   username: string
-//   password: string
-//   remember: boolean
-// }
-// const form = reactive<LoginForm>({
-//   username: 'david',
-//   password: '123456',
-//   remember: true
-// })
-// const loading = reactive({
-//   login: false
-// })
 const router = useRouter()
 // const aw = awStore()
 
