@@ -184,24 +184,33 @@ onMounted(() => {
         <div class="infoPanel" ref="infoPanel">
           <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
             @finish="onFinish" @finishFailed="onFinishFailed">
-            <a-form-item label="Name" name="awname"
+            <a-form-item label="AW name" name="awname"
               :rules="[{ required: true, message: 'Please input your aw name!' }]">
               <a-input v-model:value="formState.awname" />
             </a-form-item>
 
-            <a-form-item label="Description" name="description"
-              :rules="[{ required: true, message: 'Please input your description!' }]">
-              <a-input v-model:value="formState.description" />
+            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
+              <a-button type="primary" html-type="submit">Search</a-button>
+            </a-form-item>
+          </a-form>
+          <a-card style="width: 300px">
+            <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
+            @finish="onFinish" @finishFailed="onFinishFailed">
+            <a-form-item label="Param" name="awname"
+              :rules="[{ required: true, message: 'Please input your aw name!' }]">
+              <a-input v-model:value="formState.awname" placeholder="SUT"/>
             </a-form-item>
 
-            <a-form-item name="remember" :wrapper-col="{ offset: 8, span: 16 }">
-              <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
+            <a-form-item label="Type" name="awname"
+              :rules="[{ required: true, message: 'Please input your aw name!' }]">
+              <a-input v-model:value="formState.awname" placeholder="str"/>
             </a-form-item>
 
             <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-              <a-button type="primary" html-type="submit">Submit</a-button>
+              <a-button type="primary" html-type="submit">Add</a-button>
             </a-form-item>
           </a-form>
+          </a-card>
         </div>
       </a-col>
     </a-row>
