@@ -3,12 +3,32 @@ import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUpdated, watchEffect, watch, reactive } from "vue";
 import type { Ref } from "vue";
 import $ from "jquery";
+import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
+interface FormState {
+  awname: string;
+  description: string;
+  remember: boolean;
+}
+
+const formState = reactive<FormState>({
+  awname: '',
+  description: '',
+  remember: true,
+});
+const onFinish = (values: any) => {
+  console.log('Success:', values);
+};
+
+const onFinishFailed = (errorInfo: any) => {
+  console.log('Failed:', errorInfo);
+};
 
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
+const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 
 function onClose() {
@@ -16,16 +36,38 @@ function onClose() {
 }
 
 function onShow(cell?: any) {
-  
+
   showPropPanel.value = true;
 }
 
+var verticesTool = new joint.linkTools.Vertices();
+var segmentsTool = new joint.linkTools.Segments();
+var boundaryTool = new joint.linkTools.Boundary();
+var removeButton = new joint.elementTools.Remove();
+// var connectButton = new joint.elementTools.Connect();
+// 2) creating a tools view
+var toolsView = new joint.dia.ToolsView({
+  name: 'basic-tools',
+  tools: [verticesTool, segmentsTool, boundaryTool]
+});
+
+
+
 let modeler: MbtModeler;
 let stencil: Stencil;
+
+// watchEffect(async () => {
+//   const response = await fetch(url.value)
+//   data.value = await response.json()
+// })
 onMounted(() => {
-  
+
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
+  // element.addTo(graph);
+  // 1) creating link tools
+
+
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
@@ -36,21 +78,19 @@ onMounted(() => {
       model: flyGraph,
       interactive: false,
     });
-    
+
     let flyShape = cellView.model!.clone();
-    
+
     let pos = cellView.model!.position();
-    
+
     let offset = {
       x: x - pos.x,
       y: y - pos.y,
     };
-    
 
     flyShape.position(0, 0);
     // flyShape.position();
     flyGraph.addCell(flyShape);
-    
 
     $("#flyPaper").offset({
       left: (e.pageX as number) - offset.x,
@@ -65,7 +105,6 @@ onMounted(() => {
     });
 
     $("body").on("mouseup.fly", (e: any) => {
-    
       var x = e.pageX,
         y = e.pageY,
         target = modeler.paper.$el.offset();
@@ -81,30 +120,40 @@ onMounted(() => {
           x - target.left - offset.x,
           y - target.top - offset.y
         );
+
         modeler.graph.addCell(s);
+        // var currentElementView = s.findView(modeler.paper);
+        // s.attr('body/stroke', 'red');
+
+
+
       }
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
     });
   });
-  modeler.paper.on("element:pointerclick", (event) => {
-    
-  });
+  // modeler.paper.on('element:pointerdblclick', function (elementView: dia.ElementView) {
+  //   console.log(elementView);
+  //   if (elementView.hasTools() == false)
+  //     elementView.addTools(toolsView);
+
+  // });
+
+
 });
+
 </script>
 
 <template>
-  <section
-    class="block shadow flex-center"
-    style="
+  <section class="block shadow flex-center" style="
       width: 100%;
       height: 100%;
       min-height: 100%;
       color: var(--gray);
       font-size: 5rem;
-    "
-  >
+      overflow: hidden;
+    ">
     <!-- <div
       :style="{
         height: '100%',
@@ -117,14 +166,58 @@ onMounted(() => {
         width: '100%',
       }"
     > -->
-    <SplitPanel>
-      <template #left-content>
+    <!-- <SplitPanel> -->
+    <a-row type="flex" style="
+      width: 100%;
+      height: 100%;
+      min-height: 100%;">
+      <a-col :span="2">
+        <div class="stencil" ref="stencilcanvas"></div>
+      </a-col>
+      <a-col :span="16">
+        <div class="canvas" ref="canvas"></div>
+      </a-col>
+      <a-col :span="6">
+        <div class="infoPanel" ref="infoPanel">
+          <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
+            @finish="onFinish" @finishFailed="onFinishFailed">
+            <a-form-item label="AW name" name="awname"
+              :rules="[{ required: true, message: 'Please input your aw name!' }]">
+              <a-input v-model:value="formState.awname" />
+            </a-form-item>
+
+            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
+              <a-button type="primary" html-type="submit">Search</a-button>
+            </a-form-item>
+          </a-form>
+          <a-card style="width: 300px">
+            <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
+            @finish="onFinish" @finishFailed="onFinishFailed">
+            <a-form-item label="Param" name="awname"
+              :rules="[{ required: true, message: 'Please input your aw name!' }]">
+              <a-input v-model:value="formState.awname" placeholder="SUT"/>
+            </a-form-item>
+
+            <a-form-item label="Type" name="awname"
+              :rules="[{ required: true, message: 'Please input your aw name!' }]">
+              <a-input v-model:value="formState.awname" placeholder="str"/>
+            </a-form-item>
+
+            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
+              <a-button type="primary" html-type="submit">Add</a-button>
+            </a-form-item>
+          </a-form>
+          </a-card>
+        </div>
+      </a-col>
+    </a-row>
+    <!-- <template #left-content>
         <div class="stencil" ref="stencilcanvas"></div>
       </template>
       <template #right-content>
         <div class="canvas" ref="canvas"></div>
-      </template>
-    </SplitPanel>
+      </template> -->
+    <!-- </SplitPanel> -->
     <!-- <a-drawer
         title="Basic Drawer"
         placement="right"
@@ -144,17 +237,29 @@ onMounted(() => {
 .canvas {
   margin: 10px;
 }
+
+.infoPanel {
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  margin: 10px;
+  width: 100%;
+  /* min-height: 100%; */
+  background-color: #f0f5ff;
+}
+
 .stencil {
-  height: "100%";
-  overflow: "hidden";
-  position: "relative";
+  height: 100%;
+  overflow: hidden;
+  position: relative;
   margin: 10px;
   width: 100px;
-  background-color: #47cf73;
+  background-color: #222222;
 }
 
 .split-wrapper .scalable {
   width: 20px;
   max-width: 5vw;
+  overflow: hidden;
 }
 </style>

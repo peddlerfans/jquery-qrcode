@@ -106,7 +106,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/awmodeler',
     name: 'Awmodeler',
     component: Layout,
-    redirect: { name: 'AWModeler' },
+    redirect: { name: 'awmodeler' },
     meta: { breadcrumb: false },
     children: [
       {
