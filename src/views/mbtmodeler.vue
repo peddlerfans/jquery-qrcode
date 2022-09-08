@@ -136,12 +136,13 @@ onMounted(() => {
       $("#flyPaper").remove();
     });
   });
-  modeler.paper.on('element:pointerdblclick', function (elementView: dia.ElementView) {
-    console.log(elementView);
-    if (elementView.hasTools() == false)
-      elementView.addTools(toolsView);
+  // modeler.paper.on('element:pointerdblclick', function (elementView: dia.ElementView) {
+  //   console.log(elementView);
+  //   if (elementView.hasTools() == false)
+  //     elementView.addTools(toolsView);
 
-  });
+  // });
+
 
 });
 
@@ -232,7 +233,7 @@ onMounted(() => {
 }
 
 .infoPanel {
-  height:  100%;
+  height: 100%;
   overflow: hidden;
   position: relative;
   margin: 10px;

@@ -697,5 +697,25 @@ link2.labels([{
   link15.source(aw11);
   link15.target(se);
   link15.addTo(this.graph);
+  this.paper.on('element:mouseenter', (elementView: dia.ElementView) => {
+    
+    if (!elementView.hasTools()) {
+      elementView.addTools(this.toolsView1)
+    }
+    console.log('click', elementView, elementView.hasTools())
+    elementView.showTools();
+  });
+
+  this.paper.on('element:mouseleave', (elementView: dia.ElementView) => {
+    if (elementView.hasTools()) {
+      elementView.hideTools();
+    }
+
+  });
+
+  this.paper.on('blank:mouseover', () => {
+    this.paper.removeTools();
+  });
 }
+
 }
