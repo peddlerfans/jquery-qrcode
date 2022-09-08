@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig,loadEnv } from 'vite'
 
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
@@ -16,7 +16,7 @@ function resolvePath(src: string) {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default  defineConfig({
   base: '/',
   plugins: [
     vue(),
@@ -32,7 +32,7 @@ export default defineConfig({
       symbolId: 'svg-[dir]-[name]',
     })
   ],
-
+  
   css: {
     preprocessorOptions: {
       less: {
@@ -65,26 +65,24 @@ export default defineConfig({
 
   },
   server: {
-    hmr: true,
     open: false,
-    port: 7777,
-    proxy: {
-      "/api": {
-        target: 'https://mbt-dev.oppo.itealab.net/api',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path: string) => {
-          return path.replace(/^\/api/, '')
-        }
-      },
-      //   "/mbtapi": {
-      //     target: 'https://flows.iteatechnologies.com',
-      //     changeOrigin: true,
-      //     secure: false,
-      //     rewrite: (path:string) => {
-      //       return path.replace(/^\/mbtapi/, '')}
-
-      //   }
-    }
+    port: 7777
+    // proxy: {
+    //   "/api": {
+    //     target: 'https://mbt-dev.oppo.itealab.net/api',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path:string) => {
+    //       return path.replace(/^\/api/, '')}
+    //   },
+    //   "/mbtapi": {
+    //     target: 'https://flows.iteatechnologies.com',
+    //     changeOrigin: true,
+    //     secure: false,
+    //     rewrite: (path:string) => {
+    //       return path.replace(/^\/mbtapi/, '')}
+      
+    //   }
+    // }
   }
 })

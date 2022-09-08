@@ -16,7 +16,7 @@ declare module 'jointjs' {
     export namespace dia {
 
         namespace Paper {
-
+            
             interface Options extends mvc.ViewOptions<Graph> {
                 model?: Graph;
                 el?: any;
@@ -25,16 +25,16 @@ declare module 'jointjs' {
 
         }
         interface Paper {
-            $el?: any,
+            $el?:any,
             // Options?:mvc.ViewOptions<Graph> 
 
         }
 
         interface Cell {
-            position(x: number, y: number, opt?: any): any;
+            position(x:number,y:number,opt?:any) : any;
             [x: string]: any;
         }
-
+       
         interface CellView {
             model?: Cell;
         }

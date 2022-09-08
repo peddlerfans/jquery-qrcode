@@ -88,9 +88,11 @@ onMounted(() => {
       y: y - pos.y,
     };
 
+
     flyShape.position(0, 0);
     // flyShape.position();
     flyGraph.addCell(flyShape);
+
 
     $("#flyPaper").offset({
       left: (e.pageX as number) - offset.x,
@@ -105,6 +107,7 @@ onMounted(() => {
     });
 
     $("body").on("mouseup.fly", (e: any) => {
+
       var x = e.pageX,
         y = e.pageY,
         target = modeler.paper.$el.offset();

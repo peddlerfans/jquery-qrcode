@@ -94,7 +94,6 @@
 
     .right-content {
       flex: 1;
-      padding: 1.25rem 0;
     }
 
     .left-content,
