@@ -4,30 +4,15 @@ import { onBeforeMount } from 'vue'
 import useTable from '@/composables/useTable'
 import * as _ from 'lodash'
 import { exportSheetFile } from '@/utils/fileAction'
-// modelDefinition: {  },
-//         dataDefinition: {
-//             resources: [
-//                 {
-//                     name: "phone1",
-//                     type: "sut"
-//                 },
-//                 {
-//                     name: "phone2",
-//                     type: "sut"
-//                 }
-//             ],
-//             // static or dynamic(Pairwise), default is static
-//             dataType: "number",
-
-//             // either use dataUrl or data
-//             dataUrl: "http://localhost",
-
-
-//             data: [],
-//             // meta 
-//             metaTemplate: "template{}",
-//             meta: []
-
+import {
+  SyncOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+  SwapOutlined,
+  DownOutlined
+} from '@ant-design/icons-vue';
 
 const tableRef = ref()
 
@@ -39,15 +24,16 @@ const {
   columns: [
     { title: 'name', dataIndex: 'name', key: 'name', width: 50 },
     { title: 'description', dataIndex: 'description', key: 'description', width: 150 },
-    { title: 'tags', dataIndex: 'tags', key: 'tags', width: 100, customRender:((opt)=>{ 
-      
-      if(_.isArray(opt.value)){
-        return opt.value.toString();
-      }
-      else return opt.value}) },
-    // { title: 'operations', dataIndex: 'operations', key: 'operations', width: 100, customRender:({})
-    
-    // },
+    {
+      title: 'tags', dataIndex: 'tags', key: 'tags', width: 100, customRender: ((opt) => {
+
+        if (_.isArray(opt.value)) {
+          return opt.value.toString();
+        }
+        else return opt.value
+      })
+    },
+    { title: 'Action', dataIndex: 'action', key: 'action', width: 100 },
 
 
   ],
@@ -57,13 +43,13 @@ const {
     // '/mbtapi/mbt-models'
   }
 })
-function openMenuModal(){
+function openMenuModal() {
   alert('good')
 }
-  
 
 
- 
+
+
 onBeforeMount(() => {
 
   updateTable()
@@ -77,10 +63,55 @@ onBeforeMount(() => {
   <main>
     <header class="block shadow">Search</header>
     <!-- <section class="block shadow flex-center"> -->
-      <!-- <ATable :data-source="data"></ATable> -->
-      <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
-        :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-        :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }"></ATable>
+    <!-- <ATable :data-source="data"></ATable> -->
+    <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
+      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
+      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'name'">
+          <span>
+            <edit-outlined />
+            Name
+          </span>
+        </template>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'name'">
+        
+            {{ record.name }}
+          
+        </template>
+
+        <template v-else-if="column.key === 'description'">
+         
+            {{ record.description }}
+         
+        </template>
+        <template v-else-if="column.key === 'tags'">
+          <span>
+            <a-tag v-for="tag in record.tags" :key="tag"
+              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
+              {{ tag.toUpperCase() }}
+            </a-tag>
+          </span>
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <span>
+            <a href="/#/mbtmodeler/index">Edit</a>
+            <a-divider type="vertical" />
+            <a>Delete</a>
+            <a-divider type="vertical" />
+            <a class="ant-dropdown-link">
+              More actions
+              <down-outlined />
+            </a>
+          </span>
+        </template>
+      </template>
+
+
+    </ATable>
     <!-- </section> -->
   </main>
 </template>
@@ -109,4 +140,5 @@ footer {
 }
 </style>
 <style>
+
 </style>
