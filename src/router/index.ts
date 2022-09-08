@@ -78,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title:'Template Manager',icon:ExportOutlined,breadcrumb: false },
+    meta: { title: 'Template Manager', icon: ExportOutlined, breadcrumb: false },
     children: [
       {
         path: 'meta',
@@ -91,7 +91,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'staticTemplate',
         component: () => import('@/views/statictemplate.vue'),
         meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
-      },{
+      }, {
         path: 'dynamic',
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
@@ -111,7 +111,7 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'awmodeler',
+        name: 'AWModeler',
         component: () => import('@/views/awmodeler.vue'),
         meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
       }
@@ -139,7 +139,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/mbtmodeler',
     name: 'Mbtmodeler',
     component: Layout,
-    redirect: { name: 'mbtmodeler' },    
+    redirect: { name: 'mbtmodeler' },
     children: [
       {
         path: 'index',

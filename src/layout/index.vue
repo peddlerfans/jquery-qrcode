@@ -58,9 +58,9 @@
                 https://github.com/vuejs/core/pull/5165
                 开发过程注释掉keepalive
               -->
-              <KeepAlive :include="Array.from(keepAlivePages)" :max="10">
+              <!-- <KeepAlive :include="Array.from(keepAlivePages)" :max="10"> -->
                 <component :is="Component" :key="route.name" />
-              </KeepAlive>
+              <!-- </KeepAlive> -->
             </Transition>
           </RouterView>
         </ALayoutContent>

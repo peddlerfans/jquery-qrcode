@@ -140,5 +140,8 @@ footer {
 }
 </style>
 <style>
+<<<<<<< HEAD
+=======
 
+>>>>>>> dev
 </style>

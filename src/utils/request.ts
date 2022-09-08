@@ -3,7 +3,7 @@ import axios from 'axios'
 import { getCookie } from '.'
 
 const request = axios.create({
-  // baseURL: import.meta.env.VITE_APP_BASE_API,
+  baseURL: "/api",
   // withCredentials: true,
   timeout: 60000
 })
