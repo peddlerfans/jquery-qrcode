@@ -45,16 +45,9 @@ const {
         return opt.value.toString();
       }
       else return opt.value}) },
-    { title: 'operations', dataIndex: 'operations', key: 'operations', width: 100, customRender:((opt)=>{ 
-      console.log(opt.value);
-      return        
-          `<span>open</span>`
-    //   title: '操作',
-    //   width: 160,
-    //   dataIndex: 'ACTION',
-    //   onClick: () => openMenuModal(opt.value),
-    // }]
-    })},
+    // { title: 'operations', dataIndex: 'operations', key: 'operations', width: 100, customRender:({})
+    
+    // },
 
 
   ],
@@ -82,14 +75,13 @@ onBeforeMount(() => {
 <template>
 
   <main>
-    <header class="block shadow">头部</header>
-    <section class="block shadow flex-center"
-      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;">
+    <header class="block shadow">Search</header>
+    <!-- <section class="block shadow flex-center"> -->
       <!-- <ATable :data-source="data"></ATable> -->
       <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
         :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
         :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }"></ATable>
-    </section>
+    <!-- </section> -->
   </main>
 </template>
 <style lang="postcss" scoped>

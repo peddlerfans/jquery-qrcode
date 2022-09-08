@@ -72,8 +72,172 @@ const mbtlist: Stores.mbt[] = [
 
 },
 {
-    name: "Microphone",
+    name: "multimedia",
     description: "Play multimedia files locally",
+    tags: ["multimedia", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+}
+,
+{
+    name: "multimedia",
+    description: "Play multimedia throw wifi",
+    tags: ["multimedia", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+}
+,
+{
+    name: "multimedia",
+    description: "Play multimedia files output by bluetooth",
+    tags: ["multimedia", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+}
+,
+{
+    name: "multimedia",
+    description: "Play multimedia files  output by speaker",
+    tags: ["multimedia", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+}
+,
+{
+    name: "multimedia",
+    description: "Play multimedia files output by earphone",
+    tags: ["multimedia", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+}
+,{
+    name: "Microphone",
+    description: "Recording voice call",
     tags: ["Microphone", "OS"],
     // keep modelData open right now
     modelDefinition: {
@@ -102,6 +266,39 @@ const mbtlist: Stores.mbt[] = [
         metaTemplate: "",
         meta: [],
     }
+}
+,{
+    name: "Microphone",
+    description: "Recording environment sounds",
+    tags: ["Microphone", "OS"],
+    // keep modelData open right now
+    modelDefinition: {
+        keytest: "value"
+    },
+    dataDefinition: {
+        resources: [
+            {
+                name: "phone1",
+                type: "sut"
+            },
+            {
+                name: "phone2",
+                type: "sut"
+            }
+        ],
+        // static or dynamic(Pairwise), default is static
+        dataType: "number"
+        ,
+        // either use dataUrl or data
+        dataUrl:  "http://localhost"
+
+        ,
+        data: [],
+        // meta 
+        metaTemplate: "",
+        meta: [],
+    }
+
 
 
 }]
