@@ -28,7 +28,7 @@ export class Stencil {
   };
   constructor(canvas: any) {
     let s0 = new joint.shapes.uml.StartState({
-      position: { x: 10, y: 10 },
+      position: { x: 30, y: 10 },
       size: { width: 30, height: 30 },
       attrs: {
         circle: {
@@ -42,7 +42,7 @@ export class Stencil {
 
 
     let se = new joint.shapes.uml.EndState({
-      position: { x: 10, y: 50 },
+      position: { x: 30, y: 50 },
       size: { width: 30, height: 30 },
       attrs: {
         ".outer": {
@@ -56,9 +56,43 @@ export class Stencil {
     });
 
 
-    let umlstate = new joint.shapes.uml.State({
-      position: { x: 10, y: 100 },
-      size: { width: 70, height: 70 },      
+    // let umlstate = new joint.shapes.uml.State({
+    //   position: { x: 15, y: 100 },
+    //   size: { width: 70, height: 70 },      
+    //   attrs: {
+    //       root: {
+    //           highlighterSelector: 'body'
+    //       },
+    //       body: {
+    //           d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
+    //           ...this.bodyAttributes
+    //       },
+    //       label: {
+    //           text: 'Rhombus',
+    //           ...this.labelAttributes
+    //       }
+    //   }
+
+
+    // });
+
+    let umlstate = new joint.shapes.standard.Rectangle( {
+     
+      position: { x: 15, y: 100 },
+      size: { width: 70, height: 70 }, 
+        attrs:{
+          body: {
+            // fill: 'blue'
+          },
+          label: {
+            text: 'aw',
+            // fill: 'white'
+          },
+        }});
+
+
+    let ExclusiveRhombusShape = dia.Element.define('RHOMBUS', {
+      size: { width: 70, height: 45 },
       attrs: {
           root: {
               highlighterSelector: 'body'
@@ -67,30 +101,10 @@ export class Stencil {
               d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
               ...this.bodyAttributes
           },
-          label: {
-              text: 'Rhombus',
-              ...this.labelAttributes
-          }
-      }
-
-
-    });
-
-
-    let RhombusShape = dia.Element.define('RHOMBUS', {
-      size: { width: 70, height: 35 },
-      attrs: {
-          root: {
-              highlighterSelector: 'body'
-          },
-          body: {
-              d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
-              ...this.bodyAttributes
-          },
-          label: {
-              text: 'X',
-              ...this.labelAttributes
-          }
+          // label: {
+          //     text: 'X',
+          //     ...this.labelAttributes
+          // }
       }
   }, {
       markup: [{
@@ -112,18 +126,6 @@ export class Stencil {
           }];
       },
   
-      getCurveDirection(point:g.Point) {
-          const bbox = this.getBBox();
-          const angle = bbox.center().angleBetween(point, bbox.topMiddle());
-          if (angle % 90 === 0) {
-              return 'auto';
-          }
-          let ratio = bbox.height / bbox.width;
-          if ((angle % 180) < 90) {
-              ratio = 1 / ratio;
-          }
-          return 360 - Math.floor(angle / 90) * 90 + g.toDeg(Math.atan(ratio));
-      },
   
       getClosestBoundaryPoint(bbox:any, point:g.Point) {
           const rhombus = new g.Polygon([
@@ -136,15 +138,66 @@ export class Stencil {
       }
   });
 
-  let rhombus = new RhombusShape({
+  let ParallelRhombusShape = dia.Element.define('RHOMBUS', {
+    size: { width: 70, height: 45 },
+    attrs: {
+        root: {
+            highlighterSelector: 'body'
+        },
+        body: {
+            d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
+            ...this.bodyAttributes
+        },
+        // label: {
+        //     text: '+',
+        //     ...this.labelAttributes
+        // }
+    }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'body'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }],
+
+    getConnectToolMarkup() {
+        const { width, height } = this.size();
+        return [{
+            tagName: 'path',
+            attributes: {
+                d: `M ${width/2} 0 ${width} ${height/2} ${width/2} ${height} 0 ${height/2} Z`,
+                ...this.connectToolAttributes
+            }
+        }];
+    },
+
+
+    getClosestBoundaryPoint(bbox:any, point:g.Point) {
+        const rhombus = new g.Polygon([
+            bbox.topMiddle(),
+            bbox.rightMiddle(),
+            bbox.bottomMiddle(),
+            bbox.leftMiddle(),
+        ]);
+        return rhombus.closestPoint(point);
+    }
+});
+
+  let exclusiverhombus = new ExclusiveRhombusShape({
     position: { x: 10, y: 200 }
 });
+// let parallelrhombus = new ParallelRhombusShape({
+//   position: { x: 10, y: 280 }
+// });
     this.states = {};
     Object.assign(this.states, { s0: s0 });
  
     Object.assign(this.states, { se: se });
     Object.assign(this.states,{umlstate:umlstate});
-    Object.assign(this.states,{rhombus:rhombus});
+    Object.assign(this.states,{exclusiverhombus:exclusiverhombus});
+    // Object.assign(this.states,{parallelsrhombus:parallelrhombus});
 
     this.paper = new joint.dia.Paper({
       el: canvas.value,

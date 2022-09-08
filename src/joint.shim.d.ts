@@ -32,6 +32,7 @@ declare module 'jointjs' {
 
         interface Cell {
             position(x:number,y:number,opt?:any) : any;
+            [x: string]: any;
         }
        
         interface CellView {
