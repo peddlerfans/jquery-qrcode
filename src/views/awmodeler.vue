@@ -2,9 +2,15 @@
 export default { name: 'AWModeler'}
 </script>
 
+<!-- SUT --> system under test
+<!-- json数据类型 -->
+<!-- 树形基本功能 -->
+
+
+
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
-import type { FormProps, TableProps, TreeProps } from 'ant-design-vue';
+import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
 import {
   SyncOutlined,
   PlusOutlined,
@@ -16,95 +22,67 @@ SmileOutlined,
 DownOutlined,
 } from '@ant-design/icons-vue';
 import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
-// import type { LoadDataParams } from '@/components/core/dynamic-table';
-// import type { TreeDataItem } from '@/core/permission/utils';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import { useRouter } from 'vue-router'
 import request from '@/utils/request';
 import { cloneDeep } from 'lodash-es';
 import { Rule } from 'ant-design-vue/es/form';
-import { string } from 'vue-types';
-const router = useRouter()
+import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 // const aw = awStore()
-
-interface State {
-  expandedKeys: number[];
-  // departmentIds: number[];
-  // deptTree: TreeDataItem[];
-}
-
 // const [DynamicTable, dynamicTableInstance] = useTable();
 // const [showModal] = useFormModal();
 
 // const deptListLoading = ref(false);
-
-const state = reactive<State>({
-  expandedKeys: [],
-  // departmentIds: [],
-  // deptTree: [],
-});
-// const aws = reactive<Stores.aw>({ name: '',
-//     description: '',
-//     path: '',
-//     tags: [],
-//     params: [],
-//     name_hash: '',
-//     description_hash: '',
-//     _id: '',
-//     _highlight: {
-//         description: []
-//     }});
-// /**
-//  * 获取aw列表
-//  */
-//  function getAWInfo() {
-//   aw.getAW('同时').then(res => {
-//     console.log('res from axios get aw:',res)
-//     return res;
-//   }).catch(err => {
-
-//     message.error(err)
-//   })
-
-interface tableSearch {
-  search:string
-  size:number
-}
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
   size:20
 })
-onMounted(() => {
-  query()    
-}) 
 async function query(data?: any) {    
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
-  
   if (rst.data) {
       tableData.value = rst.data
       return rst.data
   }
 }
-console.log(tableData);
-    
+console.log(tableData.value);
 
+onMounted(() => {
+  query()    
+}) 
 // 表单的数据
-interface FormState {
-  search: string;
-}
 const formState: UnwrapRef<FormState> = reactive({
       search: ''
-    });
+});
+      let highlight = ref<any>([])
+      let descriptionLight=ref<any>([])
+      let templateLight=ref<any>([])
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-      // console.log(values,formState);
-      
-    query(formState)
-    };
+  query(formState)
+      highlight.value=tableData.value.filter((item:any, index) => {
+        return item._highlight
+        })
+      console.log(highlight.value); 
+ 
+};
+ highlight.value.forEach((item: any) => {
+        if (item.description) {
+          descriptionLight.value.push(...item.description)
+            console.log(descriptionLight.value);
+            
+        }
+        if (item.template) {
+          templateLight.value.push(...item.template)
+        }
+      });
+ 
+    
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
+
+
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let rst = await query({ search: value })  
@@ -138,9 +116,7 @@ let checktem = async (_rule: Rule, value: string) => {
   }
 }
 let checkTemen = async (_rule: Rule, value: string) => {
-  if (!value) {
-  console.log(rules.template_en[0].required);
-   
+  if (!value) {   
     return Promise.reject("Please input your template_en!")
   } else {
     return Promise.resolve()
@@ -151,7 +127,7 @@ let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
-  template_en: [{ required: true, validator: checkTemen, trigger: 'blur' }],
+  template_en: [{ validator: checkTemen, trigger: 'blur' }],
       
 };
     console.log(rules.template[0].required);
@@ -169,40 +145,50 @@ let rules: Record<string, Rule[]> = {
 };
 // 关闭模态窗触发事件
 const closemodel = () => {
-  visible.value = false;
   clear()
-}
-// 清除模态窗数据
-const clear = () => {
-  modelstates.value = {
-      name: "",
-      description: '',
-      template: "",
-    _id: "",
-    template_en: "",
-    params:[],
-    tags:[]
-  }      
-}
-// 模态窗表单
-interface paramsobj {
-    name: string,
-    type: string;
+  visible.value = false;
+  query()
+  console.log(modelstates.value);
   
 }
-interface ModelState {
-  name: string;
-  description: string;
-  template: string;
-  template_en:string
-  _id: string;
-  tags: Array<string>;
-    params:Array<paramsobj>
-}
+// 模态窗表单
 
+let partype = ref('')
+  const options = ref<SelectProps['options']>([
+      {
+        value: 'Str',
+        label: 'Str',
+      },
+      {
+        value: 'undefined',
+        label: 'undefined',
+      },
+      {
+        value: 'number',
+        label: 'number',
+      },
+      {
+        value: 'boolean',
+        label: 'boolean',
+    },
+      {
+        value: 'null',
+        label: 'null',
+    },
+     {
+        value: 'Array',
+        label: 'Array',
+    },
+     {
+        value: 'Object',
+        label: 'OBject',
+    },
+    {
+      value: 'SUT',
+        label:'SUT'
+      }
+    ]);
 // 点击添加params的函数
-
-
 
 let obj = ref<paramsobj>({ name: "", type: "" })
 // 添加功能的函数
@@ -223,9 +209,30 @@ async function saveAw(data: any) {
     });
     
     // 添加parmas的函数
-    function addparams(item:any) {
-  console.log(item);
-  modelstates.value.params.push(item)
+const handleChange = (value: string) => {
+      console.log(value);
+      
+      obj.value.type = value
+  console.log(obj);
+  
+    };
+
+    // 清除模态窗数据
+const clear = () => {
+  modelstates.value = {
+      name: "",
+      description: '',
+      template: "",
+      _id: "",
+      template_en: "",
+      params:[],
+      tags:[]
+  }      
+}
+
+    function addparams() {
+  console.log(obj);
+  modelstates.value.params.push({...obj.value})
       console.log(modelstates.value.params)
   
 }
@@ -238,7 +245,7 @@ function closepar(item:any) {
 
 
 const onFinishForm = async (modelstates: any) => {
-modelstates.value.tags=states.tags
+  modelstates.value.tags = states.tags
   // 判断修改或添加
       if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
@@ -250,6 +257,7 @@ modelstates.value.tags=states.tags
       }
     // }
       query()
+      clear()
   visible.value = false;
       
     };
@@ -257,11 +265,6 @@ modelstates.value.tags=states.tags
       console.log('Failed:', errorInfo);
 };
 // 添加的表单tags
-interface statesTs {
-  tags: Array<string>
-  inputVisible: Boolean;
-  inputValue:string
-}
 let inputRef = ref();
     let states = reactive<statesTs>({
       tags: [],
@@ -293,7 +296,6 @@ const handleInputConfirm = () => {
  });  
 }
 
-
     // 删除功能
 async function delaw(key:any) {
   let rst = await request.delete(`/api/hlfs/${key._id}`)
@@ -320,13 +322,6 @@ async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
       console.log(rst);
     }
-
-
-interface DataItem {
-  key: string;
-  name: string;
-  description: string
-}
 
 // 修改的函数
 const edit = (rowobj:any) => {
@@ -387,12 +382,6 @@ const expend = (isExpand:any,rected:any) => {
   console.log(isExpand,rected);
   
 }
-
-// 子表格的结构
-const innerColumns= [
-  { title: 'Name', dataIndex: 'name', key: 'name' },
-  { title: 'type', key: 'type', dataIndex: 'type' },
-]
  defineComponent({
   components: {
     SmileOutlined,
@@ -401,39 +390,34 @@ const innerColumns= [
 })
 
 const wrapperCol={span:24,offset:12}
-
-
-
-const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
-
 const treeData: TreeProps['treeData'] = [
    {
-        title: 'parent 1',
+        title: 'Setup',
         key: '0-0',
         children: [
           {
-            title: 'parent 1-0',
+            title: 'Display and brightness',
             key: '0-0-0',
             children: [
-              { title: 'leaf', key: '0-0-0-0' },
+              { title: 'Rest screen style', key: '0-0-0-0' },
               {
                 key: '0-0-0-1',
               },
-              { title: 'leaf', key: '0-0-0-2' },
+              { title: 'Auto lock', key: '0-0-0-2' },
             ],
           },
           {
-            title: 'parent 1-1',
+            title: 'Portable tools',
             key: '0-0-1',
-            children: [{ title: 'leaf', key: '0-0-1-0' }],
+            children: [{ title: 'gesture', key: '0-0-1-0' }],
           },
           {
-            title: 'parent 1-2',
+            title: 'System settings',
             key: '0-0-2',
             children: [
-              { title: 'leaf 1', key: '0-0-2-0' },
+              { title: 'Reset system', key: '0-0-2-0' },
               {
-                title: 'leaf 2',
+                title: 'Background refresh',
                 key: '0-0-2-1',
               },
             ],
@@ -441,15 +425,15 @@ const treeData: TreeProps['treeData'] = [
         ],
   },
        {
-        title: 'parent 2',
+        title: 'test',
         key: '0-1',
         children: [
           {
-            title: 'parent 2-0',
+            title: 'Audio and video test',
             key: '0-1-0',
             children: [
-              { title: 'leaf', key: '0-1-0-0' },
-              { title: 'leaf', key: '0-1-0-1' },
+              { title: 'Function panel', key: '0-1-0-0' },
+              { title: 'Collect sound', key: '0-1-0-1' },
             ],
           },
         ],
@@ -504,13 +488,9 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
     @finish="handleFinish"
     @finishFailed="handleFinishFailed"
     :wrapperCol="wrapperCol">
-    <!-- <a-form-item label="name" :wrapper-col="{span:20}">
-      <a-input placeholder="name"></a-input>
-    </a-form-item> -->
- <a-form-item  label="search" :wrapper-col="{span:20}">
+ <a-form-item :wrapper-col="{span:20}">
 
       <a-input v-model:value="formState.search" placeholder="hlf"></a-input>
-
     </a-form-item>
     <a-form-item :wrapper-col="{span:20}">
       <a-button type="primary" html-type="submit">search</a-button>
@@ -570,25 +550,6 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
         <a-input v-model:value="modelstates.template_en" />
       </a-form-item>
 
-
-      <a-form-item 
-      label="params"
-      
-      >
-      <template v-for="item in modelstates.params">
-        <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
-        </template>
-      </a-form-item>
-      <a-form-item
-      name="params"
-      label=" ">
-      <!-- <template v-for="item in modelstates.params"> -->
-      <a-input v-model:value="obj.name" placeholder="Parameter name"/>
-      <a-input v-model:value="obj.type" placeholder="Parameter type"/>
-      <a-button @click="addparams(obj)" type="primary">+</a-button>
-      <!-- </template> -->
-      </a-form-item>
-
 <!-- tags标签 -->
       <a-form-item
       label="tags"
@@ -620,11 +581,39 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
           New Tag
         </a-tag>
       </a-form-item>
+
+      <a-form-item 
+      label="params"
+      name="params"
+      >
+      <template v-for="item in modelstates.params" :key="item.name">
+        <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
+        </template>
+      </a-form-item>
   </a-form>
+  <a-form layout="inline" :model="obj" class="formPar">
+          <a-form-item name="name">
+            <a-input v-model:value="obj.name" placeholder="Parameter name"/>
+          </a-form-item>
+          <a-form-item label="type" name="type">
+               <a-select
+                ref="select"
+                v-model:value="partype"
+                style="width: 120px"
+                @focus="focus"
+                @change="handleChange"
+                :options="options"
+                placeholder="Parameter Type"
+              >
+                <!-- <a-select-option v-for="item in partype" :key="item" :value="item">{{item}}</a-select-option> -->
+              </a-select>
+          </a-form-item>
+          <a-form-item>
+            <a-button @click="addparams" type="primary">+</a-button>
+          </a-form-item>
+        </a-form>
     </a-modal>
   </div>
-
-          
           <!-- 表格的结构 -->
 
     <a-table bordered
@@ -644,8 +633,18 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
     </template>
 
     <template #bodyCell="{ column,text, record }">
-          <!-- <template v-if="['name', 'description','template','tags'].includes(column.dataIndex)">
-          </template> -->
+          <template v-if="column.key === 'description'"
+          >
+          <div v-for="desc in descriptionLight" :key="desc">
+            <p v-html="desc" ></p>
+          </div>
+          </template>
+           <template v-if="column.key === 'template'"
+          >
+          <div v-for="desc in templateLight" :key="desc">
+            <p v-html="desc"></p>
+          </div>
+          </template>
           <template v-if="column.key === 'tags'">
               <span>
                 <a-tag
@@ -660,10 +659,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
           <template v-if="column.key === 'params'">
               <span>
                 <a-tag
-                  v-for="tag in record.params"
-                  :key="tag"
+                  v-for="tags in record.params"
+                  :key="tags"
                 >
-                  {{ tag.toUpperCase() }}
+                  {{ tags.name }}
                 </a-tag>
               </span>
           </template>
@@ -684,19 +683,6 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
               </span>
           </template>
     </template>
-    <!-- 嵌套的子表格 -->
-   
-      <a-table 
-      slot="expandedRowRender" 
-      slot-scope="record"
-      :columns="innerColumns" 
-      :rowKey="item=>item.key"
-      :data-source="record.params" 
-      >
-        <template #bodyCell="{ column,record }">
-        
-        </template>
-        </a-table>
       </a-table>
         </template>
       </SplitPanel>
@@ -722,5 +708,9 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
   }
   .btn_ok{
     width:4.375rem
+  }
+  .formPar{
+  display: flex;
+  justify-content: center;
   }
   </style>
