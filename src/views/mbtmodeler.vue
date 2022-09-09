@@ -5,13 +5,26 @@ import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { ref, onMounted, onUpdated, watchEffect, watch, reactive } from "vue";
 import type { Ref } from "vue";
-import $ from "jquery";
+import { useRouter, useRoute } from 'vue-router'
+
+
+// import { createRouter, createWebHashHistory, RouteRecordRaw,ComponentCustomProperties } from "vue-router"
+import $, { param } from "jquery";
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
+import { watchThrottled } from "@vueuse/shared";
 interface FormState {
   awname: string;
   description: string;
   remember: boolean;
 }
+
+let mbtname = ref('');
+// function getRouterData() {
+//       .$route.params.page
+//       this.code = this.$route.params.code
+//       console.log('page', this.page)
+//       console.log('code', this.code)
+//     }
 
 const formState = reactive<FormState>({
   awname: '',
@@ -39,6 +52,12 @@ function onShow(cell?: any) {
 
   showPropPanel.value = true;
 }
+  //通过useRouter()获取路由器的实例
+  const router = useRouter()
+
+  //route是响应式对象，可监控其变化，需要用useRoute()获取
+  const route = useRoute()
+
 
 var verticesTool = new joint.linkTools.Vertices();
 var segmentsTool = new joint.linkTools.Segments();
@@ -56,14 +75,50 @@ var toolsView = new joint.dia.ToolsView({
 let modeler: MbtModeler;
 let stencil: Stencil;
 
-// watchEffect(async () => {
-//   const response = await fetch(url.value)
-//   data.value = await response.json()
-// })
+let customNamespace : joint.dia.Paper.Options['cellViewNamespace'] ={};
+  let Shape = joint.dia.Element.define('shapeGroup.Shape', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
+
+function setupNamespace() {
+    Object.assign(customNamespace, {
+      shapeGroup: 
+          Shape
+      
+  });
+  }
+
 onMounted(() => {
 
+
+  
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
+
+  if(localStorage.getItem('mbt-'+route.params.name)){
+    setupNamespace();
+    
+    modeler.paper.options.cellViewNamespace= customNamespace;
+    
+    
+    // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
+    if(localStorage.getItem('mbt-'+route.params.name)){
+      let tempstr =localStorage.getItem('mbt-'+route.params.name)+'';
+      // modeler.graph.fromJSON(JSON.parse(tempstr));
+      // return
+    }
+    
+  }else if(modeler && modeler.graph){
+    localStorage.setItem('mbt-'+route.params.name,JSON.stringify(modeler.graph.toJSON()));
+  }else {
+    console.log('empty')
+  }
   // element.addTo(graph);
   // 1) creating link tools
 
@@ -143,6 +198,13 @@ onMounted(() => {
 
   // });
 
+    // mbtname = this.$route.params.id;
+
+  // console.log('graph:',modeler.graph);
+  // console.log('route.query:',route.query,',route.params:',route.params,' fullpath:',route.fullPath,',route name:',route.name)
+  console.log('graph:',modeler.graph.toJSON());
+
+  
 
 });
 
@@ -157,19 +219,7 @@ onMounted(() => {
       font-size: 5rem;
       overflow: hidden;
     ">
-    <!-- <div
-      :style="{
-        height: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        border: '1px solid #ebedf0',
-        borderRadius: '2px',
 
-        textAlign: 'center',
-        width: '100%',
-      }"
-    > -->
-    <!-- <SplitPanel> -->
     <a-row type="flex" style="
       width: 100%;
       height: 100%;
@@ -214,25 +264,7 @@ onMounted(() => {
         </div>
       </a-col>
     </a-row>
-    <!-- <template #left-content>
-        <div class="stencil" ref="stencilcanvas"></div>
-      </template>
-      <template #right-content>
-        <div class="canvas" ref="canvas"></div>
-      </template> -->
-    <!-- </SplitPanel> -->
-    <!-- <a-drawer
-        title="Basic Drawer"
-        placement="right"
-        :closable="true"
-        :visible="showPropPanel"
-        :get-container="false"
-        :style="{ position: 'absolute' }"
-        @close="onClose"
-      >
-        <p>Some contents...</p>
-      </a-drawer> 
-    </div>-->
+
   </section>
 </template>
 
