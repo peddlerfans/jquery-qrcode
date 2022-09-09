@@ -143,8 +143,6 @@ const edit = (rowobj: any) => {
   modelstates.value.description = rowobj.description
   modelstates.value._id = rowobj._id
   states.tags = rowobj.tags
-
-  // let{name  description:,  template: _id:""}={...obj}
 }
 
 async function saveMBT(data: any) {
@@ -226,8 +224,6 @@ let checkDesc = async (_rule: Rule, value: string) => {
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
-  // template: [{ required: true, validator: checktem, trigger: 'blur' }],
-  // template_en: [{ validator: checkTemen, trigger: 'blur' }],
 
 };
 
@@ -261,7 +257,7 @@ const handleInputConfirm = () => {
   <main style="height:100%;overflow-x: hidden!important;">
     <header class="block shadow">
       <!-- <section class="block shadow flex-center"> -->
-      <!-- <ATable :data-source="data"></ATable> -->
+
       <!-- 表单的查询 -->
       <a-row>
         <a-col :span="20">
@@ -325,28 +321,7 @@ const handleInputConfirm = () => {
               New Tag
             </a-tag>
           </a-form-item>
-
-          <!-- <a-form-item label="params" name="params">
-              <template v-for="item in modelstates.params" :key="item.name">
-                <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}
-                </a-tag>
-              </template>
-            </a-form-item> -->
         </a-form>
-        <!-- <a-form layout="inline" :model="obj" class="formPar">
-            <a-form-item name="name">
-              <a-input v-model:value="obj.name" placeholder="Parameter name" />
-            </a-form-item>
-            <a-form-item label="type" name="type">
-              <a-select ref="select" v-model:value="partype" style="width: 120px" @change="handleChange"
-                :options="options" placeholder="Parameter Type">
-               
-              </a-select>
-            </a-form-item>
-            <a-form-item>
-              <a-button @click="addparams" type="primary">+</a-button>
-            </a-form-item>
-          </a-form> -->
       </a-modal>
     </div>
     <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
@@ -386,7 +361,7 @@ const handleInputConfirm = () => {
               <span>
                 <a @click="edit(record)">Edit</a>
                 <a-divider type="vertical" />
-                <a href="/#/mbtmodeler/index">Details</a>
+                <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
                 <a-divider type="vertical" />
                 <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
                   @confirm="confirm(record)" @cancel="cancel">

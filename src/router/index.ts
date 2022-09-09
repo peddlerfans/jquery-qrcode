@@ -143,7 +143,7 @@ export const routes: RouteRecordRaw[] = [
     redirect: { name: 'mbtmodeler' },    
     children: [
       {
-        path: 'index',
+        path: ':name',
         name: 'Mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
