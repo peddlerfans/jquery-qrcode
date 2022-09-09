@@ -60,11 +60,7 @@ const formState: UnwrapRef<FormState> = reactive({
       let templateLight=ref<any>([])
 const handleFinish: FormProps['onFinish'] = (values: any) => {
   query(formState)
-<<<<<<< HEAD
       highlight.value=tableData.value.filter((item:any, index: any) => {
-=======
-      highlight.value=tableData.value.filter((item:any, index) => {
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
         return item._highlight
         })
       console.log(highlight.value); 
@@ -213,11 +209,7 @@ async function saveAw(data: any) {
     });
     
     // 添加parmas的函数
-<<<<<<< HEAD
 const handleChange = (value: any) => {
-=======
-const handleChange = (value: string) => {
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
       console.log(value);
       
       obj.value.type = value
@@ -247,11 +239,7 @@ const clear = () => {
   // 删除params的函数
 function closepar(item:any) {
   console.log(item);
-<<<<<<< HEAD
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
-=======
-  const parry = modelstates.value.params.filter(paramsitem => paramsitem.name !== item.name)
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
   modelstates.value.params=parry
  }
 
@@ -285,11 +273,7 @@ let inputRef = ref();
     });
 
     const handleClose = (removedTag: string) => {
-<<<<<<< HEAD
       const tags = states.tags.filter((tag: string) => tag !== removedTag);
-=======
-      const tags = states.tags.filter(tag => tag !== removedTag);
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
       console.log(tags);
       states.tags = tags;
     };
@@ -353,11 +337,7 @@ const edit = (rowobj:any) => {
   // let{name  description:,  template: _id:""}={...obj}
 }
 const rowSelection: TableProps['rowSelection'] = {
-<<<<<<< HEAD
   onChange: (selectedRowKeys: any[], selectedRows: any) => {
-=======
-  onChange: (selectedRowKeys: string[], selectedRows: any) => {
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
     console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
   },
 }
@@ -459,11 +439,7 @@ const treeData: TreeProps['treeData'] = [
         ],
       },
 ];
-<<<<<<< HEAD
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
-=======
-const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
       console.log('selected', selectedKeys, info);
     };
 </script>
@@ -624,10 +600,6 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys, info) => {
                 ref="select"
                 v-model:value="partype"
                 style="width: 120px"
-<<<<<<< HEAD
-=======
-                @focus="focus"
->>>>>>> 476186d2d05cd8fdc0505019bd89f9a170eb7721
                 @change="handleChange"
                 :options="options"
                 placeholder="Parameter Type"
