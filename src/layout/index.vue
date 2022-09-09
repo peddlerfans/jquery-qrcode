@@ -4,7 +4,7 @@
   import SideBar from './SideBar.vue'
   import TabsBar from './TabsBar.vue'
   import isMobile from '@/composables/isMobile'
-  import Logo from '@/assets/logo.png'
+  import Logo from '@/assets/logo.svg'
   import { transitions, fixedHeader } from '@/appConfig'
   import type { Layout } from 'types/layout'
   const _isMobile = isMobile(setSidebarCollapsed)
@@ -35,8 +35,9 @@
         :width="sidebarRelated.width" :collapsedWidth="sidebarRelated.collapsedWidth" breakpoint="md">
         <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
           <RouterLink to="/">
-            <AImage width="100%" :height="sidebarRelated.collapsed ? '3rem' : '6rem'"
-              style="padding: .3rem 0; object-fit: contain;" :src="Logo" :preview="false" />
+            <!-- <AImage width="100%" :height="sidebarRelated.collapsed ? '3rem' : '4rem'"
+              style="padding: .3rem 0; object-fit: contain;" :src="Logo" :preview="false" /> -->
+              <img style="width:4rem;height: 4rem;" :src="Logo"/> MBT
           </RouterLink>
           <SideBar :style="{ paddingRight: sidebarRelated.collapsed ? '0' : '0' }"></SideBar>
         </div>
