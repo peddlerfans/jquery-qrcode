@@ -14,7 +14,9 @@
     "prod": "vite --mode production",
     "build": "vue-tsc --noEmit && vite build",
     "build:stage": "vue-tsc --noEmit && vite build --mode staging",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint" : "npm run build",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
@@ -51,6 +53,7 @@
     "@vitejs/plugin-vue-jsx": "2.0.0",
     "autoprefixer": "10.4.8",
     "cross-env": "^7.0.3",
+    "husky": "^8.0.1",
     "mockjs": "1.1.0",
     "postcss": "8.4.16",
     "postcss-flexbugs-fixes": "5.0.2",
