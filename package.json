@@ -15,6 +15,7 @@
     "build": "vue-tsc --noEmit && vite build",
     "build:stage": "vue-tsc --noEmit && vite build --mode staging",
     "preview": "vite preview",
+    "lint" : "npm run build",
     "prepare": "husky install"
   },
   "dependencies": {
