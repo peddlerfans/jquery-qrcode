@@ -165,13 +165,13 @@ const closemodel = () => {
 let partype = ref('')
   const options = ref<SelectProps['options']>([
       {
-        value: 'Str',
-        label: 'Str',
+        value: 'str',
+        label: 'str',
       },
-      {
-        value: 'undefined',
-        label: 'undefined',
-      },
+      // {
+      //   value: 'undefined',
+      //   label: 'undefined',
+      // },
       {
         value: 'number',
         label: 'number',
@@ -181,17 +181,21 @@ let partype = ref('')
         label: 'boolean',
     },
       {
-        value: 'null',
-        label: 'null',
+        value: 'number',
+        label: 'number',
     },
-     {
-        value: 'Array',
-        label: 'Array',
+    {
+        value: 'int',
+        label: 'int',
     },
-     {
-        value: 'Object',
-        label: 'OBject',
-    },
+    //  {
+    //     value: 'Array',
+    //     label: 'Array',
+    // },
+    //  {
+    //     value: 'Object',
+    //     label: 'OBject',
+    // },
     {
       value: 'SUT',
         label:'SUT'
