@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 <!-- <template>
-=======
-<template>
->>>>>>> 3e242a4... 更新
   <svg v-bind="$attrs" class="svg-icon" :style="getStyle" aria-hidden="true">
     <use :xlink:href="symbolId" />
   </svg>
@@ -23,11 +19,7 @@
   //   requireContext.keys().forEach(requireContext);
   try {
     // importAll(require.context('@/assets/icons', true, /\.svg$/));
-<<<<<<< HEAD
     const files =import.meta.glob("@/assets/icons/*.svg")
-=======
-    const files =import.meta.globEager("@/assets/icons/*.svg")
->>>>>>> 3e242a4... 更新
     Object.keys(files).forEach((fileName)=>{
       console.log(fileName);
     })
@@ -71,8 +63,4 @@
     vertical-align: -0.15em;
     fill: currentColor;
   }
-<<<<<<< HEAD
 </style> -->
-=======
-</style>
->>>>>>> 3e242a4... 更新

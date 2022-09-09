@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import { defineConfig,loadEnv } from 'vite'
 
-=======
-import { defineConfig } from 'vite'
->>>>>>> 3e242a4... 更新
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
@@ -13,17 +9,13 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import postcssNesting from 'postcss-nesting'
 import autoprefixer from 'autoprefixer'
 import flexbugsFixes from 'postcss-flexbugs-fixes'
-<<<<<<< HEAD
 // import { viteMockServe } from "vite-plugin-mock";
-=======
->>>>>>> 3e242a4... 更新
 
 function resolvePath(src: string) {
   return path.resolve(__dirname, src)
 }
 
 // https://vitejs.dev/config/
-<<<<<<< HEAD
 export default  defineConfig({
   base: '/',
   plugins: [
@@ -33,18 +25,6 @@ export default  defineConfig({
     // }),
     vueJsx(),
     Components({
-=======
-export default defineConfig({
-  base: '/',
-  plugins: [
-    vue(),
-    vueJsx(),
-    Components({
-<<<<<<< HEAD
-=======
-      dirs: ['src/components', 'src/views'],
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
       resolvers: [AntDesignVueResolver()]
     }),
     createSvgIconsPlugin({
@@ -52,10 +32,7 @@ export default defineConfig({
       symbolId: 'svg-[dir]-[name]',
     })
   ],
-<<<<<<< HEAD
   
-=======
->>>>>>> 3e242a4... 更新
   css: {
     preprocessorOptions: {
       less: {
@@ -89,7 +66,6 @@ export default defineConfig({
   },
   server: {
     open: false,
-<<<<<<< HEAD
     port: 7777
     // proxy: {
     //   "/api": {
@@ -108,31 +84,5 @@ export default defineConfig({
       
     //   }
     // }
-=======
-    port: 7777,
-    proxy: {
-      "/api": {
-<<<<<<< HEAD
-        // target: 'https://mbt-dev.oppo.itealab.net/api/',
-        target:'https://www.baidu.com',
-        changeOrigin: true,
-        secure: false,
-        // headers: {                  
-        //   Referer: 'https://mbt-dev.oppo.itealab.net'
-        // },
-        rewrite: (path:string) => {
-          console.log('...kkkkkk....',path)
-          return path.replace(/^\/api/, '')}
-=======
-        target: 'https://mbt-dev.oppo.itealab.net/api/',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path: string) => {
-          return path.replace(/^\/api/, '')
-        }
->>>>>>> cfb6473... 解析树形数据渲染表格
-      }
-    }
->>>>>>> 3e242a4... 更新
   }
 })

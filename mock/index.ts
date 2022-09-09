@@ -8,10 +8,7 @@ type GlobModule = {
 }
 
 function collectApis(): MockApi.obj[] {
-<<<<<<< HEAD
   
-=======
->>>>>>> 3e242a4... 更新
   const mockApis = []
   const apiModules = import.meta.glob('./api/*.ts', { eager: true })
 

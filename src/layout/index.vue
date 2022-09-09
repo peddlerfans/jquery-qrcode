@@ -1,107 +1,4 @@
 <script setup lang="ts">
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-import { computed } from '@vue/reactivity'
-import { onBeforeMount, provide, reactive, ref } from 'vue'
-import HeadBar from './HeadBar.vue'
-import SideBar from './SideBar.vue'
-import TabsBar from './TabsBar.vue'
-import isMobile from '@/composables/isMobile'
-import Logo from '@/assets/logo.png'
-import { transitions } from '@/appConfig'
-import type { Layout } from 'types/layout'
-
-const _isMobile = isMobile()
-const sidebarRelated = reactive<Layout.SidebarRelated>({
-  collapsed: true,
-  width: '15rem',
-  collapsedWidth: '3rem'
-})
-const loading = reactive<Layout.Loading>({
-  logout: false
-})
-const keepAlivePages = ref<Layout.keepAlivePages>(new Set())
-const getKeepAlivePages = computed(() => {
-  return Array.from(keepAlivePages.value)
-})
-
-onBeforeMount(() => {
-  setSidebarCollapsed()
-})
-
-function setSidebarCollapsed() {
-  sidebarRelated.collapsed = _isMobile.value
-}
-
-// 为子组件提供布局的相关状态信息
-provide('sidebarRelated', sidebarRelated)
-provide('keepAlivePages', keepAlivePages.value)
-provide('loading', loading)
-</script>
-
-<template>
-  <ALayout>
-    <ALayoutSider v-if="!_isMobile" v-model:collapsed="sidebarRelated.collapsed" collapsible :trigger="null"
-      :width="sidebarRelated.width" :collapsedWidth="sidebarRelated.collapsedWidth" breakpoint="md">
-      <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
-        <RouterLink to="/">
-          <AImage width="100%" :height="sidebarRelated.collapsed ? '3rem' : '6rem'"
-            style="padding: .3rem 0; object-fit: contain;" :src="Logo" :preview="false" />
-        </RouterLink>
-        <SideBar :style="{ paddingRight: sidebarRelated.collapsed ? '0' : '0' }"></SideBar>
-      </div>
-    </ALayoutSider>
-    <ALayout>
-      <ALayoutHeader>
-        <HeadBar></HeadBar>
-        <TabsBar :withIcons="true"></TabsBar>
-      </ALayoutHeader>
-      <ALayoutContent id="content-window">
-        <RouterView v-slot="{ Component, route }">
-          <Transition :name="transitions.fadeScale" mode="out-in" appear>
-            <!-- 
-              vite的hmr和keepalive组件冲突会导致路由失效，
-              https://github.com/vuejs/core/pull/5165
-              开发过程注释掉keepalive
-            -->
-            <KeepAlive :include="getKeepAlivePages" :max="10">
-              <component :is="Component" :key="route.name" />
-            </KeepAlive>
-          </Transition>
-        </RouterView>
-      </ALayoutContent>
-    </ALayout>
-  </ALayout>
-  <Teleport to="body">
-    <Transition name="slide-right" mode="out-in" appear>
-      <Shadow v-if="_isMobile && !sidebarRelated.collapsed" @shadowClick="sidebarRelated.collapsed = true">
-        <div class="block sidebar-mobile">
-          <RouterLink to="/">
-            <AImage :width="sidebarRelated.width" height="6rem" style="padding: .3rem 0; object-fit: contain;"
-              :preview="false" :src="Logo" />
-          </RouterLink>
-          <SideBar></SideBar>
-        </div>
-      </Shadow>
-    </Transition>
-  </Teleport>
-</template>
-
-<style scoped>
-.sidebar-mobile {
-  width: v-bind('sidebarRelated.width');
-  height: 96vh;
-  position: absolute;
-  top: 2vh;
-  left: 2vw;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-</style>
-=======
->>>>>>> 3e242a4... 更新
   import { onBeforeMount, provide, reactive, ref } from 'vue'
   import HeadBar from './HeadBar.vue'
   import SideBar from './SideBar.vue'
@@ -134,11 +31,6 @@ provide('loading', loading)
   
   <template>
     <ALayout>
-<<<<<<< HEAD
-=======
-      <!-- 侧边栏 -->
-
->>>>>>> 3e242a4... 更新
       <ALayoutSider v-if="!_isMobile" v-model:collapsed="sidebarRelated.collapsed" collapsible :trigger="null"
         :width="sidebarRelated.width" :collapsedWidth="sidebarRelated.collapsedWidth" breakpoint="md">
         <div style="display: flex; flex-direction: column; width: 100%; height: 100%;">
@@ -150,30 +42,16 @@ provide('loading', loading)
         </div>
       </ALayoutSider>
       <ALayout>
-<<<<<<< HEAD
-=======
-        <!-- 顶部导航栏 -->
-
->>>>>>> 3e242a4... 更新
         <ALayoutHeader v-if="fixedHeader">
           <HeadBar></HeadBar>
           <TabsBar :withIcons="true"></TabsBar>
         </ALayoutHeader>
-<<<<<<< HEAD
-=======
-        
->>>>>>> 3e242a4... 更新
         <ALayoutContent id="content-window">
           <div v-if="!fixedHeader" style="padding: 0 1rem;">
             <HeadBar></HeadBar>
             <TabsBar :withIcons="true"></TabsBar>
           </div>
           <RouterView v-slot="{ Component, route }" class="content-view">
-<<<<<<< HEAD
-=======
-
-            <!-- 组件显示区域 -->
->>>>>>> 3e242a4... 更新
             <Transition :name="transitions.fadeScale" mode="out-in" appear>
               <!-- 
                 vite的hmr和keepalive组件冲突会导致路由失效，
@@ -184,10 +62,6 @@ provide('loading', loading)
                 <component :is="Component" :key="route.name" />
               </KeepAlive>
             </Transition>
-<<<<<<< HEAD
-=======
-            
->>>>>>> 3e242a4... 更新
           </RouterView>
         </ALayoutContent>
       </ALayout>
@@ -219,7 +93,6 @@ provide('loading', loading)
     flex-direction: column;
   }
   .content-view {
-<<<<<<< HEAD
     padding: 0.2rem;
   }
 
@@ -227,9 +100,3 @@ provide('loading', loading)
     padding: 0.2rem;
   }
   </style>
-=======
-    padding: 1rem;
-  }
-  </style>
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新

@@ -13,11 +13,7 @@ const router = useRouter()
 
 function logout() {
   if (loading) loading.logout = true
-<<<<<<< HEAD
   user.logout().then((_:any) => {
-=======
-  user.logout().then(_ => {
->>>>>>> 3e242a4... 更新
     router.replace('/login')
   })
 }

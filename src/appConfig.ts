@@ -1,15 +1,4 @@
 import { EnvType, SwitchType } from "types/app"
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-/**
- * app标题
- */
-export const appTitle = 'Clownfish Admin'
-
-=======
->>>>>>> 3e242a4... 更新
 import {ref} from 'vue';
 /**
  * app标题
@@ -17,10 +6,6 @@ import {ref} from 'vue';
 export const appTitle = 'MBTesting @ ITEA Technologies'
 /** 提供动态固定头部 */
 export const fixedHeader = ref(true)
-<<<<<<< HEAD
-=======
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
 /**
  * 使用mock代理api请求：on开，off关  
  */
@@ -30,10 +15,7 @@ export const mock: SwitchType = 'on'
  * mock是否开启namespace，开启后文件名将作为前缀拼接在url
  */
 export const mockNamespace: boolean = true
-<<<<<<< HEAD
 // export const mockNamespace: boolean = false
-=======
->>>>>>> 3e242a4... 更新
 
 /**
  * mock代理指定环境

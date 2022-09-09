@@ -1,22 +1,10 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router"
 import Layout from '@/layout/index.vue'
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-import mbtmodeler from '@/views/mbtmodeler.vue'
-import mbtstore from '@/views/mbtstore.vue'
-import { GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined } from '@ant-design/icons-vue'
-=======
->>>>>>> 3e242a4... 更新
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
   AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
-<<<<<<< HEAD
-=======
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
 
 export const dashboardRoute: RouteRecordRaw = {
   path: '/',
@@ -29,37 +17,6 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: 'Dashboard', icon: HomeOutlined }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-    },
-    {
-      path: 'mbtstore',
-      name: 'mbtstore',
-      component: () => import('@/views/mbtstore.vue'),
-      meta: { title: 'MBTStore', icon: TableOutlined }
-    },
-    {
-      path: 'templatemanager',
-      name: 'templatemanager',
-      component: () => import('@/views/templatemanager.vue'),
-      meta: { title: 'Template Manager', icon: TableOutlined }
-    },
-    // {
-    //   path: 'mbtmodeler',
-    //   name: 'mbtmodeler',
-    //   component: () => import('@/views/mbtmodeler.vue'),
-    //   // meta: { title: 'MBTModeler', icon: TableOutlined }
-    // },
-
-    {
-      path: 'awmodeler',
-      name: 'awmodeler',
-      component: () => import('@/views/awmodeler.vue'),
-      meta: { title: 'AWModeler', icon: BlockOutlined }
-=======
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
     }
   ]
 }
@@ -67,14 +24,7 @@ export const dashboardRoute: RouteRecordRaw = {
 
 
 
-<<<<<<< HEAD
 
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
 const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/redirect',
@@ -105,13 +55,6 @@ export const routes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-  }
-
-=======
->>>>>>> 3e242a4... 更新
   },
 
   {
@@ -132,7 +75,6 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/templatemanager',
-<<<<<<< HEAD
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
@@ -156,19 +98,6 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
       }
 
-=======
-    name: 'Templatemanager',
-    component: Layout,
-    redirect: { name: 'Templatemanager' },
-    meta: { breadcrumb: false },
-    children: [
-      {
-        path: 'index',
-        name: 'Templatemanager',
-        component: () => import('@/views/templatemanager.vue'),
-        meta: { title: 'Template Manager', icon: ProfileOutlined, keepAlive: true }
-      }
->>>>>>> 3e242a4... 更新
     ]
   }
 
@@ -214,23 +143,13 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-<<<<<<< HEAD
         name: 'Mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
-=======
-        name: 'templatemanager',
-        component: () => import('@/views/mbtmodeler.vue'),
-        meta: { hidden: true, title: 'MBTModeler', icon: LayoutOutlined }
->>>>>>> 3e242a4... 更新
       }
     ]
 
   }
-<<<<<<< HEAD
-=======
->>>>>>> cfb6473... 解析树形数据渲染表格
->>>>>>> 3e242a4... 更新
 ]
 
 const router = createRouter({
