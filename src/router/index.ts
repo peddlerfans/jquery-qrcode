@@ -111,11 +111,12 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'awmodeler',
+        name: 'AWModeler',
         component: () => import('@/views/awmodeler.vue'),
         meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
       }
     ]
+
   }
   ,
 
