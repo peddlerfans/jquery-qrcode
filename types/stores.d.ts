@@ -9,14 +9,14 @@ export namespace Stores {
   interface aw {
     name: string,
     description: string,
-    path: string,
-    tags: string[],
-    params: string[],
-    name_hash: string,
-    description_hash: string,
-    _id: string,
-    _highlight: {
-        description: string[]            
+    path?: string,
+    tags?: string[],
+    params?: string[],
+    name_hash?: string,
+    description_hash?: string,
+    _id?: string,
+    _highlight?: {
+        description?: string[]            
     }
   }
 
@@ -28,8 +28,8 @@ export namespace Stores {
     name: string,
     description: string,
     tags: string[],
-    modelDefinition:object,
-    dataDefinition: {
+    modelDefinition?:object,
+    dataDefinition?: {
       resources:resourceschema[],
       dataType:string,
       dataUrl:string,

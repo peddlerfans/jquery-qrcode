@@ -6,7 +6,7 @@ import { dia } from "jointjs";
 import { ref, onMounted, onUpdated, watchEffect, watch, reactive } from "vue";
 import type { Ref } from "vue";
 import { useRouter, useRoute } from 'vue-router'
-
+// import {JsonSchemaForm} from '@/components/JsonSchemaForm.vue'
 
 // import { createRouter, createWebHashHistory, RouteRecordRaw,ComponentCustomProperties } from "vue-router"
 import $, { param } from "jquery";
@@ -217,7 +217,7 @@ onMounted(() => {
       min-height: 100%;
       color: var(--gray);
       font-size: 5rem;
-      overflow: hidden;
+      /* overflow: hidden; */
     ">
 
     <a-row type="flex" style="
@@ -243,8 +243,9 @@ onMounted(() => {
               <a-button type="primary" html-type="submit">Search</a-button>
             </a-form-item>
           </a-form>
-          <a-card style="width: 300px">
-            <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
+          <a-card style="height:100%; width: 300px;overflow-y: auto;">
+            <JsonSchemaForm></JsonSchemaForm>
+            <!-- <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
             @finish="onFinish" @finishFailed="onFinishFailed">
             <a-form-item label="Param" name="awname"
               :rules="[{ required: true, message: 'Please input your aw name!' }]">
@@ -259,7 +260,7 @@ onMounted(() => {
             <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
               <a-button type="primary" html-type="submit">Add</a-button>
             </a-form-item>
-          </a-form>
+          </a-form> -->
           </a-card>
         </div>
       </a-col>
@@ -275,7 +276,7 @@ onMounted(() => {
 
 .infoPanel {
   height: 100%;
-  overflow: hidden;
+  /* overflow: hidden; */
   position: relative;
   margin: 10px;
   width: 100%;

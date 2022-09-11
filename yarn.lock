@@ -400,6 +400,28 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@lljj/vjsf-utils@1.14.0":
+  "integrity" "sha512-dqRn6hSN5sYUvaPrCo6srzGy2Uj17hc95R1WHYhQtLNKVEXuoCrs65y/Ez4amT/sShvvWq6/z9klh1hugqlHSA=="
+  "resolved" "https://r.cnpmjs.org/@lljj/vjsf-utils/-/vjsf-utils-1.14.0.tgz"
+  "version" "1.14.0"
+  dependencies:
+    "ajv" "^6.10.2"
+
+"@lljj/vue3-form-ant@^1.14.0":
+  "integrity" "sha512-vNo9Bg9Z3cZXsff3S6P+TeuflHPUNEKpPz7AQatnwww5qwTysRm0ykaD8oohunVY/nPTXlRGYjtHsScbc+huhw=="
+  "resolved" "https://r.cnpmjs.org/@lljj/vue3-form-ant/-/vue3-form-ant-1.14.0.tgz"
+  "version" "1.14.0"
+  dependencies:
+    "@lljj/vjsf-utils" "1.14.0"
+    "@lljj/vue3-form-core" "1.14.0"
+
+"@lljj/vue3-form-core@1.14.0":
+  "integrity" "sha512-7ZSB66mbQc3iiHa0pRgSYEw+TiC2Et8Z8Zg7IRVjsc5jM/0eQl6Jj9+gecn8Qrb/WWgiQqEMo6ArpgXhdvXxDw=="
+  "resolved" "https://r.cnpmjs.org/@lljj/vue3-form-core/-/vue3-form-core-1.14.0.tgz"
+  "version" "1.14.0"
+  dependencies:
+    "@lljj/vjsf-utils" "1.14.0"
+
 "@nodelib/fs.scandir@2.1.5":
   "integrity" "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g=="
   "resolved" "https://r2.cnpmjs.org/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz"
@@ -908,7 +930,7 @@
   "resolved" "https://r2.cnpmjs.org/ajv-keywords/-/ajv-keywords-3.5.2.tgz"
   "version" "3.5.2"
 
-"ajv@^6.12.5", "ajv@^6.9.1":
+"ajv@^6.10.2", "ajv@^6.12.5", "ajv@^6.9.1":
   "integrity" "sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g=="
   "resolved" "https://r2.cnpmjs.org/ajv/-/ajv-6.12.6.tgz"
   "version" "6.12.6"
@@ -1648,9 +1670,9 @@
   "resolved" "https://r2.cnpmjs.org/es-module-lexer/-/es-module-lexer-0.9.3.tgz"
   "version" "0.9.3"
 
-"esbuild-darwin-64@0.14.49":
-  "integrity" "sha512-3rvqnBCtX9ywso5fCHixt2GBCUsogNp9DjGmvbBohh31Ces34BVzFltMSxJpacNki96+WIcX5s/vum+ckXiLYg=="
-  "resolved" "https://r.cnpmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-0.14.49.tgz"
+"esbuild-darwin-arm64@0.14.49":
+  "integrity" "sha512-XMaqDxO846srnGlUSJnwbijV29MTKUATmOLyQSfswbK/2X5Uv28M9tTLUJcKKxzoo9lnkYPsx2o8EJcTYwCs/A=="
+  "resolved" "https://r.cnpmjs.org/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.49.tgz"
   "version" "0.14.49"
 
 "esbuild@^0.14.47", "esbuild@>=0.13":

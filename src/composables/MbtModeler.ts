@@ -702,7 +702,7 @@ link2.labels([{
     if (!elementView.hasTools()) {
       elementView.addTools(this.toolsView1)
     }
-    console.log('click', elementView, elementView.hasTools())
+    // console.log('click', elementView, elementView.hasTools())
     elementView.showTools();
   });
 

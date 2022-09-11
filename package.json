@@ -15,11 +15,12 @@
     "build": "vue-tsc --noEmit && vite build",
     "build:stage": "vue-tsc --noEmit && vite build --mode staging",
     "preview": "vite preview",
-    "lint" : "npm run build",
+    "lint": "npm run build",
     "prepare": "husky install"
   },
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
+    "@lljj/vue3-form-ant": "^1.14.0",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.1",
     "ant-design-vue": "^3.2.11",
