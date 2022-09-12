@@ -449,6 +449,14 @@
     "@nodelib/fs.scandir" "2.1.5"
     "fastq" "^1.6.0"
 
+"@playwright/test@^1.25.2":
+  "integrity" "sha512-6qPznIR4Fw02OMbqXUPMG6bFFg1hDVNEdihKy0t9K0dmRbus1DyP5Q5XFQhGwEHQkLG5hrSfBuu9CW/foqhQHQ=="
+  "resolved" "https://registry.npmjs.org/@playwright/test/-/test-1.25.2.tgz"
+  "version" "1.25.2"
+  dependencies:
+    "@types/node" "*"
+    "playwright-core" "1.25.2"
+
 "@rollup/plugin-node-resolve@^13.0.4":
   "integrity" "sha512-Lus8rbUo1eEcnS4yTFKLZrVumLPY+YayBdWXgFSHYhTT2iJbMhoaaBL3xl5NCdeRytErGr8tZ0L71BMRmnlwSw=="
   "resolved" "https://r.cnpmjs.org/@rollup/plugin-node-resolve/-/plugin-node-resolve-13.3.0.tgz"
@@ -1012,6 +1020,22 @@
     "fast-json-stable-stringify" "^2.0.0"
     "json-schema-traverse" "^0.4.1"
     "uri-js" "^4.2.2"
+
+"allure-js-commons@2.0.0-beta.19":
+  "integrity" "sha512-sgt7TnU7s8QIzEOmLFO0T5ih4W2YbLrcsL1ElO7WN/dPzIww4G1BBJQDK98VCS+cG5qIljBYRuJ+rtzKWgtM8A=="
+  "resolved" "https://registry.npmjs.org/allure-js-commons/-/allure-js-commons-2.0.0-beta.19.tgz"
+  "version" "2.0.0-beta.19"
+  dependencies:
+    "mkdirp" "^1.0.4"
+    "properties" "^1.2.1"
+    "uuid" "^8.3.0"
+
+"allure-playwright@^2.0.0-beta.19":
+  "integrity" "sha512-TMSZToE0oPXz0qfH1cMaO5kcMrV8GkSlM1650Hk9dwpR/ldH2zx23/E7l1f77Elpqp/bGNyekjXNhYSx9ihCVg=="
+  "resolved" "https://registry.npmjs.org/allure-playwright/-/allure-playwright-2.0.0-beta.19.tgz"
+  "version" "2.0.0-beta.19"
+  dependencies:
+    "allure-js-commons" "2.0.0-beta.19"
 
 "ansi-regex@^2.0.0":
   "integrity" "sha512-TIGnTpdo+E3+pCyAluZvtED5p5wCqLdezCyhPZzKPcxvFplEt4i+W7OONCKgeZFT3+y5NZZfOOS/Bdcanm1MYA=="
@@ -1751,9 +1775,9 @@
   "resolved" "https://r2.cnpmjs.org/es-module-lexer/-/es-module-lexer-0.9.3.tgz"
   "version" "0.9.3"
 
-"esbuild-darwin-arm64@0.14.49":
-  "integrity" "sha512-XMaqDxO846srnGlUSJnwbijV29MTKUATmOLyQSfswbK/2X5Uv28M9tTLUJcKKxzoo9lnkYPsx2o8EJcTYwCs/A=="
-  "resolved" "https://r.cnpmjs.org/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.49.tgz"
+"esbuild-darwin-64@0.14.49":
+  "integrity" "sha512-3rvqnBCtX9ywso5fCHixt2GBCUsogNp9DjGmvbBohh31Ces34BVzFltMSxJpacNki96+WIcX5s/vum+ckXiLYg=="
+  "resolved" "https://r.cnpmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-0.14.49.tgz"
   "version" "0.14.49"
 
 "esbuild@^0.14.47", "esbuild@>=0.13":
@@ -2669,6 +2693,11 @@
     "for-in" "^1.0.2"
     "is-extendable" "^1.0.1"
 
+"mkdirp@^1.0.4":
+  "integrity" "sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw=="
+  "resolved" "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz"
+  "version" "1.0.4"
+
 "mockjs@>=1.1.0", "mockjs@1.1.0":
   "integrity" "sha512-eQsKcWzIaZzEZ07NuEyO4Nw65g0hdWAyurVol1IPl1gahRwY+svqzfgfey8U8dahLwG44d6/RwEzuK52rSa/JQ=="
   "resolved" "https://r2.cnpmjs.org/mockjs/-/mockjs-1.1.0.tgz"
@@ -2862,6 +2891,11 @@
     "@vue/devtools-api" "^6.2.1"
     "vue-demi" "*"
 
+"playwright-core@1.25.2":
+  "integrity" "sha512-0yTbUE9lIddkEpLHL3u8PoCL+pWiZtj5A/j3U7YoNjcmKKDGBnCrgHJMzwd2J5vy6l28q4ki3JIuz7McLHhl1A=="
+  "resolved" "https://registry.npmjs.org/playwright-core/-/playwright-core-1.25.2.tgz"
+  "version" "1.25.2"
+
 "posix-character-classes@^0.1.0":
   "integrity" "sha1-AerA/jta9xoqbAL+q7jB/vfgDqs= sha512-xTgYBc3fuo7Yt7JbiuFxSYGToMoz8fLoE6TC9Wx1P/u+LfeThMOAqmuyECnlBaaJb+u1m9hHiXUEtwW4OzfUJg=="
   "resolved" "https://r2.cnpmjs.org/posix-character-classes/-/posix-character-classes-0.1.1.tgz"
@@ -2974,6 +3008,11 @@
   dependencies:
     "posthtml-parser" "^0.2.0"
     "posthtml-render" "^1.0.5"
+
+"properties@^1.2.1":
+  "integrity" "sha512-qYNxyMj1JeW54i/EWEFsM1cVwxJbtgPp8+0Wg9XjNaK6VE/c4oRi6PNu5p7w1mNXEIQIjV5Wwn8v8Gz82/QzdQ=="
+  "resolved" "https://registry.npmjs.org/properties/-/properties-1.2.1.tgz"
+  "version" "1.2.1"
 
 "prr@~1.0.1":
   "integrity" "sha512-yPw4Sng1gWghHQWj0B3ZggWUm4qVbPwPFcRG8KyxiU7J2OHFSoEHKS+EZ3fv5l1t9CyCiop6l/ZYeWbrgoQejw=="
@@ -3578,6 +3617,11 @@
   "integrity" "sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA=="
   "resolved" "https://r2.cnpmjs.org/utils-merge/-/utils-merge-1.0.1.tgz"
   "version" "1.0.1"
+
+"uuid@^8.3.0":
+  "integrity" "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="
+  "resolved" "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
+  "version" "8.3.2"
 
 "vary@^1":
   "integrity" "sha1-IpnwLG3tMNSllhsLn3RSShj2NPw= sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg=="
