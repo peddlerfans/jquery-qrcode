@@ -65,7 +65,6 @@ export default defineConfig({
 
   },
   server: {
-    hmr: true,
     open: false,
     port: 7777,
     proxy: {

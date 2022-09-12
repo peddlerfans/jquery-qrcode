@@ -2,30 +2,10 @@
 export default { name: 'AWModeler'}
 </script>
 
-<!-- SUT --> system under test
-<!-- json数据类型 -->
-<!-- 树形基本功能 -->
-
-
-
 <script setup lang="ts">
-  import {
-    CarryOutFilled,
-    CarryOutOutlined,
-    SmileTwoTone,
-
-
-} from '@ant-design/icons-vue';
-
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import {
-
-  PlusOutlined,
-
-SmileOutlined,
-DownOutlined,
-} from '@ant-design/icons-vue';
+  import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined} from '@ant-design/icons-vue'
 import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
@@ -34,27 +14,20 @@ import request from '@/utils/request';
 import { cloneDeep } from 'lodash-es';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
-// const aw = awStore()
-// const [DynamicTable, dynamicTableInstance] = useTable();
-// const [showModal] = useFormModal();
-
-// const deptListLoading = ref(false);
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
   size:20
 })
 async function query(data?: any) {    
-  
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
   if (rst.data) {
-    // console.log('rst:',rst.data)
-      tableData.value = rst.data?.data
+    tableData.value = rst.data
       return rst.data
   }
 }
-// debugger
-// console.log(tableData.value);
+
+
 
 onMounted(() => {
   query()    
@@ -67,26 +40,24 @@ const formState: UnwrapRef<FormState> = reactive({
       let descriptionLight=ref<any>([])
       let templateLight=ref<any>([])
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  debugger
   query(formState)
-      highlight.value=tableData.value.filter((item:any, index: any) => {
-        return item._highlight
+      console.log(tableData.value);  
+      highlight.value=tableData.value.map((item:any, index: any) => {
+        if (item._highlight) {
+          return item._highlight
+        }
         })
-      console.log(highlight.value); 
- 
+//   console.log(highlight.value);
+     console.log(highlight.value)
 };
  highlight.value.forEach((item: any) => {
         if (item.description) {
-          descriptionLight.value.push(...item.description)
-            console.log(descriptionLight.value);
-            
+          descriptionLight.value.push(...item.description)            
         }
         if (item.template) {
           templateLight.value.push(...item.template)
-        }
-      });
- 
-    
+   }
+ });
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
@@ -139,13 +110,9 @@ let rules: Record<string, Rule[]> = {
   template_en: [{ validator: checkTemen, trigger: 'blur' }],
       
 };
-    console.log(rules.template[0].required);
-    
-    
-
 // 模态窗数据
     const visible = ref<boolean>(false);
-    const showModal = () => {
+const showModal = () => {
       visible.value = true;
     };
     const handleOk = () => {
@@ -169,16 +136,17 @@ let partype = ref('')
         label: 'Str',
       },
       {
-        value: 'undefined',
-        label: 'undefined',
+        value: 'Number',
+        label: 'Number',
       },
       {
-        value: 'number',
-        label: 'number',
-      },
+        value: 'ture',
+        label: 'ture',
+    },
+
       {
-        value: 'boolean',
-        label: 'boolean',
+        value: 'false',
+        label: 'false',
     },
       {
         value: 'null',
@@ -229,14 +197,15 @@ const handleChange = (value: any) => {
     // 清除模态窗数据
 const clear = () => {
   modelstates.value = {
-      name: "",
-      description: '',
-      template: "",
-      _id: "",
-      template_en: "",
-      params:[],
-      tags:[]
-  }      
+    name: "",
+    description: '',
+    template: "",
+    _id: "",
+    template_en: "",
+    params: [],
+    tags: []
+  },
+    states.tags = [];      
 }
 
     function addparams() {
@@ -251,11 +220,9 @@ function closepar(item:any) {
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
   modelstates.value.params=parry
  }
-
-
 const onFinishForm = async (modelstates: any) => {
   modelstates.value.tags = states.tags
-  // 判断修改或添加
+    // 判断修改或添加
       if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
         message.success("Modified successfully")
@@ -341,8 +308,8 @@ const edit = (rowobj:any) => {
   modelstates.value.template=rowobj.template
   modelstates.value._id = rowobj._id
   states.tags = rowobj.tags
-  modelstates.value.params = rowobj.params
-  
+  modelstates.value.params = [...rowobj.params]
+  console.log(rowobj.params);
   // let{name  description:,  template: _id:""}={...obj}
 }
 const rowSelection: TableProps['rowSelection'] = {
@@ -399,7 +366,7 @@ const expend = (isExpand:any,rected:any) => {
 })
 
 const wrapperCol={span:24,offset:12}
-const treeData: TreeProps['treeData'] = [
+let treeData: TreeProps['treeData'] = [
    {
         title: 'Setup',
         key: '0-0',
@@ -450,7 +417,70 @@ const treeData: TreeProps['treeData'] = [
 ];
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       console.log('selected', selectedKeys, info);
+};
+
+// 查询树节点的方法
+const expandedKeys = ref<(string | number)[]>([]);
+ const autoExpandParent = ref<boolean>(true);
+const searchValues = ref<string>('');
+watch(searchValues, value => {  
+  console.log(typeof treeData);
+      
+      if(value.length != 0){
+      const expanded = treeData!.map(item => {
+        if(item.title.includes(value)){
+          //console.log(item.key)
+          return item.key;
+        }
+        
+        return null;
+      }).filter((item,i,self) => item && self.indexOf(item) === i);
+
+      console.log('tree',expanded);
+      console.log('datalist',treeData)
+      console.log(value);
+
+      expandedKeys.value= expanded as any;
+      searchValues.value = value;
+      autoExpandParent.value = true;
+      }else{
+        //折叠起来
+        autoExpandParent.value =  false;
+      }
+     
+    })
+
+const onExpand = (keys: any) => {
+      console.log(keys);
+      
+      expandedKeys.value = keys ;
+      autoExpandParent.value = false;
     };
+// 修改树节点的方法
+// const onEdit = (value: any) => {
+//      findkey(treeData,selected,value);
+//       treeData = [];
+//       // generateList(treeData);
+//    }
+// //还定义了一个函数
+// //定义一个在树结构中寻找相应key，并修改对应的title。
+// const findkey = (data: string | any[] | undefined,selectedkey: any,content: any) => {
+//     for(let i = 0; i < data.length; i++){
+//         const node = data[i];
+//         const key = node.key;
+//         if(key === selectedkey){
+//             node.title = content;
+//             break;
+//         }else{
+//             if(node.children){
+//                 findkey(node.children,selectedkey,content);
+//             }
+//         }
+//     }
+// };
+
+
+
 </script>
 
 <template>
@@ -467,39 +497,60 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
               </Tooltip>
             </Space>
           </div>
+            <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
       :show-line="true"
       :default-expanded-keys="['0-0-0']"
       :tree-data="treeData"
       @select="onSelect"
+       :expanded-keys="expandedKeys"
+      :auto-expand-parent="autoExpandParent"
+      @expand="onExpand"
     >
       <template #icon><carry-out-outlined /></template>
-      <template #title="{ dataRef }">
-        <template v-if="dataRef.key === '0-0-0-1'">
-          <div>multiple line title</div>
-          <div>multiple line title</div>
-        </template>
-        <template v-else>{{ dataRef.title }}</template>
+      <template #title="{ title }">
+        <span v-if="title.indexOf(searchValues) > -1">
+          {{ title.substr(0, title.indexOf(searchValues)) }}
+          <span style="color: #f50">{{ searchValues }}</span>
+          {{ title.substr(title.indexOf(searchValues) + searchValues.length) }}
+        </span>
+        <span v-else>{{ title }}</span>
+ <!-- <template v-if="searchValues &&  dataRef.title.includes(searchValues)">
+         <div style="color: #f50; border:1px solid red"> 
+          <a-input v-model:value="dataRef.title" size="small"/>
+          </div>
+        </template> -->
+        <!-- <template v-else>
+          <div >
+          <a-input v-model:value="dataRef.title" size="small" @pressEnter="onEdit(dataRef.title)"/>
+          </div>
+          </template> -->
+
+      
+        <!-- <template v-else>{{ dataRef.title }}</template> -->
       </template>
-      <template #switcherIcon="{ dataRef, defaultIcon }">
-        <SmileTwoTone v-if="dataRef.key === '0-0-2'" />
-        <component :is="defaultIcon" v-else />
-      </template>
-    </a-tree>
-        </template>
+          <template #switcherIcon="{ dataRef, defaultIcon }">
+            <SmileTwoTone v-if="dataRef.key === '0-0-2'" />
+            <component :is="defaultIcon" v-else />
+          </template>
+      </a-tree>
+    </template>
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
         <a-col :span="20">
            <AForm  layout="inline"
           class="search_form"
-    :model="formState"
-    @finish="handleFinish"
-    @finishFailed="handleFinishFailed"
-    :wrapperCol="wrapperCol">
- <a-form-item :wrapper-col="{span:20}">
+          :model="formState"
+          @finish="handleFinish"
+          @finishFailed="handleFinishFailed"
+          :wrapperCol="wrapperCol">
+      <a-form-item :wrapper-col="{span:20}" class="searchForm">
 
-      <a-input v-model:value="formState.search" placeholder="hlf"></a-input>
+      <a-input v-model:value="formState.search" placeholder="hlf">
+      <template #prefix><search-outlined /></template>
+      </a-input>
+    
     </a-form-item>
     <a-form-item :wrapper-col="{span:20}">
       <a-button type="primary" html-type="submit">search</a-button>
@@ -644,7 +695,7 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
           <template v-if="column.key === 'description'"
           >
           <div v-for="desc in descriptionLight" :key="desc">
-            <p v-html="desc" ></p>
+            <p v-html="desc"></p>
           </div>
           </template>
            <template v-if="column.key === 'template'"
@@ -665,11 +716,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
               </span>
           </template>
           <template v-if="column.key === 'params'">
-              <span>
+              <span  v-for="tags in record.params"
+                  :key="tags">
                 <a-tag
-                  v-for="tags in record.params"
-                  :key="tags"
-                >
+                    >
                   {{ tags.name }}
                 </a-tag>
               </span>
@@ -720,5 +770,11 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
   .formPar{
   display: flex;
   justify-content: center;
+  }
+  .searchForm{
+    margin-right: 0.75rem;
+  }
+  ::v-deep .ant-form-item-control-input {
+    width: 18.75rem;
   }
   </style>
