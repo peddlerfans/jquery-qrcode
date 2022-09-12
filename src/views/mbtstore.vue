@@ -79,7 +79,7 @@ async function query(data?: any) {
 
   let rst = await request.get("/api/test-models", { params: data || searchobj })
   if (rst.data) {
-    // console.log('rst:',rst.data)
+    console.log('rst:',rst.data)
     dataSource.value = rst.data
     return rst.data
   }

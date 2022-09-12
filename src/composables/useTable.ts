@@ -18,8 +18,8 @@ function tableColumns(columns: TableColumnsType) {
 function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function) {
   const orz: TablePaginationConfig = {
     current: 1,
-    pageSize: 20,
-    pageSizeOptions: ['20', '50', '100', '200'],
+    pageSize: 10,
+    pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
     showTotal: (total, range) => `当前显示第${range[0]}-${range[1]}条，共${total}条`,
@@ -71,8 +71,8 @@ export default function ({ table, columns, pagination, updateTableOptions }:
         perPage: _pagination.pageSize
       }
     }).then(res => {
-      // console.log('res:',res)
-      _dataSource.value = res.data
+      console.log('res:',res)
+      _dataSource.value = res.data.data
       
       _pagination.total = res.data?.total
     }).catch(e=>{

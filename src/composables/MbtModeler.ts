@@ -61,9 +61,16 @@ export class MbtModeler {
   graph: dia.Graph = new joint.dia.Graph();
   boundaryTool = new joint.elementTools.Boundary();
   removeButton = new joint.elementTools.Remove({
-    offset:{
-      x:50,
-      y:50}
+    rotate:true,
+    x:'100%',
+    y:'100%'
+    // y:this.boundaryTool.vel.bbox.length+25,
+    // x:this.boundaryTool.vel.attr.length+30,
+    // y:this.boundaryTool.vel.bbox.length+15,
+    // offset:{
+    //   x:50,
+    //   y:50},
+      // useModelGeometry:true
   });
   connectButton = new joint.elementTools.Connect({
     // rotate:true
