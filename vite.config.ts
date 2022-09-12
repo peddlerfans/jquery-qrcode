@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
-
+import DefineOptions from 'unplugin-vue-define-options/vite'
 import vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
@@ -20,6 +20,7 @@ export default defineConfig({
   base: '/',
   plugins: [
     vue(),
+    DefineOptions(),
     // viteMockServe({
     //   supportTs: true, 
     // }),

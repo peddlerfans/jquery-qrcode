@@ -242,7 +242,7 @@ const showInput = () => {
 const handleInputConfirm = () => {
   let tags = states.tags;
   if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
-    tags = [...tags, states.inputValue];
+    tags = [...tags, states.inputValue.toUpperCase()];
   }
   Object.assign(states, {
     tags,
@@ -339,8 +339,8 @@ const handleInputConfirm = () => {
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
 
-          {{ record.name }}
-
+          
+          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
         </template>
 
         <template v-else-if="column.key === 'description'">
@@ -361,8 +361,8 @@ const handleInputConfirm = () => {
               <span>
                 <a @click="edit(record)">Edit</a>
                 <a-divider type="vertical" />
-                <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
-                <a-divider type="vertical" />
+                <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
+                <a-divider type="vertical" /> -->
                 <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
                   @confirm="confirm(record)" @cancel="cancel">
                   <a>Delete</a>

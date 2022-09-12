@@ -300,7 +300,7 @@ let inputRef = ref();
 const handleInputConfirm = () => {
   let tags = states.tags;
   if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
-    tags = [...tags, states.inputValue];
+    tags = [...tags, states.inputValue.toUpperCase()];
   }
   Object.assign(states, {
     tags,
