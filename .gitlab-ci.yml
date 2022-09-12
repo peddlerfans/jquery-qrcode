@@ -14,7 +14,7 @@ unittest:
   stage: unittest
   script:
     - npm run unittest
-    - npx playwright test 
+    # - npx playwright test 
 
 build:
   stage: build
