@@ -76,16 +76,17 @@ let highlight = ref<any>([])
 let descriptionLight = ref<any>([])
 // let templateLight = ref<any>([])
 async function query(data?: any) {
-
+  // console.log('query data:',data)
+  // console.log('searchbojet:',searchobj)
   let rst = await request.get("/api/test-models", { params: data || searchobj })
   if (rst.data) {
-    console.log('rst:',rst.data)
-    dataSource.value = rst.data
+    // console.log('rst:',rst.data)
+    dataSource.value = rst.data.data
     return rst.data
   }
 }
 const handleFinish: FormProps['onFinish'] = (values: any) => {
- 
+//  console.log(' formstate to search :',formState);
   query(formState)
   highlight.value = dataSource.value.filter((item: any, index: any) => {
     
@@ -235,6 +236,7 @@ const handleClose = (removedTag: string) => {
 const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
+    inputRef.value.toUpperCase();
     inputRef.value.focus();
   })
 };
