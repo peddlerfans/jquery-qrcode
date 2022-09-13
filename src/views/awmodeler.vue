@@ -2,43 +2,30 @@
 export default { name: 'AWModeler'}
 </script>
 
-<!-- SUT --> system under test
-<!-- json数据类型 -->
-<!-- 树形基本功能 -->
-
-
-
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-  import {  CarryOutFilled,  CarryOutOutlined,  SmileTwoTone, SmileOutlined,DownOutlined } from '@ant-design/icons-vue'
+  import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined} from '@ant-design/icons-vue'
 import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
-import { useRouter } from 'vue-router'
 import request from '@/utils/request';
-import { cloneDeep } from 'lodash-es';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
-// const aw = awStore()
-// const [DynamicTable, dynamicTableInstance] = useTable();
-// const [showModal] = useFormModal();
-
-// const deptListLoading = ref(false);
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
-  size:20
+  size:30
 })
 async function query(data?: any) {    
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
+  // console.log(rst.total.value);
   if (rst.data) {
-      tableData.value = rst.data.data 
+    pagination.value.total=rst.total.value
+    tableData.value = rst.data
       return rst.data
   }
 }
-console.log(tableData.value);
-
 onMounted(() => {
   query()    
 }) 
@@ -46,33 +33,12 @@ onMounted(() => {
 const formState: UnwrapRef<FormState> = reactive({
       search: ''
 });
-      let highlight = ref<any>([])
-      let descriptionLight=ref<any>([])
-      let templateLight=ref<any>([])
 const handleFinish: FormProps['onFinish'] = (values: any) => {
   query(formState)
-      highlight.value=tableData.value.filter((item:any, index: any) => {
-        return item._highlight
-        })
-      
- 
 };
-
- highlight.value.forEach((item: any) => {
-        if (item.description) {
-          descriptionLight.value.push(...item.description)            
-        }
-        if (item.template) {
-          templateLight.value.push(...item.template)
-        }
- });
-      console.log(descriptionLight.value)
- 
-    
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
-
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -89,7 +55,7 @@ let checkName = async (_rule: Rule, value: string) => {
 let checkDesc = async (_rule: Rule, value: string) => {
   let rst = await query({ search: value })  
   if (!value) {
-    return Promise.reject("Please input your name!")
+    return Promise.reject("Please input your description!")
   }else if (rst.length == 1) {
     return Promise.reject("The description already exists")
   } else {
@@ -121,13 +87,9 @@ let rules: Record<string, Rule[]> = {
   template_en: [{ validator: checkTemen, trigger: 'blur' }],
       
 };
-    console.log(rules.template[0].required);
-    
-    
-
 // 模态窗数据
     const visible = ref<boolean>(false);
-    const showModal = () => {
+const showModal = () => {
       visible.value = true;
     };
     const handleOk = () => {
@@ -151,28 +113,25 @@ let partype = ref('')
         label: 'Str',
       },
       {
-        value: 'undefined',
-        label: 'undefined',
+        value: 'Number',
+        label: 'Number',
       },
+      {
+        value: 'ture',
+        label: 'ture',
+    },
+
+      {
+        value: 'false',
+        label: 'false',
+    },
       {
         value: 'number',
         label: 'number',
-      },
-      {
-        value: 'boolean',
-        label: 'boolean',
     },
-      {
-        value: 'null',
-        label: 'null',
-    },
-     {
-        value: 'Array',
-        label: 'Array',
-    },
-     {
-        value: 'Object',
-        label: 'OBject',
+    {
+        value: 'int',
+        label: 'int',
     },
     {
       value: 'SUT',
@@ -211,14 +170,15 @@ const handleChange = (value: any) => {
     // 清除模态窗数据
 const clear = () => {
   modelstates.value = {
-      name: "",
-      description: '',
-      template: "",
-      _id: "",
-      template_en: "",
-      params:[],
-      tags:[]
-  }      
+    name: "",
+    description: '',
+    template: "",
+    _id: "",
+    template_en: "",
+    params: [],
+    tags: []
+  },
+    states.tags = [];      
 }
 
     function addparams() {
@@ -233,8 +193,6 @@ function closepar(item:any) {
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
   modelstates.value.params=parry
  }
-
-
 const onFinishForm = async (modelstates: any) => {
   modelstates.value.tags = states.tags
     // 判断修改或添加
@@ -278,7 +236,7 @@ let inputRef = ref();
 const handleInputConfirm = () => {
   let tags = states.tags;
   if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
-    tags = [...tags, states.inputValue];
+    tags = [...tags, states.inputValue.toUpperCase()];
   }
   Object.assign(states, {
     tags,
@@ -305,7 +263,6 @@ const confirm = (e: MouseEvent) => {
       message.error('Cancel deletion');
     };
     
-
 
     // 修改功能4
     // 修改函数
@@ -339,8 +296,8 @@ const columns = reactive<Object[]>(
   [
   {
     name: 'Name',
-    dataIndex: 'name',
-    key: 'name',
+    dataIndex: 'Name',
+    key: 'Name',
   },
   {
     title: 'description',
@@ -369,6 +326,30 @@ const columns = reactive<Object[]>(
   },
 ]
 )
+
+// 分页的数据
+let pagination=ref( {
+        pageNo: 1,
+        pageSize: 10, // 默认每页显示数量
+        showSizeChanger: true, // 显示可改变每页数量
+        pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
+        showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+        onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
+        onChange:(page: any,pageSize: any)=>onPageChange(page,pageSize),//点击页码事件
+        total:0 //总条数
+       })
+
+const onPageChange = (page: number, pageSize: any) => {
+        console.log(page,pageSize);
+      pagination.value.pageNo = page
+       query()
+   }
+   const onSizeChange=(current: any, pageSize: number)=> {
+       pagination.value.pageNo = 1
+       pagination.value.pageSize = pageSize
+       query()
+   }
+
 const expend = (isExpand:any,rected:any) => {
   console.log(isExpand,rected);
   
@@ -381,7 +362,7 @@ const expend = (isExpand:any,rected:any) => {
 })
 
 const wrapperCol={span:24,offset:12}
-const treeData: TreeProps['treeData'] = [
+let treeData: TreeProps['treeData'] = [
    {
         title: 'Setup',
         key: '0-0',
@@ -432,6 +413,79 @@ const treeData: TreeProps['treeData'] = [
 ];
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       console.log('selected', selectedKeys, info);
+};
+// 递归查询子节点的方法
+const getchildKey = (childs: any, findKey: string):any => {
+  let finditem = null;
+   for (let i = 0, len = childs.length; i < len; i++) {
+     let item = childs[i]
+     if (item.title !== findKey && item.children && item.children.length > 0) {
+       finditem = getchildKey(item.children, findKey)
+     }
+     if (item.title == findKey) {
+       finditem = item
+     }
+     if (finditem != null) {
+       break
+     }
+   }
+   return finditem
+}
+
+// 查询树节点的方法
+const expandedKeys = ref<(string | number)[]>([]);
+ const autoExpandParent = ref<boolean>(true);
+const searchValues = ref<string>('');
+watch(searchValues, value => {  
+  console.log(treeData);
+      
+      if(value.length != 0){
+        const expanded = treeData?.filter(item => {
+          console.log(item);
+          
+        if(item.title.includes(value)){
+          
+          return item.key;
+        } else {
+          if (item.children) {
+            
+            item.children.filter(childItem => {
+              
+              if (childItem.title.includes(value)) {
+                // console.log(item.children?.includes(childItem.key))
+                return childItem.key
+              }
+            })
+          }
+        }
+        
+        return null;
+      })
+        // .filter((item, i, self) => item && self.indexOf(item) === i);
+      console.log('tree',expanded);
+      console.log('datalist',treeData)
+      console.log(value);
+
+      expandedKeys.value= expanded as any;
+      searchValues.value = value;
+      autoExpandParent.value = true;
+      }else{
+        //折叠起来
+        autoExpandParent.value =  false;
+      }
+     
+    })
+
+const onExpand = (keys: any) => {
+      console.log(keys);
+      
+      expandedKeys.value = keys ;
+      autoExpandParent.value = true;
+    };
+
+// 右键点击树形控件触发的事件
+const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
+      console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
     };
 </script>
 
@@ -449,38 +503,55 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
               </Tooltip>
             </Space>
           </div>
+            <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
-      :show-line="true"
-      :default-expanded-keys="['0-0-0']"
-      :tree-data="treeData"
-      @select="onSelect"
-    >
+            :show-line="true"
+            :default-expanded-keys="['0-0-0']"
+            :tree-data="treeData"
+            @select="onSelect"
+            :expanded-keys="expandedKeys"
+            :auto-expand-parent="autoExpandParent"
+            @expand="onExpand"  >
       <template #icon><carry-out-outlined /></template>
-      <template #title="{ dataRef }">
-        <template v-if="dataRef.key === '0-0-0-1'">
-          <div>multiple line title</div>
+  <template #title="{key:treeKey, title }">
+    <a-dropdown :trigger="['contextmenu']">
+        <a-tooltip placement="right">
+            <template #title>右键点击更多操作</template>
+              <template v-if="searchValues &&  title.includes(searchValues)">
+                <div style="color: #f50; border:1px solid red"> 
+                  <span>{{title}}</span>
+                </div>
+                </template>
+              <template v-else>{{ title }}</template>
+        </a-tooltip>
+        <template #overlay>
+          <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
+            <a-menu-item key="1">add Node</a-menu-item>
+            <a-menu-item key="2">upd Node</a-menu-item>
+            <a-menu-item key="3">del Node</a-menu-item>
+          </a-menu>
         </template>
-        <template v-else>{{ dataRef.title }}</template>
-      </template>
-      <template #switcherIcon="{ dataRef, defaultIcon }">
-        <SmileTwoTone v-if="dataRef.key === '0-0-2'" />
-        <component :is="defaultIcon" v-else />
-      </template>
-    </a-tree>
-        </template>
+    </a-dropdown>
+    </template>
+
+      </a-tree>
+    </template>
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
         <a-col :span="20">
            <AForm  layout="inline"
           class="search_form"
-    :model="formState"
-    @finish="handleFinish"
-    @finishFailed="handleFinishFailed"
-    :wrapperCol="wrapperCol">
- <a-form-item :wrapper-col="{span:20}">
+          :model="formState"
+          @finish="handleFinish"
+          @finishFailed="handleFinishFailed"
+          :wrapperCol="wrapperCol">
+      <a-form-item :wrapper-col="{span:20}" class="searchForm">
 
-      <a-input v-model:value="formState.search" placeholder="hlf"></a-input>
+      <a-input style="width:18.15rem" v-model:value="formState.search" placeholder="hlf">
+      <template #prefix><search-outlined /></template>
+      </a-input>
+    
     </a-form-item>
     <a-form-item :wrapper-col="{span:20}">
       <a-button type="primary" html-type="submit">search</a-button>
@@ -580,8 +651,8 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
         <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
         </template>
       </a-form-item>
-  </a-form>
-  <a-form layout="inline" :model="obj" class="formPar">
+      </a-form>
+      <a-form layout="inline" :model="obj" class="formPar">
           <a-form-item name="name">
             <a-input v-model:value="obj.name" placeholder="Parameter name"/>
           </a-form-item>
@@ -611,9 +682,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       :data-source="tableData" 
       :row-selection="rowSelection"
       class="components-table-demo-nested"
+      :pagination="pagination"
       @expand="expend">
       <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
+        <template v-if="column.key === 'Name'">
           <span>
             <smile-outlined />
             Name
@@ -622,16 +694,26 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
     </template>
 
     <template #bodyCell="{ column,text, record }">
-          <template v-if="column.key === 'description'"
-          >
-          <div v-for="desc in descriptionLight" :key="desc">
-            <p v-text="desc"></p>
+      <template v-if="column.key === 'Name'">
+          <div v-if="record.name.indexOf(formState.search)!=-1" >
+            <p v-html="record.name.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
+          </div>
+          <div v-else>
+            <p>{{record.name}}</p>
+          </div>
+          </template>
+          <template v-if="column.key === 'description'">
+          <div v-if="record.description.indexOf(formState.search)!=-1" >
+            <p v-html="record.description.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
+          </div>
+          <div v-else>
+            <p>{{record.description}}</p>
           </div>
           </template>
            <template v-if="column.key === 'template'"
           >
-          <div v-for="desc in templateLight" :key="desc">
-            <p v-html="desc"></p>
+          <div v-if="record.template.indexOf(formState.search)!=-1">
+            <p v-html="record.template.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
           </div>
           </template>
           <template v-if="column.key === 'tags'">
@@ -698,7 +780,15 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
     width:4.375rem
   }
   .formPar{
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
+  margin-top: -1.25rem;
+      margin-left: 6.25rem;
+  }
+  .searchForm{
+    margin-right: 0.75rem;
+  }
+  .highlight{
+    background-color: yellow;
   }
   </style>

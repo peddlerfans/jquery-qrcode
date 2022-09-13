@@ -25,6 +25,7 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   response => {
+    console.log(response);
     const { code, msg } = response.data
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)
