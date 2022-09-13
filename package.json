@@ -16,9 +16,8 @@
     "preview": "vite preview",
     "lint": "npm run build",
     "prepare": "husky install",
-    "test": "vitest",
-    "coverage": "vitest run --coverage",
-    "test:unit": "vitest --environment jsdom",
+    "test": "vitest --environment jsdom",
+    "coverage": "vitest run --coverage",    
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false"
   },
   "dependencies": {
