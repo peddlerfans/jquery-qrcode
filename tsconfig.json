@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "types": ["unplugin-vue-define-options/macros-global"],
+    "target": "esnext",    
+    "types": ["unplugin-vue-define-options/macros-global", "vitest/globals"],
     "useDefineForClassFields": true,
     "module": "esnext",
     "moduleResolution": "node",

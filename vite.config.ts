@@ -87,5 +87,13 @@ export default defineConfig({
 
       //   }
     }
+  },
+  test: {
+    deps: {
+      inline: [
+        "ant-design-vue"
+      ]
+    }
   }
+
 })
