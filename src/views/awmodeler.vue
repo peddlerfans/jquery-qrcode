@@ -3,10 +3,10 @@ export default { name: 'AWModeler'}
 </script>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
-import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
+import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
+import type { FormProps, SelectProps, TableProps, TreeProps, } from 'ant-design-vue';
   import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined} from '@ant-design/icons-vue'
-import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
+import {  Space, Tooltip, } from 'ant-design-vue';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
@@ -21,14 +21,18 @@ async function query(data?: any) {
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
   // console.log(rst.total.value);
   if (rst.data) {
-    pagination.value.total=rst.total.value
+    pagination.value.total = rst.total
+    console.log(pagination.value.total);
+    
     tableData.value = rst.data
       return rst.data
   }
 }
 onMounted(() => {
+  
   query()    
 }) 
+const instance=getCurrentInstance()
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: ''
@@ -39,59 +43,12 @@ const handleFinish: FormProps['onFinish'] = (values: any) => {
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
-
-// 表单验证
-let checkName = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })  
-  if (!value) {
-    return Promise.reject("Please input your name!")
-  }else if (rst.length == 1) {
-    return Promise.reject("The name already exists")
-  } else {
-    return Promise.resolve();
-  }
-  
-}
-let checkDesc = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })  
-  if (!value) {
-    return Promise.reject("Please input your description!")
-  }else if (rst.length == 1) {
-    return Promise.reject("The description already exists")
-  } else {
-    return Promise.resolve();
-  }
-  
-} 
-let checktem = async (_rule: Rule, value: string) => { 
-  
-  if (!value) {    
-    rules.template_en[0].required=false
-    return Promise.reject("Template or templ is required")
-  } else {
-    return Promise.resolve();
-  }
-}
-let checkTemen = async (_rule: Rule, value: string) => {
-  if (!value) {   
-    return Promise.reject("Please input your template_en!")
-  } else {
-    return Promise.resolve()
-      
-  }
-}
-let rules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{required: true, validator: checkDesc, trigger: 'blur' }],
-  template: [{ required: true, validator: checktem, trigger: 'blur' }],
-  template_en: [{ validator: checkTemen, trigger: 'blur' }],
-      
-};
 // 模态窗数据
     const visible = ref<boolean>(false);
 const showModal = () => {
-      visible.value = true;
-    };
+  visible.value = true;      
+};
+  
     const handleOk = () => {
       onFinishForm(modelstates)
       clear()
@@ -101,8 +58,6 @@ const closemodel = () => {
   clear()
   visible.value = false;
   query()
-  console.log(modelstates.value);
-  
 }
 // 模态窗表单
 
@@ -120,7 +75,6 @@ let partype = ref('')
         value: 'ture',
         label: 'ture',
     },
-
       {
         value: 'false',
         label: 'false',
@@ -143,9 +97,16 @@ let partype = ref('')
 let obj = ref<paramsobj>({ name: "", type: "" })
 // 添加功能的函数
 async function saveAw(data: any) {
-  
-  let rst = await request.post("/api/hlfs", data)
-        console.log(rst);
+  return new Promise((resolve, reject) => {
+    request.post("/api/hlfs", data).then(res => {
+    console.log(res);
+    
+  }).catch(function (error) {
+    if (error.response.status == 409) {
+      message.error("Duplicate name or description")
+    }
+  });
+  })
       }
 
     let modelstates = ref<ModelState>({
@@ -178,38 +139,81 @@ const clear = () => {
     params: [],
     tags: []
   },
-    states.tags = [];      
-}
+    obj.value = {
+    name: '',
+    type:''
+  }
+    states.tags = []; 
+    
+    (instance?.refs.refForm as any).resetFields()
 
+}
+// 添加和删除param
     function addparams() {
   console.log(obj);
   modelstates.value.params.push({...obj.value})
-      console.log(modelstates.value.params)
+      
   
 }
-  // 删除params的函数
 function closepar(item:any) {
   console.log(item);
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
   modelstates.value.params=parry
- }
+}
+// 表单验证
+let checkName = async (_rule: Rule, value: string) => {
+  if (!value) {
+    return Promise.reject("Please input your name!")
+  }else {
+    return Promise.resolve();
+  }
+  
+}
+let checkDesc = async (_rule: Rule, value: string) => { 
+  if (!value) {
+    return Promise.reject("Please input your description!")
+  }else  {
+    return Promise.resolve();
+  }
+  
+} 
+let checktem = async (_rule: Rule, value: string) => { 
+  
+  if (!value) {    
+    return Promise.reject("Template or templ is required")
+  } else {
+    return Promise.resolve();
+  }
+}
+let rules: Record<string, Rule[]> = {
+  name: [{ required: true, validator: checkName, trigger: 'blur' }],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+  template: [{ required: true, validator: checktem, trigger: 'blur' }],
+}
+let refForm=ref(null)
 const onFinishForm = async (modelstates: any) => {
+  console.log(modelstates.value);
+  
   modelstates.value.tags = states.tags
-    // 判断修改或添加
-      if (modelstates.value._id) {
+  if (modelstates.value.name && modelstates.value.description && modelstates.value.template) {
+    if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
         message.success("Modified successfully")
-      } else {
+    } else {
         delete modelstates.value._id
         await saveAw(modelstates.value)
         message.success("Added successfully") 
-      }
-    // }
-      query()
-      clear()
-  visible.value = false;
+    } 
+    visible.value = false;
+    clear()
+    query()
+    }else {
+    return message.error("name and descript is required")
+  }
+  }
+    // 判断修改或添加
       
-    };
+    // }
     const onFinishFailedForm = (errorInfo: any) => {
       console.log('Failed:', errorInfo);
 };
@@ -257,10 +261,8 @@ const confirm = (e: MouseEvent) => {
       query()
       message.success('Delete on Successed');
     };
-
     const cancel = (e: MouseEvent) => {
       console.log(e);
-      message.error('Cancel deletion');
     };
     
 
@@ -414,7 +416,7 @@ let treeData: TreeProps['treeData'] = [
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       console.log('selected', selectedKeys, info);
 };
-// 递归查询子节点的方法
+// 递归查询当前选中节点的方法
 const getchildKey = (childs: any, findKey: string):any => {
   let finditem = null;
    for (let i = 0, len = childs.length; i < len; i++) {
@@ -431,6 +433,23 @@ const getchildKey = (childs: any, findKey: string):any => {
    }
    return finditem
 }
+// 递归查询父节点children
+const getTreeParentChilds=(childs :any, findKey: any):any=> {
+   let parentChilds = []
+   for (let i = 0, len = childs.length; i < len; i++) {
+     let item = childs[i]
+     if (item.key !== findKey && item.children && item.children.length > 0) {
+       parentChilds = getTreeParentChilds(item.children, findKey)
+     }
+     if (item.key == findKey) {
+       parentChilds = childs
+     }
+     if (parentChilds.length > 0) {
+       break
+     }
+   }
+   return parentChilds
+}
 
 // 查询树节点的方法
 const expandedKeys = ref<(string | number)[]>([]);
@@ -444,7 +463,6 @@ watch(searchValues, value => {
           console.log(item);
           
         if(item.title.includes(value)){
-          
           return item.key;
         } else {
           if (item.children) {
@@ -473,12 +491,10 @@ watch(searchValues, value => {
         //折叠起来
         autoExpandParent.value =  false;
       }
-     
     })
 
 const onExpand = (keys: any) => {
       console.log(keys);
-      
       expandedKeys.value = keys ;
       autoExpandParent.value = true;
     };
@@ -486,7 +502,14 @@ const onExpand = (keys: any) => {
 // 右键点击树形控件触发的事件
 const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
-    };
+};
+const deltree = (key:string) => {
+  console.log(key);
+  let parent = getTreeParentChilds(treeData, key)
+  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
+  console.log(delIndex);
+  
+}
 </script>
 
 <template>
@@ -513,10 +536,16 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
             :auto-expand-parent="autoExpandParent"
             @expand="onExpand"  >
       <template #icon><carry-out-outlined /></template>
-  <template #title="{key:treeKey, title }">
-    <a-dropdown :trigger="['contextmenu']">
-        <a-tooltip placement="right">
-            <template #title>右键点击更多操作</template>
+  <template #title="{key:treeKey, title }" >
+    <a-dropdown :trigger="['contextmenu']" >
+        <a-tooltip placement="right" overlayClassName="bgc_tooltip">
+            <template #title >
+              <a-menu  @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
+                <a-menu-item  key="1" >add Node</a-menu-item>
+                <a-menu-item key="2">upd Node</a-menu-item>
+                <a-menu-item key="3" @click="deltree(treeKey)">del Node</a-menu-item>
+              </a-menu>
+            </template>
               <template v-if="searchValues &&  title.includes(searchValues)">
                 <div style="color: #f50; border:1px solid red"> 
                   <span>{{title}}</span>
@@ -524,13 +553,6 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
                 </template>
               <template v-else>{{ title }}</template>
         </a-tooltip>
-        <template #overlay>
-          <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
-            <a-menu-item key="1">add Node</a-menu-item>
-            <a-menu-item key="2">upd Node</a-menu-item>
-            <a-menu-item key="3">del Node</a-menu-item>
-          </a-menu>
-        </template>
     </a-dropdown>
     </template>
 
@@ -575,9 +597,10 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
     </template>
         <a-form
+        ref="refForm"
       :model="modelstates"
-      :rules="rules"
       name="basic"
+      :rules="rules"
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
       autocomplete="off"
@@ -696,7 +719,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
     <template #bodyCell="{ column,text, record }">
       <template v-if="column.key === 'Name'">
           <div v-if="record.name.indexOf(formState.search)!=-1" >
-            <p v-html="record.name.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
+            <p v-html="record.name.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
           </div>
           <div v-else>
             <p>{{record.name}}</p>
@@ -704,7 +727,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
           </template>
           <template v-if="column.key === 'description'">
           <div v-if="record.description.indexOf(formState.search)!=-1" >
-            <p v-html="record.description.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
+            <p v-html="record.description.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
           </div>
           <div v-else>
             <p>{{record.description}}</p>
@@ -713,7 +736,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
            <template v-if="column.key === 'template'"
           >
           <div v-if="record.template.indexOf(formState.search)!=-1">
-            <p v-html="record.template.replace(formState.search,`<i style='color:red'>${formState.search}</i>`)"></p>
+            <p v-html="record.template.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
           </div>
           </template>
           <template v-if="column.key === 'tags'">
@@ -791,4 +814,23 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
   .highlight{
     background-color: yellow;
   }
+  
+  </style>
+  <style lang="less">
+.bgc_tooltip .ant-tooltip-inner{
+    
+    background-color: white!important;
+    width: 7.5rem;
+    height: 6.375rem;
+    .ant-menu-vertical{
+      width: 100%;
+      height: 100%;
+      .ant-menu-item-only-child{
+        width: 100%;
+        height: 25%;
+        line-height: 1.5625rem;
+      }
+    }
+    }
+  
   </style>

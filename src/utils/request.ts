@@ -30,14 +30,14 @@ request.interceptors.response.use(
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)
       message.error("请求失败，请重试")
-      return Promise.reject(new Error(msg || '未知错误'))
+      return Promise.reject(new Error("请求失败，请重试"))
     } else {
       return response.data
     }
   },
   error => {
     console.error(error)
-    message.error(error.message, 5)
+    // message.error(error.message, 5)
     return Promise.reject(error)
   }
 )
