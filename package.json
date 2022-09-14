@@ -8,7 +8,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "unittest": "echo unittest",
+    "unittest": "vitest --environment jsdom",
     "stage": "vite --mode staging",
     "prod": "vite --mode production",
     "build": "vue-tsc --noEmit && vite build",
@@ -16,7 +16,7 @@
     "preview": "vite preview",
     "lint": "npm run build",
     "prepare": "husky install",
-    "test": "vitest --environment jsdom",
+    "test": "echo unittest",
     "coverage": "vitest run --coverage",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false"
   },
@@ -43,6 +43,7 @@
     "vue-i18n": "^9.2.2",
     "vue-router": "^4.1.4",
     "xlsx": "^0.18.5"
+   
   },
   "devDependencies": {
     "@playwright/test": "^1.25.2",

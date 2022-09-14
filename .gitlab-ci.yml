@@ -13,7 +13,7 @@ prepare:
 unittest:
   stage: unittest
   script:
-    - npm run unittest
+    - npm run test
     # - npx playwright test 
 
 build:
