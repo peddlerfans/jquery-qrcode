@@ -3,41 +3,34 @@ import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
-import { ref, onMounted, onUpdated, watchEffect, watch, reactive } from "vue";
+import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive } from "vue";
 import type { Ref } from "vue";
 import { useRouter, useRoute } from 'vue-router'
+import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
+import request from '@/utils/request';
+import { SmileOutlined, } from '@ant-design/icons-vue';
 // import {JsonSchemaForm} from '@/components/JsonSchemaForm.vue'
 
-// import { createRouter, createWebHashHistory, RouteRecordRaw,ComponentCustomProperties } from "vue-router"
+
 import $, { param } from "jquery";
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
-import { watchThrottled } from "@vueuse/shared";
+
+import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 interface FormState {
   awname: string;
   description: string;
   remember: boolean;
+  search?: string
 }
-
-let mbtname = ref('');
-// function getRouterData() {
-//       .$route.params.page
-//       this.code = this.$route.params.code
-//       console.log('page', this.page)
-//       console.log('code', this.code)
-//     }
+const wrapperCol = { span: 24, offset: 12 }
+const isAW = ref(false);
 
 const formState = reactive<FormState>({
   awname: '',
   description: '',
   remember: true,
+  search: ''
 });
-const onFinish = (values: any) => {
-  console.log('Success:', values);
-};
-
-const onFinishFailed = (errorInfo: any) => {
-  console.log('Failed:', errorInfo);
-};
 
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
@@ -52,11 +45,37 @@ function onShow(cell?: any) {
 
   showPropPanel.value = true;
 }
-  //通过useRouter()获取路由器的实例
-  const router = useRouter()
+let tableData = ref([])
+let searchobj: tableSearch = reactive({
+  search: "",
+  size: 20
+})
+async function query(data?: any) {
 
-  //route是响应式对象，可监控其变化，需要用useRoute()获取
-  const route = useRoute()
+  let rst = await request.get("/api/hlfs", { params: data || searchobj })
+  if (rst.data) {
+    // console.log('rst:',rst.data)
+    tableData.value = rst.data?.data
+    console.log(tableData, tableData.value);
+    return rst.data
+  }
+}
+
+const handleFinish: FormProps['onFinish'] = (values: any) => {
+
+  query(formState)
+  onShow()
+  // tableData.value 
+
+
+};
+let colspan = 10;
+
+//通过useRouter()获取路由器的实例
+// const router = useRouter()
+
+//route是响应式对象，可监控其变化，需要用useRoute()获取
+const route = useRoute()
 
 
 var verticesTool = new joint.linkTools.Vertices();
@@ -75,48 +94,48 @@ var toolsView = new joint.dia.ToolsView({
 let modeler: MbtModeler;
 let stencil: Stencil;
 
-let customNamespace : joint.dia.Paper.Options['cellViewNamespace'] ={};
-  let Shape = joint.dia.Element.define('shapeGroup.Shape', {
-    attrs: {
-        // Attributes
-    }
+let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
+let Shape = joint.dia.Element.define('shapeGroup.Shape', {
+  attrs: {
+    // Attributes
+  }
 }, {
-    markup: [{
-        // Markup
-    }]
+  markup: [{
+    // Markup
+  }]
 });
 
 function setupNamespace() {
-    Object.assign(customNamespace, {
-      shapeGroup: 
-          Shape
-      
+  Object.assign(customNamespace, {
+    shapeGroup:
+      Shape
+
   });
-  }
+}
+const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
+  console.log(errors);
+};
 
 onMounted(() => {
-
-
-  
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
 
-  if(localStorage.getItem('mbt-'+route.params.name)){
+  if (localStorage.getItem('mbt-' + route.params.name)) {
     setupNamespace();
-    
-    modeler.paper.options.cellViewNamespace= customNamespace;
-    
-    
+
+    modeler.paper.options.cellViewNamespace = customNamespace;
+
+
     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
-    if(localStorage.getItem('mbt-'+route.params.name)){
-      let tempstr =localStorage.getItem('mbt-'+route.params.name)+'';
+    if (localStorage.getItem('mbt-' + route.params.name)) {
+      let tempstr = localStorage.getItem('mbt-' + route.params.name) + '';
       // modeler.graph.fromJSON(JSON.parse(tempstr));
       // return
     }
-    
-  }else if(modeler && modeler.graph){
-    localStorage.setItem('mbt-'+route.params.name,JSON.stringify(modeler.graph.toJSON()));
-  }else {
+
+  } else if (modeler && modeler.graph) {
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+  } else {
     console.log('empty')
   }
   // element.addTo(graph);
@@ -198,16 +217,69 @@ onMounted(() => {
 
   // });
 
-    // mbtname = this.$route.params.id;
+  // mbtname = this.$route.params.id;
 
   // console.log('graph:',modeler.graph);
   // console.log('route.query:',route.query,',route.params:',route.params,' fullpath:',route.fullPath,',route name:',route.name)
-  console.log('graph:',modeler.graph.toJSON());
+  console.log('graph:', modeler.graph.toJSON());
 
-  
+
 
 });
+// let modelstates = ref<ModelState>({
+//   name=''
+//     description: string;
+//     template: string;
+//     template_en: string
+//     _id: string;
+//     tags: Array<string>;
+//     params: Array<paramsobj>
+// });
 
+let modelstates = ref<ModelState>({
+  name: '',
+  description: '',
+  template: "",
+  template_en: "",
+  _id: "",
+  params: [],
+  tags: []
+});
+let formData = ref({});
+function showAWInfo(rowobj: any) {
+  alert('good:' + rowobj.name.toString())
+  // onClose()
+  // 修改的函数
+
+  modelstates.value.name = rowobj.name
+  modelstates.value.description = rowobj.description
+  modelstates.value._id = rowobj._id
+  modelstates.value.tags = rowobj.tags
+  modelstates.value.params = rowobj.params
+  modelstates.value.template = rowobj.template
+  // formData
+}
+const colSpan = ref('10');
+const columns = reactive<Object[]>(
+  [
+    {
+      name: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+
+      width: '150px'
+    },
+    {
+      title: 'description',
+      dataIndex: 'description',
+      key: 'description',
+
+      width: '200px'
+    },
+  ])
+
+
+let descriptionLight = ref<any>([])
 </script>
 
 <template>
@@ -232,19 +304,59 @@ onMounted(() => {
       </a-col>
       <a-col :span="6">
         <div class="infoPanel" ref="infoPanel">
-          <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
-            @finish="onFinish" @finishFailed="onFinishFailed">
-            <a-form-item label="AW name" name="awname"
-              :rules="[{ required: true, message: 'Please input your aw name!' }]">
-              <a-input v-model:value="formState.awname" />
+
+          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+            @finishFailed="handleFinishFailed" :wrapperCol="wrapperCol">
+            <a-form-item :wrapper-col="{ span: 20 }">
+              <a-input v-model:value="formState.search" placeholder="aw"></a-input>
             </a-form-item>
 
-            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-              <a-button type="primary" html-type="submit">Search</a-button>
+            <a-form-item :wrapper-col="{ span: 4 }">
+              <a-button type="primary" html-type="submit">search</a-button>
             </a-form-item>
-          </a-form>
+          </AForm>
+
+
+          <a-row>
+            <a-col>
+              <!-- v-if="showPropPanel" -->
+              <div class="awtable">
+                <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+                  :colSpan="colSpan">
+                  <template #headerCell="{ column }">
+                    <template v-if="column.key === 'name'">
+                      <span>
+                        <smile-outlined />
+                        Name
+                      </span>
+                    </template>
+
+                  </template>
+
+                  <template #bodyCell="{ column,text, record }">
+                    <template v-if="column.key === 'name'">
+                      <a-button type="link" @click="showAWInfo(record)">
+                        {{ record.name }}
+                      </a-button>
+                    </template>
+
+                    <template v-if="column.key === 'description'">
+                      <div v-for="desc in descriptionLight" :key="desc">
+                        <p v-html="desc"></p>
+                      </div>
+                    </template>
+
+
+                  </template>
+                </a-table>
+              </div>
+            </a-col>
+          </a-row>
+
+
           <a-card style="height:100%; width: 300px;overflow-y: auto;">
-            <JsonSchemaForm></JsonSchemaForm>
+            <JsonSchemaForm :form-data="modelstates"></JsonSchemaForm>
+            <!-- v-if="showPropPanel" :schema="schema" -->
             <!-- <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
             @finish="onFinish" @finishFailed="onFinishFailed">
             <a-form-item label="Param" name="awname"
@@ -282,6 +394,8 @@ onMounted(() => {
   width: 100%;
   /* min-height: 100%; */
   background-color: #f0f5ff;
+  padding-left: 0.2em;
+  padding-top: 0.2em;
 }
 
 .stencil {
@@ -297,5 +411,9 @@ onMounted(() => {
   width: 20px;
   max-width: 5vw;
   overflow: hidden;
+}
+
+.awtable {
+  padding-top: 10px;
 }
 </style>

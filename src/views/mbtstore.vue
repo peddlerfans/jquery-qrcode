@@ -3,6 +3,7 @@ import request from '@/utils/request';
 import useTable from '@/composables/useTable';
 import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
+import debounce from 'lodash/debounce';
 // import { exportSheetFile } from '@/utils/fileAction'
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
@@ -45,9 +46,9 @@ const {
 
   ],
   updateTableOptions: {
-    fetchUrl: 
-    // '/mbtlist/mbt-models'
-    '/api/test-models'
+    fetchUrl:
+      // '/mbtlist/mbt-models'
+      '/api/test-models'
     // '/mbtapi/mbt-models'
   }
 })
@@ -77,18 +78,26 @@ let descriptionLight = ref<any>([])
 // let templateLight = ref<any>([])
 async function query(data?: any) {
 
-  let rst = await request.get("/api/test-models", { params: data || searchobj })
+  let rst;
+  if (data.search.toString().substring(0, 6) == '@tags:') {
+    rst = await request.get(`/api/test-models?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
+  } else {
+    rst = await request.get("/api/test-models", { params: data || searchobj })
+  }
+
+
   if (rst.data) {
-    console.log('rst:',rst.data)
-    dataSource.value = rst.data
+    // console.log('rst:',rst.data)
+    dataSource.value = rst.data.data
     return rst.data
   }
 }
 const handleFinish: FormProps['onFinish'] = (values: any) => {
- 
+  // console.log(' formstate to search :', formState);
+
   query(formState)
   highlight.value = dataSource.value.filter((item: any, index: any) => {
-    
+
     return item._highlight
   })
   // console.log(highlight.value);
@@ -107,7 +116,7 @@ const showModal = () => {
 let modelstates = ref<ModelState>({
   name: '',
   description: '',
-    _id: "",
+  _id: "",
   tags: []
 });
 
@@ -236,6 +245,7 @@ const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
     inputRef.value.focus();
+    inputRef.value.toString().toUpperCase();
   })
 };
 
@@ -250,6 +260,10 @@ const handleInputConfirm = () => {
     inputValue: '',
   });
 }
+
+
+
+
 </script>
   
 <template>
@@ -262,14 +276,21 @@ const handleInputConfirm = () => {
       <a-row>
         <a-col :span="20">
           <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapperCol="wrapperCol">
-            <a-form-item :wrapper-col="{span:20}">
+            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
+            <a-col :span="20">
 
-              <a-input v-model:value="formState.search" placeholder="MBT"></a-input>
-            </a-form-item>
-            <a-form-item :wrapper-col="{span:20}">
+              <a-mentions v-model:value="formState.search"
+                placeholder="input @ to search tags, input name to search MBT">
+                <a-mentions-option value="tags:">
+                  tags:
+                </a-mentions-option>
+              </a-mentions>
+            </a-col>
+
+            <a-col :span="4">
               <a-button type="primary" html-type="submit">search</a-button>
-            </a-form-item>
+            </a-col>
+
           </AForm>
         </a-col>
         <a-col :span="4">
@@ -283,8 +304,8 @@ const handleInputConfirm = () => {
     </header>
     <!-- 模态窗 -->
     <div>
-      <a-modal v-model:visible="visible" :title="modelstates._id? 'Update MBT':'Save MBT'" @cancel="closemodel" @ok="handleOk"
-        :width="700">
+      <a-modal v-model:visible="visible" :title="modelstates._id? 'Update MBT':'Save MBT'" @cancel="closemodel"
+        @ok="handleOk" :width="700">
         <template #footer>
           <a-button @click="closemodel">cancel</a-button>
           <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
@@ -339,7 +360,7 @@ const handleInputConfirm = () => {
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
 
-          
+
           <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
         </template>
 
@@ -358,17 +379,17 @@ const handleInputConfirm = () => {
         </template>
 
         <template v-else-if="column.key === 'action'">
-              <span>
-                <a @click="edit(record)">Edit</a>
-                <a-divider type="vertical" />
-                <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
+          <span>
+            <a @click="edit(record)">Edit</a>
+            <a-divider type="vertical" />
+            <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
                 <a-divider type="vertical" /> -->
-                <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
-                  @confirm="confirm(record)" @cancel="cancel">
-                  <a>Delete</a>
-                </a-popconfirm>
-              </span>
-            </template>
+            <a-popconfirm title="Are you sure delete this task?" ok-text="Yes" cancel-text="No"
+              @confirm="confirm(record)" @cancel="cancel">
+              <a>Delete</a>
+            </a-popconfirm>
+          </span>
+        </template>
       </template>
 
 

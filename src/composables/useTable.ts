@@ -71,7 +71,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
         perPage: _pagination.pageSize
       }
     }).then(res => {
-      console.log('res:',res)
+      // console.log('res:',res)
       _dataSource.value = res.data.data
       
       _pagination.total = res.data?.total
