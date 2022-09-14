@@ -2,8 +2,11 @@
 
 import VueForm from '@lljj/vue3-form-ant';
 
-import { ref, reactive } from 'vue';
+import { ref, reactive,onMounted } from 'vue';
 const formData: object = ref({});
+// defineProps<{
+//     formData: object
+// }>()
 const schema = ref({
     "title": "AW Configuration",
     "description": "Configuration for the AW",
@@ -82,6 +85,9 @@ const uiSchema = reactive({
     }
   }
 })
+// onMounted(() => {
+    
+// }),
 </script>
 
 <template>
