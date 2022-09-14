@@ -2006,9 +2006,9 @@
     "is-date-object" "^1.0.1"
     "is-symbol" "^1.0.2"
 
-"esbuild-darwin-arm64@0.14.49":
-  "integrity" "sha512-XMaqDxO846srnGlUSJnwbijV29MTKUATmOLyQSfswbK/2X5Uv28M9tTLUJcKKxzoo9lnkYPsx2o8EJcTYwCs/A=="
-  "resolved" "https://r.cnpmjs.org/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.49.tgz"
+"esbuild-darwin-64@0.14.49":
+  "integrity" "sha512-3rvqnBCtX9ywso5fCHixt2GBCUsogNp9DjGmvbBohh31Ces34BVzFltMSxJpacNki96+WIcX5s/vum+ckXiLYg=="
+  "resolved" "https://r.cnpmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-0.14.49.tgz"
   "version" "0.14.49"
 
 "esbuild@^0.14.47", "esbuild@>=0.13":
