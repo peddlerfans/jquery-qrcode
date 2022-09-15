@@ -2,152 +2,53 @@
 export default { name: 'AWModeler'}
 </script>
 
-<!-- SUT --> system under test
-<!-- json数据类型 -->
-<!-- 树形基本功能 -->
-
-
-
 <script setup lang="ts">
-  import {
-    CarryOutFilled,
-    CarryOutOutlined,
-    SmileTwoTone,
-
-
-} from '@ant-design/icons-vue';
-
-import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
-import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import {
-
-  PlusOutlined,
-
-SmileOutlined,
-DownOutlined,
-} from '@ant-design/icons-vue';
-import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
+import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
+import type { FormProps, SelectProps, TableProps, TreeProps, } from 'ant-design-vue';
+  import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined} from '@ant-design/icons-vue'
+import {  Space, Tooltip, } from 'ant-design-vue';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
-import { useRouter } from 'vue-router'
 import request from '@/utils/request';
-import { cloneDeep } from 'lodash-es';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
-// const aw = awStore()
-// const [DynamicTable, dynamicTableInstance] = useTable();
-// const [showModal] = useFormModal();
-
-// const deptListLoading = ref(false);
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
-  size:20
+  size:30
 })
 async function query(data?: any) {    
-  
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
+  // console.log(rst.total.value);
   if (rst.data) {
-    // console.log('rst:',rst.data)
-      tableData.value = rst.data?.data
+    pagination.value.total = rst.total
+    console.log(pagination.value.total);
+    
+    tableData.value = rst.data
       return rst.data
   }
 }
-// debugger
-// console.log(tableData.value);
-
 onMounted(() => {
+  
   query()    
 }) 
+const instance=getCurrentInstance()
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: ''
 });
-      let highlight = ref<any>([])
-      let descriptionLight=ref<any>([])
-      let templateLight=ref<any>([])
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // debugger
   query(formState)
-      highlight.value=tableData.value.filter((item:any, index: any) => {
-        return item._highlight
-        })
-      console.log(highlight.value); 
- 
 };
- highlight.value.forEach((item: any) => {
-        if (item.description) {
-          descriptionLight.value.push(...item.description)
-            console.log(descriptionLight.value);
-            
-        }
-        if (item.template) {
-          templateLight.value.push(...item.template)
-        }
-      });
- 
-    
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
-
-
-// 表单验证
-let checkName = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })  
-  if (!value) {
-    return Promise.reject("Please input your name!")
-  }else if (rst.length == 1) {
-    return Promise.reject("The name already exists")
-  } else {
-    return Promise.resolve();
-  }
-  
-}
-let checkDesc = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })  
-  if (!value) {
-    return Promise.reject("Please input your name!")
-  }else if (rst.length == 1) {
-    return Promise.reject("The description already exists")
-  } else {
-    return Promise.resolve();
-  }
-  
-} 
-let checktem = async (_rule: Rule, value: string) => { 
-  
-  if (!value) {    
-    rules.template_en[0].required=false
-    return Promise.reject("Template or templ is required")
-  } else {
-    return Promise.resolve();
-  }
-}
-let checkTemen = async (_rule: Rule, value: string) => {
-  if (!value) {   
-    return Promise.reject("Please input your template_en!")
-  } else {
-    return Promise.resolve()
-      
-  }
-}
-let rules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{required: true, validator: checkDesc, trigger: 'blur' }],
-  template: [{ required: true, validator: checktem, trigger: 'blur' }],
-  template_en: [{ validator: checkTemen, trigger: 'blur' }],
-      
-};
-    console.log(rules.template[0].required);
-    
-    
-
 // 模态窗数据
     const visible = ref<boolean>(false);
-    const showModal = () => {
-      visible.value = true;
-    };
+const showModal = () => {
+  visible.value = true;      
+};
+  
     const handleOk = () => {
       onFinishForm(modelstates)
       clear()
@@ -157,28 +58,26 @@ const closemodel = () => {
   clear()
   visible.value = false;
   query()
-  console.log(modelstates.value);
-  
 }
 // 模态窗表单
 
 let partype = ref('')
   const options = ref<SelectProps['options']>([
       {
-        value: 'str',
-        label: 'str',
-      },
-      // {
-      //   value: 'undefined',
-      //   label: 'undefined',
-      // },
-      {
-        value: 'number',
-        label: 'number',
+        value: 'Str',
+        label: 'Str',
       },
       {
-        value: 'boolean',
-        label: 'boolean',
+        value: 'Number',
+        label: 'Number',
+      },
+      {
+        value: 'ture',
+        label: 'ture',
+    },
+      {
+        value: 'false',
+        label: 'false',
     },
       {
         value: 'number',
@@ -188,14 +87,6 @@ let partype = ref('')
         value: 'int',
         label: 'int',
     },
-    //  {
-    //     value: 'Array',
-    //     label: 'Array',
-    // },
-    //  {
-    //     value: 'Object',
-    //     label: 'OBject',
-    // },
     {
       value: 'SUT',
         label:'SUT'
@@ -206,9 +97,16 @@ let partype = ref('')
 let obj = ref<paramsobj>({ name: "", type: "" })
 // 添加功能的函数
 async function saveAw(data: any) {
-  
-  let rst = await request.post("/api/hlfs", data)
-        console.log(rst);
+  return new Promise((resolve, reject) => {
+    request.post("/api/hlfs", data).then(res => {
+    console.log(res);
+    
+  }).catch(function (error) {
+    if (error.response.status == 409) {
+      message.error("Duplicate name or description")
+    }
+  });
+  })
       }
 
     let modelstates = ref<ModelState>({
@@ -233,47 +131,89 @@ const handleChange = (value: any) => {
     // 清除模态窗数据
 const clear = () => {
   modelstates.value = {
-      name: "",
-      description: '',
-      template: "",
-      _id: "",
-      template_en: "",
-      params:[],
-      tags:[]
-  }      
-}
+    name: "",
+    description: '',
+    template: "",
+    _id: "",
+    template_en: "",
+    params: [],
+    tags: []
+  },
+    obj.value = {
+    name: '',
+    type:''
+  }
+    states.tags = []; 
+    
+    (instance?.refs.refForm as any).resetFields()
 
+}
+// 添加和删除param
     function addparams() {
   console.log(obj);
   modelstates.value.params.push({...obj.value})
-      console.log(modelstates.value.params)
+      
   
 }
-  // 删除params的函数
 function closepar(item:any) {
   console.log(item);
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
   modelstates.value.params=parry
- }
-
-
+}
+// 表单验证
+let checkName = async (_rule: Rule, value: string) => {
+  if (!value) {
+    return Promise.reject("Please input your name!")
+  }else {
+    return Promise.resolve();
+  }
+  
+}
+let checkDesc = async (_rule: Rule, value: string) => { 
+  if (!value) {
+    return Promise.reject("Please input your description!")
+  }else  {
+    return Promise.resolve();
+  }
+  
+} 
+let checktem = async (_rule: Rule, value: string) => { 
+  
+  if (!value) {    
+    return Promise.reject("Template or templ is required")
+  } else {
+    return Promise.resolve();
+  }
+}
+let rules: Record<string, Rule[]> = {
+  name: [{ required: true, validator: checkName, trigger: 'blur' }],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+  template: [{ required: true, validator: checktem, trigger: 'blur' }],
+}
+let refForm=ref(null)
 const onFinishForm = async (modelstates: any) => {
+  console.log(modelstates.value);
+  
   modelstates.value.tags = states.tags
-  // 判断修改或添加
-      if (modelstates.value._id) {
+  if (modelstates.value.name && modelstates.value.description && modelstates.value.template) {
+    if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
         message.success("Modified successfully")
-      } else {
+    } else {
         delete modelstates.value._id
         await saveAw(modelstates.value)
         message.success("Added successfully") 
-      }
-    // }
-      query()
-      clear()
-  visible.value = false;
+    } 
+    visible.value = false;
+    clear()
+    query()
+    }else {
+    return message.error("name and descript is required")
+  }
+  }
+    // 判断修改或添加
       
-    };
+    // }
     const onFinishFailedForm = (errorInfo: any) => {
       console.log('Failed:', errorInfo);
 };
@@ -321,13 +261,10 @@ const confirm = (e: MouseEvent) => {
       query()
       message.success('Delete on Successed');
     };
-
     const cancel = (e: MouseEvent) => {
       console.log(e);
-      message.error('Cancel deletion');
     };
     
-
 
     // 修改功能4
     // 修改函数
@@ -345,8 +282,8 @@ const edit = (rowobj:any) => {
   modelstates.value.template=rowobj.template
   modelstates.value._id = rowobj._id
   states.tags = rowobj.tags
-  modelstates.value.params = rowobj.params
-  
+  modelstates.value.params = [...rowobj.params]
+  console.log(rowobj.params);
   // let{name  description:,  template: _id:""}={...obj}
 }
 const rowSelection: TableProps['rowSelection'] = {
@@ -361,8 +298,8 @@ const columns = reactive<Object[]>(
   [
   {
     name: 'Name',
-    dataIndex: 'name',
-    key: 'name',
+    dataIndex: 'Name',
+    key: 'Name',
   },
   {
     title: 'description',
@@ -391,6 +328,30 @@ const columns = reactive<Object[]>(
   },
 ]
 )
+
+// 分页的数据
+let pagination=ref( {
+        pageNo: 1,
+        pageSize: 10, // 默认每页显示数量
+        showSizeChanger: true, // 显示可改变每页数量
+        pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
+        showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+        onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
+        onChange:(page: any,pageSize: any)=>onPageChange(page,pageSize),//点击页码事件
+        total:0 //总条数
+       })
+
+const onPageChange = (page: number, pageSize: any) => {
+        console.log(page,pageSize);
+      pagination.value.pageNo = page
+       query()
+   }
+   const onSizeChange=(current: any, pageSize: number)=> {
+       pagination.value.pageNo = 1
+       pagination.value.pageSize = pageSize
+       query()
+   }
+
 const expend = (isExpand:any,rected:any) => {
   console.log(isExpand,rected);
   
@@ -403,7 +364,7 @@ const expend = (isExpand:any,rected:any) => {
 })
 
 const wrapperCol={span:24,offset:12}
-const treeData: TreeProps['treeData'] = [
+let treeData: TreeProps['treeData'] = [
    {
         title: 'Setup',
         key: '0-0',
@@ -454,7 +415,101 @@ const treeData: TreeProps['treeData'] = [
 ];
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       console.log('selected', selectedKeys, info);
+};
+// 递归查询当前选中节点的方法
+const getchildKey = (childs: any, findKey: string):any => {
+  let finditem = null;
+   for (let i = 0, len = childs.length; i < len; i++) {
+     let item = childs[i]
+     if (item.title !== findKey && item.children && item.children.length > 0) {
+       finditem = getchildKey(item.children, findKey)
+     }
+     if (item.title == findKey) {
+       finditem = item
+     }
+     if (finditem != null) {
+       break
+     }
+   }
+   return finditem
+}
+// 递归查询父节点children
+const getTreeParentChilds=(childs :any, findKey: any):any=> {
+   let parentChilds = []
+   for (let i = 0, len = childs.length; i < len; i++) {
+     let item = childs[i]
+     if (item.key !== findKey && item.children && item.children.length > 0) {
+       parentChilds = getTreeParentChilds(item.children, findKey)
+     }
+     if (item.key == findKey) {
+       parentChilds = childs
+     }
+     if (parentChilds.length > 0) {
+       break
+     }
+   }
+   return parentChilds
+}
+
+// 查询树节点的方法
+const expandedKeys = ref<(string | number)[]>([]);
+ const autoExpandParent = ref<boolean>(true);
+const searchValues = ref<string>('');
+watch(searchValues, value => {  
+  console.log(treeData);
+      
+      if(value.length != 0){
+        const expanded = treeData?.filter(item => {
+          console.log(item);
+          
+        if(item.title.includes(value)){
+          return item.key;
+        } else {
+          if (item.children) {
+            
+            item.children.filter(childItem => {
+              
+              if (childItem.title.includes(value)) {
+                // console.log(item.children?.includes(childItem.key))
+                return childItem.key
+              }
+            })
+          }
+        }
+        
+        return null;
+      })
+        // .filter((item, i, self) => item && self.indexOf(item) === i);
+      console.log('tree',expanded);
+      console.log('datalist',treeData)
+      console.log(value);
+
+      expandedKeys.value= expanded as any;
+      searchValues.value = value;
+      autoExpandParent.value = true;
+      }else{
+        //折叠起来
+        autoExpandParent.value =  false;
+      }
+    })
+
+const onExpand = (keys: any) => {
+      console.log(keys);
+      expandedKeys.value = keys ;
+      autoExpandParent.value = true;
     };
+
+// 右键点击树形控件触发的事件
+const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
+      console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
+};
+const deltree = (key:string) => {
+  console.log(key);
+  let parent = getTreeParentChilds(treeData, key)
+  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
+  console.log(delIndex);
+  
+}
 </script>
 
 <template>
@@ -471,39 +526,54 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
               </Tooltip>
             </Space>
           </div>
+            <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
-      :show-line="true"
-      :default-expanded-keys="['0-0-0']"
-      :tree-data="treeData"
-      @select="onSelect"
-    >
+            :show-line="true"
+            :default-expanded-keys="['0-0-0']"
+            :tree-data="treeData"
+            @select="onSelect"
+            :expanded-keys="expandedKeys"
+            :auto-expand-parent="autoExpandParent"
+            @expand="onExpand"  >
       <template #icon><carry-out-outlined /></template>
-      <template #title="{ dataRef }">
-        <template v-if="dataRef.key === '0-0-0-1'">
-          <div>multiple line title</div>
-          <div>multiple line title</div>
-        </template>
-        <template v-else>{{ dataRef.title }}</template>
-      </template>
-      <template #switcherIcon="{ dataRef, defaultIcon }">
-        <SmileTwoTone v-if="dataRef.key === '0-0-2'" />
-        <component :is="defaultIcon" v-else />
-      </template>
-    </a-tree>
-        </template>
+  <template #title="{key:treeKey, title }" >
+    <a-dropdown :trigger="['contextmenu']" >
+        <a-tooltip placement="right" overlayClassName="bgc_tooltip">
+            <template #title >
+              <a-menu  @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
+                <a-menu-item  key="1" >add Node</a-menu-item>
+                <a-menu-item key="2">upd Node</a-menu-item>
+                <a-menu-item key="3" @click="deltree(treeKey)">del Node</a-menu-item>
+              </a-menu>
+            </template>
+              <template v-if="searchValues &&  title.includes(searchValues)">
+                <div style="color: #f50; border:1px solid red"> 
+                  <span>{{title}}</span>
+                </div>
+                </template>
+              <template v-else>{{ title }}</template>
+        </a-tooltip>
+    </a-dropdown>
+    </template>
+
+      </a-tree>
+    </template>
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
         <a-col :span="20">
            <AForm  layout="inline"
           class="search_form"
-    :model="formState"
-    @finish="handleFinish"
-    @finishFailed="handleFinishFailed"
-    :wrapperCol="wrapperCol">
- <a-form-item :wrapper-col="{span:20}">
+          :model="formState"
+          @finish="handleFinish"
+          @finishFailed="handleFinishFailed"
+          :wrapperCol="wrapperCol">
+      <a-form-item :wrapper-col="{span:20}" class="searchForm">
 
-      <a-input v-model:value="formState.search" placeholder="hlf"></a-input>
+      <a-input style="width:18.15rem" v-model:value="formState.search" placeholder="hlf">
+      <template #prefix><search-outlined /></template>
+      </a-input>
+    
     </a-form-item>
     <a-form-item :wrapper-col="{span:20}">
       <a-button type="primary" html-type="submit">search</a-button>
@@ -527,9 +597,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
     </template>
         <a-form
+        ref="refForm"
       :model="modelstates"
-      :rules="rules"
       name="basic"
+      :rules="rules"
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
       autocomplete="off"
@@ -603,8 +674,8 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
         <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
         </template>
       </a-form-item>
-  </a-form>
-  <a-form layout="inline" :model="obj" class="formPar">
+      </a-form>
+      <a-form layout="inline" :model="obj" class="formPar">
           <a-form-item name="name">
             <a-input v-model:value="obj.name" placeholder="Parameter name"/>
           </a-form-item>
@@ -634,9 +705,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       :data-source="tableData" 
       :row-selection="rowSelection"
       class="components-table-demo-nested"
+      :pagination="pagination"
       @expand="expend">
       <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
+        <template v-if="column.key === 'Name'">
           <span>
             <smile-outlined />
             Name
@@ -645,16 +717,26 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
     </template>
 
     <template #bodyCell="{ column,text, record }">
-          <template v-if="column.key === 'description'"
-          >
-          <div v-for="desc in descriptionLight" :key="desc">
-            <p v-html="desc" ></p>
+      <template v-if="column.key === 'Name'">
+          <div v-if="record.name.indexOf(formState.search)!=-1" >
+            <p v-html="record.name.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
+          </div>
+          <div v-else>
+            <p>{{record.name}}</p>
+          </div>
+          </template>
+          <template v-if="column.key === 'description'">
+          <div v-if="record.description.indexOf(formState.search)!=-1" >
+            <p v-html="record.description.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
+          </div>
+          <div v-else>
+            <p>{{record.description}}</p>
           </div>
           </template>
            <template v-if="column.key === 'template'"
           >
-          <div v-for="desc in templateLight" :key="desc">
-            <p v-html="desc"></p>
+          <div v-if="record.template.indexOf(formState.search)!=-1">
+            <p v-html="record.template.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
           </div>
           </template>
           <template v-if="column.key === 'tags'">
@@ -669,11 +751,10 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
               </span>
           </template>
           <template v-if="column.key === 'params'">
-              <span>
+              <span  v-for="tags in record.params"
+                  :key="tags">
                 <a-tag
-                  v-for="tags in record.params"
-                  :key="tags"
-                >
+                    >
                   {{ tags.name }}
                 </a-tag>
               </span>
@@ -722,7 +803,34 @@ const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
     width:4.375rem
   }
   .formPar{
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
+  margin-top: -1.25rem;
+      margin-left: 6.25rem;
   }
+  .searchForm{
+    margin-right: 0.75rem;
+  }
+  .highlight{
+    background-color: yellow;
+  }
+  
+  </style>
+  <style lang="less">
+.bgc_tooltip .ant-tooltip-inner{
+    
+    background-color: white!important;
+    width: 7.5rem;
+    height: 6.375rem;
+    .ant-menu-vertical{
+      width: 100%;
+      height: 100%;
+      .ant-menu-item-only-child{
+        width: 100%;
+        height: 25%;
+        line-height: 1.5625rem;
+      }
+    }
+    }
+  
   </style>

@@ -8,9 +8,11 @@ export namespace MockApi {
     params: unknown
   }
   interface response {
-    code: number
-    msg: string
+    code?: number
+    msg?: string
     data: any
+    total?: any
+
   }
   interface obj {
     url: string
