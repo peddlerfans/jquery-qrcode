@@ -3,14 +3,13 @@ import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
+import { message } from 'ant-design-vue/es'
 import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive } from "vue";
 import type { Ref } from "vue";
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
 import request from '@/utils/request';
 import { SmileOutlined, } from '@ant-design/icons-vue';
-import JsonSchemaForm from '@/components/JsonSchemaForm.vue'
-import { awStore } from '../stores/aw'
 import { Stores } from '../../types/stores'
 import $, { param } from "jquery";
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
@@ -23,7 +22,95 @@ interface FormState {
   remember: boolean;
   search?: string
 }
+
+/** drawer  */
+//drawer visible
 const visible = ref(false);
+const showDrawer = (el?:any) => {
+  visible.value = true;
+  if(el &&_.isObject(el) && el.hasOwnProperty('path')){
+    console.log('click link ')
+  }else if (el && _.isObject(el)){
+    console.log('click element')
+  }else {
+    console.log('click blank')
+  }
+};
+
+const onCloseDrawer = () => {
+  visible.value = false;
+};
+
+/** Panel -> AW part, including a searching form and table */
+//AW panel visible, including search form and table for searching results
+let isAW = ref(false);
+// aw form searching
+const formState = reactive<FormState>({
+  awname: '',
+  description: '',
+  remember: true,
+  search: ''
+});
+
+let tableData = ref([])
+let searchobj: tableSearch = reactive({
+  search: "",
+  size: 20
+})
+const colSpan = ref('10');
+const columns = reactive<Object[]>(
+  [
+    {
+      name: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      width: '150px'
+    },
+    {
+      title: 'description',
+      dataIndex: 'description',
+      key: 'description',
+      width: '150px'
+    }
+  ]);
+
+async function query(data?: any) {
+  let rst = await request.get("/api/hlfs", { params: data || searchobj })
+  if (rst.data) {
+    // console.log('rst:',rst.data)
+    tableData.value = rst.data
+    console.log(tableData, tableData.value);
+    return rst.data
+  }
+}
+
+function onShow(cell?: any) {
+  showPropPanel.value = true;
+}
+const handleFinish: FormProps['onFinish'] = (values: any) => {
+  query(formState)
+  onShow();
+};
+const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
+  console.log(errors);
+};
+
+
+/**
+ * Panel --Json schema forms
+ */
+let schema: any;
+let formData: any;
+let linkData = ref({
+  label: ''
+})
+let modelstates = ref<Stores.aw>({
+  name: '',
+  description: '',
+  _id: "",
+  params: [],
+  tags: []
+});
 const awschema = ref({
   "title": "AW",
   "description": "Configuration for the AW",
@@ -54,111 +141,44 @@ const awschema = ref({
     // }
   }
 })
-let schema: any;
-const gatewayschema = ref({
-  "title": "GATEWAY",
-  "description": "Configuration for GATEWAY",
+
+const linkschema = ref({
+  "title": "LINK",
+  "description": "Configuration for Link",
   "type": "object",
   "properties": {
-    "name": {
-      "title": "Name",
+    "label": {
+      "title": "Label",
       "type": "string"
-
-
-    },
-    "type": {
-      "type": "string",
-      "title": "Type",
-      "enum": [
-        "PARALLEL",
-        "EXCLUSIVE"
-
-      ],
-      "enumNames": [
-        "PARALLEL",
-        "EXCLUSIVE"
-      ]
     }
-
 
   }
 })
 
+function handlerSubmit() {
 
-const wrapperCol = { span: 24 }
-const isAW = ref(false);
-const awstore = awStore()
-const formState = reactive<FormState>({
-  awname: '',
-  description: '',
-  remember: true,
-  search: ''
-});
+  message.success('Save it Successfully');
+};
+function handlerCancel() {
 
+  message.warning('Cancel');
+}
+
+
+
+
+// save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
+let mbtMap = new Map();
+
+/**
+ * Global elements in the component
+ */
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
-let showAWPanel: Ref<boolean> = ref(false);
-let showGatewayPanel: Ref<boolean> = ref(false);
-
-function onClose() {
-  showPropPanel.value = false;
-}
-
-function onShow(cell?: any) {
-
-  showPropPanel.value = true;
-}
-let tableData = ref([])
-let searchobj: tableSearch = reactive({
-  search: "",
-  size: 20
-})
-async function query(data?: any) {
-
-  let rst = await request.get("/api/hlfs", { params: data || searchobj })
-  if (rst.data) {
-    // console.log('rst:',rst.data)
-    tableData.value = rst.data?.data
-    console.log(tableData, tableData.value);
-    return rst.data
-  }
-}
-
-const handleFinish: FormProps['onFinish'] = (values: any) => {
-
-  query(formState)
-  onShow()
-  // tableData.value 
-
-
-};
-let colspan = 10;
-
-//通过useRouter()获取路由器的实例
-// const router = useRouter()
-
-//route是响应式对象，可监控其变化，需要用useRoute()获取
-const route = useRoute()
-
-
-var verticesTool = new joint.linkTools.Vertices();
-var segmentsTool = new joint.linkTools.Segments();
-var boundaryTool = new joint.linkTools.Boundary();
-var removeButton = new joint.elementTools.Remove();
-// var connectButton = new joint.elementTools.Connect();
-// 2) creating a tools view
-var toolsView = new joint.dia.ToolsView({
-  name: 'basic-tools',
-  tools: [verticesTool, segmentsTool, boundaryTool]
-});
-
-
-
 let modeler: MbtModeler;
 let stencil: Stencil;
-
 let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
 let Shape = joint.dia.Element.define('shapeGroup.Shape', {
   attrs: {
@@ -177,9 +197,14 @@ function setupNamespace() {
 
   });
 }
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
-  console.log(errors);
-};
+
+/**
+ * Localstorage saving the data of this model
+ */
+//route是响应式对象，可监控其变化，需要用useRoute()获取
+const route = useRoute()
+
+
 
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
@@ -191,7 +216,9 @@ onMounted(() => {
 
     modeler.paper.options.cellViewNamespace = customNamespace;
 
-
+    /**
+     * localstorage ... todo next
+     */
     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
     if (localStorage.getItem('mbt-' + route.params.name)) {
       let tempstr = localStorage.getItem('mbt-' + route.params.name) + '';
@@ -204,10 +231,11 @@ onMounted(() => {
   } else {
     console.log('empty')
   }
-  // element.addTo(graph);
-  // 1) creating link tools
 
 
+  /**
+   * Drag & Drop stencil to modeler paper
+   */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
@@ -218,22 +246,14 @@ onMounted(() => {
       model: flyGraph,
       interactive: false,
     });
-
     let flyShape = cellView.model!.clone();
-
     let pos = cellView.model!.position();
-
     let offset = {
       x: x - pos.x,
       y: y - pos.y,
     };
-
-
     flyShape.position(0, 0);
-    // flyShape.position();
     flyGraph.addCell(flyShape);
-
-
     $("#flyPaper").offset({
       left: (e.pageX as number) - offset.x,
       top: (e.pageY as number) - offset.y,
@@ -265,10 +285,6 @@ onMounted(() => {
         );
 
         modeler.graph.addCell(s);
-        // var currentElementView = s.findView(modeler.paper);
-        // s.attr('body/stroke', 'red');
-
-
 
       }
       $("body").off("mousemove.fly").off("mouseup.fly");
@@ -276,76 +292,43 @@ onMounted(() => {
       $("#flyPaper").remove();
     });
   });
-  modeler.paper.on('element:pointerclick', function (elementView: any) {
-    console.log('2222', elementView);
 
+
+  /**
+   *  When click the element/link/blank, show the propsPanel
+   */
+  modeler.paper.on('link:pointerclick', function (linkView: any) {
+    console.log('linkView:', linkView);
+    isAW.value = false;
+    showDrawer(linkView)
+  })
+
+  modeler.paper.on('element:pointerclick', function (elementView: any) {
+    console.log('elementView:', elementView);
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
-      // if (showPropPanel.value == false)
-      //   onShow();
-      // console.log(elementView.model.attributes.type)
+      isAW.value = true;
       schema = awschema.value;
       formData = modelstates.value;
       console.log('model data:', modelstates);
       console.log(schema, formData);
-      showAWPanel.value = true
-      showGatewayPanel.value = false
-      showDrawer()
-    } else if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'RHOMBUS') {
-
-      schema = gatewayschema;
-      formData = gatewayData;
-      showGatewayPanel.value = true;
-      showAWPanel.value = false;
-      showDrawer()
-    }
+      showDrawer(elementView)
+    } 
     // console.log('click......', elementView.model.attributes.type);
 
 
   });
 
-  // modeler.paper.on('blank:pointerclick', () => {
-  //   onClose()
-  // });
-  // mbtname = this.$route.params.id;
-
-  // console.log('graph:',modeler.graph);
-  // console.log('route.query:',route.query,',route.params:',route.params,' fullpath:',route.fullPath,',route name:',route.name)
-  // console.log('graph:', modeler.graph.toJSON());
-
-
+  modeler.paper.on('blank:pointerclick', () => {
+    isAW.value = false;
+    showDrawer()
+  });
 
 });
-// let modelstates = ref<ModelState>({
-//   name=''
-//     description: string;
-//     template: string;
-//     template_en: string
-//     _id: string;
-//     tags: Array<string>;
-//     params: Array<paramsobj>
-// });
-let formData: any;
-let gatewayData = ref({
-  name: '',
-  type: ''
-})
 
-let modelstates = ref<Stores.aw>({
-  // ref<ModelState>({
-  name: '',
-  description: '',
-  // template: "",
-  // template_en: "",
-  _id: "",
-  params: [],
-  tags: []
-});
+
 
 function showAWInfo(rowobj: any) {
   // alert('good:' + rowobj.name.toString()+modelstates)
-  // onClose()
-  // 修改的函数
-
   modelstates.value.name = rowobj.name
   modelstates.value.description = rowobj.description
   modelstates.value._id = rowobj._id
@@ -360,47 +343,16 @@ function showAWInfo(rowobj: any) {
   // }
   // modelstates.value.params = rowobj.params
   modelstates.value.params = []
-  showAWPanel.value = true
   showPropPanel.value = false
-  // modelstates.value.template = rowobj.template
-
-  // awstore.setAWInfo(rowobj);
   formData = modelstates
   // alert('good:' + rowobj.name.toString()+","+modelstates.value.name+","+modelstates.value.description)
   // formData
 }
-const colSpan = ref('10');
-const columns = reactive<Object[]>(
-  [
-    {
-      name: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-
-      width: '150px'
-    },
-    {
-      title: 'description',
-      dataIndex: 'description',
-      key: 'description',
-
-      width: '200px'
-    },
-  ])
 
 
-let descriptionLight = ref<any>([])
-const afterVisibleChange = (bool: boolean) => {
-  console.log('visible', bool);
-};
 
-const showDrawer = () => {
-  visible.value = true;
-};
 
-const onClose1 = () => {
-  visible.value = false;
-};
+
 </script>
 
 <template>
@@ -425,10 +377,10 @@ const onClose1 = () => {
       </a-col>
       <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
       <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
-        :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onClose1">
+        :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
         <div class="infoPanel" ref="infoPanel">
 
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+          <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
             @finishFailed="handleFinishFailed">
             <a-form-item :wrapper-col="{ span: 24 }">
               <a-input v-model:value="formState.search" placeholder="aw"></a-input>
@@ -439,11 +391,7 @@ const onClose1 = () => {
             </a-form-item>
           </AForm>
 
-
-          <!-- <a-row>
-            <a-col> -->
-
-          <div class="awtable" v-if="showPropPanel">
+          <div class="awtable" v-if="isAW">
             <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
               :colSpan="colSpan">
               <template #headerCell="{ column }">
@@ -464,8 +412,8 @@ const onClose1 = () => {
                 </template>
 
                 <template v-if="column.key === 'description'">
-                  <div v-for="desc in descriptionLight" :key="desc">
-                    <p v-html="desc"></p>
+                  <div>
+                    {{record.description}}
                   </div>
                 </template>
 
@@ -473,14 +421,12 @@ const onClose1 = () => {
               </template>
             </a-table>
           </div>
-          <!-- </a-col>
-          </a-row> -->
+
 
 
           <a-card style="overflow-y: auto;">
             <div style="padding: 5px;">
-              <VueForm v-model="modelstates" :schema="awschema">
-
+              <VueForm v-model="modelstates" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel">
               </VueForm>
             </div>
           </a-card>
@@ -533,7 +479,8 @@ const onClose1 = () => {
   width: 100%;
   padding: 5px;
 }
+
 .ant-drawer-body {
-  overflow: hidden!important;
+  overflow: hidden !important;
 }
 </style>
