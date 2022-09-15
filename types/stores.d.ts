@@ -16,27 +16,43 @@ export namespace Stores {
     description_hash?: string,
     _id?: string,
     _highlight?: {
-        description?: string[]            
+      description?: string[]
     }
   }
 
-  interface resourceschema{
-    name:string,
-    type:string
+  interface resourceschema {
+    name: string,
+    type: string
   }
   interface mbt {
     name: string,
     description: string,
     tags: string[],
-    modelDefinition?:object,
+    modelDefinition?: object,
     dataDefinition?: {
-      resources:resourceschema[],
-      dataType:string,
-      dataUrl:string,
-      data:object,
-      metaTemplate:string,
-      meta:object
+      resources: resourceschema[],
+      dataType: string,
+      dataUrl: string,
+      data: object,
+      metaTemplate: string,
+      meta: object
 
     }
   }
+
+  interface children {
+    title: string,
+    key: string
+  }
+  interface parentTree {
+    title: string,
+    key: string,
+    children?: children[]
+  }
+  interface topTree {
+    title: string,
+    key: string,
+    children?: parentTree[]
+  }
+
 }
