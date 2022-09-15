@@ -9,22 +9,84 @@ import { useRouter, useRoute } from 'vue-router'
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
 import request from '@/utils/request';
 import { SmileOutlined, } from '@ant-design/icons-vue';
-// import {JsonSchemaForm} from '@/components/JsonSchemaForm.vue'
-
-
+import JsonSchemaForm from '@/components/JsonSchemaForm.vue'
+import { awStore } from '../stores/aw'
+import { Stores } from '../../types/stores'
 import $, { param } from "jquery";
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
-
+import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
+import _ from "lodash";
 interface FormState {
   awname: string;
   description: string;
   remember: boolean;
   search?: string
 }
+const awschema = ref({
+  "title": "AW",
+  "description": "Configuration for the AW",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "AW Name",
+      "type": "string",
+      "readOnly": true   
+
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "readOnly": true
+    }
+    // ,
+    // "tags": {
+    //   "title": "tags",
+    //   "type": "string",
+    //   "readOnly": true
+    // },
+    // "params": {
+    //   "title": "Params",
+    //   "type": "string",
+    //   "readOnly": true
+
+    // }
+  }
+})
+let schema:any;
+const gatewayschema = ref({
+  "title": "GATEWAY",
+  "description": "Configuration for GATEWAY",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+
+
+    },
+    "type": {
+            "type": "string",
+            "title": "Type",
+            "enum": [
+                "PARALLEL",
+                "EXCLUSIVE"
+                
+            ],
+            "enumNames": [
+                "PARALLEL",
+                "EXCLUSIVE"
+            ]
+        }
+      
+    
+  }
+})
+
+
 const wrapperCol = { span: 24, offset: 12 }
 const isAW = ref(false);
-
+const awstore = awStore()
 const formState = reactive<FormState>({
   awname: '',
   description: '',
@@ -36,6 +98,8 @@ const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
+let showAWPanel: Ref<boolean> = ref(false);
+let showGatewayPanel: Ref<boolean> = ref(false); 
 
 function onClose() {
   showPropPanel.value = false;
@@ -121,6 +185,7 @@ onMounted(() => {
   modeler = new MbtModeler(canvas);
 
   if (localStorage.getItem('mbt-' + route.params.name)) {
+    console.log('local storage')
     setupNamespace();
 
     modeler.paper.options.cellViewNamespace = customNamespace;
@@ -210,18 +275,41 @@ onMounted(() => {
       $("#flyPaper").remove();
     });
   });
-  // modeler.paper.on('element:pointerdblclick', function (elementView: dia.ElementView) {
-  //   console.log(elementView);
-  //   if (elementView.hasTools() == false)
-  //     elementView.addTools(toolsView);
+  modeler.paper.on('element:pointerclick', function (elementView: any) {
+    console.log('2222', elementView);
 
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type=='standard.Rectangle') {
+      // if (showPropPanel.value == false)
+      //   onShow();
+      // console.log(elementView.model.attributes.type)
+      schema = awschema.value;
+      formData = modelstates.value;
+      console.log('model data:',modelstates);
+      console.log(schema,formData);
+      showAWPanel.value = true
+      showGatewayPanel.value =false
+      
+    }else if(elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type=='RHOMBUS') {
+
+      schema = gatewayschema;
+      formData = gatewayData;
+      showGatewayPanel.value = true;
+      showAWPanel.value=false;
+
+    }
+    // console.log('click......', elementView.model.attributes.type);
+
+
+  });
+
+  // modeler.paper.on('blank:pointerclick', () => {
+  //   onClose()
   // });
-
   // mbtname = this.$route.params.id;
 
   // console.log('graph:',modeler.graph);
   // console.log('route.query:',route.query,',route.params:',route.params,' fullpath:',route.fullPath,',route name:',route.name)
-  console.log('graph:', modeler.graph.toJSON());
+  // console.log('graph:', modeler.graph.toJSON());
 
 
 
@@ -235,28 +323,49 @@ onMounted(() => {
 //     tags: Array<string>;
 //     params: Array<paramsobj>
 // });
+let formData:any;
+let gatewayData = ref({
+  name:'',
+  type:''
+})
 
-let modelstates = ref<ModelState>({
+let modelstates = ref<Stores.aw>({
+  // ref<ModelState>({
   name: '',
   description: '',
-  template: "",
-  template_en: "",
+  // template: "",
+  // template_en: "",
   _id: "",
   params: [],
   tags: []
 });
-let formData = ref({});
+
 function showAWInfo(rowobj: any) {
-  alert('good:' + rowobj.name.toString())
+  // alert('good:' + rowobj.name.toString()+modelstates)
   // onClose()
   // 修改的函数
 
   modelstates.value.name = rowobj.name
   modelstates.value.description = rowobj.description
   modelstates.value._id = rowobj._id
-  modelstates.value.tags = rowobj.tags
-  modelstates.value.params = rowobj.params
-  modelstates.value.template = rowobj.template
+  // console.log(".....rowobj.tags:",rowobj.tags.value)
+  // modelstates.value.tags = rowobj.tags
+  // if(_.isArray(rowobj.params)){
+  //   _.forEach(rowobj.params, function(value, key) {
+  // console.log(key);
+  // modelstates.value.params?.push(key)
+// });
+    
+  // }
+  // modelstates.value.params = rowobj.params
+   modelstates.value.params = []
+  showAWPanel.value = true
+  showPropPanel.value = false
+  // modelstates.value.template = rowobj.template
+
+  // awstore.setAWInfo(rowobj);
+  formData = modelstates
+  // alert('good:' + rowobj.name.toString()+","+modelstates.value.name+","+modelstates.value.description)
   // formData
 }
 const colSpan = ref('10');
@@ -320,7 +429,7 @@ let descriptionLight = ref<any>([])
           <a-row>
             <a-col>
               <!-- v-if="showPropPanel" -->
-              <div class="awtable">
+              <div class="awtable" v-if="showPropPanel">
                 <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
                   :colSpan="colSpan">
                   <template #headerCell="{ column }">
@@ -354,8 +463,12 @@ let descriptionLight = ref<any>([])
           </a-row>
 
 
-          <a-card style="height:100%; width: 300px;overflow-y: auto;">
-            <JsonSchemaForm :form-data="modelstates"></JsonSchemaForm>
+          <a-card style="height:100%; width: 300px;overflow-y: auto;" v-if="showAWPanel">
+            <!-- <JsonSchemaForm :formData="modelstates"></JsonSchemaForm> -->
+            <!-- --{{schema}}--
+            ++{{formData}}++ -->
+            <VueForm v-model="modelstates" :schema="awschema">
+            </VueForm>
             <!-- v-if="showPropPanel" :schema="schema" -->
             <!-- <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
             @finish="onFinish" @finishFailed="onFinishFailed">

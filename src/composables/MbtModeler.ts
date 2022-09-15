@@ -86,16 +86,16 @@ export class MbtModeler {
         // Markup
     }]
 });
-  toolsView1 = new joint.dia.ToolsView({
+  elementToolsView = new joint.dia.ToolsView({
     tools: [this.boundaryTool, this.removeButton,this.connectButton],
   });
-  toolsView2 = new joint.dia.ToolsView({
-    tools: [this.boundaryTool, this.connectButton],
+  linkToolsView = new joint.dia.ToolsView({
+    tools: [this.removeButton],
   });
   addElement(testClass: any, toolsView:dia.ToolsView,data?: any) {
     let rect: joint.shapes.basic.Generic = new testClass(data);
     rect.addTo(this.graph);
-    rect.findView(this.paper).addTools(this.toolsView1);
+    rect.findView(this.paper).addTools(this.elementToolsView);
     return rect;
   }
   setupElementTool() {}
@@ -209,7 +209,7 @@ export class MbtModeler {
   let aw1 = new joint.shapes.standard.Rectangle( {
      
     position: { x: 480, y: 100 },
-    size: { width: 170, height: 30 }, 
+    size: { width: 170, height: 38 }, 
       attrs:{
         body: {
           // fill: 'blue'
@@ -223,7 +223,7 @@ export class MbtModeler {
       let aw2 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 30, y: 100 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -238,7 +238,7 @@ export class MbtModeler {
       let aw3 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 480, y: 200 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -253,7 +253,7 @@ export class MbtModeler {
       let aw4 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 200 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -268,7 +268,7 @@ export class MbtModeler {
       let aw5 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 300 },
-        size: { width: 190, height: 30 }, 
+        size: { width: 190, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -283,7 +283,7 @@ export class MbtModeler {
       let aw6 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 370 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -298,7 +298,7 @@ export class MbtModeler {
       let aw7 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 440 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -313,7 +313,7 @@ export class MbtModeler {
       let aw8 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 510 },
-        size: { width: 190, height: 30 }, 
+        size: { width: 190, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -327,7 +327,7 @@ export class MbtModeler {
       let aw9 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 580 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -341,7 +341,7 @@ export class MbtModeler {
       let aw10 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 200, y: 650 },
-        size: { width: 170, height: 30 }, 
+        size: { width: 170, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -356,7 +356,7 @@ export class MbtModeler {
       let aw11 = new joint.shapes.standard.Rectangle( {
      
         position: { x: 450, y: 650 },
-        size: { width: 190, height: 30 }, 
+        size: { width: 190, height: 38 }, 
           attrs:{
             body: {
               // fill: 'blue'
@@ -704,23 +704,53 @@ link2.labels([{
   link15.source(aw11);
   link15.target(se);
   link15.addTo(this.graph);
-  this.paper.on('element:mouseenter', (elementView: dia.ElementView) => {
+  this.paper.on('element:pointerclick', (elementView: any) => {
+    // console.log('click......', elementView)
+    // console.log(this.paper)
+    this.paper.removeTools();
     
     if (!elementView.hasTools()) {
-      elementView.addTools(this.toolsView1)
+      elementView.addTools(this.elementToolsView)
     }
-    // console.log('click', elementView, elementView.hasTools())
-    elementView.showTools();
-  });
+      elementView.showTools();
 
-  this.paper.on('element:mouseleave', (elementView: dia.ElementView) => {
-    if (elementView.hasTools()) {
-      elementView.hideTools();
-    }
 
   });
 
-  this.paper.on('blank:mouseover', () => {
+  this.paper.on('link:mouseenter', (linkView: any) => {
+    // console.log('click......', linkView)
+    // console.log(this.paper)
+    this.paper.removeTools();
+    
+    if (!linkView.hasTools()) {
+      linkView.addTools(this.linkToolsView)
+    }
+    linkView.showTools();
+
+
+  });
+
+//   var linkView = link.findView(paper);
+// linkView.addTools(toolsView);
+
+  // this.paper.on('element:mouseenter', (elementView: dia.ElementView) => {
+    
+  //   if (!elementView.hasTools()) {
+  //     elementView.addTools(this.toolsView1)
+  //   }
+  //   // console.log('click', elementView, elementView.hasTools())
+  //   elementView.showTools();
+  // });
+
+  // this.paper.on('element:mouseleave', (elementView: dia.ElementView) => {
+  //   if (elementView.hasTools()) {
+  //     elementView.hideTools();
+  //   }
+
+  // });
+
+  this.paper.on('blank:pointerclick', () => {
+    // this.paper.hideTools();
     this.paper.removeTools();
   });
 }
