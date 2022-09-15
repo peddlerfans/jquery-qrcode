@@ -205,14 +205,14 @@ const closemodel = () => {
 
 }
 // 删除功能
-async function delaw(key: any) {
+async function delmbt(key: any) {
   let rst = await request.delete(`/api/test-models/${key._id}`)
   query()
   // console.log(rst);
 
 }
 const confirm = (e: MouseEvent) => {
-  delaw(e)
+  delmbt(e)
   query()
   message.success('Delete on Successed');
 };

@@ -76,7 +76,7 @@ const columns = reactive<Object[]>(
     }
   ]);
 
-async function query(data?: any) {
+async function awquery(data?: any) {
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
   if (rst.data) {
     // console.log('rst:',rst.data)
@@ -90,7 +90,7 @@ function onShow(cell?: any) {
   showPropPanel.value = true;
 }
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  query(formState)
+  awquery(formState)
   onShow();
 };
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
@@ -101,10 +101,9 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 /**
  * Panel --Json schema forms
  */
-let schema = ref<any>();
-let formData = ref<any>();
-let linkFormData = ref<any>();
-let linkData = ref({
+
+let globalformData = ref<any>();
+let linkFormData = ref({
   label: ''
 })
 let awformdata = ref<Stores.aw>({
@@ -181,14 +180,31 @@ function handlerCancel() {
 }
 
 
-
-
+/**
+ * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
+ */
+let mbtCache :[Stores.mbt];//save the data from backend
+ async function mbtquery(data?: any) {
+  let rst = await request.get("/api/test-models?search="+route.params.name)
+  if (rst.data) {
+    console.log('mbt:',rst.data)
+    mbtCache = rst.data;
+    // tableData.value = rst.data
+    // console.log(tableData, tableData.value);
+    return rst.data
+  }
+}
 // save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
 let mbtMap = new Map();
 
 /**
  * Global elements in the component
  */
+ async function updateMBT(url: string, data: any) {
+  let rst = await request.put(url, data)
+  // console.log(rst);
+}
+
 const canvas = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
@@ -225,6 +241,8 @@ const route = useRoute()
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
+  mbtquery();
+  
 
   if (localStorage.getItem('mbt-' + route.params.name)) {
     console.log('local storage')
@@ -328,11 +346,18 @@ onMounted(() => {
 
       isLink.value = false;
       isGlobal.value = false;
-      schema = awschema;
-      formData = awformdata;
-      console.log('model data:', awformdata);
-      console.log('formData:', formData);
+      // schema = awschema;
+
       showDrawer(elementView)
+    }else if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
+      console.log('...save to backend...')
+      if(mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')){
+        updateMBT(`/api/test-models/${mbtCache[0]['_id']}`,mbtCache.values)
+        message.success("Save MBT model successfully")
+      }
+      
+      // updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
+      // message.success("Save MBT model successfully")
     }
     // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
 
@@ -369,14 +394,9 @@ function showAWInfo(rowobj: any) {
   awformdata.value.params = []
   // showPropPanel.value = false
   // formData = awformdata
-  schema = awschema;
-  formData = awformdata;
-  console.log('222model data:', awformdata);
-  console.log('222formData:', formData);
-  console.log('schema:', schema)
-  console.log('awschema:', awschema)
-  // alert('good:' + rowobj.name.toString()+","+awformdata.value.name+","+awformdata.value.description)
-  // formData
+  // schema = awschema;
+
+
 }
 
 
@@ -458,7 +478,7 @@ function showAWInfo(rowobj: any) {
               <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
                 v-if="isAW">
               </VueForm>
-              <VueForm v-model="formData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
+              <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
                 v-else-if="isGlobal">
               </VueForm>
               <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"

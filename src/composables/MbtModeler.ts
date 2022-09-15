@@ -4,6 +4,7 @@ import { dia, shapes ,g } from "jointjs";
 import { Ref, ref } from "vue";
 import { Stencil } from "@/composables/stencil";
 import { setupI18n } from "@/locales";
+import _ from 'lodash';
 
 
 export class test extends joint.shapes.standard.Rectangle {
@@ -110,6 +111,28 @@ export class MbtModeler {
 
   
   constructor(canvas: any) {
+
+
+
+
+    let btn = new joint.shapes.standard.Polygon( {
+     
+      position: { x: 30, y: 30 },
+      size: { width: 70, height: 38 }, 
+        attrs:{
+          body: {
+             fill: 'blue'
+          },
+          label: {
+            text: 'Save',
+             fill: 'white'
+          },
+        }});
+
+    /**
+     * mock data
+     */
+    /*
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 30, y: 10 },
       size: { width: 30, height: 30 },
@@ -370,7 +393,7 @@ export class MbtModeler {
  let exclusiverhombus = new ExclusiveRhombusShape({
     position: { x: 280, y: 70 }
 });
-
+*/
     this.setupNamespace();
     this.paper = new joint.dia.Paper({
       el: canvas.value,
@@ -391,7 +414,17 @@ export class MbtModeler {
         },
       })
     });
+ 
+    // let  restrictedArea =  this.paper.getArea();
+    // let toolArea = Object.assign(restrictedArea,{width: 150, height: 100})
+    // console.log('--restrict area:',toolArea.width,toolArea.height,restrictedArea);
+    btn.addTo(this.graph)
+    btn.position(30, 30,  { parentRelative: true });
 
+    /**
+     * mock data
+     */
+    /*
     s0.position(300,10)
     se.position(700,650)
     s0.addTo(this.graph);
@@ -410,38 +443,6 @@ export class MbtModeler {
     aw11.addTo(this.graph);
     
     
-    // let rect: startNode = this.addElement(startNode,this.toolsView1);
-    // // rect.addTo(this.graph);
-    // rect.position(280, 300);
-    // rect.resize(100, 40);
-    // // rect.setText("1231312", this.paper);
-
-    // rect.attr({
-    //   body: {
-    //     // fill: 'blue'
-    //   },
-    //   label: {
-    //     text: "Start",
-    //     // fill: 'white'
-    //   },
-    // });
-
-    // let rect2 = new test();
-    // rect2.addTo(this.graph);
-    // rect2.position(100, 130);
-    // rect2.resize(100, 40);
-    // // rect2.translate(300, 0)
-    // rect2.attr("label/text", "End");
-
-    // rect2.setText("hello world, this is the wold来吧，这里", this.paper);
-    // rect2.addTo(this.graph);
-    // let rect3 = new test();
-    // rect3.addTo(this.graph);
-    // rect3.position(200, 30);
-    // rect3.resize(100, 40);
-    // // rect2.translate(300, 0)
-
-    // rect3.setText("，这里", this.paper);
 
     let link1 = new joint.shapes.standard.Link({
       router: { name: "manhattan" },
@@ -634,9 +635,7 @@ link2.labels([{
   link11.target(aw8);
   link11.addTo(this.graph);
 
-  // link10.source(aw6);
-  // link10.target(aw7);
-  // link10.addTo(this.graph);
+
 
   let link12 = new joint.shapes.standard.Link({
     router: { name: "manhattan" },
@@ -704,12 +703,17 @@ link2.labels([{
   link15.source(aw11);
   link15.target(se);
   link15.addTo(this.graph);
+
+  */
+
+  
   this.paper.on('element:pointerclick', (elementView: any) => {
-    // console.log('click......', elementView)
-    // console.log(this.paper)
-    this.paper.removeTools();
-    
-    if (!elementView.hasTools()) {
+console.log('ele:',elementView);
+    this.paper.removeTools(); 
+    if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
+      elementView.removeTools()
+    }
+    else if (!elementView.hasTools()) {
       elementView.addTools(this.elementToolsView)
     }
       elementView.showTools();
