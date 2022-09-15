@@ -5,14 +5,16 @@ import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch ,getCurrentInstance} from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
+import {tableSearch , FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
 import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
 
 const tableRef = ref()
-let searchobj: tableSearch = reactive({
+let searchobj:tableSearch = reactive({
   search: "",
-  size: 20
+  size: 20,
+  page:1,
+  perPage:10
 })
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({

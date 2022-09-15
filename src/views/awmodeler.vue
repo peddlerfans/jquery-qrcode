@@ -5,7 +5,7 @@ export default { name: 'AWModeler'}
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps, } from 'ant-design-vue';
-  import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined} from '@ant-design/icons-vue'
+  import { CarryOutOutlined,  SmileTwoTone, SmileOutlined, DownOutlined,PlusOutlined,SearchOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
 import {  Space, Tooltip, } from 'ant-design-vue';
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
@@ -15,21 +15,17 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./compo
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
-  size:30
+  page: 1,
+  perPage:10
 })
 async function query(data?: any) {    
   let rst = await request.get("/api/hlfs", { params: data || searchobj })
-  // console.log(rst.total.value);
   if (rst.data) {
-    pagination.value.total = rst.total
-    console.log(pagination.value.total);
-    
+    pagination.value.total = rst.total    
     tableData.value = rst.data
-      return rst.data
   }
 }
 onMounted(() => {
-  
   query()    
 }) 
 const instance=getCurrentInstance()
@@ -37,9 +33,13 @@ const instance=getCurrentInstance()
 const formState: UnwrapRef<FormState> = reactive({
       search: ''
 });
-const handleFinish: FormProps['onFinish'] = (values: any) => {
-  query(formState)
+const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  await query(formState)
+ pagination.value.pageNo=1
+  console.log(formState.search);  
 };
+
+
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
@@ -120,11 +120,8 @@ async function saveAw(data: any) {
     });
     
     // 添加parmas的函数
-const handleChange = (value: any) => {
-      console.log(value);
-      
+const handleChange = (value: any) => {      
       obj.value.type = value
-  console.log(obj);
   
     };
 
@@ -191,9 +188,7 @@ let rules: Record<string, Rule[]> = {
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
 let refForm=ref(null)
-const onFinishForm = async (modelstates: any) => {
-  console.log(modelstates.value);
-  
+const onFinishForm = async (modelstates: any) => {  
   modelstates.value.tags = states.tags
   if (modelstates.value.name && modelstates.value.description && modelstates.value.template) {
     if (modelstates.value._id) {
@@ -227,7 +222,6 @@ let inputRef = ref();
 
     const handleClose = (removedTag: string) => {
       const tags = states.tags.filter((tag: string) => tag !== removedTag);
-      console.log(tags);
       states.tags = tags;
     };
     const showInput = () => {
@@ -253,7 +247,6 @@ const handleInputConfirm = () => {
 async function delaw(key:any) {
   let rst = await request.delete(`/api/hlfs/${key._id}`)
       query()
-      console.log(rst);
       
 }
 const confirm = (e: MouseEvent) => {
@@ -283,8 +276,6 @@ const edit = (rowobj:any) => {
   modelstates.value._id = rowobj._id
   states.tags = rowobj.tags
   modelstates.value.params = [...rowobj.params]
-  console.log(rowobj.params);
-  // let{name  description:,  template: _id:""}={...obj}
 }
 const rowSelection: TableProps['rowSelection'] = {
   onChange: (selectedRowKeys: any[], selectedRows: any) => {
@@ -333,6 +324,7 @@ const columns = reactive<Object[]>(
 let pagination=ref( {
         pageNo: 1,
         pageSize: 10, // 默认每页显示数量
+        showQuickJumper: true,
         showSizeChanger: true, // 显示可改变每页数量
         pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
         showTotal: (total: any) => `共 ${total} 条`, // 显示总数
@@ -341,15 +333,29 @@ let pagination=ref( {
         total:0 //总条数
        })
 
-const onPageChange = (page: number, pageSize: any) => {
-        console.log(page,pageSize);
-      pagination.value.pageNo = page
-       query()
+const onPageChange = async(page: number, pageSize: any) => {
+  pagination.value.pageNo = page
+  pagination.value.pageSize=pageSize
+  searchobj.page= page
+  searchobj.perPage = pageSize
+  if (formState.search) {
+    searchobj.search=formState.search
+  } else {
+    searchobj.search=''
+  }
+       await query()
    }
-   const onSizeChange=(current: any, pageSize: number)=> {
-       pagination.value.pageNo = 1
-       pagination.value.pageSize = pageSize
-       query()
+const onSizeChange =async (current: any, pageSize: number) => {
+        pagination.value.pageNo = current
+        pagination.value.pageSize=pageSize
+       searchobj.page= current
+  searchobj.perPage = pageSize
+      if (formState.search) {
+    searchobj.search=formState.search
+      } else {
+    searchobj.search=''
+  }
+     await query()
    }
 
 const expend = (isExpand:any,rected:any) => {
@@ -375,7 +381,7 @@ let treeData: TreeProps['treeData'] = [
             children: [
               { title: 'Rest screen style', key: '0-0-0-0' },
               {
-                key: '0-0-0-1',
+                title: 'screen style',key: '0-0-0-1',
               },
               { title: 'Auto lock', key: '0-0-0-2' },
             ],
@@ -413,19 +419,27 @@ let treeData: TreeProps['treeData'] = [
         ],
       },
 ];
+// 模拟新增节点
+const inputTree = ref({
+  title: '新增节点',
+  key: '0',
+  children:[]
+})
+
+
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
       console.log('selected', selectedKeys, info);
 };
 // 递归查询当前选中节点的方法
-const getchildKey = (childs: any, findKey: string):any => {
+const getchildKey = (childs: any, findKey: string): any => {
   let finditem = null;
    for (let i = 0, len = childs.length; i < len; i++) {
      let item = childs[i]
-     if (item.title !== findKey && item.children && item.children.length > 0) {
+     if (item.title.indexOf(findKey)==-1 && item.children && item.children.length > 0) {
        finditem = getchildKey(item.children, findKey)
      }
-     if (item.title == findKey) {
-       finditem = item
+     if (item.title.indexOf(findKey)>-1 ) {
+       finditem = item.key
      }
      if (finditem != null) {
        break
@@ -433,8 +447,9 @@ const getchildKey = (childs: any, findKey: string):any => {
    }
    return finditem
 }
+
 // 递归查询父节点children
-const getTreeParentChilds=(childs :any, findKey: any):any=> {
+const getTreeParentChilds = (childs: any, findKey: any): any => {  
    let parentChilds = []
    for (let i = 0, len = childs.length; i < len; i++) {
      let item = childs[i]
@@ -450,43 +465,40 @@ const getTreeParentChilds=(childs :any, findKey: any):any=> {
    }
    return parentChilds
 }
+// 递归查询当前节点的对象
+const getTreeDataByItem=(childs:any, findKey: any):any=> {
+   let finditem = null;
+   for (let i = 0, len = childs.length; i < len; i++) {
+     let item = childs[i]
+     if (item.key !== findKey && item.children && item.children.length > 0) {
+       finditem = getTreeDataByItem(item.children, findKey)
+     }
+     if (item.key == findKey) {
+       finditem = item
+     }
+     if (finditem != null) {
+       break
+     }
+   }
+   return finditem
+ }
+
 
 // 查询树节点的方法
 const expandedKeys = ref<(string | number)[]>([]);
  const autoExpandParent = ref<boolean>(true);
 const searchValues = ref<string>('');
 watch(searchValues, value => {  
-  console.log(treeData);
-      
       if(value.length != 0){
-        const expanded = treeData?.filter(item => {
-          console.log(item);
-          
-        if(item.title.includes(value)){
-          return item.key;
-        } else {
-          if (item.children) {
-            
-            item.children.filter(childItem => {
-              
-              if (childItem.title.includes(value)) {
-                // console.log(item.children?.includes(childItem.key))
-                return childItem.key
-              }
-            })
+        const expanded = treeData!.map((item: any) => {
+          if (item.title.indexOf(value) == -1) {
+            return getchildKey(treeData,value);
           }
-        }
-        
-        return null;
-      })
-        // .filter((item, i, self) => item && self.indexOf(item) === i);
-      console.log('tree',expanded);
-      console.log('datalist',treeData)
-      console.log(value);
-
-      expandedKeys.value= expanded as any;
+          return null;
+        }).filter((item, i, self) => item && self.indexOf(item) === i);
+      expandedKeys.value = expanded as any;
       searchValues.value = value;
-      autoExpandParent.value = true;
+        autoExpandParent.value = true;
       }else{
         //折叠起来
         autoExpandParent.value =  false;
@@ -497,19 +509,56 @@ const onExpand = (keys: any) => {
       console.log(keys);
       expandedKeys.value = keys ;
       autoExpandParent.value = true;
+};
+let treeswitch=ref(false)
+// 修改子节点的方法
+const updTree = (key: any) => {
+  treeswitch.value=true
+}
+let opendefault=ref("")
+// 点击添加子节点的方法
+const pushtree = (key: string) => {
+  let itemObj = getTreeDataByItem(treeData, key)
+  console.log(itemObj);
+  
+  let str
+  if (!itemObj.children) {
+    str= inputTree.value.key
+    inputTree.value.key=itemObj.key.concat(`-${str}`)
+    itemObj=Object.assign(itemObj,{children:[]})
+  } else {
+    str = inputTree.value.key = itemObj.children.length
+     inputTree.value.key=itemObj.key.concat(`-${str}`)
+  }
+    window.localStorage.setItem('savetree',JSON.stringify(inputTree.value))
+  itemObj.children.push({ ...inputTree.value })
+
+  let expendInputKey:any = ref([])
+  expendInputKey.value.push(inputTree.value.key)
+  expandedKeys.value=expendInputKey.value
+  autoExpandParent.value=true
+}
+
+// 删除树形控件数据
+const deltree = (key:string) => {
+  // request.delete('/api/hlfs/_tree/delete',data:key)  
+}
+const confirmtree = (key:string) => {
+    let parent = getTreeParentChilds(treeData, key)
+  console.log(parent);
+  
+  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
+  delete parent[delIndex]
+}
+    const cancelTree = (e: MouseEvent) => {
+      console.log(e);
     };
 
 // 右键点击树形控件触发的事件
 const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
 };
-const deltree = (key:string) => {
-  console.log(key);
-  let parent = getTreeParentChilds(treeData, key)
-  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
-  console.log(delIndex);
-  
-}
+
 </script>
 
 <template>
@@ -529,25 +578,44 @@ const deltree = (key:string) => {
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
             :show-line="true"
-            :default-expanded-keys="['0-0-0']"
             :tree-data="treeData"
             @select="onSelect"
             :expanded-keys="expandedKeys"
             :auto-expand-parent="autoExpandParent"
             @expand="onExpand"  >
       <template #icon><carry-out-outlined /></template>
-  <template #title="{key:treeKey, title }" >
-    <a-dropdown :trigger="['contextmenu']" >
-        <a-tooltip placement="right" overlayClassName="bgc_tooltip">
+      <template #title="{key:treeKey, title }" >
+          <a-dropdown :trigger="['contextmenu']" >
+        <a-tooltip placement="right" overlayClassName="bgc_tooltip" trigger="click">
             <template #title >
-              <a-menu  @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
-                <a-menu-item  key="1" >add Node</a-menu-item>
-                <a-menu-item key="2">upd Node</a-menu-item>
-                <a-menu-item key="3" @click="deltree(treeKey)">del Node</a-menu-item>
+              <a-menu mode="horizontal" @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
+                <a-menu-item  key="1" @click="pushtree(treeKey)">
+                  <template #icon >
+                    <plus-circle-two-tone />
+                  </template>
+                </a-menu-item>
+                <a-menu-item key="2" @click="updTree(treeKey)">
+                  <template #icon>
+                    <edit-two-tone two-tone-color="#FFCC00"/>
+                  </template>
+                </a-menu-item>
+                        <a-popconfirm
+                          title="Are you sure delete this task?"
+                          ok-text="Yes"
+                          cancel-text="No"
+                        @confirm="confirmtree(treeKey)"
+                          @cancel="cancelTree"
+                        >
+                <a-menu-item key="3" @click="deltree(treeKey)">
+                  <template #icon>
+                    <delete-two-tone two-tone-color="#FF0000"/>
+                  </template>
+                </a-menu-item>
+                </a-popconfirm>
               </a-menu>
             </template>
               <template v-if="searchValues &&  title.includes(searchValues)">
-                <div style="color: #f50; border:1px solid red"> 
+                <div style="color: #f50;"> 
                   <span>{{title}}</span>
                 </div>
                 </template>
@@ -718,27 +786,32 @@ const deltree = (key:string) => {
 
     <template #bodyCell="{ column,text, record }">
       <template v-if="column.key === 'Name'">
-          <div v-if="record.name.indexOf(formState.search)!=-1" >
-            <p v-html="record.name.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
-          </div>
-          <div v-else>
-            <p>{{record.name}}</p>
-          </div>
-          </template>
-          <template v-if="column.key === 'description'">
-          <div v-if="record.description.indexOf(formState.search)!=-1" >
-            <p v-html="record.description.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
-          </div>
-          <div v-else>
-            <p>{{record.description}}</p>
-          </div>
-          </template>
-           <template v-if="column.key === 'template'"
-          >
-          <div v-if="record.template.indexOf(formState.search)!=-1">
-            <p v-html="record.template.replace(formState.search,`<b style='color:red'>${formState.search}</b>`)"></p>
-          </div>
-          </template>
+          <div v-if="record._highlight">
+              <div v-if="record._highlight.name">
+                <p v-for="item in record._highlight.name" v-html="item"></p>
+              </div>
+              <div v-else>{{record.name}}</div>
+            </div>
+            <div v-else>{{record.name}}</div>
+      </template>
+      <template v-if="column.key === 'description'">
+            <div v-if="record._highlight">
+              <div v-if="record._highlight.description">
+                <p v-for="item in record._highlight.description" v-html="item"></p>
+              </div>
+              <div v-else>{{record.description}}</div>
+            </div>
+            <div v-else>{{record.description}}</div>
+      </template>
+      <template v-if="column.key === 'template'">
+          <div v-if="record._highlight">
+              <div v-if="record._highlight.template">
+                <p v-for="item in record._highlight.template" v-html="item"></p>
+              </div>
+              <div v-else>{{record.template}}</div>
+            </div>
+            <div v-else>{{record.template}}</div>
+      </template>
           <template v-if="column.key === 'tags'">
               <span>
                 <a-tag
@@ -814,23 +887,37 @@ const deltree = (key:string) => {
   .highlight{
     background-color: yellow;
   }
-  
+
   </style>
   <style lang="less">
+    .found-kw{
+    color: red!important;
+    font-weight: 600;
+  }
 .bgc_tooltip .ant-tooltip-inner{
-    
     background-color: white!important;
-    width: 7.5rem;
-    height: 6.375rem;
-    .ant-menu-vertical{
-      width: 100%;
-      height: 100%;
+    width: 6.125rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    .ant-menu{
+      width: 6.125rem;
+    }
+    .ant-menu-horizontal{
+      border: 0;
+      .ant-menu-item{
+        padding: 0 .3125rem;
+      }
+      
       .ant-menu-item-only-child{
-        width: 100%;
-        height: 25%;
-        line-height: 1.5625rem;
+        width: 30%;
+        display: flex;
+        justify-content: center!important;
       }
     }
+    .ant-menu-overflow{
+        display: flex;
+        justify-content: space-around;
+      }
     }
-  
   </style>
