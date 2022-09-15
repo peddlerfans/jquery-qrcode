@@ -5,12 +5,12 @@ import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch ,getCurrentInstance} from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
+import {  FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
 import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
 
 const tableRef = ref()
-let searchobj: tableSearch = reactive({
+let searchobj: = reactive({
   search: "",
   size: 20
 })
