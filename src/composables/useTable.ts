@@ -72,7 +72,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
       }
     }).then(res => {
       // console.log('res:',res)
-      _dataSource.value = res.data.data
+      _dataSource.value = res.data
       
       _pagination.total = res.data?.total
     }).catch(e=>{

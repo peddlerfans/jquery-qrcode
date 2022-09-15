@@ -3,27 +3,25 @@ import request from '@/utils/request';
 import useTable from '@/composables/useTable';
 import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
-import debounce from 'lodash/debounce';
-// import { exportSheetFile } from '@/utils/fileAction'
-import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch } from 'vue';
+import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch ,getCurrentInstance} from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
 import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
-import {
-  SyncOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  SwapOutlined,
-  DownOutlined
-} from '@ant-design/icons-vue';
+import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
 
 const tableRef = ref()
+let searchobj: tableSearch = reactive({
+  search: "",
+  size: 20
+})
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: ''
 });
+
+const instance=getCurrentInstance()
+
+
 const {
   dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
   updateTable, onTableRowSelectChange, tableResize
@@ -68,18 +66,12 @@ const onFinishFailedForm = (errorInfo: any) => {
   console.log('Failed:', errorInfo);
 };
 
-// let tableData = ref([])
-let searchobj: tableSearch = reactive({
-  search: "",
-  size: 20
-})
-let highlight = ref<any>([])
-let descriptionLight = ref<any>([])
-// let templateLight = ref<any>([])
+
+
 async function query(data?: any) {
 
   let rst;
-  if (data.search.toString().substring(0, 6) == '@tags:') {
+  if (data && data.search.toString().substring(0, 6) == '@tags:') {
     rst = await request.get(`/api/test-models?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
   } else {
     rst = await request.get("/api/test-models", { params: data || searchobj })
@@ -87,8 +79,8 @@ async function query(data?: any) {
 
 
   if (rst.data) {
-    // console.log('rst:',rst.data)
-    dataSource.value = rst.data.data
+    // console.log('rst:', rst.data)
+    dataSource.value = rst.data
     return rst.data
   }
 }
@@ -96,10 +88,10 @@ const handleFinish: FormProps['onFinish'] = (values: any) => {
   // console.log(' formstate to search :', formState);
 
   query(formState)
-  highlight.value = dataSource.value.filter((item: any, index: any) => {
+  // highlight.value = dataSource.value.filter((item: any, index: any) => {
 
-    return item._highlight
-  })
+  //   return item._highlight
+  // })
   // console.log(highlight.value);
 
 };
@@ -119,23 +111,32 @@ let modelstates = ref<ModelState>({
   _id: "",
   tags: []
 });
+onMounted(() => {
 
+   query()    
+ }) 
 // 修改功能4
 // 修改函数
 async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data)
   // console.log(rst);
 }
-
+let refForm=ref(null)
 // 清除模态窗数据
 const clear = () => {
+  
   modelstates.value = {
     name: "",
     description: '',
     _id: "",
     tags: []
-  }
+  },
+    states.tags = []; 
+
+    (instance?.refs.refForm as any).resetFields()
+
 }
+
 // 添加的表单tags
 let inputRef = ref();
 let states = reactive<statesTs>({
@@ -156,25 +157,39 @@ const edit = (rowobj: any) => {
 
 async function saveMBT(data: any) {
 
-  let rst = await request.post("/api/test-models", data)
+  // let rst = await request.post("/api/test-models", data)
+  return new Promise((resolve, reject) => {
+    request.post("/api/test-models", data).then(res => {
+      // console.log(res);
+
+    }).catch(function (error) {
+      if (error.response.status == 409) {
+        message.error("Duplicate name or description")
+      }
+    });
+  })
   // console.log(rst);
 }
 
 const onFinishForm = async (modelstates: any) => {
   modelstates.value.tags = states.tags
   // 判断修改或添加
-  if (modelstates.value._id) {
-    await updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
-    message.success("Modified successfully")
+  if (modelstates.value.name && modelstates.value.description) {
+    if (modelstates.value._id) {
+      await updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
+      message.success("Modified successfully")
+    } else {
+      delete modelstates.value._id
+      await saveMBT(modelstates.value)
+      message.success("Added successfully")
+    }
+    // }
+    visible.value = false;
+    clear()
+    query()
   } else {
-    delete modelstates.value._id
-    await saveMBT(modelstates.value)
-    message.success("Added successfully")
+    return message.error("name and descript is required")
   }
-  // }
-  query()
-  clear()
-  visible.value = false;
 
 };
 const handleOk = () => {
@@ -204,27 +219,22 @@ const confirm = (e: MouseEvent) => {
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
-  message.error('Cancel deletion');
+
 };
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })
   if (!value) {
     return Promise.reject("Please input your name!")
-  } else if (rst.length == 1) {
-    return Promise.reject("The name already exists")
   } else {
     return Promise.resolve();
   }
 
 }
+
 let checkDesc = async (_rule: Rule, value: string) => {
-  let rst = await query({ search: value })
   if (!value) {
     return Promise.reject("Please input your name!")
-  } else if (rst.length == 1) {
-    return Promise.reject("The description already exists")
   } else {
     return Promise.resolve();
   }
@@ -310,7 +320,7 @@ const handleInputConfirm = () => {
           <a-button @click="closemodel">cancel</a-button>
           <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
         </template>
-        <a-form :model="modelstates" :rules="rules" name="basic" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }"
+        <a-form ref="refForm" :model="modelstates" :rules="rules" name="basic" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }"
           autocomplete="off" @finish="onFinishForm" @finishFailed="onFinishFailedForm">
           <a-form-item label="name" name="name">
             <a-input v-model:value="modelstates.name" />
@@ -359,7 +369,6 @@ const handleInputConfirm = () => {
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-
 
           <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
         </template>
