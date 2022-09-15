@@ -23,6 +23,7 @@ interface FormState {
   remember: boolean;
   search?: string
 }
+const visible = ref(false);
 const awschema = ref({
   "title": "AW",
   "description": "Configuration for the AW",
@@ -31,7 +32,7 @@ const awschema = ref({
     "name": {
       "title": "AW Name",
       "type": "string",
-      "readOnly": true   
+      "readOnly": true
 
     },
     "description": {
@@ -53,7 +54,7 @@ const awschema = ref({
     // }
   }
 })
-let schema:any;
+let schema: any;
 const gatewayschema = ref({
   "title": "GATEWAY",
   "description": "Configuration for GATEWAY",
@@ -66,25 +67,25 @@ const gatewayschema = ref({
 
     },
     "type": {
-            "type": "string",
-            "title": "Type",
-            "enum": [
-                "PARALLEL",
-                "EXCLUSIVE"
-                
-            ],
-            "enumNames": [
-                "PARALLEL",
-                "EXCLUSIVE"
-            ]
-        }
-      
-    
+      "type": "string",
+      "title": "Type",
+      "enum": [
+        "PARALLEL",
+        "EXCLUSIVE"
+
+      ],
+      "enumNames": [
+        "PARALLEL",
+        "EXCLUSIVE"
+      ]
+    }
+
+
   }
 })
 
 
-const wrapperCol = { span: 24, offset: 12 }
+const wrapperCol = { span: 24 }
 const isAW = ref(false);
 const awstore = awStore()
 const formState = reactive<FormState>({
@@ -99,7 +100,7 @@ const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 let showAWPanel: Ref<boolean> = ref(false);
-let showGatewayPanel: Ref<boolean> = ref(false); 
+let showGatewayPanel: Ref<boolean> = ref(false);
 
 function onClose() {
   showPropPanel.value = false;
@@ -278,24 +279,24 @@ onMounted(() => {
   modeler.paper.on('element:pointerclick', function (elementView: any) {
     console.log('2222', elementView);
 
-    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type=='standard.Rectangle') {
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       // if (showPropPanel.value == false)
       //   onShow();
       // console.log(elementView.model.attributes.type)
       schema = awschema.value;
       formData = modelstates.value;
-      console.log('model data:',modelstates);
-      console.log(schema,formData);
+      console.log('model data:', modelstates);
+      console.log(schema, formData);
       showAWPanel.value = true
-      showGatewayPanel.value =false
-      
-    }else if(elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type=='RHOMBUS') {
+      showGatewayPanel.value = false
+      showDrawer()
+    } else if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'RHOMBUS') {
 
       schema = gatewayschema;
       formData = gatewayData;
       showGatewayPanel.value = true;
-      showAWPanel.value=false;
-
+      showAWPanel.value = false;
+      showDrawer()
     }
     // console.log('click......', elementView.model.attributes.type);
 
@@ -323,10 +324,10 @@ onMounted(() => {
 //     tags: Array<string>;
 //     params: Array<paramsobj>
 // });
-let formData:any;
+let formData: any;
 let gatewayData = ref({
-  name:'',
-  type:''
+  name: '',
+  type: ''
 })
 
 let modelstates = ref<Stores.aw>({
@@ -354,11 +355,11 @@ function showAWInfo(rowobj: any) {
   //   _.forEach(rowobj.params, function(value, key) {
   // console.log(key);
   // modelstates.value.params?.push(key)
-// });
-    
+  // });
+
   // }
   // modelstates.value.params = rowobj.params
-   modelstates.value.params = []
+  modelstates.value.params = []
   showAWPanel.value = true
   showPropPanel.value = false
   // modelstates.value.template = rowobj.template
@@ -389,6 +390,17 @@ const columns = reactive<Object[]>(
 
 
 let descriptionLight = ref<any>([])
+const afterVisibleChange = (bool: boolean) => {
+  console.log('visible', bool);
+};
+
+const showDrawer = () => {
+  visible.value = true;
+};
+
+const onClose1 = () => {
+  visible.value = false;
+};
 </script>
 
 <template>
@@ -408,15 +420,17 @@ let descriptionLight = ref<any>([])
       <a-col :span="2">
         <div class="stencil" ref="stencilcanvas"></div>
       </a-col>
-      <a-col :span="16">
+      <a-col :span="22">
         <div class="canvas" ref="canvas"></div>
       </a-col>
-      <a-col :span="6">
+      <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
+      <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
+        :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onClose1">
         <div class="infoPanel" ref="infoPanel">
 
           <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapperCol="wrapperCol">
-            <a-form-item :wrapper-col="{ span: 20 }">
+            @finishFailed="handleFinishFailed">
+            <a-form-item :wrapper-col="{ span: 24 }">
               <a-input v-model:value="formState.search" placeholder="aw"></a-input>
             </a-form-item>
 
@@ -426,69 +440,54 @@ let descriptionLight = ref<any>([])
           </AForm>
 
 
-          <a-row>
-            <a-col>
-              <!-- v-if="showPropPanel" -->
-              <div class="awtable" v-if="showPropPanel">
-                <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
-                  :colSpan="colSpan">
-                  <template #headerCell="{ column }">
-                    <template v-if="column.key === 'name'">
-                      <span>
-                        <smile-outlined />
-                        Name
-                      </span>
-                    </template>
+          <!-- <a-row>
+            <a-col> -->
 
-                  </template>
+          <div class="awtable" v-if="showPropPanel">
+            <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+              :colSpan="colSpan">
+              <template #headerCell="{ column }">
+                <template v-if="column.key === 'name'">
+                  <span>
+                    <smile-outlined />
+                    Name
+                  </span>
+                </template>
 
-                  <template #bodyCell="{ column,text, record }">
-                    <template v-if="column.key === 'name'">
-                      <a-button type="link" @click="showAWInfo(record)">
-                        {{ record.name }}
-                      </a-button>
-                    </template>
+              </template>
 
-                    <template v-if="column.key === 'description'">
-                      <div v-for="desc in descriptionLight" :key="desc">
-                        <p v-html="desc"></p>
-                      </div>
-                    </template>
+              <template #bodyCell="{ column,text, record }">
+                <template v-if="column.key === 'name'">
+                  <a-button type="link" @click="showAWInfo(record)">
+                    {{ record.name }}
+                  </a-button>
+                </template>
 
-
-                  </template>
-                </a-table>
-              </div>
-            </a-col>
-          </a-row>
+                <template v-if="column.key === 'description'">
+                  <div v-for="desc in descriptionLight" :key="desc">
+                    <p v-html="desc"></p>
+                  </div>
+                </template>
 
 
-          <a-card style="height:100%; width: 300px;overflow-y: auto;" v-if="showAWPanel">
-            <!-- <JsonSchemaForm :formData="modelstates"></JsonSchemaForm> -->
-            <!-- --{{schema}}--
-            ++{{formData}}++ -->
-            <VueForm v-model="modelstates" :schema="awschema">
-            </VueForm>
-            <!-- v-if="showPropPanel" :schema="schema" -->
-            <!-- <a-form :model="formState" name="mbt" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" autocomplete="off"
-            @finish="onFinish" @finishFailed="onFinishFailed">
-            <a-form-item label="Param" name="awname"
-              :rules="[{ required: true, message: 'Please input your aw name!' }]">
-              <a-input v-model:value="formState.awname" placeholder="SUT"/>
-            </a-form-item>
+              </template>
+            </a-table>
+          </div>
+          <!-- </a-col>
+          </a-row> -->
 
-            <a-form-item label="Type" name="awname"
-              :rules="[{ required: true, message: 'Please input your aw name!' }]">
-              <a-input v-model:value="formState.awname" placeholder="str"/>
-            </a-form-item>
 
-            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-              <a-button type="primary" html-type="submit">Add</a-button>
-            </a-form-item>
-          </a-form> -->
+          <a-card style="overflow-y: auto;">
+            <div style="padding: 5px;">
+              <VueForm v-model="modelstates" :schema="awschema">
+
+              </VueForm>
+            </div>
           </a-card>
         </div>
-      </a-col>
+      </a-drawer>
+
+
     </a-row>
 
   </section>
@@ -527,6 +526,14 @@ let descriptionLight = ref<any>([])
 }
 
 .awtable {
-  padding-top: 10px;
+  padding: 5px;
+}
+
+.search_form {
+  width: 100%;
+  padding: 5px;
+}
+.ant-drawer-body {
+  overflow: hidden!important;
 }
 </style>
