@@ -102,7 +102,13 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
  * Panel --Json schema forms
  */
 
-let globalformData = ref<any>();
+let globalformData = ref<Stores.mbt>({
+  _id:'',
+  name:'',
+  description: '',
+  tags:[]
+
+});
 let linkFormData = ref({
   label: ''
 })
@@ -122,7 +128,29 @@ const globalschema = ref({
       "title": "MBT Name",
       "type": "string",
       "readOnly": true
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "readOnly": true
+    },
+    "tags":{
+      "title":"Tags",
+      "type":"string",
+      "readOnly":true
+    },
+    "meta":{
+      "title":"Meta",
+      "type":"string",
+    },
+    "resources":{
+      "title":"Resources",
+      "type":"string",
 
+    },
+    "data":{
+      "title":"Data",
+      "type":"string",
     }
   }
 })
@@ -369,11 +397,21 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    showGlobalInfo();
     showDrawer()
   });
 
 });
 
+function showGlobalInfo(){
+  console.log('...kkkk...',mbtCache,mbtCache[0]['name']);
+  console.log('...kkkk2...',globalformData);
+  debugger
+  globalformData.value.name = mbtCache[0]['name'];
+  globalformData.value.description = mbtCache[0]['description'];
+  globalformData.value.tags = mbtCache[0]['tags'];
+
+}
 
 
 function showAWInfo(rowobj: any) {
