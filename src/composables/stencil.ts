@@ -101,10 +101,10 @@ export class Stencil {
               d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
               ...this.bodyAttributes
           },
-          // label: {
-          //     text: 'X',
-          //     ...this.labelAttributes
-          // }
+          label: {
+              text: 'x',
+              ...this.labelAttributes
+          }
       }
   }, {
       markup: [{
@@ -148,10 +148,10 @@ export class Stencil {
             d: 'M calc(.5*w) 0 calc(w) calc(.5*h) calc(.5*w) calc(h) 0 calc(.5*h) Z',
             ...this.bodyAttributes
         },
-        // label: {
-        //     text: '+',
-        //     ...this.labelAttributes
-        // }
+        label: {
+            text: '+',
+            ...this.labelAttributes
+        }
     }
 }, {
     markup: [{
@@ -188,16 +188,16 @@ export class Stencil {
   let exclusiverhombus = new ExclusiveRhombusShape({
     position: { x: 10, y: 200 }
 });
-// let parallelrhombus = new ParallelRhombusShape({
-//   position: { x: 10, y: 280 }
-// });
+let parallelrhombus = new ParallelRhombusShape({
+  position: { x: 10, y: 280 }
+});
     this.states = {};
     Object.assign(this.states, { s0: s0 });
  
     Object.assign(this.states, { se: se });
     Object.assign(this.states,{umlstate:umlstate});
     Object.assign(this.states,{exclusiverhombus:exclusiverhombus});
-    // Object.assign(this.states,{parallelsrhombus:parallelrhombus});
+    Object.assign(this.states,{parallelsrhombus:parallelrhombus});
 
     this.paper = new joint.dia.Paper({
       el: canvas.value,

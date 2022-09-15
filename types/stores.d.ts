@@ -25,16 +25,17 @@ export namespace Stores {
     type: string
   }
   interface mbt {
+    _id: string,
     name: string,
     description: string,
     tags: string[],
     modelDefinition?: object,
     dataDefinition?: {
       resources: resourceschema[],
-      dataType: string,
-      dataUrl: string,
+      dataType?: string,
+      dataUrl?: string,
       data: object,
-      metaTemplate: string,
+      metaTemplate?: string,
       meta: object
 
     }
