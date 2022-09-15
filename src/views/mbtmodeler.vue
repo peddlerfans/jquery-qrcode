@@ -4,7 +4,7 @@ import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from 'ant-design-vue/es'
-import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive } from "vue";
+import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive, toRefs } from "vue";
 import type { Ref } from "vue";
 import { useRoute } from 'vue-router'
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
@@ -26,13 +26,13 @@ interface FormState {
 /** drawer  */
 //drawer visible
 const visible = ref(false);
-const showDrawer = (el?:any) => {
+const showDrawer = (el?: any) => {
   visible.value = true;
-  if(el &&_.isObject(el) && el.hasOwnProperty('path')){
+  if (el && _.isObject(el) && el.hasOwnProperty('path')) {
     console.log('click link ')
-  }else if (el && _.isObject(el)){
+  } else if (el && _.isObject(el)) {
     console.log('click element')
-  }else {
+  } else {
     console.log('click blank')
   }
 };
@@ -44,6 +44,8 @@ const onCloseDrawer = () => {
 /** Panel -> AW part, including a searching form and table */
 //AW panel visible, including search form and table for searching results
 let isAW = ref(false);
+let isGlobal = ref(false);
+let isLink = ref(false);
 // aw form searching
 const formState = reactive<FormState>({
   awname: '',
@@ -99,18 +101,32 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 /**
  * Panel --Json schema forms
  */
-let schema: any;
-let formData: any;
+let schema = ref<any>();
+let formData = ref<any>();
+let linkFormData = ref<any>();
 let linkData = ref({
   label: ''
 })
-let modelstates = ref<Stores.aw>({
+let awformdata = ref<Stores.aw>({
   name: '',
   description: '',
   _id: "",
   params: [],
   tags: []
 });
+const globalschema = ref({
+  "title": "MBTConfiguration",
+  "description": "Configuration for the MBT",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "MBT Name",
+      "type": "string",
+      "readOnly": true
+
+    }
+  }
+})
 const awschema = ref({
   "title": "AW",
   "description": "Configuration for the AW",
@@ -161,7 +177,7 @@ function handlerSubmit() {
 };
 function handlerCancel() {
 
-  message.warning('Cancel');
+  // message.warning('Cancel');
 }
 
 
@@ -300,6 +316,8 @@ onMounted(() => {
   modeler.paper.on('link:pointerclick', function (linkView: any) {
     console.log('linkView:', linkView);
     isAW.value = false;
+    isLink.value = true;
+    isGlobal.value = false;
     showDrawer(linkView)
   })
 
@@ -307,19 +325,25 @@ onMounted(() => {
     console.log('elementView:', elementView);
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
-      schema = awschema.value;
-      formData = modelstates.value;
-      console.log('model data:', modelstates);
-      console.log(schema, formData);
+
+      isLink.value = false;
+      isGlobal.value = false;
+      schema = awschema;
+      formData = awformdata;
+      console.log('model data:', awformdata);
+      console.log('formData:', formData);
       showDrawer(elementView)
-    } 
-    // console.log('click......', elementView.model.attributes.type);
+    }
+    // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
 
 
   });
 
   modeler.paper.on('blank:pointerclick', () => {
+
     isAW.value = false;
+    isLink.value = false;
+    isGlobal.value = true;
     showDrawer()
   });
 
@@ -328,24 +352,30 @@ onMounted(() => {
 
 
 function showAWInfo(rowobj: any) {
-  // alert('good:' + rowobj.name.toString()+modelstates)
-  modelstates.value.name = rowobj.name
-  modelstates.value.description = rowobj.description
-  modelstates.value._id = rowobj._id
+  // alert('good:' + rowobj.name.toString()+awformdata)
+  awformdata.value.name = rowobj.name
+  awformdata.value.description = rowobj.description
+  awformdata.value._id = rowobj._id
   // console.log(".....rowobj.tags:",rowobj.tags.value)
-  // modelstates.value.tags = rowobj.tags
+  // awformdata.value.tags = rowobj.tags
   // if(_.isArray(rowobj.params)){
   //   _.forEach(rowobj.params, function(value, key) {
   // console.log(key);
-  // modelstates.value.params?.push(key)
+  // awformdata.value.params?.push(key)
   // });
 
   // }
-  // modelstates.value.params = rowobj.params
-  modelstates.value.params = []
-  showPropPanel.value = false
-  formData = modelstates
-  // alert('good:' + rowobj.name.toString()+","+modelstates.value.name+","+modelstates.value.description)
+  // awformdata.value.params = rowobj.params
+  awformdata.value.params = []
+  // showPropPanel.value = false
+  // formData = awformdata
+  schema = awschema;
+  formData = awformdata;
+  console.log('222model data:', awformdata);
+  console.log('222formData:', formData);
+  console.log('schema:', schema)
+  console.log('awschema:', awschema)
+  // alert('good:' + rowobj.name.toString()+","+awformdata.value.name+","+awformdata.value.description)
   // formData
 }
 
@@ -423,10 +453,16 @@ function showAWInfo(rowobj: any) {
           </div>
 
 
-
           <a-card style="overflow-y: auto;">
             <div style="padding: 5px;">
-              <VueForm v-model="modelstates" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel">
+              <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                v-if="isAW">
+              </VueForm>
+              <VueForm v-model="formData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                v-else-if="isGlobal">
+              </VueForm>
+              <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                v-else-if="isLink">
               </VueForm>
             </div>
           </a-card>
