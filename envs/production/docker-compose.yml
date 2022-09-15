@@ -1,0 +1,10 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  mbt-ui:
+    image: registry.gitlab.com/itea-tech/itea-oppo/mbt-frontend:master
+    ports:
+      - "8080:8080"
+  mbt-api:
+    image: registry.gitlab.com/itea-tech/itea-oppo/mbt-backend:master
+    ports:
+      - "3000:3000"
