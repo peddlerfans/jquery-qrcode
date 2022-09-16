@@ -115,24 +115,24 @@ export class MbtModeler {
 
 
 
-    let btn = new joint.shapes.standard.Polygon( {
+    // let btn = new joint.shapes.standard.Polygon( {
      
-      position: { x: 30, y: 30 },
-      size: { width: 70, height: 38 }, 
-        attrs:{
-          body: {
-             fill: 'blue'
-          },
-          label: {
-            text: 'Save',
-             fill: 'white'
-          },
-        }});
+    //   position: { x: 30, y: 30 },
+    //   size: { width: 70, height: 38 }, 
+    //     attrs:{
+    //       body: {
+    //          fill: 'blue'
+    //       },
+    //       label: {
+    //         text: 'Save',
+    //          fill: 'white'
+    //       },
+    //     }});
 
     /**
      * mock data
      */
-    /*
+    
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 30, y: 10 },
       size: { width: 30, height: 30 },
@@ -393,7 +393,7 @@ export class MbtModeler {
  let exclusiverhombus = new ExclusiveRhombusShape({
     position: { x: 280, y: 70 }
 });
-*/
+
     this.setupNamespace();
     this.paper = new joint.dia.Paper({
       el: canvas.value,
@@ -418,13 +418,13 @@ export class MbtModeler {
     // let  restrictedArea =  this.paper.getArea();
     // let toolArea = Object.assign(restrictedArea,{width: 150, height: 100})
     // console.log('--restrict area:',toolArea.width,toolArea.height,restrictedArea);
-    btn.addTo(this.graph)
-    btn.position(30, 30,  { parentRelative: true });
+    // btn.addTo(this.graph)
+    // btn.position(30, 30,  { parentRelative: true });
 
     /**
      * mock data
      */
-    /*
+    
     s0.position(300,10)
     se.position(700,650)
     s0.addTo(this.graph);
@@ -704,7 +704,7 @@ link2.labels([{
   link15.target(se);
   link15.addTo(this.graph);
 
-  */
+  
 
   
   this.paper.on('element:pointerclick', (elementView: any) => {

@@ -78,8 +78,8 @@ export class Stencil {
 
     let umlstate = new joint.shapes.standard.Rectangle( {
      
-      position: { x: 15, y: 100 },
-      size: { width: 70, height: 70 }, 
+      position: { x: 25, y: 100 },
+      size: { width: 45, height: 45 }, 
         attrs:{
           body: {
             // fill: 'blue'

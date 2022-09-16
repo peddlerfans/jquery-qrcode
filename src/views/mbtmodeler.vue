@@ -16,6 +16,12 @@ import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, 
 import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 import _ from "lodash";
+import { mockMBTUrl,realMBTUrl } from '@/appConfig';
+//Setting url for data fetching
+// const url=mockMBTUrl;
+const url=realMBTUrl;
+
+
 interface FormState {
   awname: string;
   description: string;
@@ -29,11 +35,11 @@ const visible = ref(false);
 const showDrawer = (el?: any) => {
   visible.value = true;
   if (el && _.isObject(el) && el.hasOwnProperty('path')) {
-    console.log('click link ')
+    // console.log('click link ')
   } else if (el && _.isObject(el)) {
-    console.log('click element')
+    // console.log('click element')
   } else {
-    console.log('click blank')
+    // console.log('click blank')
   }
 };
 
@@ -81,7 +87,7 @@ async function awquery(data?: any) {
   if (rst.data) {
     // console.log('rst:',rst.data)
     tableData.value = rst.data
-    console.log(tableData, tableData.value);
+    // console.log(tableData, tableData.value);
     return rst.data
   }
 }
@@ -103,10 +109,10 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
  */
 
 let globalformData = ref<Stores.mbt>({
-  _id:'',
-  name:'',
+  _id: '',
+  name: '',
   description: '',
-  tags:[]
+  tags: []
 
 });
 let linkFormData = ref({
@@ -134,23 +140,26 @@ const globalschema = ref({
       "type": "string",
       "readOnly": true
     },
-    "tags":{
-      "title":"Tags",
-      "type":"string",
-      "readOnly":true
+    "tags": {
+      "title": "Tags",
+      "type": "string",
+      // "items":{
+      //   "type":"string"
+      // },
+      "readOnly": true
     },
-    "meta":{
-      "title":"Meta",
-      "type":"string",
+    "meta": {
+      "title": "Meta",
+      "type": "string",
     },
-    "resources":{
-      "title":"Resources",
-      "type":"string",
+    "resources": {
+      "title": "Resources",
+      "type": "string",
 
     },
-    "data":{
-      "title":"Data",
-      "type":"string",
+    "data": {
+      "title": "Data",
+      "type": "string",
     }
   }
 })
@@ -161,21 +170,23 @@ const awschema = ref({
   "properties": {
     "name": {
       "title": "AW Name",
-      "type": "string",
-      "readOnly": true
+      "type": "string"
+      // ,
+      // "readOnly": true
 
     },
     "description": {
       "title": "Description",
-      "type": "string",
-      "readOnly": true
+      "type": "string"
+      // ,
+      // "readOnly": true
     }
     // ,
     // "tags": {
-    //   "title": "tags",
+    //   "title": "Tags",
     //   "type": "string",
     //   "readOnly": true
-    // },
+    // }
     // "params": {
     //   "title": "Params",
     //   "type": "string",
@@ -211,11 +222,15 @@ function handlerCancel() {
 /**
  * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
  */
-let mbtCache :[Stores.mbt];//save the data from backend
- async function mbtquery(data?: any) {
-  let rst = await request.get("/api/test-models?search="+route.params.name)
+function saveMBT(){
+  updateMBT(url+`/${mbtCache[0]['_id']}`, mbtCache.values)
+        message.success("Save MBT model successfully")
+}
+let mbtCache: [Stores.mbt];//save the data from backend
+async function mbtquery(data?: any) {
+  let rst = await request.get(url+"?search=" + route.params.name)
   if (rst.data) {
-    console.log('mbt:',rst.data)
+    // console.log('mbt:', rst.data)
     mbtCache = rst.data;
     // tableData.value = rst.data
     // console.log(tableData, tableData.value);
@@ -228,7 +243,7 @@ let mbtMap = new Map();
 /**
  * Global elements in the component
  */
- async function updateMBT(url: string, data: any) {
+async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data)
   // console.log(rst);
 }
@@ -270,10 +285,10 @@ onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
   mbtquery();
-  
+
 
   if (localStorage.getItem('mbt-' + route.params.name)) {
-    console.log('local storage')
+    // console.log('local storage')
     setupNamespace();
 
     modeler.paper.options.cellViewNamespace = customNamespace;
@@ -291,7 +306,7 @@ onMounted(() => {
   } else if (modeler && modeler.graph) {
     localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
   } else {
-    console.log('empty')
+    // console.log('empty')
   }
 
 
@@ -359,32 +374,41 @@ onMounted(() => {
   /**
    *  When click the element/link/blank, show the propsPanel
    */
-  modeler.paper.on('link:pointerclick', function (linkView: any) {
-    console.log('linkView:', linkView);
+  modeler.paper.on('link:pointerdblclick', function (linkView: any) {
+    // console.log('linkView:', linkView);
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
     showDrawer(linkView)
   })
 
-  modeler.paper.on('element:pointerclick', function (elementView: any) {
-    console.log('elementView:', elementView);
+  modeler.paper.on('element:pointerdblclick', function (elementView: any) {
+    // console.log('elementView:', elementView);
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
+      if (mbtMap.has(elementView.cid)) {
+        mbtMap.get(elementView.cid)
+      } else {
+        // todo
+        // mbtMap.set(elementView.cid, { 'id': elementView.id, 'elementview': elementView.toJSON(), 'props': awformdata });
+      }
+
+
+
       // schema = awschema;
 
       showDrawer(elementView)
-    }else if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
-      console.log('...save to backend...')
-      if(mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')){
-        updateMBT(`/api/test-models/${mbtCache[0]['_id']}`,mbtCache.values)
-        message.success("Save MBT model successfully")
-      }
-      
-      // updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
+    } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
+      // console.log('...save to backend...')
+      // if (mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')) {
+      //   updateMBT(url+`/${mbtCache[0]['_id']}`, mbtCache.values)
+      //   message.success("Save MBT model successfully")
+      // }
+
+ 
       // message.success("Save MBT model successfully")
     }
     // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
@@ -392,7 +416,7 @@ onMounted(() => {
 
   });
 
-  modeler.paper.on('blank:pointerclick', () => {
+  modeler.paper.on('blank:pointerdblclick', () => {
 
     isAW.value = false;
     isLink.value = false;
@@ -403,14 +427,15 @@ onMounted(() => {
 
 });
 
-function showGlobalInfo(){
-  console.log('...kkkk...',mbtCache,mbtCache[0]['name']);
-  console.log('...kkkk2...',globalformData);
-  debugger
-  globalformData.value.name = mbtCache[0]['name'];
+function showGlobalInfo() {
+  if(mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('name')){
+    // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
+    globalformData.value.name = mbtCache[0]['name'];
   globalformData.value.description = mbtCache[0]['description'];
   globalformData.value.tags = mbtCache[0]['tags'];
-
+  }
+  // console.log('...kkkk1...', mbtCache);
+  // console.log('...kkkk2...', globalformData);
 }
 
 
@@ -419,7 +444,7 @@ function showAWInfo(rowobj: any) {
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
   awformdata.value._id = rowobj._id
-  // console.log(".....rowobj.tags:",rowobj.tags.value)
+  // console.log(".....rowobj.tags:", rowobj.tags)
   // awformdata.value.tags = rowobj.tags
   // if(_.isArray(rowobj.params)){
   //   _.forEach(rowobj.params, function(value, key) {
@@ -444,13 +469,24 @@ function showAWInfo(rowobj: any) {
 </script>
 
 <template>
+  <main>
+    <header class="block shadow">
+      <!-- <a-row>
+        <a-col :span="24"> -->
+          <a-button type="primary" @click="saveMBT">
+            Save        
+            
+          </a-button>
+        <!-- </a-col>
+      </a-row> -->
+    </header>
   <section class="block shadow flex-center" style="
       width: 100%;
       height: 100%;
       min-height: 100%;
       color: var(--gray);
       font-size: 5rem;
-      /* overflow: hidden; */
+      overflow: hidden;
     ">
 
     <a-row type="flex" style="
@@ -531,9 +567,21 @@ function showAWInfo(rowobj: any) {
     </a-row>
 
   </section>
+</main>
 </template>
 
 <style scoped>
+  #content-window {
+    overflow: hidden!important;
+  }
+  main {
+    overflow: hidden;
+    height:100%;
+  }
+  header {
+  margin-bottom: 1rem;
+  width: 100%;
+}
 .canvas {
   margin: 10px;
 }
