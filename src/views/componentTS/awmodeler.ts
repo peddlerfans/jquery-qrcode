@@ -2,7 +2,8 @@
 
 export interface tableSearch {
     search: string
-    size: number
+    page: number
+    perPage: number
 }
 // 查询表单的数据
 export interface FormState {

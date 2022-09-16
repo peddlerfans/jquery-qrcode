@@ -63,7 +63,9 @@ const formState = reactive<FormState>({
 let tableData = ref([])
 let searchobj: tableSearch = reactive({
   search: "",
-  size: 20
+  size: 20,
+  page:1,
+  perPage:10
 })
 const colSpan = ref('10');
 const columns = reactive<Object[]>(
