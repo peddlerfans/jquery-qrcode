@@ -3,11 +3,12 @@ import * as joint from "jointjs";
 import { dia ,g} from "jointjs";
 window.joint = joint
 export class Stencil {
+  namespace = joint.shapes; 
   states: object;
   linkAttrs: object = {};
   transitions: [] = [];
   paper: dia.Paper;
-  graph: dia.Graph = new joint.dia.Graph();
+  graph: dia.Graph = new joint.dia.Graph({ cellNamespace: this.namespace });
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
@@ -27,6 +28,8 @@ export class Stencil {
     pointerEvents: "none",
   };
   constructor(canvas: any) {
+    const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
+
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 30, y: 10 },
       size: { width: 30, height: 30 },
@@ -206,7 +209,8 @@ let parallelrhombus = new ParallelRhombusShape({
       height: "100%",
       gridSize: 10,
       drawGrid: true,
-      interactive: false
+      interactive: false,
+      cellViewNamespace: this.namespace 
     });
     
 

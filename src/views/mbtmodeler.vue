@@ -22,7 +22,7 @@ window.joint = joint
 // const url=mockMBTUrl;
 const url=realMBTUrl;
 
-
+const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 interface FormState {
   awname: string;
   description: string;
@@ -320,11 +320,12 @@ onMounted(() => {
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
-    let flyGraph = new joint.dia.Graph();
+    let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
       interactive: false,
+       cellViewNamespace: namespace 
     });
     let flyShape = cellView.model!.clone();
     let pos = cellView.model!.position();

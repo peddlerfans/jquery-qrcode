@@ -38,7 +38,7 @@ export class startNode extends joint.shapes.standard.Circle {
 }
 
 export class MbtModeler {
-
+  namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
@@ -58,8 +58,8 @@ export class MbtModeler {
     pointerEvents: "none",
   };
 
-  paper: dia.Paper;
-  graph: dia.Graph = new joint.dia.Graph();
+  paper: dia.Paper;  
+  graph: dia.Graph = new joint.dia.Graph({ cellNamespace: this.namespace });
   boundaryTool = new joint.elementTools.Boundary();
   removeButton = new joint.elementTools.Remove({
     rotate:true,
@@ -402,7 +402,7 @@ export class MbtModeler {
       height: "100%",
       gridSize: 10,
       drawGrid: true,
-      // cellViewNamespace: this.customNamespace ,
+      cellViewNamespace: this.namespace ,
       defaultLink: new joint.shapes.standard.Link({
         router: { name: "manhattan" },
         connector: { name: "rounded" },
