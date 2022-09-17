@@ -257,24 +257,24 @@ const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
-let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
-let Shape = joint.dia.Element.define('shapeGroup.Shape', {
-  attrs: {
-    // Attributes
-  }
-}, {
-  markup: [{
-    // Markup
-  }]
-});
+// let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
+// let Shape = joint.dia.Element.define('shapeGroup.Shape', {
+//   attrs: {
+//     // Attributes
+//   }
+// }, {
+//   markup: [{
+//     // Markup
+//   }]
+// });
 
-function setupNamespace() {
-  Object.assign(customNamespace, {
-    shapeGroup:
-      Shape
+// function setupNamespace() {
+//   Object.assign(customNamespace, {
+//     shapeGroup:
+//       Shape
 
-  });
-}
+//   });
+// }
 
 /**
  * Localstorage saving the data of this model
@@ -292,9 +292,9 @@ onMounted(() => {
 
   if (localStorage.getItem('mbt-' + route.params.name)) {
     // console.log('local storage')
-    setupNamespace();
+    // setupNamespace();
 
-    modeler.paper.options.cellViewNamespace = customNamespace;
+    // modeler.paper.options.cellViewNamespace = customNamespace;
 
     /**
      * localstorage ... todo next
