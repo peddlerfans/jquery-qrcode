@@ -132,7 +132,7 @@ export class MbtModeler {
     /**
      * mock data
      */
-    
+    /*
     let s0 = new joint.shapes.uml.StartState({
       position: { x: 30, y: 10 },
       size: { width: 30, height: 30 },
@@ -393,6 +393,7 @@ export class MbtModeler {
  let exclusiverhombus = new ExclusiveRhombusShape({
     position: { x: 280, y: 70 }
 });
+*/
 
     // this.setupNamespace();
     this.paper = new joint.dia.Paper({
@@ -424,7 +425,7 @@ export class MbtModeler {
     /**
      * mock data
      */
-    
+    /*
     s0.position(300,10)
     se.position(700,650)
     s0.addTo(this.graph);
@@ -705,7 +706,7 @@ link2.labels([{
   link15.addTo(this.graph);
 
   
-
+*/
   
   this.paper.on('element:pointerclick', (elementView: any) => {
 console.log('ele:',elementView);
