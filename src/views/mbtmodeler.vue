@@ -16,11 +16,11 @@ import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, 
 import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 import _ from "lodash";
-import { mockMBTUrl,realMBTUrl } from '@/appConfig';
+import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 window.joint = joint
 //Setting url for data fetching
 // const url=mockMBTUrl;
-const url=realMBTUrl;
+const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 interface FormState {
@@ -65,8 +65,8 @@ let tableData = ref([])
 let searchobj: tableSearch = reactive({
   search: "",
   size: 20,
-  page:1,
-  perPage:10
+  page: 1,
+  perPage: 10
 })
 const colSpan = ref('10');
 const columns = reactive<Object[]>(
@@ -225,13 +225,13 @@ function handlerCancel() {
 /**
  * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
  */
-function saveMBT(){
-  updateMBT(url+`/${mbtCache[0]['_id']}`, mbtCache.values)
-        message.success("Save MBT model successfully")
-}
 let mbtCache: [Stores.mbt];//save the data from backend
+//route是响应式对象，可监控其变化，需要用useRoute()获取
+const route = useRoute()
+
+
 async function mbtquery(data?: any) {
-  let rst = await request.get(url+"?search=" + route.params.name)
+  let rst = await request.get(url + "?search=" + route.params.name)
   if (rst.data) {
     // console.log('mbt:', rst.data)
     mbtCache = rst.data;
@@ -257,6 +257,19 @@ const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
+
+function saveMBT(route: any) {
+
+  console.log('route:',route)
+
+    localStorage.removeItem('mbt-' + route.params.name);
+    console.log('cleared localstorage:', 'mbt-' + route.params.name)
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+
+    updateMBT(url + `/${mbtCache[0]['_id']}`, mbtCache.values)
+    message.success("Save MBT model successfully")
+
+}
 // let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
 // let Shape = joint.dia.Element.define('shapeGroup.Shape', {
 //   attrs: {
@@ -279,8 +292,7 @@ let stencil: Stencil;
 /**
  * Localstorage saving the data of this model
  */
-//route是响应式对象，可监控其变化，需要用useRoute()获取
-const route = useRoute()
+
 
 
 
@@ -302,7 +314,7 @@ onMounted(() => {
     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
     if (localStorage.getItem('mbt-' + route.params.name)) {
       let tempstr = localStorage.getItem('mbt-' + route.params.name) + '';
-      // modeler.graph.fromJSON(JSON.parse(tempstr));
+      modeler.graph.fromJSON(JSON.parse(tempstr));
       // return
     }
 
@@ -325,7 +337,7 @@ onMounted(() => {
       el: $("#flyPaper"),
       model: flyGraph,
       interactive: false,
-       cellViewNamespace: namespace 
+      cellViewNamespace: namespace
     });
     let flyShape = cellView.model!.clone();
     let pos = cellView.model!.position();
@@ -412,7 +424,7 @@ onMounted(() => {
       //   message.success("Save MBT model successfully")
       // }
 
- 
+
       // message.success("Save MBT model successfully")
     }
     // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
@@ -432,11 +444,11 @@ onMounted(() => {
 });
 
 function showGlobalInfo() {
-  if(mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('name')){
+  if (mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('name')) {
     // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
     globalformData.value.name = mbtCache[0]['name'];
-  globalformData.value.description = mbtCache[0]['description'];
-  globalformData.value.tags = mbtCache[0]['tags'];
+    globalformData.value.description = mbtCache[0]['description'];
+    globalformData.value.tags = mbtCache[0]['tags'];
   }
   // console.log('...kkkk1...', mbtCache);
   // console.log('...kkkk2...', globalformData);
@@ -477,14 +489,14 @@ function showAWInfo(rowobj: any) {
     <header class="block shadow">
       <!-- <a-row>
         <a-col :span="24"> -->
-          <a-button type="primary" @click="saveMBT">
-            Save        
-            
-          </a-button>
-        <!-- </a-col>
+      <a-button type="primary" @click="saveMBT(route)">
+        Save
+
+      </a-button>
+      <!-- </a-col>
       </a-row> -->
     </header>
-  <section class="block shadow flex-center" style="
+    <section class="block shadow flex-center" style="
       width: 100%;
       height: 100%;
       min-height: 100%;
@@ -493,99 +505,102 @@ function showAWInfo(rowobj: any) {
       overflow: hidden;
     ">
 
-    <a-row type="flex" style="
+      <a-row type="flex" style="
       width: 100%;
       height: 100%;
       min-height: 100%;">
-      <a-col :span="2">
-        <div class="stencil" ref="stencilcanvas"></div>
-      </a-col>
-      <a-col :span="22">
-        <div class="canvas" ref="canvas"></div>
-      </a-col>
-      <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
-      <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
-        :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
-        <div class="infoPanel" ref="infoPanel">
+        <a-col :span="2">
+          <div class="stencil" ref="stencilcanvas"></div>
+        </a-col>
+        <a-col :span="22">
+          <div class="canvas" ref="canvas"></div>
+        </a-col>
+        <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
+        <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
+          :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
+          <div class="infoPanel" ref="infoPanel">
 
-          <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed">
-            <a-form-item :wrapper-col="{ span: 24 }">
-              <a-input v-model:value="formState.search" placeholder="aw"></a-input>
-            </a-form-item>
+            <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+              @finishFailed="handleFinishFailed">
+              <a-form-item :wrapper-col="{ span: 24 }">
+                <a-input v-model:value="formState.search" placeholder="aw"></a-input>
+              </a-form-item>
 
-            <a-form-item :wrapper-col="{ span: 4 }">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-form-item>
-          </AForm>
+              <a-form-item :wrapper-col="{ span: 4 }">
+                <a-button type="primary" html-type="submit">search</a-button>
+              </a-form-item>
+            </AForm>
 
-          <div class="awtable" v-if="isAW">
-            <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
-              :colSpan="colSpan">
-              <template #headerCell="{ column }">
-                <template v-if="column.key === 'name'">
-                  <span>
-                    <smile-outlined />
-                    Name
-                  </span>
+            <div class="awtable" v-if="isAW">
+              <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+                :colSpan="colSpan">
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'name'">
+                    <span>
+                      <smile-outlined />
+                      Name
+                    </span>
+                  </template>
+
                 </template>
 
-              </template>
+                <template #bodyCell="{ column,text, record }">
+                  <template v-if="column.key === 'name'">
+                    <a-button type="link" @click="showAWInfo(record)">
+                      {{ record.name }}
+                    </a-button>
+                  </template>
 
-              <template #bodyCell="{ column,text, record }">
-                <template v-if="column.key === 'name'">
-                  <a-button type="link" @click="showAWInfo(record)">
-                    {{ record.name }}
-                  </a-button>
+                  <template v-if="column.key === 'description'">
+                    <div>
+                      {{record.description}}
+                    </div>
+                  </template>
+
+
                 </template>
-
-                <template v-if="column.key === 'description'">
-                  <div>
-                    {{record.description}}
-                  </div>
-                </template>
-
-
-              </template>
-            </a-table>
-          </div>
-
-
-          <a-card style="overflow-y: auto;">
-            <div style="padding: 5px;">
-              <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-if="isAW">
-              </VueForm>
-              <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-else-if="isGlobal">
-              </VueForm>
-              <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-else-if="isLink">
-              </VueForm>
+              </a-table>
             </div>
-          </a-card>
-        </div>
-      </a-drawer>
 
 
-    </a-row>
+            <a-card style="overflow-y: auto;">
+              <div style="padding: 5px;">
+                <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                  v-if="isAW">
+                </VueForm>
+                <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                  v-else-if="isGlobal">
+                </VueForm>
+                <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                  v-else-if="isLink">
+                </VueForm>
+              </div>
+            </a-card>
+          </div>
+        </a-drawer>
 
-  </section>
-</main>
+
+      </a-row>
+
+    </section>
+  </main>
 </template>
 
 <style scoped>
-  #content-window {
-    overflow: hidden!important;
-  }
-  main {
-    overflow: hidden;
-    height:100%;
-  }
-  header {
+#content-window {
+  overflow: hidden !important;
+}
+
+main {
+  overflow: hidden;
+  height: 100%;
+}
+
+header {
   margin-bottom: 1rem;
   width: 100%;
 }
+
 .canvas {
   margin: 10px;
 }

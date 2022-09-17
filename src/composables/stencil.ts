@@ -93,8 +93,39 @@ export class Stencil {
           },
         }});
 
+        let ExclusiveRhombusShape = new joint.shapes.standard.Polygon( {
+     
+          position: { x: 10, y: 250 },
+          size: { width: 70, height: 45 }, 
+            attrs:{
+              body: {
+              refPoints: '0,10 10,0 20,10 10,20',
+              ...this.bodyAttributes
+              },
+              
+              label: {
+                text: 'x',
+                // ...this.labelAttributes
+              },
+            }});
 
-    let ExclusiveRhombusShape = dia.Element.define('RHOMBUS', {
+            let ParallelRhombusShape = new joint.shapes.standard.Polygon( {
+     
+              position: { x: 10, y: 180 },
+              size: { width: 70, height: 45 }, 
+                attrs:{
+                  body: {
+                    refPoints: '0,10 10,0 20,10 10,20',
+                    ...this.bodyAttributes
+                  },
+                  label: {
+                    text: '+',
+                    // ...this.labelAttributes
+                  },
+                }});
+          
+/*
+    let ExclusiveRhombusShape1 = dia.Element.define('RHOMBUS', {
       size: { width: 70, height: 45 },
       attrs: {
           root: {
@@ -187,20 +218,21 @@ export class Stencil {
         return rhombus.closestPoint(point);
     }
 });
+*/
 
-  let exclusiverhombus = new ExclusiveRhombusShape({
-    position: { x: 10, y: 200 }
-});
-let parallelrhombus = new ParallelRhombusShape({
-  position: { x: 10, y: 280 }
-});
+//   let exclusiverhombus = new ExclusiveRhombusShape({
+//     position: { x: 10, y: 200 }
+// });
+// let parallelrhombus = new ParallelRhombusShape({
+//   position: { x: 10, y: 280 }
+// });
     this.states = {};
     Object.assign(this.states, { s0: s0 });
  
     Object.assign(this.states, { se: se });
     Object.assign(this.states,{umlstate:umlstate});
-    Object.assign(this.states,{exclusiverhombus:exclusiverhombus});
-    Object.assign(this.states,{parallelsrhombus:parallelrhombus});
+    Object.assign(this.states,{exclusiverhombus:ExclusiveRhombusShape});
+    Object.assign(this.states,{parallelsrhombus:ParallelRhombusShape});
 
     this.paper = new joint.dia.Paper({
       el: canvas.value,
