@@ -1,7 +1,7 @@
 import { ConsoleSqlOutlined } from "@ant-design/icons-vue";
 import * as joint from "jointjs";
 import { dia ,g} from "jointjs";
-
+window.joint = joint
 export class Stencil {
   states: object;
   linkAttrs: object = {};

@@ -5,7 +5,7 @@ import { Ref, ref } from "vue";
 import { Stencil } from "@/composables/stencil";
 import { setupI18n } from "@/locales";
 import _ from 'lodash';
-
+window.joint = joint
 
 export class test extends joint.shapes.standard.Rectangle {
   constructor() {

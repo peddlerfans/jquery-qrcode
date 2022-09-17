@@ -17,6 +17,7 @@ import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 import _ from "lodash";
 import { mockMBTUrl,realMBTUrl } from '@/appConfig';
+window.joint = joint
 //Setting url for data fetching
 // const url=mockMBTUrl;
 const url=realMBTUrl;
