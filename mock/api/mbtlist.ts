@@ -4,11 +4,12 @@ import { MockApi } from '../mockapi'
 const mbtlist: Stores.mbt[] = [
 
     {
+        _id: 'uuid1',
         name: "multimedia",
         description: "Play multimedia files locally",
         tags: ["Multimedia", "OS"],
         // keep modelData open right now
-        modelDefinition: {  },
+        modelDefinition: {},
         dataDefinition: {
             resources: [
                 {
@@ -33,275 +34,283 @@ const mbtlist: Stores.mbt[] = [
             meta: []
         }
     }
-    
-    
-,
-{
-    name: "camera",
-    description: "Take photos when lock screen",
-    tags: ["Camera", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
+
+
+    ,
+    {
+        _id: 'uuid2',
+        name: "camera",
+        description: "Take photos when lock screen",
+        tags: ["Camera", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
+
+            ,
+            data: [Object],
+            // meta 
+            metaTemplate: "template{}",
+
+            meta: [],
+        }
+
+
     },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType:  "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    {
+        _id: 'uuid3',
+        name: "multimedia",
+        description: "Play multimedia files locally",
+        tags: ["multimedia", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [Object],
-        // meta 
-        metaTemplate:  "template{}",
-        
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
+    ,
+    {
+        _id: 'uuid4',
+        name: "multimedia",
+        description: "Play multimedia throw wifi",
+        tags: ["multimedia", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-
-},
-{
-    name: "multimedia",
-    description: "Play multimedia files locally",
-    tags: ["multimedia", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
-
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
-}
-,
-{
-    name: "multimedia",
-    description: "Play multimedia throw wifi",
-    tags: ["multimedia", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    ,
+    {
+        _id: 'uuid5',
+        name: "multimedia",
+        description: "Play multimedia files output by bluetooth",
+        tags: ["multimedia", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
-}
-,
-{
-    name: "multimedia",
-    description: "Play multimedia files output by bluetooth",
-    tags: ["multimedia", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    ,
+    {
+        _id: 'uuid6',
+        name: "multimedia",
+        description: "Play multimedia files  output by speaker",
+        tags: ["multimedia", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
-}
-,
-{
-    name: "multimedia",
-    description: "Play multimedia files  output by speaker",
-    tags: ["multimedia", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    ,
+    {
+        _id: 'uuid7',
+        name: "multimedia",
+        description: "Play multimedia files output by earphone",
+        tags: ["multimedia", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
-}
-,
-{
-    name: "multimedia",
-    description: "Play multimedia files output by earphone",
-    tags: ["multimedia", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    , {
+        _id: 'uuid8',
+        name: "Microphone",
+        description: "Recording voice call",
+        tags: ["Microphone", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
     }
-}
-,{
-    name: "Microphone",
-    description: "Recording voice call",
-    tags: ["Microphone", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
+    , {
+        _id: 'uuid9',
+        name: "Microphone",
+        description: "Recording environment sounds",
+        tags: ["Microphone", "OS"],
+        // keep modelData open right now
+        modelDefinition: {
+            keytest: "value"
+        },
+        dataDefinition: {
+            resources: [
+                {
+                    name: "phone1",
+                    type: "sut"
+                },
+                {
+                    name: "phone2",
+                    type: "sut"
+                }
+            ],
+            // static or dynamic(Pairwise), default is static
+            dataType: "number"
+            ,
+            // either use dataUrl or data
+            dataUrl: "http://localhost"
 
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
-    }
-}
-,{
-    name: "Microphone",
-    description: "Recording environment sounds",
-    tags: ["Microphone", "OS"],
-    // keep modelData open right now
-    modelDefinition: {
-        keytest: "value"
-    },
-    dataDefinition: {
-        resources: [
-            {
-                name: "phone1",
-                type: "sut"
-            },
-            {
-                name: "phone2",
-                type: "sut"
-            }
-        ],
-        // static or dynamic(Pairwise), default is static
-        dataType: "number"
-        ,
-        // either use dataUrl or data
-        dataUrl:  "http://localhost"
-
-        ,
-        data: [],
-        // meta 
-        metaTemplate: "",
-        meta: [],
-    }
+            ,
+            data: [],
+            // meta 
+            metaTemplate: "",
+            meta: [],
+        }
 
 
 
-}]
+    }]
 
 
 export default <MockApi.obj[]>[
@@ -317,7 +326,7 @@ export default <MockApi.obj[]>[
             if (!options.body) return failRes
             const { mbtname } = options.body
             const mbt = mbtlist.find(mbt => mbt.name === mbtname)
-            if (!mbt ) return failRes
+            if (!mbt) return failRes
             return {
                 code: 200,
                 msg: 'Get Mbt Successfully',
@@ -336,7 +345,7 @@ export default <MockApi.obj[]>[
     },
     {
         // url: '/info\\?token=.*',
-        url:'/mbt-models*',
+        url: '/mbt-models*',
         type: 'get',
         response: (options) => {
             const failRes: MockApi.response = {
@@ -347,9 +356,9 @@ export default <MockApi.obj[]>[
             // 获取token
 
             const mbtname = options.url.slice(options.url.indexOf('/') + 1)
-            
+
             if (!mbtname) return failRes
-            
+
             const mbt = mbtlist.values
             if (!mbt) return failRes
             return {
