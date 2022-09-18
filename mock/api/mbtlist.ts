@@ -34,8 +34,6 @@ const mbtlist: Stores.mbt[] = [
             meta: []
         }
     }
-
-
     ,
     {
         _id: 'uuid2',
@@ -319,8 +317,8 @@ export default <MockApi.obj[]>[
         type: 'post',
         response: (options) => {
             const failRes: MockApi.response = {
-                code: 200,
-                msg: '获取mbt失败',
+                code: 500,
+                msg: '生成mbt失败,重复记录',
                 data: null
             }
             if (!options.body) return failRes
@@ -349,7 +347,7 @@ export default <MockApi.obj[]>[
         type: 'get',
         response: (options) => {
             const failRes: MockApi.response = {
-                code: 200,
+                code: 400,
                 msg: '获取mbt失败',
                 data: null
             }
@@ -363,10 +361,41 @@ export default <MockApi.obj[]>[
             if (!mbt) return failRes
             return {
                 code: 200,
-                msg: '获取mbt信息成功',
-                data: mbtlist
+                msg: 'Get Mbt Successfully',
+                data: mbt
             }
+
+
+        }
+    },
+    {
+
+        url: '/mbt-models/*',
+        type: 'delete',
+        response: (options) => {
+            const failRes: MockApi.response = {
+                code: 400,
+                msg: '删除mbt失败',
+                data: null
+            }
+            const mbt_id = options.url.slice(options.url.lastIndexOf('/') + 1)
+            console.log('....mbt_id:', mbt_id);
+            if (!mbt_id) return failRes
+
+            const mbt = mbtlist.find(mbt => mbt._id === mbt_id)
+            if (!mbt) return failRes
+            return {
+                code: 200,
+                msg: 'Delete Mbt Successfully',
+                data: mbtlist.filter(mbt => {
+                    console.log('mbt:', mbt, "mbt.id", mbt._id, "mbt_id:", mbt_id)
+                    if (mbt._id != mbt_id) return mbt;
+                })
+            }
+
+
         }
     }
+
 ]
 

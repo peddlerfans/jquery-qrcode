@@ -1,18 +1,25 @@
 <script setup lang="ts">
 import request from '@/utils/request';
 import useTable from '@/composables/useTable';
+import { mockMBTUrl,realMBTUrl } from '@/appConfig'
 import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch ,getCurrentInstance} from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
+import {tableSearch , FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
 import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
 
+//Setting url for data fetching
+// const url=mockMBTUrl;
+const url=realMBTUrl;
+
 const tableRef = ref()
-let searchobj: tableSearch = reactive({
+let searchobj:tableSearch = reactive({
   search: "",
-  size: 20
+  size: 20,
+  page:1,
+  perPage:10
 })
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -45,8 +52,9 @@ const {
   ],
   updateTableOptions: {
     fetchUrl:
-      // '/mbtlist/mbt-models'
-      '/api/test-models'
+    url
+      // '/mbtlist/mbt-models'//For mockup
+      // '/api/test-models'// For real backend
     // '/mbtapi/mbt-models'
   }
 })
@@ -72,9 +80,9 @@ async function query(data?: any) {
 
   let rst;
   if (data && data.search.toString().substring(0, 6) == '@tags:') {
-    rst = await request.get(`/api/test-models?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
+    rst = await request.get(url+`?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
   } else {
-    rst = await request.get("/api/test-models", { params: data || searchobj })
+    rst = await request.get(url, { params: data || searchobj })
   }
 
 
@@ -157,9 +165,8 @@ const edit = (rowobj: any) => {
 
 async function saveMBT(data: any) {
 
-  // let rst = await request.post("/api/test-models", data)
   return new Promise((resolve, reject) => {
-    request.post("/api/test-models", data).then(res => {
+    request.post(url, data).then(res => {
       // console.log(res);
 
     }).catch(function (error) {
@@ -168,7 +175,7 @@ async function saveMBT(data: any) {
       }
     });
   })
-  // console.log(rst);
+
 }
 
 const onFinishForm = async (modelstates: any) => {
@@ -176,7 +183,7 @@ const onFinishForm = async (modelstates: any) => {
   // 判断修改或添加
   if (modelstates.value.name && modelstates.value.description) {
     if (modelstates.value._id) {
-      await updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
+      await updateMBT(url+`/${modelstates.value._id}`, modelstates.value)
       message.success("Modified successfully")
     } else {
       delete modelstates.value._id
@@ -206,9 +213,11 @@ const closemodel = () => {
 }
 // 删除功能
 async function delmbt(key: any) {
-  let rst = await request.delete(`/api/test-models/${key._id}`)
+  console.log('delete key:',key)
+  console.log('delete url:',url+`/${key._id}`);
+  let rst = await request.delete(url+`/${key._id}`)
   query()
-  // console.log(rst);
+  console.log('rst:',rst);
 
 }
 const confirm = (e: MouseEvent) => {

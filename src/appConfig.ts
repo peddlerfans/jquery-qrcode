@@ -34,3 +34,16 @@ export enum transitions {
   slideUp = 'slide-up',
   slideDown = 'slide-down',
 }
+
+/**
+ * 使用mock代理MBT api请求：
+ */
+ export const mockMBTUrl= '/mbtlist/mbt-models'
+
+
+/**
+ * 使用真实后台 api请求：
+ */
+ export const realMBTUrl= '/api/test-models'
+
+ 

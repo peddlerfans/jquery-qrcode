@@ -16,6 +16,23 @@ import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, 
 import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 import _ from "lodash";
+import { mockMBTUrl, realMBTUrl } from '@/appConfig';
+window.joint = joint
+//Setting url for data fetching
+// const url=mockMBTUrl;
+const url = realMBTUrl;
+
+const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
+
+/// save data to localstorage, and send to backend as modelDefinition 
+interface modelDefinition {
+  cellsInfo?:{
+  cellNamespace?:Object,
+  cells?:Object[]
+},
+  props?:Object
+
+}
 interface FormState {
   awname: string;
   description: string;
@@ -23,19 +40,24 @@ interface FormState {
   search?: string
 }
 
+let cacheprops: Object ={};
+
 /** drawer  */
 //drawer visible
 const visible = ref(false);
 const showDrawer = (el?: any) => {
   visible.value = true;
   if (el && _.isObject(el) && el.hasOwnProperty('path')) {
-    console.log('click link ')
+    // console.log('click link ')
   } else if (el && _.isObject(el)) {
-    console.log('click element')
+    // console.log('click element')
   } else {
-    console.log('click blank')
+    // console.log('click blank')
   }
 };
+// const hideDrawer=()=>{
+// visible.value = false;
+// }
 
 const onCloseDrawer = () => {
   visible.value = false;
@@ -57,7 +79,9 @@ const formState = reactive<FormState>({
 let tableData = ref([])
 let searchobj = reactive({
   search: "",
-  size: 20
+  size: 20,
+  page: 1,
+  perPage: 10
 })
 const colSpan = ref('10');
 const columns = reactive<Object[]>(
@@ -81,7 +105,7 @@ async function awquery(data?: any) {
   if (rst.data) {
     // console.log('rst:',rst.data)
     tableData.value = rst.data
-    console.log(tableData, tableData.value);
+    // console.log(tableData, tableData.value);
     return rst.data
   }
 }
@@ -102,7 +126,14 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
  * Panel --Json schema forms
  */
 
-let globalformData = ref<any>();
+let globalformData = ref<Stores.mbt>({
+  _id: '',
+  name: '',
+  description: ''
+  // ,
+  // tags: []
+
+});
 let linkFormData = ref({
   label: ''
 })
@@ -110,8 +141,9 @@ let awformdata = ref<Stores.aw>({
   name: '',
   description: '',
   _id: "",
-  params: [],
-  tags: []
+  params: []
+  // ,
+  // tags: []
 });
 const globalschema = ref({
   "title": "MBTConfiguration",
@@ -122,7 +154,32 @@ const globalschema = ref({
       "title": "MBT Name",
       "type": "string",
       "readOnly": true
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "readOnly": true
+    },
+    // "tags": {
+    //   "title": "Tags",
+    //   "type": "string",
+    //   // "items":{
+    //   //   "type":"string"
+    //   // },
+    //   "readOnly": true
+    // },
+    "meta": {
+      "title": "Meta",
+      "type": "string",
+    },
+    "resources": {
+      "title": "Resources",
+      "type": "string",
 
+    },
+    "data": {
+      "title": "Data",
+      "type": "string",
     }
   }
 })
@@ -133,21 +190,23 @@ const awschema = ref({
   "properties": {
     "name": {
       "title": "AW Name",
-      "type": "string",
-      "readOnly": true
+      "type": "string"
+      // ,
+      // "readOnly": true
 
     },
     "description": {
       "title": "Description",
-      "type": "string",
-      "readOnly": true
+      "type": "string"
+      // ,
+      // "readOnly": true
     }
     // ,
     // "tags": {
-    //   "title": "tags",
+    //   "title": "Tags",
     //   "type": "string",
     //   "readOnly": true
-    // },
+    // }
     // "params": {
     //   "title": "Params",
     //   "type": "string",
@@ -174,24 +233,32 @@ function handlerSubmit() {
 
   message.success('Save it Successfully');
 };
-function handlerCancel() {
 
-  // message.warning('Cancel');
-}
 
 
 /**
  * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
  */
-let mbtCache :[Stores.mbt];//save the data from backend
- async function mbtquery(data?: any) {
-  let rst = await request.get("/api/test-models?search="+route.params.name)
+let mbtCache: Stores.mbt;//save the data from backend
+//route是响应式对象，可监控其变化，需要用useRoute()获取
+const route = useRoute()
+
+
+async function mbtquery(data?: any) {
+  let rst = await request.get(url + "?search=" + route.params.name)
   if (rst.data) {
-    console.log('mbt:',rst.data)
-    mbtCache = rst.data;
+   
+    rst.data.forEach((record:any)=>{
+      if(record.name==route.params.name){
+        mbtCache = record
+        return
+      }})
+    
+     
+    // console.log('mbtCache:', mbtCache)
     // tableData.value = rst.data
     // console.log(tableData, tableData.value);
-    return rst.data
+    return mbtCache
   }
 }
 // save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
@@ -200,7 +267,7 @@ let mbtMap = new Map();
 /**
  * Global elements in the component
  */
- async function updateMBT(url: string, data: any) {
+async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data)
   // console.log(rst);
 }
@@ -211,60 +278,96 @@ const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
-let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
-let Shape = joint.dia.Element.define('shapeGroup.Shape', {
-  attrs: {
-    // Attributes
-  }
-}, {
-  markup: [{
-    // Markup
-  }]
-});
 
-function setupNamespace() {
-  Object.assign(customNamespace, {
-    shapeGroup:
-      Shape
+function saveMBT(route: any) {
 
-  });
+  console.log('route:',route)
+
+    localStorage.removeItem('mbt-' + route.params.name);
+    console.log('cleared localstorage:', 'mbt-' + route.params.name)
+    // tempdata:modelDefinition:
+    let tempdata:modelDefinition = {};
+    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
+    //todo : create cacheprops, when dblclick element or link, save them to cach props
+    // let props=[];
+    // props.push(awformdata.value);
+    Object.assign(tempdata,{props:cacheprops})
+    console.log('save tempdata:',tempdata)
+    console.log('mbtCache:',mbtCache);
+    mbtCache['modelDefinition']=tempdata;
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+    console.log('mbtCache.values  ,',)
+    updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
+    message.success("Save MBT model successfully")
+
 }
+// let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
+// let Shape = joint.dia.Element.define('shapeGroup.Shape', {
+//   attrs: {
+//     // Attributes
+//   }
+// }, {
+//   markup: [{
+//     // Markup
+//   }]
+// });
+
+// function setupNamespace() {
+//   Object.assign(customNamespace, {
+//     shapeGroup:
+//       Shape
+
+//   });
+// }
 
 /**
  * Localstorage saving the data of this model
  */
-//route是响应式对象，可监控其变化，需要用useRoute()获取
-const route = useRoute()
+
 
 
 
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  mbtquery();
-  
+  let res = mbtquery();
+  res.then((value:any)=>{
+    // console.log('res:',value)
+    if(value.hasOwnProperty('modelDefinition')&&value.modelDefinition.hasOwnProperty('cellsinfo')){
+      let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
+      modeler.graph.fromJSON(JSON.parse(tempstr));
+    
+  }else if (localStorage.getItem('mbt-' + route.params.name)) {
+    // console.log('local storage')
+    // setupNamespace();
 
-  if (localStorage.getItem('mbt-' + route.params.name)) {
-    console.log('local storage')
-    setupNamespace();
-
-    modeler.paper.options.cellViewNamespace = customNamespace;
+    // modeler.paper.options.cellViewNamespace = customNamespace;
 
     /**
      * localstorage ... todo next
      */
     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
-    if (localStorage.getItem('mbt-' + route.params.name)) {
-      let tempstr = localStorage.getItem('mbt-' + route.params.name) + '';
+    // if (localStorage.getItem('mbt-' + route.params.name)) {
+      let tempobj = localStorage.getItem('mbt-' + route.params.name) + '';
+      console.log('load data from here:',tempobj);
       // modeler.graph.fromJSON(JSON.parse(tempstr));
       // return
-    }
-
   } else if (modeler && modeler.graph) {
-    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+    let tempdata:modelDefinition = {};
+    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
+        
+    Object.assign(tempdata,{props:{}})
+    console.log('save tempdata:',tempdata)
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
   } else {
     console.log('empty')
   }
+})
+
+//modelDefinition
+  
 
 
   /**
@@ -274,11 +377,12 @@ onMounted(() => {
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
-    let flyGraph = new joint.dia.Graph();
+    let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
       interactive: false,
+      cellViewNamespace: namespace
     });
     let flyShape = cellView.model!.clone();
     let pos = cellView.model!.position();
@@ -331,32 +435,51 @@ onMounted(() => {
   /**
    *  When click the element/link/blank, show the propsPanel
    */
-  modeler.paper.on('link:pointerclick', function (linkView: any) {
-    console.log('linkView:', linkView);
+  modeler.paper.on('link:pointerdblclick', function (linkView: any) {
+    // console.log('linkView:', linkView);
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
+    if (mbtMap.has(linkView.id)) {
+        mbtMap.get(linkView.id)
+      } else {
+        // todo link props
+        mbtMap.set(linkView.id, {  'props': 'linkporps' });
+        Object.assign(cacheprops,mbtMap)
+        console.log('cacheprops.push mbtMap',cacheprops);
+      }
     showDrawer(linkView)
   })
 
-  modeler.paper.on('element:pointerclick', function (elementView: any) {
-    console.log('elementView:', elementView);
+  modeler.paper.on('element:pointerdblclick', function (elementView: any) {
+    // console.log('elementView:', elementView);
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
+      if (mbtMap.has(elementView.id)) {
+        mbtMap.get(elementView.id)
+      } else {
+        // todo
+        mbtMap.set(elementView.id, {  'props': awformdata });
+        Object.assign(cacheprops,mbtMap)
+        console.log('cacheprops.push mbtMap',cacheprops);
+      }
+
+
+
       // schema = awschema;
 
       showDrawer(elementView)
-    }else if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
-      console.log('...save to backend...')
-      if(mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')){
-        updateMBT(`/api/test-models/${mbtCache[0]['_id']}`,mbtCache.values)
-        message.success("Save MBT model successfully")
-      }
-      
-      // updateMBT(`/api/test-models/${modelstates.value._id}`, modelstates.value)
+    } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
+      // console.log('...save to backend...')
+      // if (mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')) {
+      //   updateMBT(url+`/${mbtCache[0]['_id']}`, mbtCache.values)
+      //   message.success("Save MBT model successfully")
+      // }
+
+
       // message.success("Save MBT model successfully")
     }
     // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
@@ -364,16 +487,27 @@ onMounted(() => {
 
   });
 
-  modeler.paper.on('blank:pointerclick', () => {
+  modeler.paper.on('blank:pointerdblclick', () => {
 
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    showGlobalInfo();
     showDrawer()
   });
 
 });
 
+function showGlobalInfo() {
+  if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
+    // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
+    globalformData.value.name = mbtCache['name'];
+    globalformData.value.description = mbtCache['description'];
+    globalformData.value.tags = mbtCache['tags'];
+  }
+  // console.log('...kkkk1...', mbtCache);
+  // console.log('...kkkk2...', globalformData);
+}
 
 
 function showAWInfo(rowobj: any) {
@@ -381,7 +515,7 @@ function showAWInfo(rowobj: any) {
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
   awformdata.value._id = rowobj._id
-  // console.log(".....rowobj.tags:",rowobj.tags.value)
+  // console.log(".....rowobj.tags:", rowobj.tags)
   // awformdata.value.tags = rowobj.tags
   // if(_.isArray(rowobj.params)){
   //   _.forEach(rowobj.params, function(value, key) {
@@ -406,96 +540,122 @@ function showAWInfo(rowobj: any) {
 </script>
 
 <template>
-  <section class="block shadow flex-center" style="
+  <main>
+    <header class="block shadow">
+      <!-- <a-row>
+        <a-col :span="24"> -->
+      <a-button type="primary" @click="saveMBT(route)">
+        Save
+
+      </a-button>
+      <!-- </a-col>
+      </a-row> -->
+    </header>
+    <section class="block shadow flex-center" style="
       width: 100%;
       height: 100%;
       min-height: 100%;
       color: var(--gray);
       font-size: 5rem;
-      /* overflow: hidden; */
+      overflow: hidden;
     ">
 
-    <a-row type="flex" style="
+      <a-row type="flex" style="
       width: 100%;
       height: 100%;
       min-height: 100%;">
-      <a-col :span="2">
-        <div class="stencil" ref="stencilcanvas"></div>
-      </a-col>
-      <a-col :span="22">
-        <div class="canvas" ref="canvas"></div>
-      </a-col>
-      <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
-      <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
-        :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
-        <div class="infoPanel" ref="infoPanel">
+        <a-col :span="2">
+          <div class="stencil" ref="stencilcanvas"></div>
+        </a-col>
+        <a-col :span="22">
+          <div class="canvas" ref="canvas"></div>
+        </a-col>
+        <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
+        <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
+          :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
+          <div class="infoPanel" ref="infoPanel">
 
-          <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed">
-            <a-form-item :wrapper-col="{ span: 24 }">
-              <a-input v-model:value="formState.search" placeholder="aw"></a-input>
-            </a-form-item>
+            <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+              @finishFailed="handleFinishFailed">
+              <a-form-item :wrapper-col="{ span: 24 }">
+                <a-input v-model:value="formState.search" placeholder="aw"></a-input>
+              </a-form-item>
 
-            <a-form-item :wrapper-col="{ span: 4 }">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-form-item>
-          </AForm>
+              <a-form-item :wrapper-col="{ span: 4 }">
+                <a-button type="primary" html-type="submit">search</a-button>
+              </a-form-item>
+            </AForm>
 
-          <div class="awtable" v-if="isAW">
-            <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
-              :colSpan="colSpan">
-              <template #headerCell="{ column }">
-                <template v-if="column.key === 'name'">
-                  <span>
-                    <smile-outlined />
-                    Name
-                  </span>
+            <div class="awtable" v-if="isAW">
+              <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+                :colSpan="colSpan">
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'name'">
+                    <span>
+                      <smile-outlined />
+                      Name
+                    </span>
+                  </template>
+
                 </template>
 
-              </template>
+                <template #bodyCell="{ column,text, record }">
+                  <template v-if="column.key === 'name'">
+                    <a-button type="link" @click="showAWInfo(record)">
+                      {{ record.name }}
+                    </a-button>
+                  </template>
 
-              <template #bodyCell="{ column,text, record }">
-                <template v-if="column.key === 'name'">
-                  <a-button type="link" @click="showAWInfo(record)">
-                    {{ record.name }}
-                  </a-button>
+                  <template v-if="column.key === 'description'">
+                    <div>
+                      {{record.description}}
+                    </div>
+                  </template>
+
+
                 </template>
-
-                <template v-if="column.key === 'description'">
-                  <div>
-                    {{record.description}}
-                  </div>
-                </template>
-
-
-              </template>
-            </a-table>
-          </div>
-
-
-          <a-card style="overflow-y: auto;">
-            <div style="padding: 5px;">
-              <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-if="isAW">
-              </VueForm>
-              <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-else-if="isGlobal">
-              </VueForm>
-              <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"
-                v-else-if="isLink">
-              </VueForm>
+              </a-table>
             </div>
-          </a-card>
-        </div>
-      </a-drawer>
 
 
-    </a-row>
+            <a-card style="overflow-y: auto;">
+              <div style="padding: 5px;">
+                <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
+                  v-if="isAW">
+                </VueForm>
+                <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
+                  v-else-if="isGlobal">
+                </VueForm>
+                <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
+                  v-else-if="isLink">
+                </VueForm>
+              </div>
+            </a-card>
+          </div>
+        </a-drawer>
 
-  </section>
+
+      </a-row>
+
+    </section>
+  </main>
 </template>
 
 <style scoped>
+#content-window {
+  overflow: hidden !important;
+}
+
+main {
+  overflow: hidden;
+  height: 100%;
+}
+
+header {
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
 .canvas {
   margin: 10px;
 }
