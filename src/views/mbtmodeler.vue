@@ -234,7 +234,7 @@ function awhandlerSubmit() {
   // console.log('awformdata.......', awformdata);
   // console.log('awformdata222.......', awformdata.value);
   // console.log('cacheprops.......', cacheprops);
-  // console.log('currentElementMap.......', currentElementMap);
+  console.log('currentElementMap.......', currentElementMap);
   // 迭代 Map 中的 key
   for (let key of currentElementMap.keys()) {
     // console.log(key);
@@ -257,13 +257,7 @@ function awhandlerSubmit() {
     // console.log('cacheprops2.......', cacheprops);
   }
 
-  // cacheprops.keys.
-  // .forEach(element => {
-
-  // });
-  // if(currentElementMap.has()){
-  //   cacheprops.set(currentElementMap._id, {  'props': awformdata });
-  // }
+//to show labels 
 
   message.success('Save aw Successfully');
 };
@@ -336,6 +330,7 @@ function saveMBT(route: any) {
   // console.log('cleared localstorage:', 'mbt-' + route.params.name)
   // tempdata:modelDefinition:
   let tempdata: modelDefinition = {};
+  // console.log('.....graph:',modeler.graph)
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
   //todo : create cacheprops, when dblclick element or link, save them to cach props
   // let props=[];
@@ -495,6 +490,7 @@ onMounted(() => {
    *  When click the element/link/blank, show the propsPanel
    */
   modeler.paper.on('link:pointerdblclick', function (linkView: any) {
+    // linkView.addLabel
     // console.log('linkView:', linkView);
     isAW.value = false;
     isLink.value = true;
@@ -512,16 +508,21 @@ onMounted(() => {
   })
 
   modeler.paper.on('element:pointerdblclick', function (elementView: any) {
-    // console.log('elementView:', elementView);
-    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
+
+    // elementView.vel.attr('label', 'Ellipse');
+    // elementView.vel.attr('body..fill', '#30d0c6');
+    
+    // elementView.el.attr('label', 'Ellipse');
+
+        if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
-      // console.log('cacheprops:', cacheprops);
+      // console.log('elementView:', elementView);
       // debugger
       if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
-
+        elementView.model.attr('label/text', cacheprops.get(elementView.model.id).props.description)
         let awformData = cacheprops.get(elementView.model.id)
         awformdata.value = awformData.props;
         // console.log('form data:',awformdata.value,awschema);
@@ -531,6 +532,7 @@ onMounted(() => {
         currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
         // debugger
         cacheprops.set(elementView.model.id, { 'props': awformdata.value });
+        
         // console.log('mbtMap:',mbtMap);
 
         // console.log('cacheprops.push mbtMap', cacheprops);
