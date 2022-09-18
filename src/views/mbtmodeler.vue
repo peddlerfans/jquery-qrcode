@@ -26,11 +26,11 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 
 /// save data to localstorage, and send to backend as modelDefinition 
 interface modelDefinition {
-  cellsInfo?:{
-  cellNamespace?:Object,
-  cells?:Object[]
-},
-  props?:Object
+  cellsInfo?: {
+    cellNamespace?: Object,
+    cells?: Object[]
+  },
+  props?: Object
 
 }
 interface FormState {
@@ -40,7 +40,7 @@ interface FormState {
   search?: string
 }
 
-let cacheprops: Object ={};
+let cacheprops = new Map();
 
 /** drawer  */
 //drawer visible
@@ -68,6 +68,7 @@ const onCloseDrawer = () => {
 let isAW = ref(false);
 let isGlobal = ref(false);
 let isLink = ref(false);
+let hasAWInfo = ref(false);
 // aw form searching
 const formState = reactive<FormState>({
   awname: '',
@@ -229,11 +230,58 @@ const linkschema = ref({
   }
 })
 
-function handlerSubmit() {
+function awhandlerSubmit() {
+  // console.log('awformdata.......', awformdata);
+  // console.log('awformdata222.......', awformdata.value);
+  // console.log('cacheprops.......', cacheprops);
+  // console.log('currentElementMap.......', currentElementMap);
+  // 迭代 Map 中的 key
+  for (let key of currentElementMap.keys()) {
+    // console.log(key);
+    // if(!cacheprops.has(key)){
+    //   debugger
+    //   cacheprops.set(key,{  'props': awformdata.value });
+    // }
+    let tempaw = {}
+    for (const [key, value] of Object.entries(awformdata.value)) {
+      
+      // console.log(`${key}: ${value}`);
+      // console.log(JSON.parse(`{"${key}":"${value}"}`))
+      let obj = JSON.parse(`{"${key}":"${value}"}`)
+      Object.assign(tempaw, obj)
+      // Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
+
+    }
+    // console.log('awobj:', tempaw);
+    cacheprops.set(key, { 'props': tempaw });
+    // console.log('cacheprops2.......', cacheprops);
+  }
+
+  // cacheprops.keys.
+  // .forEach(element => {
+
+  // });
+  // if(currentElementMap.has()){
+  //   cacheprops.set(currentElementMap._id, {  'props': awformdata });
+  // }
+
+  message.success('Save aw Successfully');
+};
+
+function globalhandlerSubmit() {
+
+  message.success('Save config Successfully');
+};
+
+function linkhandlerSubmit() {
 
   message.success('Save it Successfully');
 };
 
+function handlerCancel() {
+
+  hasAWInfo.value = false;
+};
 
 
 /**
@@ -247,14 +295,15 @@ const route = useRoute()
 async function mbtquery(data?: any) {
   let rst = await request.get(url + "?search=" + route.params.name)
   if (rst.data) {
-   
-    rst.data.forEach((record:any)=>{
-      if(record.name==route.params.name){
+
+    rst.data.forEach((record: any) => {
+      if (record.name == route.params.name) {
         mbtCache = record
         return
-      }})
-    
-     
+      }
+    })
+
+
     // console.log('mbtCache:', mbtCache)
     // tableData.value = rst.data
     // console.log(tableData, tableData.value);
@@ -262,7 +311,7 @@ async function mbtquery(data?: any) {
   }
 }
 // save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
-let mbtMap = new Map();
+let currentElementMap = new Map();
 
 /**
  * Global elements in the component
@@ -281,25 +330,28 @@ let stencil: Stencil;
 
 function saveMBT(route: any) {
 
-  console.log('route:',route)
+  // console.log('route:', route)
 
-    localStorage.removeItem('mbt-' + route.params.name);
-    console.log('cleared localstorage:', 'mbt-' + route.params.name)
-    // tempdata:modelDefinition:
-    let tempdata:modelDefinition = {};
-    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
-    //todo : create cacheprops, when dblclick element or link, save them to cach props
-    // let props=[];
-    // props.push(awformdata.value);
-    Object.assign(tempdata,{props:cacheprops})
-    console.log('save tempdata:',tempdata)
-    console.log('mbtCache:',mbtCache);
-    mbtCache['modelDefinition']=tempdata;
-    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
-    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-    console.log('mbtCache.values  ,',)
-    updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
-    message.success("Save MBT model successfully")
+  // localStorage.removeItem('mbt-' + route.params.name);
+  // console.log('cleared localstorage:', 'mbt-' + route.params.name)
+  // tempdata:modelDefinition:
+  let tempdata: modelDefinition = {};
+  Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
+  //todo : create cacheprops, when dblclick element or link, save them to cach props
+  // let props=[];
+  // props.push(awformdata.value);
+  let obj=Object.fromEntries(cacheprops)
+  // console.log('++++++++++++',obj);
+  Object.assign(tempdata, { props: obj })
+  
+  // console.log('save tempdata:', tempdata)
+  // console.log('mbtCache:',mbtCache);
+  mbtCache['modelDefinition'] = tempdata;
+  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+  // console.log('mbtCache.values  ,', mbtCache)
+  updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
+  message.success("Save MBT model successfully")
 
 }
 // let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
@@ -332,42 +384,49 @@ onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
   let res = mbtquery();
-  res.then((value:any)=>{
+  res.then((value: any) => {
     // console.log('res:',value)
-    if(value.hasOwnProperty('modelDefinition')&&value.modelDefinition.hasOwnProperty('cellsinfo')){
+    if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
       let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
       modeler.graph.fromJSON(JSON.parse(tempstr));
-    
-  }else if (localStorage.getItem('mbt-' + route.params.name)) {
-    // console.log('local storage')
-    // setupNamespace();
+      if (value.modelDefinition.hasOwnProperty('props')){
+        // debugger
+        // console.log('before:',cacheprops)
+        const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
+        cacheprops = map;
+        // console.log('after:',cacheprops)
+      }
 
-    // modeler.paper.options.cellViewNamespace = customNamespace;
+    } else if (localStorage.getItem('mbt-' + route.params.name)) {
+      // console.log('local storage')
+      // setupNamespace();
 
-    /**
-     * localstorage ... todo next
-     */
-    // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
-    // if (localStorage.getItem('mbt-' + route.params.name)) {
+      // modeler.paper.options.cellViewNamespace = customNamespace;
+
+      /**
+       * localstorage ... todo next
+       */
+      // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
+      // if (localStorage.getItem('mbt-' + route.params.name)) {
       let tempobj = localStorage.getItem('mbt-' + route.params.name) + '';
-      console.log('load data from here:',tempobj);
+      // console.log('load data from here:', tempobj);
       // modeler.graph.fromJSON(JSON.parse(tempstr));
       // return
-  } else if (modeler && modeler.graph) {
-    let tempdata:modelDefinition = {};
-    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
-        
-    Object.assign(tempdata,{props:{}})
-    console.log('save tempdata:',tempdata)
-    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
-    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-  } else {
-    console.log('empty')
-  }
-})
+    } else if (modeler && modeler.graph) {
+      let tempdata: modelDefinition = {};
+      Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
 
-//modelDefinition
-  
+      Object.assign(tempdata, { props: {} })
+      // console.log('save tempdata:', tempdata)
+      localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+      // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+    } else {
+      // console.log('empty')
+    }
+  })
+
+  //modelDefinition
+
 
 
   /**
@@ -440,14 +499,15 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
-    if (mbtMap.has(linkView.id)) {
-        mbtMap.get(linkView.id)
-      } else {
-        // todo link props
-        mbtMap.set(linkView.id, {  'props': 'linkporps' });
-        Object.assign(cacheprops,mbtMap)
-        console.log('cacheprops.push mbtMap',cacheprops);
-      }
+    if (cacheprops.has(linkView.id)) {
+      cacheprops.get(linkView.id)
+    } else {
+      // todo link props
+      currentElementMap.set(linkView.id, { 'props': 'linkporps' });
+      cacheprops.set(linkView.id, { 'props': 'linkporps' });
+
+      // console.log('cacheprops:', cacheprops);
+    }
     showDrawer(linkView)
   })
 
@@ -458,13 +518,22 @@ onMounted(() => {
 
       isLink.value = false;
       isGlobal.value = false;
-      if (mbtMap.has(elementView.id)) {
-        mbtMap.get(elementView.id)
+      // console.log('cacheprops:', cacheprops);
+      // debugger
+      if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
+
+        let awformData = cacheprops.get(elementView.model.id)
+        awformdata.value = awformData.props;
+        // console.log('form data:',awformdata.value,awschema);
+        hasAWInfo.value = true;
       } else {
         // todo
-        mbtMap.set(elementView.id, {  'props': awformdata });
-        Object.assign(cacheprops,mbtMap)
-        console.log('cacheprops.push mbtMap',cacheprops);
+        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
+        // debugger
+        cacheprops.set(elementView.model.id, { 'props': awformdata.value });
+        // console.log('mbtMap:',mbtMap);
+
+        // console.log('cacheprops.push mbtMap', cacheprops);
       }
 
 
@@ -512,6 +581,7 @@ function showGlobalInfo() {
 
 function showAWInfo(rowobj: any) {
   // alert('good:' + rowobj.name.toString()+awformdata)
+  hasAWInfo.value = true;
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
   awformdata.value._id = rowobj._id
@@ -571,7 +641,7 @@ function showAWInfo(rowobj: any) {
           <div class="canvas" ref="canvas"></div>
         </a-col>
         <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
-        <a-drawer width="480" title="Configuration" placement="right" :closable="false" :visible="visible"
+        <a-drawer width="70%" title="Configuration" placement="right" :closable="false" :visible="visible"
           :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel">
 
@@ -586,7 +656,7 @@ function showAWInfo(rowobj: any) {
               </a-form-item>
             </AForm>
 
-            <div class="awtable" v-if="isAW">
+            <div class="awtable" v-if="!hasAWInfo && isAW">
               <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
                 :colSpan="colSpan">
                 <template #headerCell="{ column }">
@@ -620,13 +690,13 @@ function showAWInfo(rowobj: any) {
 
             <a-card style="overflow-y: auto;">
               <div style="padding: 5px;">
-                <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
-                  v-if="isAW">
+                <VueForm v-model="awformdata" :schema="awschema" @submit="awhandlerSubmit()" @cancel="handlerCancel"
+                  v-if="isAW && hasAWInfo">
                 </VueForm>
-                <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
-                  v-else-if="isGlobal">
+                <VueForm v-model="globalformData" :schema="globalschema" @submit="globalhandlerSubmit"
+                  @cancel="onCloseDrawer" v-else-if="isGlobal">
                 </VueForm>
-                <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
+                <VueForm v-model="linkFormData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer"
                   v-else-if="isLink">
                 </VueForm>
               </div>
