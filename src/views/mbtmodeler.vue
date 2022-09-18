@@ -23,12 +23,24 @@ window.joint = joint
 const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
+
+/// save data to localstorage, and send to backend as modelDefinition 
+interface modelDefinition {
+  cellsInfo?:{
+  cellNamespace?:Object,
+  cells?:Object[]
+},
+  props?:Object
+
+}
 interface FormState {
   awname: string;
   description: string;
   remember: boolean;
   search?: string
 }
+
+let cacheprops: Object ={};
 
 /** drawer  */
 //drawer visible
@@ -225,7 +237,7 @@ function handlerCancel() {
 /**
  * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
  */
-let mbtCache: [Stores.mbt];//save the data from backend
+let mbtCache: Stores.mbt;//save the data from backend
 //route是响应式对象，可监控其变化，需要用useRoute()获取
 const route = useRoute()
 
@@ -233,11 +245,18 @@ const route = useRoute()
 async function mbtquery(data?: any) {
   let rst = await request.get(url + "?search=" + route.params.name)
   if (rst.data) {
-    // console.log('mbt:', rst.data)
-    mbtCache = rst.data;
+   
+    rst.data.forEach((record:any)=>{
+      if(record.name==route.params.name){
+        mbtCache = record
+        return
+      }})
+    
+     
+    // console.log('mbtCache:', mbtCache)
     // tableData.value = rst.data
     // console.log(tableData, tableData.value);
-    return rst.data
+    return mbtCache
   }
 }
 // save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
@@ -264,9 +283,20 @@ function saveMBT(route: any) {
 
     localStorage.removeItem('mbt-' + route.params.name);
     console.log('cleared localstorage:', 'mbt-' + route.params.name)
-    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-
-    updateMBT(url + `/${mbtCache[0]['_id']}`, mbtCache.values)
+    // tempdata:modelDefinition:
+    let tempdata:modelDefinition = {};
+    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
+    //todo : create cacheprops, when dblclick element or link, save them to cach props
+    // let props=[];
+    // props.push(awformdata.value);
+    Object.assign(tempdata,{props:cacheprops})
+    console.log('save tempdata:',tempdata)
+    console.log('mbtCache:',mbtCache);
+    mbtCache['modelDefinition']=tempdata;
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+    console.log('mbtCache.values  ,',)
+    updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
     message.success("Save MBT model successfully")
 
 }
@@ -299,10 +329,14 @@ function saveMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  mbtquery();
-
-
-  if (localStorage.getItem('mbt-' + route.params.name)) {
+  let res = mbtquery();
+  res.then((value:any)=>{
+    // console.log('res:',value)
+    if(value.hasOwnProperty('modelDefinition')&&value.modelDefinition.hasOwnProperty('cellsinfo')){
+      let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
+      modeler.graph.fromJSON(JSON.parse(tempstr));
+    
+  }else if (localStorage.getItem('mbt-' + route.params.name)) {
     // console.log('local storage')
     // setupNamespace();
 
@@ -312,17 +346,26 @@ onMounted(() => {
      * localstorage ... todo next
      */
     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
-    if (localStorage.getItem('mbt-' + route.params.name)) {
-      let tempstr = localStorage.getItem('mbt-' + route.params.name) + '';
-      modeler.graph.fromJSON(JSON.parse(tempstr));
+    // if (localStorage.getItem('mbt-' + route.params.name)) {
+      let tempobj = localStorage.getItem('mbt-' + route.params.name) + '';
+      console.log('load data from here:',tempobj);
+      // modeler.graph.fromJSON(JSON.parse(tempstr));
       // return
-    }
-
   } else if (modeler && modeler.graph) {
-    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
+    let tempdata:modelDefinition = {};
+    Object.assign(tempdata,{cellsinfo:modeler.graph.toJSON()})
+        
+    Object.assign(tempdata,{props:{}})
+    console.log('save tempdata:',tempdata)
+    localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+    // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
   } else {
-    // console.log('empty')
+    console.log('empty')
   }
+})
+
+//modelDefinition
+  
 
 
   /**
@@ -395,6 +438,14 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
+    if (mbtMap.has(linkView.id)) {
+        mbtMap.get(linkView.id)
+      } else {
+        // todo link props
+        mbtMap.set(linkView.id, {  'props': 'linkporps' });
+        Object.assign(cacheprops,mbtMap)
+        console.log('cacheprops.push mbtMap',cacheprops);
+      }
     showDrawer(linkView)
   })
 
@@ -405,11 +456,13 @@ onMounted(() => {
 
       isLink.value = false;
       isGlobal.value = false;
-      if (mbtMap.has(elementView.cid)) {
-        mbtMap.get(elementView.cid)
+      if (mbtMap.has(elementView.id)) {
+        mbtMap.get(elementView.id)
       } else {
         // todo
-        // mbtMap.set(elementView.cid, { 'id': elementView.id, 'elementview': elementView.toJSON(), 'props': awformdata });
+        mbtMap.set(elementView.id, {  'props': awformdata });
+        Object.assign(cacheprops,mbtMap)
+        console.log('cacheprops.push mbtMap',cacheprops);
       }
 
 
@@ -444,11 +497,11 @@ onMounted(() => {
 });
 
 function showGlobalInfo() {
-  if (mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('name')) {
+  if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
     // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
-    globalformData.value.name = mbtCache[0]['name'];
-    globalformData.value.description = mbtCache[0]['description'];
-    globalformData.value.tags = mbtCache[0]['tags'];
+    globalformData.value.name = mbtCache['name'];
+    globalformData.value.description = mbtCache['description'];
+    globalformData.value.tags = mbtCache['tags'];
   }
   // console.log('...kkkk1...', mbtCache);
   // console.log('...kkkk2...', globalformData);

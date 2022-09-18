@@ -711,10 +711,11 @@ link2.labels([{
   this.paper.on('element:pointerclick', (elementView: any) => {
 console.log('ele:',elementView);
     this.paper.removeTools(); 
-    if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
-      elementView.removeTools()
-    }
-    else if (!elementView.hasTools()) {
+    // if(elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type=='standard.Polygon'){
+    //   elementView.removeTools()
+    // }
+    // else 
+    if (!elementView.hasTools()) {
       elementView.addTools(this.elementToolsView)
     }
       elementView.showTools();
