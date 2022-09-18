@@ -28,7 +28,7 @@ export namespace Stores {
     _id: string,
     name: string,
     description: string,
-    tags: string[],
+    tags?: string[],
     modelDefinition?: object,
     dataDefinition?: {
       resources: resourceschema[],

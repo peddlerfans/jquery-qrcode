@@ -55,6 +55,9 @@ const showDrawer = (el?: any) => {
     // console.log('click blank')
   }
 };
+// const hideDrawer=()=>{
+// visible.value = false;
+// }
 
 const onCloseDrawer = () => {
   visible.value = false;
@@ -126,8 +129,9 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 let globalformData = ref<Stores.mbt>({
   _id: '',
   name: '',
-  description: '',
-  tags: []
+  description: ''
+  // ,
+  // tags: []
 
 });
 let linkFormData = ref({
@@ -137,8 +141,9 @@ let awformdata = ref<Stores.aw>({
   name: '',
   description: '',
   _id: "",
-  params: [],
-  tags: []
+  params: []
+  // ,
+  // tags: []
 });
 const globalschema = ref({
   "title": "MBTConfiguration",
@@ -155,14 +160,14 @@ const globalschema = ref({
       "type": "string",
       "readOnly": true
     },
-    "tags": {
-      "title": "Tags",
-      "type": "string",
-      // "items":{
-      //   "type":"string"
-      // },
-      "readOnly": true
-    },
+    // "tags": {
+    //   "title": "Tags",
+    //   "type": "string",
+    //   // "items":{
+    //   //   "type":"string"
+    //   // },
+    //   "readOnly": true
+    // },
     "meta": {
       "title": "Meta",
       "type": "string",
@@ -228,10 +233,7 @@ function handlerSubmit() {
 
   message.success('Save it Successfully');
 };
-function handlerCancel() {
 
-  // message.warning('Cancel');
-}
 
 
 /**
@@ -618,13 +620,13 @@ function showAWInfo(rowobj: any) {
 
             <a-card style="overflow-y: auto;">
               <div style="padding: 5px;">
-                <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                <VueForm v-model="awformdata" :schema="awschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
                   v-if="isAW">
                 </VueForm>
-                <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                <VueForm v-model="globalformData" :schema="globalschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
                   v-else-if="isGlobal">
                 </VueForm>
-                <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="handlerCancel"
+                <VueForm v-model="linkFormData" :schema="linkschema" @submit="handlerSubmit" @cancel="onCloseDrawer"
                   v-else-if="isLink">
                 </VueForm>
               </div>
