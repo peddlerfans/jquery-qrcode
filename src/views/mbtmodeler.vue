@@ -18,6 +18,7 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./compo
 import _ from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 import { Context } from "vm";
+import { useCurrentElement } from "@vueuse/core";
 window.joint = joint
 
 const formFooter = {
@@ -68,9 +69,7 @@ const showDrawer = (el?: any) => {
     // console.log('click blank')
   }
 };
-// const hideDrawer=()=>{
-// visible.value = false;
-// }
+
 
 const onCloseDrawer = () => {
   visible.value = false;
@@ -148,7 +147,7 @@ let globalformData = ref<Stores.mbtView>({
   tags: ''
 
 });
-let linkFormData = ref({
+let linkData = ref({
   label: ''
 })
 let awformdata = ref<Stores.awView>({
@@ -241,12 +240,12 @@ const linkschema = ref({
 
   }
 })
-let currentElementView : dia.ElementView ;
+let currentElementView: dia.ElementView;
+let currentLinkView: dia.LinkView;
 
 function awhandlerSubmit() {
-  
-  console.log('....curele:',currentElementView);
-  
+
+
   // 迭代 Map 中的 key
   for (let key of currentElementMap.keys()) {
 
@@ -254,36 +253,36 @@ function awhandlerSubmit() {
     for (const [key, value] of Object.entries(awformdata.value)) {
       let obj = JSON.parse(`{"${key}":"${value}"}`)
       Object.assign(tempaw, obj)
-      if(key =="template" || key =="description"){
-        
+      if (key == "template" || key == "description") {
+
         // let tempWidth =currentElementView.model!.findView(modeler.paper).getBBox().width / 8;
         // if(tempWidth<100) tempWidth =100;
         // console.log('tempWidth1:',tempWidth);
         // console.log('size x:',sizeX)
         // currentElementView.model?.resize(sizeX, 45)
-        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
-        
-        let sizeX =showtext.length*2.5;
-        if(sizeX<100 || sizeX>150) sizeX =160;
-        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
-        if(sizeY <45 ) sizeY =45;
-        if(sizeY > 135 ) sizeY =180;  
+        let showtext = cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
+
+        let sizeX = showtext.length * 2.5;
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY = cacheprops.get(currentElementView.model?.id).props.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 180;
 
         currentElementView.model?.attr(
-      "label/text",
-      joint.util.breakText(showtext, {
-        width: sizeX
-      },{ellipsis:true}))
-      currentElementView.model?.resize(sizeX,sizeY);
+          "label/text",
+          joint.util.breakText(showtext, {
+            width: sizeX
+          }, { ellipsis: true }))
+        currentElementView.model?.resize(sizeX, sizeY);
         // currentElementView.model?.attr('label/text',`"${value}"`)
-        
+
       }
     }
     cacheprops.set(key, { 'props': tempaw });
   }
 
   message.success('Save aw Successfully');
-  // console.log('awhandlerSubmit');
+
   currentElementView.DETACHABLE;
 };
 
@@ -293,7 +292,28 @@ function globalhandlerSubmit() {
 };
 
 function linkhandlerSubmit() {
+    
+  for (let key of currentLinkMap.keys()) {
+    let templink = {}
+    for (const [key, value] of Object.entries(linkData.value)) {
+      let obj = JSON.parse(`{"${key}":"${value}"}`)
+      Object.assign(templink, obj)
+      if (key == "label") {
 
+        currentLinkView.model?.appendLabel({
+          attrs: {
+            text: {
+              text: `${value}`
+            }
+          }
+        })
+
+
+      }
+    }
+
+    cacheprops.set(key, { 'props': templink });
+  }
   message.success('Save it Successfully');
 };
 
@@ -331,6 +351,7 @@ async function mbtquery(data?: any) {
 }
 // save data in the paper as map, {cid:1,elementview: ev,properties:prop} 
 let currentElementMap = new Map();
+let currentLinkMap = new Map();
 
 /**
  * Global elements in the component
@@ -348,13 +369,8 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route: any) {
-  currentElementView.DETACHABLE
+  // currentElementView.DETACHABLE
 
-  //  console.log('route:', modeler.graph.toJSON())
-
-  // localStorage.removeItem('mbt-' + route.params.name);
-  // console.log('cleared localstorage:', 'mbt-' + route.params.name)
-  // tempdata:modelDefinition:
   let tempdata: modelDefinition = {};
   // console.log('.....graph:',modeler.graph)
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
@@ -392,18 +408,14 @@ onMounted(() => {
       let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
       modeler.graph.fromJSON(JSON.parse(tempstr));
       if (value.modelDefinition.hasOwnProperty('props')) {
-        // debugger
-        // console.log('before:',cacheprops)
+
         const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
         cacheprops = map;
         // console.log('after:',cacheprops)
       }
 
     } else if (localStorage.getItem('mbt-' + route.params.name)) {
-      // console.log('local storage')
-      // setupNamespace();
 
-      // modeler.paper.options.cellViewNamespace = customNamespace;
 
       /**
        * localstorage ... todo next
@@ -497,26 +509,25 @@ onMounted(() => {
    *  When click the element/link/blank, show the propsPanel
    */
   modeler.paper.on('link:pointerdblclick', function (linkView: any) {
-    // linkView.addLabel
-    // console.log('linkView:', linkView);
+    currentLinkView = linkView;
+        
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
-    if (cacheprops.has(linkView.id)) {
-      cacheprops.get(linkView.id)
+    if (cacheprops.has(linkView.model.id)) {
+      cacheprops.get(linkView.model.id)
     } else {
       // todo link props
-      currentElementMap.set(linkView.id, { 'props': 'linkporps' });
-      cacheprops.set(linkView.id, { 'props': 'linkporps' });
-
-      // console.log('cacheprops:', cacheprops);
+      currentLinkMap.set(linkView.model.id, { 'label': linkData.value });
+      cacheprops.set(linkView.model.id, { 'label': linkData.value });
+    
     }
     showDrawer(linkView)
   })
 
 
-  modeler.paper.on('element:pointerclick', (elementView:dia.ElementView,node:dia.Event,x:number,y:number)=> {
-    currentElementView =elementView
+  modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+    currentElementView = elementView
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
@@ -525,45 +536,45 @@ onMounted(() => {
 
       if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
 
-        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
-        let sizeX =showtext.length*2.5;
-        if(sizeX<100 || sizeX>150) sizeX =160;
-        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
-        if(sizeY <45 ) sizeY =45;
-        if(sizeY > 135 ) sizeY =180;
-     
-        
+        let showtext = cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
+        let sizeX = showtext.length * 2.5;
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY = cacheprops.get(currentElementView.model?.id).props.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 180;
+
+
         currentElementView.model?.attr(
-      "label/text",
-      joint.util.breakText(showtext, {
-        width: sizeX
-      },{separator:'.', ellipsis:true}))
-      currentElementView.model?.resize(sizeX,sizeY);
-    }
-  }
-      /*
-        let awformData = cacheprops.get(elementView.model.id)
-        awformdata.value = awformData.props;
-        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
-        hasAWInfo.value = true;
-      } else {
-        // todo
-        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
-
-        cacheprops.set(elementView.model.id, { 'props': awformdata.value });
+          "label/text",
+          joint.util.breakText(showtext, {
+            width: sizeX
+          }, { separator: '.', ellipsis: true }))
+        currentElementView.model?.resize(sizeX, sizeY);
       }
-
-    } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
     }
+    /*
+      let awformData = cacheprops.get(elementView.model.id)
+      awformdata.value = awformData.props;
+      currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
+      hasAWInfo.value = true;
+    } else {
+      // todo
+      currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
+
+      cacheprops.set(elementView.model.id, { 'props': awformdata.value });
+    }
+
+  } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
+  }
 */
     currentElementView.DETACHABLE;
 
   });
 
-   
 
-  modeler.paper.on('element:pointerdblclick', (elementView:dia.ElementView,node:dia.Event,x:number,y:number)=> {
-    currentElementView =elementView
+
+  modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+    currentElementView = elementView
 
 
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
@@ -573,23 +584,6 @@ onMounted(() => {
       isGlobal.value = false;
 
       if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
-
-        /*
-        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
-        let sizeX =showtext.length*2.5;
-        if(sizeX<100 || sizeX>150) sizeX =160;
-        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
-        if(sizeY <45 ) sizeY =45;
-        if(sizeY > 135 ) sizeY =180;        
-        let tempWidth =elementView.model.findView(modeler.paper).getBBox().width / 5;
-        if(tempWidth<100) tempWidth =150;
-        currentElementView.model?.attr(
-      "label/text",
-      joint.util.breakText(showtext, {
-        width: tempWidth
-      },{ellipsis:true}))
-      currentElementView.model?.resize(sizeX,sizeY);
-      */
 
         let awformData = cacheprops.get(elementView.model.id)
         awformdata.value = awformData.props;
@@ -629,13 +623,11 @@ function showGlobalInfo() {
     globalformData.value.description = mbtCache['description'];
     // globalformData.value.tags = mbtCache['tags'];
   }
-  // console.log('...kkkk1...', mbtCache);
-  // console.log('...kkkk2...', globalformData);
+
 }
 
 
 function showAWInfo(rowobj: any) {
-  console.log('tags....:')
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
@@ -645,14 +637,14 @@ function showAWInfo(rowobj: any) {
 
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
-      awformdata.value.tags += value+ ' '
+      awformdata.value.tags += value + ' '
     })
   }
-  console.log('tags:', awformdata.value.tags)
+  
 
   if (_.isArray(rowobj.params)) {
     _.forEach(rowobj.params, function (value, key) {
-      awformdata.value.params += value.name +' '
+      awformdata.value.params += value.name + ' '
 
     })
   }
@@ -699,8 +691,8 @@ function showAWInfo(rowobj: any) {
           <div class="canvas" ref="canvas"></div>
         </a-col>
         <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
-        <a-drawer width="50%" placement="right" :closable="false" :visible="visible"
-          :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
+        <a-drawer width="50%" placement="right" :closable="false" :visible="visible" :get-container="false"
+          :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel">
 
             <AForm v-if="!hasAWInfo && isAW" layout="inline" class="search_form" :model="formState"
@@ -754,7 +746,7 @@ function showAWInfo(rowobj: any) {
                 <VueForm v-model="globalformData" :schema="globalschema" @submit="globalhandlerSubmit"
                   @cancel="onCloseDrawer" v-else-if="isGlobal">
                 </VueForm>
-                <VueForm v-model="linkFormData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer"
+                <VueForm v-model="linkData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer"
                   v-else-if="isLink">
                 </VueForm>
               </div>

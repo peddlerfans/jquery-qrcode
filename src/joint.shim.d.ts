@@ -41,6 +41,9 @@ declare module 'jointjs' {
         interface ElementView {
             model?:Cell
         }
+        interface LinkView {
+            model?:Link
+        }
 
     }
 }
