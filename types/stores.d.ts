@@ -20,6 +20,15 @@ export namespace Stores {
     }
   }
 
+  interface awView {
+    name: string,
+    description: string,    
+    tags: string,
+    params: string 
+    
+  }
+
+
   interface resourceschema {
     name: string,
     type: string
@@ -30,6 +39,22 @@ export namespace Stores {
     description: string,
     tags?: string[],
     modelDefinition?: object,
+    dataDefinition?: {
+      resources: resourceschema[],
+      dataType?: string,
+      dataUrl?: string,
+      data: object,
+      metaTemplate?: string,
+      meta: object
+
+    }
+  }
+
+  interface mbtView {
+    _id: string,
+    name: string,
+    description: string,
+    tags: string,
     dataDefinition?: {
       resources: resourceschema[],
       dataType?: string,

@@ -18,6 +18,18 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./compo
 import _ from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 window.joint = joint
+
+const formFooter = {
+  show: true, // 是否显示默认底部
+  okBtn: '保存', // 确认按钮文字
+  okBtnProps: { type: 'primary' }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
+  cancelBtn: '编辑', // 取消按钮文字
+
+  // 透传给formFooter 中的formItem组件的参数
+  // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
+  formItemAttrs: {}
+}
+
 //Setting url for data fetching
 // const url=mockMBTUrl;
 const url = realMBTUrl;
@@ -131,20 +143,18 @@ let globalformData = ref<Stores.mbt>({
   _id: '',
   name: '',
   description: ''
-  // ,
-  // tags: []
+  ,
+  tags: []
 
 });
 let linkFormData = ref({
   label: ''
 })
-let awformdata = ref<Stores.aw>({
+let awformdata = ref<Stores.awView>({
   name: '',
   description: '',
-  _id: "",
-  params: []
-  // ,
-  // tags: []
+  params: ''
+  , tags: ''
 });
 const globalschema = ref({
   "title": "MBTConfiguration",
@@ -161,14 +171,14 @@ const globalschema = ref({
       "type": "string",
       "readOnly": true
     },
-    // "tags": {
-    //   "title": "Tags",
-    //   "type": "string",
-    //   // "items":{
-    //   //   "type":"string"
-    //   // },
-    //   "readOnly": true
-    // },
+    "tags": {
+      "title": "Tags",
+      "type": "string",
+      //   // "items":{
+      //   //   "type":"string"
+      //   // },
+      "readOnly": true
+    },
     "meta": {
       "title": "Meta",
       "type": "string",
@@ -192,28 +202,29 @@ const awschema = ref({
     "name": {
       "title": "AW Name",
       "type": "string"
-      // ,
-      // "readOnly": true
+      ,
+      "readOnly": true
 
     },
     "description": {
       "title": "Description",
       "type": "string"
-      // ,
-      // "readOnly": true
+      ,
+      "readOnly": true
     }
-    // ,
-    // "tags": {
-    //   "title": "Tags",
-    //   "type": "string",
-    //   "readOnly": true
-    // }
-    // "params": {
-    //   "title": "Params",
-    //   "type": "string",
-    //   "readOnly": true
+    ,
+    "tags": {
+      "title": "Tags",
+      "type": "string",
+      "readOnly": true
+    }
+    ,
+    "params": {
+      "title": "Params",
+      "type": "string",
+      "readOnly": true
 
-    // }
+    }
   }
 })
 
@@ -231,10 +242,10 @@ const linkschema = ref({
 })
 
 function awhandlerSubmit() {
-  // console.log('awformdata.......', awformdata);
+  console.log('awformdata.......', awformdata);
   // console.log('awformdata222.......', awformdata.value);
   // console.log('cacheprops.......', cacheprops);
-  console.log('currentElementMap.......', currentElementMap);
+  // console.log('currentElementMap.......', currentElementMap);
   // 迭代 Map 中的 key
   for (let key of currentElementMap.keys()) {
     // console.log(key);
@@ -244,7 +255,7 @@ function awhandlerSubmit() {
     // }
     let tempaw = {}
     for (const [key, value] of Object.entries(awformdata.value)) {
-      
+
       // console.log(`${key}: ${value}`);
       // console.log(JSON.parse(`{"${key}":"${value}"}`))
       let obj = JSON.parse(`{"${key}":"${value}"}`)
@@ -252,12 +263,12 @@ function awhandlerSubmit() {
       // Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
 
     }
-    // console.log('awobj:', tempaw);
+    console.log('awobj:', tempaw);
     cacheprops.set(key, { 'props': tempaw });
-    // console.log('cacheprops2.......', cacheprops);
+    console.log('cacheprops2.......', cacheprops);
   }
 
-//to show labels 
+  //to show labels 
 
   message.success('Save aw Successfully');
 };
@@ -335,12 +346,10 @@ function saveMBT(route: any) {
   //todo : create cacheprops, when dblclick element or link, save them to cach props
   // let props=[];
   // props.push(awformdata.value);
-  let obj=Object.fromEntries(cacheprops)
+  let obj = Object.fromEntries(cacheprops)
   // console.log('++++++++++++',obj);
   Object.assign(tempdata, { props: obj })
-  
-  // console.log('save tempdata:', tempdata)
-  // console.log('mbtCache:',mbtCache);
+
   mbtCache['modelDefinition'] = tempdata;
   // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
   // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
@@ -349,24 +358,7 @@ function saveMBT(route: any) {
   message.success("Save MBT model successfully")
 
 }
-// let customNamespace: joint.dia.Paper.Options['cellViewNamespace'] = {};
-// let Shape = joint.dia.Element.define('shapeGroup.Shape', {
-//   attrs: {
-//     // Attributes
-//   }
-// }, {
-//   markup: [{
-//     // Markup
-//   }]
-// });
 
-// function setupNamespace() {
-//   Object.assign(customNamespace, {
-//     shapeGroup:
-//       Shape
-
-//   });
-// }
 
 /**
  * Localstorage saving the data of this model
@@ -384,7 +376,7 @@ onMounted(() => {
     if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
       let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
       modeler.graph.fromJSON(JSON.parse(tempstr));
-      if (value.modelDefinition.hasOwnProperty('props')){
+      if (value.modelDefinition.hasOwnProperty('props')) {
         // debugger
         // console.log('before:',cacheprops)
         const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
@@ -511,10 +503,10 @@ onMounted(() => {
 
     // elementView.vel.attr('label', 'Ellipse');
     // elementView.vel.attr('body..fill', '#30d0c6');
-    
+
     // elementView.el.attr('label', 'Ellipse');
 
-        if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
       isLink.value = false;
@@ -526,13 +518,14 @@ onMounted(() => {
         let awformData = cacheprops.get(elementView.model.id)
         awformdata.value = awformData.props;
         // console.log('form data:',awformdata.value,awschema);
+        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
         hasAWInfo.value = true;
       } else {
         // todo
         currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
         // debugger
         cacheprops.set(elementView.model.id, { 'props': awformdata.value });
-        
+
         // console.log('mbtMap:',mbtMap);
 
         // console.log('cacheprops.push mbtMap', cacheprops);
@@ -582,25 +575,26 @@ function showGlobalInfo() {
 
 
 function showAWInfo(rowobj: any) {
-  // alert('good:' + rowobj.name.toString()+awformdata)
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
-  awformdata.value._id = rowobj._id
-  // console.log(".....rowobj.tags:", rowobj.tags)
-  // awformdata.value.tags = rowobj.tags
-  // if(_.isArray(rowobj.params)){
-  //   _.forEach(rowobj.params, function(value, key) {
-  // console.log(key);
-  // awformdata.value.params?.push(key)
-  // });
+  awformdata.value.tags = ''
+  awformdata.value.params = ''
+  // awformdata.value._id = rowobj._id
 
-  // }
-  // awformdata.value.params = rowobj.params
-  awformdata.value.params = []
-  // showPropPanel.value = false
-  // formData = awformdata
-  // schema = awschema;
+  if (_.isArray(rowobj.tags)) {
+    _.forEach(rowobj.tags, function (value, key) {
+      awformdata.value.tags += value
+    })
+  }
+
+  if (_.isArray(rowobj.params)) {
+    _.forEach(rowobj.params, function (value, key) {
+      awformdata.value.params += value.name
+
+    })
+  }
+
 
 
 }
@@ -647,8 +641,8 @@ function showAWInfo(rowobj: any) {
           :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel">
 
-            <AForm v-if="isAW" layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-              @finishFailed="handleFinishFailed">
+            <AForm v-if="!hasAWInfo && isAW" layout="inline" class="search_form" :model="formState"
+              @finish="handleFinish" @finishFailed="handleFinishFailed">
               <a-form-item :wrapper-col="{ span: 24 }">
                 <a-input v-model:value="formState.search" placeholder="aw"></a-input>
               </a-form-item>
@@ -692,8 +686,8 @@ function showAWInfo(rowobj: any) {
 
             <a-card style="overflow-y: auto;">
               <div style="padding: 5px;">
-                <VueForm v-model="awformdata" :schema="awschema" @submit="awhandlerSubmit()" @cancel="handlerCancel"
-                  v-if="isAW && hasAWInfo">
+                <VueForm v-model="awformdata" :schema="awschema" :formFooter="formFooter" @submit="awhandlerSubmit()"
+                  @cancel="handlerCancel" v-if="isAW && hasAWInfo">
                 </VueForm>
                 <VueForm v-model="globalformData" :schema="globalschema" @submit="globalhandlerSubmit"
                   @cancel="onCloseDrawer" v-else-if="isGlobal">
@@ -712,7 +706,10 @@ function showAWInfo(rowobj: any) {
     </section>
   </main>
 </template>
-
+<!-- <div slot-scope="{ formData, formRefFn }">
+  <pre style="background-color: #eee;">{{ JSON.stringify(formData, null, 4) }}</pre>
+  <p><el-button @click="consoleLog(formRefFn)" type="primary">点击</el-button></p>
+</div> -->
 <style scoped>
 #content-window {
   overflow: hidden !important;
