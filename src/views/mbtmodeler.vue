@@ -19,6 +19,12 @@ import _ from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 import { Context } from "vm";
 import { useCurrentElement } from "@vueuse/core";
+
+import { computed, defineComponent, } from 'vue';
+
+import { CheckOutlined, EditOutlined } from '@ant-design/icons-vue';
+import { cloneDeep } from 'lodash-es';
+
 window.joint = joint
 
 const formFooter = {
@@ -628,7 +634,166 @@ function showAWInfo(rowobj: any) {
 }
 const activeKey = ref('1')
 
+interface MetaDataItem {
+  key: string;
+  title: string;
+  content: string;
 
+}
+interface ResourcesDataItem {
+  key: string;
+  alias: string;
+  class: string;
+  resourcetype: string;
+
+}
+interface MetaDataItem {
+  key: string;
+  title: string;
+  content: string;
+
+}
+interface AttributesDataItem {
+  key: string;
+  description: string;
+  requirements: string;
+
+
+}
+const attributescolumns = [
+  {
+    title: 'description',
+    dataIndex: 'description',
+    width: '30%',
+  },
+  {
+    title: 'requirements',
+    dataIndex: 'requirements',
+  }  
+  
+];
+
+const resourcescolumns = [
+  {
+    title: 'alias',
+    dataIndex: 'alias',
+    width: '20%',
+  },
+  {
+    title: 'class',
+    dataIndex: 'class',
+  },
+  {
+    title: 'resourcetype',
+    dataIndex: 'resourcetype',
+  }
+  ,
+  {
+    title: 'operation',
+    dataIndex: 'operation',
+  },
+];
+
+
+const metacolumns = [
+  {
+    title: 'title',
+    dataIndex: 'title',
+    width: '30%',
+  },
+  {
+    title: 'content',
+    dataIndex: 'content',
+  },
+  {
+    title: 'operation',
+    dataIndex: 'operation',
+  },
+];
+
+const attributesdataSource: Ref<AttributesDataItem[]> = ref([
+  {
+    key: '0',
+    description: 'Edward King 0',
+    requirements: 'London, Park Lane no. 0',
+  }
+]);
+
+const metadataSource: Ref<MetaDataItem[]> = ref([
+  {
+    key: '0',
+    title: 'Edward King 0',
+    content: 'London, Park Lane no. 0',
+  },
+  {
+    key: '1',
+    title: 'Edward King 1',
+    content: 'London, Park Lane no. 1',
+  },
+]);
+
+const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
+  {
+    key: '0',
+    alias: 'Edward King 0',
+    class: '1',
+    resourcetype: 'London, Park Lane no. 0',
+  },
+  {
+    key: '1',
+    alias: 'Edward King 1',
+    class: '2',
+    resourcetype: 'London, Park Lane no. 1',
+  },
+]);
+
+const metacount = computed(() => metadataSource.value.length + 1);
+const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
+
+const metaedit = (key: string) => {
+  metaeditableData[key] = cloneDeep(metadataSource.value.filter(item => key === item.key)[0]);
+};
+const metasave = (key: string) => {
+  Object.assign(metadataSource.value.filter(item => key === item.key)[0], metaeditableData[key]);
+  delete metaeditableData[key];
+};
+
+const onMetaDelete = (key: string) => {
+  metadataSource.value = metadataSource.value.filter(item => item.key !== key);
+};
+const metahandleAdd = () => {
+  const newData = {
+    key: `${metacount.value}`,
+    title: `Edward King ${metacount.value}`,
+    content: `London, Park Lane no. ${metacount.value}`,
+  };
+  metadataSource.value.push(newData);
+};
+
+
+const resourcescount = computed(() => metadataSource.value.length + 1);
+const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
+
+const resourcesedit = (key: string) => {
+  resourceseditableData[key] = cloneDeep(resourcesdataSource.value.filter(item => key === item.key)[0]);
+};
+const resourcessave = (key: string) => {
+  Object.assign(resourcesdataSource.value.filter(item => key === item.key)[0], resourceseditableData[key]);
+  delete resourceseditableData[key];
+};
+
+const onresourcesDelete = (key: string) => {
+  resourcesdataSource.value = resourcesdataSource.value.filter(item => item.key !== key);
+};
+const resourceshandleAdd = () => {
+  const newData = {
+    key: `${resourcescount.value}`,
+    alias: `Edward King ${resourcescount.value}`,
+    class: `London, Park Lane no. ${resourcescount.value}`,
+    resourcetype: `London, Park Lane no. ${resourcescount.value}`,
+  };
+  resourcesdataSource.value.push(newData);
+};
 
 
 </script>
@@ -720,10 +885,61 @@ const activeKey = ref('1')
                   v-else-if="isLink">
                 </VueForm>
                 <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
-                  <a-tab-pane key="1" tab="Meta">Content of Meta</a-tab-pane>
+                  <a-tab-pane key="1" tab="Meta">
+                    <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="metahandleAdd">Add</a-button>
+                    <a-table bordered :data-source="metadataSource" :columns="metacolumns">
+                      <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.dataIndex === 'name'">
+                          <div class="editable-cell">
+                            <div v-if="metaeditableData[record.key]" class="editable-cell-input-wrapper">
+                              <a-input v-model:value="metaeditableData[record.key].title"
+                                @pressEnter="metasave(record.key)" />
+                              <check-outlined class="editable-cell-icon-check" @click="metasave(record.key)" />
+                            </div>
+                            <div v-else class="editable-cell-text-wrapper">
+                              {{ text || ' ' }}
+                              <edit-outlined class="editable-cell-icon" @click="metaedit(record.key)" />
+                            </div>
+                          </div>
+                        </template>
+                        <template v-else-if="column.dataIndex === 'operation'">
+                          <a-popconfirm v-if="metadataSource.length" title="Sure to delete?"
+                            @confirm="onMetaDelete(record.key)">
+                            <a>Delete</a>
+                          </a-popconfirm>
+                        </template>
+                      </template>
+                    </a-table>
+                  </a-tab-pane>
                   <a-tab-pane key="2" tab="Attributes" force-render>Content of Attributes</a-tab-pane>
                   <a-tab-pane key="3" tab="Data Pool">Content of datapool</a-tab-pane>
-                  <a-tab-pane key="4" tab="Resources">Content of Resources</a-tab-pane>
+                  <a-tab-pane key="4" tab="Resources">
+                    <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="resourceshandleAdd">Add</a-button>
+                    <a-table bordered :data-source="resourcesdataSource" :columns="resourcescolumns">
+                      <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.dataIndex === 'alias'">
+                          <div class="editable-cell">
+                            <div v-if="resourceseditableData[record.key]" class="editable-cell-input-wrapper">
+                              <a-input v-model:value="resourceseditableData[record.key].alias"
+                                @pressEnter="resourcessave(record.key)" />
+                              <check-outlined class="editable-cell-icon-check" @click="resourcessave(record.key)" />
+                            </div>
+                            <div v-else class="editable-cell-text-wrapper">
+                              {{ text || ' ' }}
+                              <edit-outlined class="editable-cell-icon" @click="resourcesedit(record.key)" />
+                            </div>
+                          </div>
+                        </template>
+                        <template v-else-if="column.dataIndex === 'operation'">
+                          <a-popconfirm v-if="resourcesdataSource.length" title="Sure to delete?"
+                            @confirm="onresourcesDelete(record.key)">
+                            <a>Delete</a>
+                          </a-popconfirm>
+                        </template>
+                      </template>
+                    </a-table>
+
+                  </a-tab-pane>
                 </a-tabs>
               </div>
             </a-card>
