@@ -58,24 +58,19 @@ const showModal = () => {
 const closemodel = () => {
   clear()
   visible.value = false;
-  query()
 }
 // 模态窗表单
 
 let partype = ref('')
   const options = ref<SelectProps['options']>([
       {
-        value: 'Str',
-        label: 'Str',
+        value: 'str',
+        label: 'str',
       },
       {
-        value: 'Number',
-        label: 'Number',
-      },
-      {
-        value: 'ture',
-        label: 'ture',
-    },
+        value: 'float',
+        label: 'float',
+      },  
       {
         value: 'false',
         label: 'false',
@@ -194,15 +189,16 @@ const onFinishForm = async (modelstates: any) => {
   if (modelstates.value.name && modelstates.value.description && modelstates.value.template) {
     if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+       query(formState)
         message.success("Modified successfully")
     } else {
         delete modelstates.value._id
         await saveAw(modelstates.value)
         message.success("Added successfully") 
+        query()
     } 
     visible.value = false;
     clear()
-    query()
     }else {
     return message.error("name and descript is required")
   }
@@ -373,7 +369,7 @@ const expend = (isExpand:any,rected:any) => {
 const wrapperCol={span:24,offset:12}
 let treeData = ref([
    {
-        title: 'Setup',
+        title: 'setup',
         key: '0-0',
         children: [
           {
@@ -420,10 +416,15 @@ let treeData = ref([
         ],
       },
 ])
-const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
-  console.log('selected', selectedKeys, info);
-      // return selectedKeys
-};
+// const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
+//   console.log('selected', selectedKeys, info);
+//   info.node.showEdit=false
+//   info.node.dataRef.showEdit = false
+//   if (info.node.dataRef.title == "New Node") {
+//   info.node.showEdit=true
+//   info.node.dataRef.showEdit = true
+//   }// return selectedKeys
+// };
 // 查询父级节点的key
 const getTreeParentKey = (childs: any, findChild: any): any => {
   let topkey = null
@@ -526,26 +527,34 @@ const onExpand = (keys: any) => {
 
 const onchangtitle = (data: any) => {
   console.log(data);
-  
-  data.appendFlag = false;
+  // console.log(updTreedata);
+  data.title=updTreedata.value
+  data.data.title=updTreedata.value
+  data.dataRef.title=updTreedata.value
+  data.dataRef.showEdit=false
   data.showEdit=false
+  data.data.showEdit=false
 }
 const vFocus = {
   //必须以 vNameOfDirective 的形式来命名本地自定义指令，以使得它们可以直接在模板中使用。
-  onBeforeMount: (el: any) => {
-    console.log(222);
-    
-    // 在元素上做些操作
+ onBeforeMount:(el:any)=>{
+  console.log(222);
+    //在元素上做些操作
     nextTick(() => {
       el.focus() //获取焦点
     })
-  }
+ }
 }
+// 定义修改节点的变量
+let updTreedata=ref('')
 // 修改子节点的方法
 const updTree = (obj: any) => {
   console.log(obj);
-  
+  updTreedata.value=obj.title
+
   obj.showEdit=true
+  obj.data.showEdit=true
+  obj.dataRef.showEdit=true
 }
 const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
   ...item,
@@ -556,54 +565,75 @@ treeData.value = addKey(treeData.value)
 
 const newChild = ref(
   {
-    title: " ",
+    title: 'New Node',
     key: "/",
     children: [],
-    appendFlag: true, //添加输入框
     showEdit: false //修改输入框
   }
 )
+let newNum=ref(0)
 // 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
 const pushSubtree = (obj: any) => {
+  newNum.value=++newNum.value
+  console.log(newNum.value);
+  
+  newChild.value.title=newChild.value.title+newNum.value
+  
+  
   console.log(obj.data);
   newChild.value.key = obj.data.key + newChild.value.key
-  autoExpandParent.value = true;
+  // autoExpandParent.value = true;
   obj.data.children.push({...newChild.value})
   newChild.value.key='/'
+  newChild.value.title='New Node'
   treeData.value = [...treeData.value]
+  console.log(typeof newChild.value.title);
   expandedKeys.value = [obj.data.key];
   obj.expanded=false    
 }
+// 添加顶级节点的数据
+const topTree=ref({
+  title:'',
+  key:'',
+  children:[],
+  showEdit: false,
+  isLeaf:true
+})
+// 添加顶级节点
+const addTop=()=>{
+  treeData.value.push({...topTree.value})
+}
 // 添加同级时，需获取上级父节点的key，在上级父节点中push
-const pushtree = (obj: any) => {
-  console.log(obj);
+// const pushtree = (obj: any) => {
+//   console.log(obj);
   
     // 获取父节点
-    let parentNode = getTreeParentChilds(treeData.value, obj.data.key)
-  console.log(parentNode);
+    // let parentNode = getTreeParentChilds(treeData.value, obj.data.key)
+  // console.log(parentNode);
     // 获取父节点的key与 将当前节点的key，与要添加的key拼接
-  let parentKey = getTreeParentKey(treeData.value, parentNode)
-  newChild.value.key = parentKey + newChild.value.key
-  parentNode.push({...newChild.value})
-  treeData.value = [...treeData.value]
-    newChild.value.key='/'  
-  }  
+  // let parentKey = getTreeParentKey(treeData.value, parentNode)
+  // newChild.value.key = parentKey + newChild.value.key
+  // parentNode.push({...newChild.value})
+  // treeData.value = [...treeData.value]
+    // newChild.value.key='/'  
+  // }  
 
 // 删除树形控件数据
 const deltree = (key:string) => {
   // request.delete('/api/hlfs/_tree/delete',data:key)  
 }
-const confirmtree = (key:string) => {
-    let parent = getTreeParentChilds(treeData.value, key)
+const confirmtree = (obj:any) => {
+  console.log(obj);
+  
+    let parent = getTreeParentChilds(treeData.value, obj.key)
   console.log(parent);
   
-  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
-  delete parent[delIndex]
+  let delIndex = parent.findIndex((item: { title: string; }) => item.title == obj.title)
+  parent.splice(delIndex,1)
   treeData.value=[...treeData.value]
+  console.log(treeData.value);
+  
 }
-    const cancelTree = (e: MouseEvent) => {
-      console.log(e);
-    };
 
 // 右键点击树形控件触发的事件
 const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
@@ -626,39 +656,42 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
               </Tooltip>
             </Space>
           </div>
+          <div class="topTree">
+            <a-input v-model:value="topTree.title" placeholder="Add Top Node"></a-input>
+            <a-button type="primary" @click="addTop">
+              <template #icon><plus-outlined /></template>
+            </a-button>
+          </div>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
           v-if="treeData?.length"
             :show-line="true"
             :tree-data="treeData"
-            @select="onSelect"
             :expanded-keys="expandedKeys"
             :auto-expand-parent="autoExpandParent"
-            @expand="onExpand"  
-            >
+            @expand="onExpand">
       <template #icon><carry-out-outlined /></template>
       <template #title="item" >
               
-        <a-tooltip placement="right" overlayClassName="bgc_tooltip">
+        <a-tooltip  placement="right" overlayClassName="bgc_tooltip" >
             <template #title >
               <a-menu mode="inline" @click="({ key: menuKey }) => onContextMenuClick(item.key, menuKey)">
-                  <a-menu-item  key="1" @click="pushtree(item)">
+                  <!-- <a-menu-item  key="1" @click="pushtree(item)">
                   Add Sibling
+                </a-menu-item> -->
+                <a-menu-item  key="1" @click="pushSubtree(item)">
+                  Add Node
                 </a-menu-item>
-                <a-menu-item  key="2" @click="pushSubtree(item)">
-                  Add Subordinate
-                </a-menu-item>
-                <a-menu-item key="3" @click="updTree(item)">
+                <a-menu-item key="2" @click="updTree(item)">
                   Modify node
                 </a-menu-item>
                         <a-popconfirm
+                        placement="right"
                           title="Are you sure delete this task?"
                           ok-text="Yes"
                           cancel-text="No"
-                        @confirm="confirmtree(item.key)"
-                          @cancel="cancelTree"
-                        >
-                <a-menu-item key="4" @click="deltree(item.key)">
+                        @confirm="confirmtree(item)">
+                <a-menu-item key="2" @click="deltree(item.key)">
                   Delete Node
                 </a-menu-item>
                 </a-popconfirm>
@@ -669,12 +702,11 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
                   <span>{{item.title}}</span>
                 </div>
                 </template>
-    <template v-if="!item.appendFlag&&!item.showEdit">{{item.title}}</template>
-    <a-input v-if="item.showEdit" type="text" v-focus v-model="item.title" @blur="onchangtitle(item)"/>
-    <a-input v-focus type="text" v-if="item.appendFlag"  v-model="item.tltle"  @blur="onchangtitle(item)"/>
+    <template v-else-if="!item.appendFlag&&!item.showEdit">{{item.title}}</template>
+    <a-input v-if="item.showEdit" type="text" v-focus v-model:value="updTreedata" @blur="onchangtitle(item)"/>
         </a-tooltip>  
+        
     </template>
-
       </a-tree>
     </template>
         <template #right-content>
@@ -935,20 +967,38 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
   .searchForm{
     margin-right: 0.75rem;
   }
+ 
    </style>
   <style lang="less">
     .found-kw{
     color: red!important;
     font-weight: 600;
   }
-.bgc_tooltip .ant-tooltip-inner{
+.bgc_tooltip{
+  .ant-tooltip-arrow::before {
+      // 这里是小三角形
+      background-color: #fff!important;
+    }
+  .ant-tooltip-inner{
+    
     background-color: white!important;
     width: 6.125rem;
     padding: 0;
     display: flex;
     align-items: center;
     .ant-menu{
+      font-size: .75rem;
       width: 6.125rem;
+      .ant-menu-item-only-child{
+        padding: 0!important;
+        width: 100%;
+        height: 1.75rem;
+        line-height: 1.75rem;
+        text-align: center;
+        margin:0;
+        // display: flex;
+        // justify-content: center!important;
+      }
     }
     .ant-menu-horizontal{
       border: 0;
@@ -956,16 +1006,21 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
         padding: 0 .3125rem;
       }
       
-      .ant-menu .ant-menu-item-only-child{
-        padding: 0!important;
-        width: 30%;
-        // display: flex;
-        // justify-content: center!important;
-      }
+      
     }
     .ant-menu-overflow{
         display: flex;
         justify-content: space-around;
       }
     }
+  }
+  .topTree{
+    display: flex;
+    margin-bottom: .625rem;
+    .ant-btn{
+      width: 2.5rem;
+      font-size: .55rem;
+      padding: 0px 0.25rem;
+    }
+  }
   </style>

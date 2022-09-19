@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onBeforeMount } from 'vue';
-import type { TreeProps } from 'ant-design-vue';
+import { ref, reactive, computed, onBeforeMount, UnwrapRef } from 'vue';
+import type { FormProps, TreeProps } from 'ant-design-vue';
 import {
   SyncOutlined,
   PlusOutlined,
@@ -13,114 +13,62 @@ import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-v
 
 import { SplitPanel } from '@/components/basic/split-panel';
 import request from "@/utils/request"
-
-
-interface State {
-  expandedKeys: number[];
-  // departmentIds: number[];
-  // deptTree: TreeDataItem[];
-}
-
-
-
-const state = reactive<State>({
-  expandedKeys: [],
-  // departmentIds: [],
-  // deptTree: [],
+import { FormState } from './componentTS/awmodeler';
+// 表单查询的数据
+const formState: UnwrapRef<FormState> = reactive({
+      search: ''
 });
-
-
-const rowSelection = ref({
-  selectedRowKeys: [] as number[],
-  // onChange: (selectedRowKeys: number[], selectedRows: TableListItem[]) => {
-  //   console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-  //   rowSelection.value.selectedRowKeys = selectedRowKeys;
-  // },
-});
-
-
-/**
- * 获取metaTemplate列表
- */
-const fetchMetaTemplate = async () => {
-
+// 表单完成后的回调
+const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  console.log(formState.search);  
 };
-
-
-const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
-
-const treeData: TreeProps['treeData'] = [
-  {
-    title: 'parent 1',
-    key: '0-0',
-    children: [
-      {
-        title: 'parent 1-0',
-        key: '0-0-0',
-        disabled: true,
-        children: [
-          { title: 'leaf', key: '0-0-0-0', disableCheckbox: true },
-          { title: 'leaf', key: '0-0-0-1' },
-        ],
-      },
-      {
-        title: 'parent 1-1',
-        key: '0-0-1',
-        children: [{ key: '0-0-1-0', title: 'sss' }],
-      },
-    ],
-  },
-];
-
+// 表单失败后的回调
+const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
+      console.log(errors);
+};
+// 控制模态窗的开关
+const visible=ref(false)
+// 打开模态窗的函数
+const showModal = () => {
+  visible.value = true;      
+};
 </script>
 
 <template>
-  <main class="main">
-    <!-- <section class="block shadow flex-center"
-      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;"> -->
-      <SplitPanel>
-        <template #left-content>
-          <div class="flex justify-between">
-            <!-- <div>
-              <p style="height:16px!important;">组织1架构</p>
-            </div> -->
-            <Space>
-              <Tooltip v-if="true" placement="top">
-                <template #title>新增部门 </template>
-                <!-- <PlusOutlined @click="openDeptModal({})" /> -->
-              </Tooltip>
-              <Tooltip placement="top">
-                <template #title>刷新 </template>
-                <!-- <SyncOutlined :spin="deptListLoading"  /> -->
-              </Tooltip>
-            </Space>
-          </div>
-          <Tree v-model:expandedKeys="expandedKeys" auto-expand-parent :tree-data="treeData">
-            <template #title="{ key, title, formData }">
-              <Dropdown :trigger="['contextmenu']">
-                <span>{{ title }}</span>
-                <template #overlay>
-                  <Menu>
-                    <Menu.Item key="1">
-                      编辑
-                      <EditOutlined />
-                    </Menu.Item>
-                    <!-- <Menu.Item key="2" :disabled="!$auth('sys.dept.delete')" @click="delDept(key)">
-                  删除 <DeleteOutlined />
-                </Menu.Item> -->
-                  </Menu>
-                </template>
-              </Dropdown>
+  <main style="height:100%;overflow-x: hidden!important;">
+      <header>
+        <a-row>
+        <a-col :span="20">
+          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
+            <a-col :span="20">
+
+              <a-mentions v-model:value="formState.search"
+                placeholder="input @ to search tags, input name to search MBT">
+                <a-mentions-option value="tags:">
+                  tags:
+                </a-mentions-option>
+              </a-mentions>
+            </a-col>
+
+            <a-col :span="4">
+              <a-button type="primary" html-type="submit">search</a-button>
+            </a-col>
+
+          </AForm>
+        </a-col>
+        <a-col :span="4">
+          <a-button type="primary" @click="showModal">
+            <template #icon>
+              <plus-outlined />
             </template>
-          </Tree>
-        </template>
-        <template #right-content>
-          <!-- <p>
-            Show the details of organization
-          </p> -->
-        </template>
-      </SplitPanel>
-    <!-- </section> -->
+          </a-button>
+        </a-col>
+      </a-row>
+      </header>
+      <a-table>
+        
+      </a-table>
   </main>
 </template>
 
