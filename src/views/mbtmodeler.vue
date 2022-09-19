@@ -178,20 +178,8 @@ const globalschema = ref({
       //   //   "type":"string"
       //   // },
       "readOnly": true
-    },
-    "meta": {
-      "title": "Meta",
-      "type": "string",
-    },
-    "resources": {
-      "title": "Resources",
-      "type": "string",
-
-    },
-    "data": {
-      "title": "Data",
-      "type": "string",
     }
+
   }
 })
 const awschema = ref({
@@ -292,7 +280,7 @@ function globalhandlerSubmit() {
 };
 
 function linkhandlerSubmit() {
-    
+
   for (let key of currentLinkMap.keys()) {
     let templink = {}
     for (const [key, value] of Object.entries(linkData.value)) {
@@ -369,16 +357,14 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route: any) {
-  // currentElementView.DETACHABLE
 
   let tempdata: modelDefinition = {};
-  // console.log('.....graph:',modeler.graph)
+
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
   //todo : create cacheprops, when dblclick element or link, save them to cach props
-  // let props=[];
-  // props.push(awformdata.value);
+
   let obj = Object.fromEntries(cacheprops)
-  // console.log('++++++++++++',obj);
+
   Object.assign(tempdata, { props: obj })
 
   mbtCache['modelDefinition'] = tempdata;
@@ -510,7 +496,7 @@ onMounted(() => {
    */
   modeler.paper.on('link:pointerdblclick', function (linkView: any) {
     currentLinkView = linkView;
-        
+
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
@@ -520,7 +506,7 @@ onMounted(() => {
       // todo link props
       currentLinkMap.set(linkView.model.id, { 'label': linkData.value });
       cacheprops.set(linkView.model.id, { 'label': linkData.value });
-    
+
     }
     showDrawer(linkView)
   })
@@ -552,26 +538,9 @@ onMounted(() => {
         currentElementView.model?.resize(sizeX, sizeY);
       }
     }
-    /*
-      let awformData = cacheprops.get(elementView.model.id)
-      awformdata.value = awformData.props;
-      currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
-      hasAWInfo.value = true;
-    } else {
-      // todo
-      currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
-
-      cacheprops.set(elementView.model.id, { 'props': awformdata.value });
-    }
-
-  } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
-  }
-*/
     currentElementView.DETACHABLE;
 
   });
-
-
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
     currentElementView = elementView
@@ -621,6 +590,11 @@ function showGlobalInfo() {
     // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
     globalformData.value.name = mbtCache['name'];
     globalformData.value.description = mbtCache['description'];
+    if (_.isArray(mbtCache['tags'])) {
+      _.forEach(mbtCache['tags'], function (value, key) {
+        globalformData.value.tags += value + ' '
+      })
+    }
     // globalformData.value.tags = mbtCache['tags'];
   }
 
@@ -640,7 +614,7 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + ' '
     })
   }
-  
+
 
   if (_.isArray(rowobj.params)) {
     _.forEach(rowobj.params, function (value, key) {
@@ -652,7 +626,7 @@ function showAWInfo(rowobj: any) {
 
 
 }
-
+const activeKey = ref('1')
 
 
 
@@ -662,14 +636,10 @@ function showAWInfo(rowobj: any) {
 <template>
   <main>
     <header class="block shadow">
-      <!-- <a-row>
-        <a-col :span="24"> -->
       <a-button type="primary" @click="saveMBT(route)">
         Save
-
       </a-button>
-      <!-- </a-col>
-      </a-row> -->
+
     </header>
     <section class="block shadow flex-center" style="
       width: 100%;
@@ -690,7 +660,7 @@ function showAWInfo(rowobj: any) {
         <a-col :span="22">
           <div class="canvas" ref="canvas"></div>
         </a-col>
-        <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
+
         <a-drawer width="50%" placement="right" :closable="false" :visible="visible" :get-container="false"
           :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel">
@@ -749,6 +719,12 @@ function showAWInfo(rowobj: any) {
                 <VueForm v-model="linkData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer"
                   v-else-if="isLink">
                 </VueForm>
+                <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
+                  <a-tab-pane key="1" tab="Meta">Content of Meta</a-tab-pane>
+                  <a-tab-pane key="2" tab="Attributes" force-render>Content of Attributes</a-tab-pane>
+                  <a-tab-pane key="3" tab="Data Pool">Content of datapool</a-tab-pane>
+                  <a-tab-pane key="4" tab="Resources">Content of Resources</a-tab-pane>
+                </a-tabs>
               </div>
             </a-card>
           </div>
