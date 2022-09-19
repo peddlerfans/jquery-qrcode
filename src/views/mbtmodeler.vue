@@ -17,6 +17,7 @@ import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 import _ from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
+import { Context } from "vm";
 window.joint = joint
 
 const formFooter = {
@@ -139,12 +140,12 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
  * Panel --Json schema forms
  */
 
-let globalformData = ref<Stores.mbt>({
+let globalformData = ref<Stores.mbtView>({
   _id: '',
   name: '',
   description: ''
   ,
-  tags: []
+  tags: ''
 
 });
 let linkFormData = ref({
@@ -157,8 +158,8 @@ let awformdata = ref<Stores.awView>({
   , tags: ''
 });
 const globalschema = ref({
-  "title": "MBTConfiguration",
-  "description": "Configuration for the MBT",
+  // "title": "MBTConfiguration",
+  // "description": "Configuration for the MBT",
   "type": "object",
   "properties": {
     "name": {
@@ -240,37 +241,50 @@ const linkschema = ref({
 
   }
 })
+let currentElementView : dia.ElementView ;
 
 function awhandlerSubmit() {
-  console.log('awformdata.......', awformdata);
-  // console.log('awformdata222.......', awformdata.value);
-  // console.log('cacheprops.......', cacheprops);
-  // console.log('currentElementMap.......', currentElementMap);
+  
+  console.log('....curele:',currentElementView);
+  
   // 迭代 Map 中的 key
   for (let key of currentElementMap.keys()) {
-    // console.log(key);
-    // if(!cacheprops.has(key)){
-    //   debugger
-    //   cacheprops.set(key,{  'props': awformdata.value });
-    // }
+
     let tempaw = {}
     for (const [key, value] of Object.entries(awformdata.value)) {
-
-      // console.log(`${key}: ${value}`);
-      // console.log(JSON.parse(`{"${key}":"${value}"}`))
       let obj = JSON.parse(`{"${key}":"${value}"}`)
       Object.assign(tempaw, obj)
-      // Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
+      if(key =="template" || key =="description"){
+        
+        // let tempWidth =currentElementView.model!.findView(modeler.paper).getBBox().width / 8;
+        // if(tempWidth<100) tempWidth =100;
+        // console.log('tempWidth1:',tempWidth);
+        // console.log('size x:',sizeX)
+        // currentElementView.model?.resize(sizeX, 45)
+        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
+        
+        let sizeX =showtext.length*2.5;
+        if(sizeX<100 || sizeX>150) sizeX =160;
+        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
+        if(sizeY <45 ) sizeY =45;
+        if(sizeY > 135 ) sizeY =180;  
 
+        currentElementView.model?.attr(
+      "label/text",
+      joint.util.breakText(showtext, {
+        width: sizeX
+      },{ellipsis:true}))
+      currentElementView.model?.resize(sizeX,sizeY);
+        // currentElementView.model?.attr('label/text',`"${value}"`)
+        
+      }
     }
-    console.log('awobj:', tempaw);
     cacheprops.set(key, { 'props': tempaw });
-    console.log('cacheprops2.......', cacheprops);
   }
 
-  //to show labels 
-
   message.success('Save aw Successfully');
+  // console.log('awhandlerSubmit');
+  currentElementView.DETACHABLE;
 };
 
 function globalhandlerSubmit() {
@@ -334,8 +348,9 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route: any) {
+  currentElementView.DETACHABLE
 
-  // console.log('route:', route)
+  //  console.log('route:', modeler.graph.toJSON())
 
   // localStorage.removeItem('mbt-' + route.params.name);
   // console.log('cleared localstorage:', 'mbt-' + route.params.name)
@@ -405,7 +420,7 @@ onMounted(() => {
 
       Object.assign(tempdata, { props: {} })
       // console.log('save tempdata:', tempdata)
-      localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
+      // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
       // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
     } else {
       // console.log('empty')
@@ -499,55 +514,100 @@ onMounted(() => {
     showDrawer(linkView)
   })
 
-  modeler.paper.on('element:pointerdblclick', function (elementView: any) {
 
-    // elementView.vel.attr('label', 'Ellipse');
-    // elementView.vel.attr('body..fill', '#30d0c6');
+  modeler.paper.on('element:pointerclick', (elementView:dia.ElementView,node:dia.Event,x:number,y:number)=> {
+    currentElementView =elementView
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
+      isAW.value = true;
 
-    // elementView.el.attr('label', 'Ellipse');
+      isLink.value = false;
+      isGlobal.value = false;
+
+      if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
+
+        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
+        let sizeX =showtext.length*2.5;
+        if(sizeX<100 || sizeX>150) sizeX =160;
+        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
+        if(sizeY <45 ) sizeY =45;
+        if(sizeY > 135 ) sizeY =180;
+     
+        
+        currentElementView.model?.attr(
+      "label/text",
+      joint.util.breakText(showtext, {
+        width: sizeX
+      },{separator:'.', ellipsis:true}))
+      currentElementView.model?.resize(sizeX,sizeY);
+    }
+  }
+      /*
+        let awformData = cacheprops.get(elementView.model.id)
+        awformdata.value = awformData.props;
+        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
+        hasAWInfo.value = true;
+      } else {
+        // todo
+        currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
+
+        cacheprops.set(elementView.model.id, { 'props': awformdata.value });
+      }
+
+    } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
+    }
+*/
+    currentElementView.DETACHABLE;
+
+  });
+
+   
+
+  modeler.paper.on('element:pointerdblclick', (elementView:dia.ElementView,node:dia.Event,x:number,y:number)=> {
+    currentElementView =elementView
+
 
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
-      // console.log('elementView:', elementView);
-      // debugger
+
       if (cacheprops.get(elementView.model.id) != null && cacheprops.get(elementView.model.id).props.name.length > 0) {
-        elementView.model.attr('label/text', cacheprops.get(elementView.model.id).props.description)
+
+        /*
+        let showtext =cacheprops.get(currentElementView.model?.id).props.template || cacheprops.get(currentElementView.model?.id).props.description
+        let sizeX =showtext.length*2.5;
+        if(sizeX<100 || sizeX>150) sizeX =160;
+        let sizeY =cacheprops.get(currentElementView.model?.id).props.description.length*2.5;
+        if(sizeY <45 ) sizeY =45;
+        if(sizeY > 135 ) sizeY =180;        
+        let tempWidth =elementView.model.findView(modeler.paper).getBBox().width / 5;
+        if(tempWidth<100) tempWidth =150;
+        currentElementView.model?.attr(
+      "label/text",
+      joint.util.breakText(showtext, {
+        width: tempWidth
+      },{ellipsis:true}))
+      currentElementView.model?.resize(sizeX,sizeY);
+      */
+
         let awformData = cacheprops.get(elementView.model.id)
         awformdata.value = awformData.props;
-        // console.log('form data:',awformdata.value,awschema);
+
         currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
         hasAWInfo.value = true;
       } else {
         // todo
         currentElementMap.set(elementView.model.id, { 'props': awformdata.value });
-        // debugger
         cacheprops.set(elementView.model.id, { 'props': awformdata.value });
 
-        // console.log('mbtMap:',mbtMap);
-
-        // console.log('cacheprops.push mbtMap', cacheprops);
       }
-
-
-
-      // schema = awschema;
 
       showDrawer(elementView)
     } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
-      // console.log('...save to backend...')
-      // if (mbtCache && mbtCache[0] && mbtCache[0].hasOwnProperty('_id')) {
-      //   updateMBT(url+`/${mbtCache[0]['_id']}`, mbtCache.values)
-      //   message.success("Save MBT model successfully")
-      // }
-
-
       // message.success("Save MBT model successfully")
     }
-    // console.log('click......', elementView.model.attributes.type); 'schema:',schema,
-
+    currentElementView.DETACHABLE;
 
   });
 
@@ -567,7 +627,7 @@ function showGlobalInfo() {
     // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
     globalformData.value.name = mbtCache['name'];
     globalformData.value.description = mbtCache['description'];
-    globalformData.value.tags = mbtCache['tags'];
+    // globalformData.value.tags = mbtCache['tags'];
   }
   // console.log('...kkkk1...', mbtCache);
   // console.log('...kkkk2...', globalformData);
@@ -575,6 +635,7 @@ function showGlobalInfo() {
 
 
 function showAWInfo(rowobj: any) {
+  console.log('tags....:')
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
@@ -584,13 +645,14 @@ function showAWInfo(rowobj: any) {
 
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
-      awformdata.value.tags += value
+      awformdata.value.tags += value+ ' '
     })
   }
+  console.log('tags:', awformdata.value.tags)
 
   if (_.isArray(rowobj.params)) {
     _.forEach(rowobj.params, function (value, key) {
-      awformdata.value.params += value.name
+      awformdata.value.params += value.name +' '
 
     })
   }
@@ -637,7 +699,7 @@ function showAWInfo(rowobj: any) {
           <div class="canvas" ref="canvas"></div>
         </a-col>
         <!-- <a-button type="primary" @click="showDrawer">Open</a-button> :wrapper-col="{ span: 20 }"-->
-        <a-drawer width="70%" title="Configuration" placement="right" :closable="false" :visible="visible"
+        <a-drawer width="50%" placement="right" :closable="false" :visible="visible"
           :get-container="false" :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel">
 

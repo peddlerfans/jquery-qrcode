@@ -38,6 +38,9 @@ declare module 'jointjs' {
         interface CellView {
             model?: Cell;
         }
+        interface ElementView {
+            model?:Cell
+        }
 
     }
 }
