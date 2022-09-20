@@ -24,6 +24,7 @@ import { computed, defineComponent, } from 'vue';
 
 import { CheckOutlined, EditOutlined } from '@ant-design/icons-vue';
 import { cloneDeep } from 'lodash-es';
+import { stringLiteral } from "@babel/types";
 
 window.joint = joint
 
@@ -634,6 +635,11 @@ function showAWInfo(rowobj: any) {
 }
 const activeKey = ref('1')
 
+interface columnDefinition {
+  title: string,
+  dataIndex: string,
+  width?: string
+}
 interface MetaDataItem {
   key: string;
   title: string;
@@ -660,7 +666,7 @@ interface AttributesDataItem {
 
 
 }
-const attributescolumns = [
+const attributescolumns: columnDefinition[] = [
   {
     title: 'description',
     dataIndex: 'description',
@@ -669,11 +675,11 @@ const attributescolumns = [
   {
     title: 'requirements',
     dataIndex: 'requirements',
-  }  
-  
+  }
+
 ];
 
-const resourcescolumns = [
+const resourcescolumns: columnDefinition[] = [
   {
     title: 'alias',
     dataIndex: 'alias',
@@ -695,7 +701,7 @@ const resourcescolumns = [
 ];
 
 
-const metacolumns = [
+const metacolumns: columnDefinition[] = [
   {
     title: 'title',
     dataIndex: 'title',
@@ -781,7 +787,12 @@ const resourcessave = (key: string) => {
   Object.assign(resourcesdataSource.value.filter(item => key === item.key)[0], resourceseditableData[key]);
   delete resourceseditableData[key];
 };
-
+const resourcescancel = (key: string) => {
+  delete resourceseditableData[key];
+};
+const metacancel = (key: string) => {
+  delete metaeditableData[key];
+};
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(item => item.key !== key);
 };
@@ -889,10 +900,11 @@ const resourceshandleAdd = () => {
                     <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="metahandleAdd">Add</a-button>
                     <a-table bordered :data-source="metadataSource" :columns="metacolumns">
                       <template #bodyCell="{ column, text, record }">
-                        <template v-if="column.dataIndex === 'name'">
+                        <template v-if="['title', 'content'].includes(column.dataIndex)">
                           <div class="editable-cell">
                             <div v-if="metaeditableData[record.key]" class="editable-cell-input-wrapper">
-                              <a-input v-model:value="metaeditableData[record.key].title"
+                              <a-input
+                                v-model:value="metaeditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
                                 @pressEnter="metasave(record.key)" />
                               <check-outlined class="editable-cell-icon-check" @click="metasave(record.key)" />
                             </div>
@@ -914,13 +926,15 @@ const resourceshandleAdd = () => {
                   <a-tab-pane key="2" tab="Attributes" force-render>Content of Attributes</a-tab-pane>
                   <a-tab-pane key="3" tab="Data Pool">Content of datapool</a-tab-pane>
                   <a-tab-pane key="4" tab="Resources">
-                    <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="resourceshandleAdd">Add</a-button>
+                    <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="resourceshandleAdd">Add
+                    </a-button>
                     <a-table bordered :data-source="resourcesdataSource" :columns="resourcescolumns">
                       <template #bodyCell="{ column, text, record }">
-                        <template v-if="column.dataIndex === 'alias'">
+                        <template v-if="['alias', 'class','resourcetype'].includes(column.dataIndex)">
                           <div class="editable-cell">
                             <div v-if="resourceseditableData[record.key]" class="editable-cell-input-wrapper">
-                              <a-input v-model:value="resourceseditableData[record.key].alias"
+                              <a-input
+                                v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
                                 @pressEnter="resourcessave(record.key)" />
                               <check-outlined class="editable-cell-icon-check" @click="resourcessave(record.key)" />
                             </div>
@@ -928,13 +942,27 @@ const resourceshandleAdd = () => {
                               {{ text || ' ' }}
                               <edit-outlined class="editable-cell-icon" @click="resourcesedit(record.key)" />
                             </div>
+
                           </div>
                         </template>
                         <template v-else-if="column.dataIndex === 'operation'">
-                          <a-popconfirm v-if="resourcesdataSource.length" title="Sure to delete?"
-                            @confirm="onresourcesDelete(record.key)">
-                            <a>Delete</a>
-                          </a-popconfirm>
+                          <div class="editable-row-operations">
+                            <span v-if="resourceseditableData[record.key]">
+                              <a-typography-link @click="resourcessave(record.key)">Save</a-typography-link>
+                              <a-popconfirm title="Sure to cancel?" @confirm="resourcescancel(record.key)">
+                                <a>Cancel</a>
+                              </a-popconfirm>
+                            </span>
+                            <span v-else>
+                              <a @click="resourcesedit(record.key)">Edit</a>
+                            </span>
+                            <span>
+                            <a-popconfirm v-if="resourcesdataSource.length" title="Sure to delete?"
+                              @confirm="onresourcesDelete(record.key)">
+                              <a>    Delete</a>
+                            </a-popconfirm>
+                          </span>
+                          </div>
                         </template>
                       </template>
                     </a-table>
