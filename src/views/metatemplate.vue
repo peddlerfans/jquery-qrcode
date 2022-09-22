@@ -1,24 +1,19 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
-import type { FormProps, SelectProps, TreeProps } from 'ant-design-vue';
+import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
 import {
   SyncOutlined,
   PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-  SwapOutlined,
 } from '@ant-design/icons-vue';
-import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
-import { SplitPanel } from '@/components/basic/split-panel';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs, ModelState} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
+import { useRouter } from 'vue-router';
 // import { FormState } from './componentTS/awmodeler';
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
-      q:'category:dynamic'
+      q:'category:meta'
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
@@ -29,22 +24,29 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
 // 表格的数据
-let tableData= ref([])
+let tableData= ref<Array<any>>([])
 let searchobj: tableSearch = reactive({
   search: "",
   // page: 1,
   // perPage:10,
-  q:'category:dynamic'
+  q:'category:meta'
 })
+const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
  console.log(rst.data);
- tableData.value=rst.data
+ 
+ tableData.value=arr(rst.data)
 }
 
+function fn(){
+  console.log(tableData.value);
+  
+}
 
 onMounted(()=>{
   query()
+  fn()
   // updTable()
 })
 // 分页的数据
@@ -89,34 +91,62 @@ const onSizeChange =async (current: any, pageSize: number) => {
   console.log(isExpand,rected);
   
 }
-// 给表格的数据中遍历添加一个递增数
 
-// interface DataItem {
-//   key: string;
-//   name: string;
-//   age: number;
-//   address: string;
-// }
-// const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
-
-// function updTable(){
-//   const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
-// tableData.value=arr(tableData.value)
-// }
-// console.log(tableData.value);
-
-// const edit = (key: string) => {
- 
-//   console.log(tableData.value);
-//   editableData[key] = cloneDeep(tableData.value.filter(item => key === item.key)[0]);
-// };
-// const save = (key: string) => {
-//   Object.assign(tableData.value.filter(item => key === item.key)[0], editableData[key]);
-//   delete editableData[key];
-// };
-// const cancel = (key: string) => {
-//   delete editableData[key];
-// };
+interface DataItem {
+  key?: string;
+  name: string;
+  description: string;
+  tags: Array<string>;
+}
+const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
+// 点击修改meta的方法
+const updMeta=async (data:any)=>{
+  let rst=await request.put(`/api/templates/${data._id}`,data)
+  console.log(rst);
+}
+// 点击Edit触发的函数
+const edit = (key: string) => {
+  
+  editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
+  console.log(editableData[key]);
+  
+  states.tags=editableData[key].tags
+  
+};
+// 点击save触发的函数
+const save =async (obj:any) => {
+  // Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
+  editableData[obj.key].tags=states.tags
+  delete editableData[obj.key].key
+  console.log(editableData[obj.key]);
+  
+  if(obj._id){
+    await updMeta(editableData[obj.key])
+  }else{
+    await request.post("/api/templates",editableData[obj.key])
+  }
+  query()
+  console.log(editableData[obj.key]);
+  delete editableData[obj.key];
+  
+}
+const createMeta=()=>{
+  const newMeta={
+    key:tableData.value.length,
+    name:'New template',
+    description:'New template',
+    category:'meta',
+    tags:[]
+  }
+  tableData.value.push({...newMeta})
+}
+// 点击删除的方法
+const cancel =async (obj: any) => {
+  let rst=await request.delete(`/api/templates/${obj._id}`)
+  message.success('test template has been deleted successfully')
+  query()
+  delete editableData[obj.key];
+};
 // 表格的结构
 const columns = reactive<Object[]>(
   [
@@ -140,95 +170,23 @@ const columns = reactive<Object[]>(
     title: 'Action',
     dataIndex: 'action',
     key: 'action',
-  },
-]
+  }]
 )
-const visible = ref<boolean>(false);
-const showModal = () => {
-  console.log(123);
-  
-  visible.value = true;      
-};
-  
-    const handleOk = () => {
-      onFinishForm(modelstates)
-      clear()
-};
-// 关闭模态窗触发事件
-const closemodel = () => {
-  clear()
-  visible.value = false;
-}
-// 模态窗表单
-
-let partype = ref('')
-  const optiones = ref<SelectProps['options']>([
-      {
-        value: 'str',
-        label: 'str',
-      },
-      {
-        value: 'float',
-        label: 'float',
-      },  
-      {
-        value: 'false',
-        label: 'false',
-    },
-      {
-        value: 'number',
-        label: 'number',
-    },
-    {
-        value: 'int',
-        label: 'int',
-    },
-    {
-      value: 'SUT',
-        label:'SUT'
-      }
-    ]);
-    let modelstates = ref<ModelState>({
-      name: '',
-      description: '',
-      _id: "",
-      tags:[]
-    });
-    
-    // 清除模态窗数据
-    const instance=getCurrentInstance()
-const clear = () => {
-  modelstates.value = {
-    name: "",
-    description: '',
-    _id: "",
-    tags: []
-  }
-    states.tags = []; 
-    
-    (instance?.refs.refForm as any).resetFields()
-
-}
-// 表单提交的方法
-const onFinishForm=(modelstates:any)=>{}
-// 表单提交失败的方法
-const onFinishFailedForm = (errorInfo: any) => {
-      console.log('Failed:', errorInfo);
-};
-// 添加的表单tags
+// 获取新建tags的dom
 let inputRef = ref();
-    let states = reactive<statesTs>({
-      tags: [],
-      inputVisible: false,
-      inputValue: '',
-    });
+// 添加的表单tags
+let states = reactive<statesTs>({
+  tags: [],
+  inputVisible: false,
+  inputValue: '',
+});
 // 点击添加标签的方法
 const showInput = () => {
-      states.inputVisible = true;
-      nextTick(() => {
-        inputRef.value.focus();
-        })
-    };
+  states.inputVisible = true;
+  nextTick(() => {
+    inputRef.value.focus();
+    })
+};
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = () => {
   let tags = states.tags;
@@ -240,12 +198,25 @@ const handleInputConfirm = () => {
     inputVisible: false,
     inputValue: '',
  });  
+  
 }
 // 移除tags
 const handleClose = (removedTag: string) => {
       const tags = states.tags.filter((tag: string) => tag !== removedTag);
       states.tags = tags;
-    };
+};
+let router=useRouter()
+// 点击跳转metamodel
+const jumpModel=(record:any)=>{
+  router.push({
+    name:'metaModeler',
+    path:'/metaModeler',
+    query:{ record:record.name}
+  })
+}
+// const jumpModel=(record:any)=>{
+//   router.push("/metaModeler"+record)
+// }
 </script>
 
 <template>
@@ -268,11 +239,10 @@ const handleClose = (removedTag: string) => {
             <a-col :span="4">
               <a-button type="primary" html-type="submit">search</a-button>
             </a-col>
-
           </AForm>
         </a-col>
         <a-col :span="4">
-          <a-button type="primary" @click="showModal">
+          <a-button type="primary" @click="createMeta">
             <template #icon>
               <plus-outlined />
             </template>
@@ -280,79 +250,64 @@ const handleClose = (removedTag: string) => {
         </a-col>
       </a-row>
       </header>
-      <!-- 模态窗 -->
-      <div>
-    <a-modal v-model:visible="visible" 
-    :title="modelstates._id? 'Update':'Save'"
-    @cancel="closemodel"
-    @ok="handleOk"
-    :width="700"
-    >
-    <template #footer>
-      <a-button @click="closemodel">cancel</a-button>
-      <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
-    </template>
-        <a-form
-        ref="refForm"
-      :model="modelstates"
-      name="basic"
-      :label-col="{ span: 6 }"
-      :wrapper-col="{ span: 16 }"
-      autocomplete="off"
-      @finish="onFinishForm"
-      @finishFailed="onFinishFailedForm"
-    >
-      <a-form-item
-        label="name"
-        name="name"
-      >
-        <a-input v-model:value="modelstates.name" />
-      </a-form-item>
-
-      <a-form-item
-        label="description"
-        name="description"
-      >
-        <a-input v-model:value="modelstates.description" />
-      </a-form-item>
-<!-- tags标签 -->
-      <a-form-item
-      label="tags"
-      name="tags" >
-      <template v-for="(tag, index) in states.tags" :key="tag">
-        <a-tooltip v-if="tag.length > 20" :title="tag">
-          <a-tag :closable="true" @close="handleClose(tag)">
-            {{ `${tag.slice(0, 20)}...` }}
-          </a-tag>
-        </a-tooltip>
-        <a-tag v-else-if="tag.length==0"></a-tag>
-        <a-tag v-else :closable="true" @close="handleClose(tag)">
-          {{tag}}
-        </a-tag>  
-      </template>
+      
+      <a-table :columns="columns" :data-source="tableData" bordered>
+    <template #bodyCell="{ column, text, record }">
+      <template v-if='column.key==="name"'>
+        <div>
           <a-input
-            v-if="states.inputVisible"
-            ref="inputRef"
-            v-model:value="states.inputValue"
-            type="text"
-            size="small"
-            :style="{ width: '78px' }"
-            @blur="handleInputConfirm"
-            @keyup.enter="handleInputConfirm"
+            v-if="editableData[record.key]"
+            v-model:value="editableData[record.key].name"
+            style="margin: -5px 0"
           />
-        <a-tag v-else style="background: #fff; border-style: dashed" 
+          <template v-else>
+            <a href="javascript:;" @click="jumpModel(record)">{{text}}</a>
+            <!-- <router-link :to="{path:'/metaModeler',query:{record}}">{{ text }}</router-link> -->
+          </template>
+        </div>
+        </template>
+        <template v-if='column.key==="description"'>
+        <div>
+          <a-input
+            v-if="editableData[record.key]"
+            v-model:value="editableData[record.key].description"
+            style="margin: -5px 0"
+          />
+          <template v-else>
+            {{ text }}
+          </template>
+        </div>
+        </template>
+          <template v-if="column.key === 'tags'">
+            <template v-if="editableData[record.key]">
+              <template v-for="(tag, index) in states.tags" :key="tag">
+                <a-tooltip v-if="tag.length > 20" :title="tag">
+                  <a-tag :closable="true" @close="handleClose(tag)">
+                    {{ `${tag.slice(0, 20)}...` }}
+                  </a-tag>
+                </a-tooltip>
+                <a-tag v-else-if="tag.length==0"></a-tag>
+                <a-tag v-else :closable="true" @close="handleClose(tag)">
+                  {{tag}}
+                </a-tag>  
+              </template>
+              <a-input
+                v-if="states.inputVisible"
+                ref="inputRef"
+                v-model:value="states.inputValue"
+                type="text"
+                size="small"
+                :style="{ width: '78px' }"
+                @blur="handleInputConfirm"
+                @keyup.enter="handleInputConfirm"
+              />
+            <a-tag v-else style="background: #fff; border-style: dashed" 
         @click="showInput">
           <plus-outlined />
           New Tag
         </a-tag>
-      </a-form-item>
-        </a-form>
-    </a-modal>
-  </div>
-      <a-table :columns="columns" :data-source="tableData" bordered>
-    <template #bodyCell="{ column, text, record }">
-      <template v-if="column.key === 'tags'">
-              <span>
+            </template>
+              <span v-else>
                 <a-tag
                   v-for="tag in record.tags"
                   :key="tag"
@@ -362,6 +317,19 @@ const handleClose = (removedTag: string) => {
                 </a-tag>
               </span>
           </template>
+          <template v-else-if="column.dataIndex === 'action'">
+        <div class="editable-row-operations">
+          <span v-if="editableData[record.key]">
+            <a-typography-link @click="save(record)">Save</a-typography-link>
+            <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
+              <a>Cancel</a>
+            </a-popconfirm>
+          </span>
+          <span v-else>
+            <a @click="edit(record.key)">Edit</a>
+          </span>
+        </div>
+      </template>
     </template>
   </a-table>
       

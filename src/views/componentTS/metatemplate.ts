@@ -18,4 +18,5 @@ export interface ModelState {
   description: string;
   _id: string;
   tags: Array<string>;
+  category:string
 }

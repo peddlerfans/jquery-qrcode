@@ -132,13 +132,14 @@ async function saveAw(data: any) {
   return new Promise((resolve, reject) => {
     request.post("/api/hlfs", data).then(res => {   
       if(res){
-        message.success("Added successfully")
         visible.value = false;
+        message.success("Added successfully")        
         query()
       }
        
   }).catch(function (error) {
     if (error.response.status == 409) {
+      visible.value = false;
       message.error("Duplicate name or description")
     }
   });
@@ -223,10 +224,6 @@ let rules: Record<string, Rule[]> = {
 }
 let refForm=ref(null)
 const onFinishForm = async (modelstates: any) => {  
-  // query({search:modelstates.value.name}  ).then(res=>{
-  // })
-  // 声明变量查找是否存在name
-  
   modelstates.value.tags = states.tags
     if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
