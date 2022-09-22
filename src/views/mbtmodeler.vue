@@ -70,17 +70,17 @@ const visible = ref(false);
 const showDrawer = (el?: any) => {
   visible.value = true;
   if (el && _.isObject(el) && el.hasOwnProperty('path')) {
-    // console.log('click link ')
+    // ('click link ')
   } else if (el && _.isObject(el)) {
-    // console.log('click element')
+    // 'click element')
   } else if (el == 'aw') {
     //show aw
     isAW.value = true;
     awquery();
-   
+
   }
   else {
-    // console.log('click blank')
+    // ('click blank')
   }
 };
 
@@ -113,25 +113,25 @@ let searchobj: tableSearch = reactive({
 // const colSpan = ref('10');
 const columns = reactive<Object[]>(
   [
-  {
-    name: 'Name',
-    dataIndex: 'name',
-    key: 'name',
-  },
-  {
-    title: 'description',
-    dataIndex: 'description',
-    key: 'description',
+    {
+      name: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'description',
+      dataIndex: 'description',
+      key: 'description',
     },
     {
       title: 'template',
       dataIndex: 'template',
-      key:'template'
+      key: 'template'
     },
     {
       title: 'tags',
       dataIndex: 'tags',
-      key:'tags'
+      key: 'tags'
     }
     // {
     //   name: 'Name',
@@ -151,7 +151,7 @@ const columns = reactive<Object[]>(
 async function awqueryById(id: string) {
   let rst = await request.get("/api/hlfs/" + id)
   if (rst.data) {
-    console.log('rst:', rst.data)
+    // console.log('rst:', rst.data)
     return rst.data
   }
 }
@@ -177,7 +177,7 @@ let pagination = ref({
   pageSize: 5, // 默认每页显示数量
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
-  pageSizeOptions: ['5','10', '20', '50', '100'], // 每页数量选项
+  pageSizeOptions: ['5', '10', '20', '50', '100'], // 每页数量选项
   showTotal: (total: any) => `共 ${total} 条`, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize),//点击页码事件
@@ -276,7 +276,8 @@ const awschema = ref({
   "type": "object",
   "properties": {
     "_id": {
-      "type": "string"
+      "type": "string",
+      "ui:hidden": true,
     },
     "name": {
       "title": "AW Name",
@@ -323,9 +324,6 @@ let currentElementView: dia.ElementView;
 let currentLinkView: dia.LinkView;
 
 function awhandlerSubmit() {
-
-
-  // 迭代 Map 中的 key
   for (let key of currentElementMap.keys()) {
 
     let tempaw = {}
@@ -334,31 +332,18 @@ function awhandlerSubmit() {
       Object.assign(tempaw, obj)
       if (key == "template" || key == "description") {
 
-        // let tempWidth =currentElementView.model!.findView(modeler.paper).getBBox().width / 8;
-        // if(tempWidth<100) tempWidth =100;
-        // console.log('tempWidth1:',tempWidth);
-        // console.log('size x:',sizeX)
-        // currentElementView.model?.resize(sizeX, 45)
         let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
-
         let sizeX = showtext.length * 2.5;
         if (sizeX < 100 || sizeX > 150) sizeX = 160;
         let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
         if (sizeY < 45) sizeY = 45;
         if (sizeY > 135) sizeY = 180;
 
-        // currentElementView.model?.attr(
-        //   "label/text",
-        //   joint.util.breakText(showtext, {
-        //     width: sizeX
-        //   }, { ellipsis: true }))
-        // currentElementView.model?.resize(sizeX, sizeY);
         modeler.graph.getCell(ev_id + '').resize(sizeX, sizeY);
         modeler.graph.getCell(ev_id + '').attr(
           "label/text", joint.util.breakText(showtext, {
             width: sizeX
           }, { ellipsis: true }))
-        // currentElementView.model?.attr('label/text',`"${value}"`)
 
       }
     }
@@ -443,7 +428,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           propsMap.forEach((val: any, key: any) => {
             //Only element has name, link doesn't have it
             if (val.props.hasOwnProperty('name') && val.props.hasOwnProperty('_id')) {
-              console.log(key);//element id in the paper of modeler
+              // console.log(key);//element id in the paper of modeler
               //Get the latest AW from backend one by one
               awqueryById(val.props._id).then((awresponse: Stores.aw) => {
                 let tempparams = ''
@@ -476,7 +461,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
               })
             }
           })
-          console.log('refresh aw from backend and save them to cache,', cacheprops);
+          // console.log('refresh aw from backend and save them to cache,', cacheprops);
         }
         mbtCache = response;//should work on here
         localStorage.setItem('mbt_' + route.params.name + '_id', idstr)
@@ -488,12 +473,10 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     ).catch(err => console.log(err))
 
 
-    console.log('id query:', id, rst)
-
 
   } else if (id) {
     rst = await request.get(url + "/" + id)
-    console.log('id query:', id, rst)
+    // console.log('id query:', id, rst)
     if (rst && rst.name == route.params.name) {
       let str = rst._id + '';
 
@@ -507,7 +490,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
   }
   else {
     rst = await request.get(url + "?search=" + route.params.name)
-    console.log('name query:', route.params.name)
+    // console.log('name query:', route.params.name)
     if (rst.data) {
 
       rst.data.forEach((record: any) => {
@@ -518,10 +501,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         }
       })
     }
-    // console.log('mbtCache:', mbtCache)
-    // tableData.value = rst.data
-    // console.log(tableData, tableData.value);
-
   }
   return mbtCache
 
@@ -534,8 +513,8 @@ let currentLinkMap = new Map();
  * Global elements in the component
  */
 async function updateMBT(url: string, data: any) {
-  let rst = await request.put(url, data)
-  // console.log(rst);
+  await request.put(url, data)
+
 }
 
 const canvas = ref(HTMLElement);
@@ -550,16 +529,15 @@ function saveMBT(route: any) {
   let tempdata: modelDefinition = {};
 
   let oldgraphData = modeler.graph.toJSON();
-  console.log(oldgraphData);
+  // console.log(oldgraphData);
   let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
-  debugger
   oldgraphData.cells.forEach((item: any) => {
     graphIds.push(item.id);
     if (item.type == 'standard.Rectangle') {
       //if label in the element is different with cacheprops, correct it as same as cacheprops
       item.attrs.label.text = cacheprops.get(item.id)
     }
-    console.log(oldgraphData);
+    // console.log(oldgraphData);
 
   })
   /*删除找不到的*/
@@ -570,21 +548,14 @@ function saveMBT(route: any) {
     }
   })
 
-  //   modeler.graph!.model.attributes.cells.models
-  // .find(item=>{ if(item.id=='b3b8f2df-1f81-401b-8cf2-886f9d94056e') item.attributes.attrs.label.text='开始播放5s'}
-
-
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
-  //todo : create cacheprops, when dblclick element or link, save them to cach props
 
   let obj = Object.fromEntries(cacheprops)
 
   Object.assign(tempdata, { props: obj })
 
   mbtCache['modelDefinition'] = tempdata;
-  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
-  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-  // console.log('mbtCache.values  ,', mbtCache)
+
   updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
   message.success("Save MBT model successfully")
 
@@ -595,18 +566,17 @@ function reloadMBT(route: any) {
 
   let res;
   let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id') + '';
-  console.log('mbtId:', mbtId)
+
   if (mbtId.length > 0) {
-    console.log('mbtid > 0')
+
     res = mbtquery(mbtId, true);
   }
   else {
-    console.log('query again by name')
+
     res = mbtquery();
   }
   res.then((value: any) => {
-    console.log('res:', value)
-    debugger
+
     if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
       let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
       modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -622,9 +592,8 @@ function reloadMBT(route: any) {
   let tempdata: modelDefinition = {};
 
   let oldgraphData = modeler.graph.toJSON();
-  console.log(oldgraphData);
+
   let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
-  debugger
   oldgraphData.cells.forEach((item: any) => {
     graphIds.push(item.id);
     if (item.type == 'standard.Rectangle') {
@@ -634,7 +603,7 @@ function reloadMBT(route: any) {
 
 
   })
-  console.log(oldgraphData);
+
   /*删除找不到的*/
   cacheprops.forEach((aw: any) => {
     if (graphIds.find((id: string) => id == aw.id) == 'undefined') {
@@ -643,21 +612,14 @@ function reloadMBT(route: any) {
     }
   })
 
-  //   modeler.graph!.model.attributes.cells.models
-  // .find(item=>{ if(item.id=='b3b8f2df-1f81-401b-8cf2-886f9d94056e') item.attributes.attrs.label.text='开始播放5s'}
-
-
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
-  //todo : create cacheprops, when dblclick element or link, save them to cach props
 
   let obj = Object.fromEntries(cacheprops)
 
   Object.assign(tempdata, { props: obj })
 
   mbtCache['modelDefinition'] = tempdata;
-  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
-  // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-  // console.log('mbtCache.values  ,', mbtCache)
+
   updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
   message.success("MBT model reloaded")
 
@@ -675,12 +637,12 @@ onMounted(() => {
   modeler = new MbtModeler(canvas);
   let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id');
   let res;
-  console.log('mbtId:', mbtId)
+
   if (mbtId) {
-    console.log('mbtId:', mbtId)
+
     res = mbtquery(mbtId);
     res.then((value: any) => {
-      console.log('res:', value)
+
       if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -688,7 +650,7 @@ onMounted(() => {
 
           const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
           cacheprops = map;
-          //         // console.log('after:',cacheprops)
+
         }
       }
     })
@@ -696,7 +658,6 @@ onMounted(() => {
   else {
     res = mbtquery();
     res.then((value: any) => {
-      console.log('res:', value)
 
       if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -705,53 +666,12 @@ onMounted(() => {
 
           const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
           cacheprops = map;
-          //         // console.log('after:',cacheprops)
+
         }
       }
 
     })
   }
-  // res.then((value: any) => {
-  //   console.log('res:', value)
-
-  //   if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
-  //     let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-  //     modeler.graph.fromJSON(JSON.parse(tempstr));
-  //     if (value.modelDefinition.hasOwnProperty('props')) {
-
-  //       const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
-  //       cacheprops = map;
-  //       // console.log('after:',cacheprops)
-  //     }
-
-  //   } else if (localStorage.getItem('mbt-' + route.params.name)) {
-
-
-  //     /**
-  //      * localstorage ... todo next
-  //      */
-  //     // console.log('already exists ', JSON.stringify(localStorage.getItem('mbt-'+route.params.name)))
-  //     // if (localStorage.getItem('mbt-' + route.params.name)) {
-  //     let tempobj = localStorage.getItem('mbt-' + route.params.name) + '';
-  //     // console.log('load data from here:', tempobj);
-  //     // modeler.graph.fromJSON(JSON.parse(tempstr));
-  //     // return
-  //   } else if (modeler && modeler.graph) {
-  //     let tempdata: modelDefinition = {};
-  //     Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
-
-  //     Object.assign(tempdata, { props: {} })
-  //     // console.log('save tempdata:', tempdata)
-  //     // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(tempdata));
-  //     // localStorage.setItem('mbt-' + route.params.name, JSON.stringify(modeler.graph.toJSON()));
-  //   } else {
-  //     // console.log('empty')
-  //   }
-  // })
-
-  //modelDefinition
-
-
 
   /**
    * Drag & Drop stencil to modeler paper
@@ -830,7 +750,7 @@ onMounted(() => {
     if (cacheprops.has(linkView.model.id)) {
       cacheprops.get(linkView.model.id)
     } else {
-      // todo link props
+
       currentLinkMap.set(linkView.model.id, { 'label': linkData.value });
       cacheprops.set(linkView.model.id, { 'label': linkData.value });
 
@@ -840,10 +760,8 @@ onMounted(() => {
 
 
   modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
-    console.log('....elementView:', elementView, x, y)
-    console.log(cacheprops);
-    // debugger
-    // currentElementView = elementView
+
+
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
@@ -867,17 +785,11 @@ onMounted(() => {
             width: sizeX
           }, { ellipsis: true }))
 
-        // currentElementView.model?.attr(
-        //   "label/text",
-        //   joint.util.breakText(showtext, {
-        //     width: sizeX
-        //   }, { separator: '.', ellipsis: true }))
-        // currentElementView.model?.resize(sizeX, sizeY);
       }
     }
     // currentElementView.requestUpdate(1);
     elementView.requestUpdate(1);
-
+    awquery()
   });
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
@@ -886,9 +798,7 @@ onMounted(() => {
     awformdata.value.params = ''
     awformdata.value.tags = ''
     awformdata.value.template = ''
-    // currentElementView = elementView
-    // console.log('ce:', currentElementView)
-    // console.log('ev:', elementView);
+
 
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
@@ -935,7 +845,7 @@ onMounted(() => {
 function showGlobalInfo() {
   globalformData.value.tags = ''
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
-    // console.log('...kkkk0...', mbtCache, mbtCache[0]['name']);  
+
     globalformData.value.name = mbtCache['name'];
     globalformData.value.description = mbtCache['description'];
     if (_.isArray(mbtCache['tags'])) {
@@ -1206,14 +1116,8 @@ const resourceshandleAdd = () => {
             </AForm>
 
             <div class="awtable" v-if="!hasAWInfo && isAW">
-              <a-table bordered 
-              row-key="record=>record._id" 
-                :columns="columns" 
-                :data-source="tableData"
-                class="components-table-demo-nested"
-                :pagination="pagination" 
-           
-                >
+              <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+                class="components-table-demo-nested" :pagination="pagination">
                 <template #headerCell="{ column }">
                   <template v-if="column.key === 'name'">
                     <span>
@@ -1228,14 +1132,19 @@ const resourceshandleAdd = () => {
                   <template v-if="column.key === 'name'">
                     <div v-if="record._highlight">
                       <div v-if="record._highlight.name">
-                        <a-button type="link" @click="showAWInfo(record)"> <p v-for="item in record._highlight.name" v-html="item"></p>
+                        <a-button type="link" @click="showAWInfo(record)">
+                          <p v-for="item in record._highlight.name" v-html="item"></p>
                         </a-button>
                       </div>
-                      <div v-else><a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button></div>
+                      <div v-else>
+                        <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
+                      </div>
                     </div>
-                    <div v-else><a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button></div>
+                    <div v-else>
+                      <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
+                    </div>
                   </template>
-                  
+
 
                   <template v-if="column.key === 'description'">
                     <div v-if="record._highlight">
@@ -1257,20 +1166,16 @@ const resourceshandleAdd = () => {
                   </template>
 
                   <template v-if="column.key === 'tags'">
-              <span>
-                <a-tag
-                  v-for="tag in record.tags"
-                  :key="tag"
-                  :color="tag === 'test' ? 'volcano' : 'red'"
-                >
-                  {{ tag.toUpperCase() }}
-                </a-tag>
-              </span>
-          </template>
+                    <span>
+                      <a-tag v-for="tag in record.tags" :key="tag" :color="tag === 'test' ? 'volcano' : 'red'">
+                        {{ tag.toUpperCase() }}
+                      </a-tag>
+                    </span>
+                  </template>
 
-                  
 
-                  
+
+
 
 
                 </template>
@@ -1451,10 +1356,11 @@ header {
 
 .ant-drawer-body {
   overflow-x: hidden !important;
-  padding:0px!important;
+  padding: 0px !important;
 }
-.found-kw{
-    color: red!important;
-    font-weight: 600;
-  }
+
+.found-kw {
+  color: red !important;
+  font-weight: 600;
+}
 </style>
