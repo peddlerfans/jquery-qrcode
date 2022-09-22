@@ -1,8 +1,10 @@
 import jointjs from 'jointjs'
+import { Axios, AxiosResponse } from "axios"
 import { PathParserOptions } from 'vue-router'
 import 'vue-router';
 import { any } from 'vue-types';
 import $ from 'jquery'
+import { S } from 'vitest/dist/global-d05ffb3f';
 
 declare module JQuery {
     namespace JQuery {
@@ -38,9 +40,53 @@ declare module 'jointjs' {
         interface CellView {
             model?: Cell;
         }
+        interface ElementView {
+            model?:Cell
+        }
+        interface LinkView {
+            model?:Link
+        }
+        interface Graph {
+            model?:Cell,
+            attributes:any
+        }
 
     }
 }
+interface Label{
+    text:string
+}
+interface Attrs{
+    label:Label
+}
+
+interface Cell {
+    type:string,
+    attrs?:Attrs,
+    id:string
+}
+interface Cells{
+    cells:Cell[]
+}
+interface ModelDefinition {
+    cellsinfo:Cells,
+    props:object
+}
+declare module 'axios' {
+    interface ResponseData<T> {
+
+        code: number,
+        msg: string,
+        data: T | null
+        total?: any
+        name?:any
+        _id?:string,
+        description?:string,
+        tags?:[],
+        modelDefinition?:ModelDefinition
+    }
+}
+
 
 
 
