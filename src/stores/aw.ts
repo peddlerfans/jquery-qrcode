@@ -13,6 +13,7 @@ export const awStore = defineStore('aw', {
     return {
       awname:'',
       aw: {
+        _id:'',
         name:'',
         description:''
       }
@@ -26,7 +27,7 @@ export const awStore = defineStore('aw', {
   actions: {
     
     getAwInfo(state:Stores.aw): Stores.aw {
-      console.log('get aw in store:',state);
+      // console.log('get aw in store:',state);
       return state
       
     },
@@ -37,7 +38,7 @@ export const awStore = defineStore('aw', {
     //   }
     // },
     setAWInfo(newstate:Stores.aw):Stores.aw {
-      console.log('set aw store:',newstate)
+      // console.log('set aw store:',newstate)
       return newstate
     }
   }

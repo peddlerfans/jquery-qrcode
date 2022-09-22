@@ -31,7 +31,7 @@ export class Stencil {
     const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
     let s0 = new joint.shapes.uml.StartState({
-      position: { x: 30, y: 10 },
+      position: { x: 10, y: 20 },
       size: { width: 30, height: 30 },
       attrs: {
         circle: {
@@ -45,7 +45,7 @@ export class Stencil {
 
 
     let se = new joint.shapes.uml.EndState({
-      position: { x: 30, y: 50 },
+      position: { x: 10, y: 70 },
       size: { width: 30, height: 30 },
       attrs: {
         ".outer": {
@@ -81,8 +81,8 @@ export class Stencil {
 
     let umlstate = new joint.shapes.standard.Rectangle( {
      
-      position: { x: 25, y: 100 },
-      size: { width: 45, height: 45 }, 
+      position: { x: 10, y: 120 },
+      size: { width: 35, height: 35 }, 
         attrs:{
           body: {
             // fill: 'blue'
@@ -95,8 +95,8 @@ export class Stencil {
 
         let ExclusiveRhombusShape = new joint.shapes.standard.Polygon( {
      
-          position: { x: 10, y: 250 },
-          size: { width: 70, height: 45 }, 
+          position: { x: 5, y: 220 },
+          size: { width: 45, height: 30 }, 
             attrs:{
               body: {
               refPoints: '0,10 10,0 20,10 10,20',
@@ -111,8 +111,8 @@ export class Stencil {
 
             let ParallelRhombusShape = new joint.shapes.standard.Polygon( {
      
-              position: { x: 10, y: 180 },
-              size: { width: 70, height: 45 }, 
+              position: { x: 5, y: 175 },
+              size: { width: 45, height: 30 }, 
                 attrs:{
                   body: {
                     refPoints: '0,10 10,0 20,10 10,20',

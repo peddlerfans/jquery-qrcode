@@ -14,15 +14,19 @@ export namespace Stores {
     params?: string[],
     name_hash?: string,
     description_hash?: string,
-    _id?: string,
+    _id: string,
+    template?:string,
+    templdate_en?:string,
     _highlight?: {
       description?: string[]
     }
   }
 
   interface awView {
+    _id:string,
     name: string,
-    description: string,    
+    description: string,  
+    template?:string,  
     tags: string,
     params: string 
     
