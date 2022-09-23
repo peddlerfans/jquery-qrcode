@@ -38,16 +38,8 @@ async function query(data?:any){
  
  tableData.value=arr(rst.data)
 }
-
-function fn(){
-  console.log(tableData.value);
-  
-}
-
 onMounted(()=>{
   query()
-  fn()
-  // updTable()
 })
 // 分页的数据
 let pagination=ref( {
@@ -125,7 +117,7 @@ const save =async (obj:any) => {
   }else{
     await request.post("/api/templates",editableData[obj.key])
   }
-  query()
+  await query()
   console.log(editableData[obj.key]);
   delete editableData[obj.key];
   
@@ -142,10 +134,13 @@ const createMeta=()=>{
 }
 // 点击删除的方法
 const cancel =async (obj: any) => {
-  let rst=await request.delete(`/api/templates/${obj._id}`)
+  if(obj._id){
+    let rst=await request.delete(`/api/templates/${obj._id}`)
+  }
+  delete editableData[obj.key];
   message.success('test template has been deleted successfully')
   query()
-  delete editableData[obj.key];
+  
 };
 // 表格的结构
 const columns = reactive<Object[]>(
