@@ -104,7 +104,7 @@ const formState = reactive<FormState>({
 });
 
 let tableData = ref([])
-let searchobj: tableSearch = reactive({
+let searchobj = reactive({
   search: "",
   size: 20,
   page: 1,

@@ -13,6 +13,7 @@ import '@/styles/index.postcss' // 全局样式
 import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
+
 import {Form,Input,InputNumber,Button,Drawer} from 'ant-design-vue';
  
 mockEnv.includes(import.meta.env.MODE as EnvType) && mock === 'on' && enableMock()

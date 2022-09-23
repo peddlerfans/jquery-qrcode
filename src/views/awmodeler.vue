@@ -1,7 +1,8 @@
 <script lang="ts">
-export default { name: 'AWModeler'}
+export default { name: 'AWModeler',directive: {
+    MouseMenu: MouseMenuDirective
+  }}
 </script>
-
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps, } from 'ant-design-vue';
@@ -12,21 +13,56 @@ import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
+// import VueContextMenu from 'vue-contextmenu'
+import { MouseMenuDirective } from '@howdyjs/mouse-menu';
 let tableData= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
   page: 1,
   perPage:10
 })
-async function query(data?: any) {    
-  let rst = await request.get("/api/hlfs", { params: data || searchobj })
+async function query(data?: any) {  
+  let rst;
+  if (data && data.search.toString().substring(0, 6) == '@tags:') {
+    rst = await request.get("/api/hlfs"+`?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
+  } else {
+    rst = await request.get("/api/hlfs", { params: data || searchobj })
+  }  
+  // let rst = await request.get("/api/hlfs", { params: data || searchobj })
   if (rst.data) {
     pagination.value.total = rst.total    
     tableData.value = rst.data
   }
+  return rst.data
 }
+    const mouseMenuEl = ref()
+    const rightClick=ref(false)
 onMounted(() => {
   query()    
+  let leftNode=leftRef.value.children[0].children[0].children[0]
+  let menuNode=leftNode.children[0]
+  let treeNode=leftNode.children[2]
+  // 计算元素距离视图的总宽高
+  let leftNodeWidth=leftNode.getBoundingClientRect().right
+  let leftNodeHight=leftNode.getBoundingClientRect().bottom
+  // 计算树节点距离视图的总宽高
+  let treeNodeWidth=treeNode.getBoundingClientRect().right
+  let treeNodeHight=treeNode.getBoundingClientRect().bottom
+  window.addEventListener('click',function(){rightClick.value=false})
+  // 给空白区域绑定点击事件
+  leftNode.addEventListener('contextmenu',function(e:any){
+    e.preventDefault()    
+    if(treeNodeHight<e.clientY && e.clientY<leftNodeHight){
+      const {x,y}=e
+      // leftNode.style.position='relative'
+      rightClick.value=true
+      // menuNode.style.backgroundColor='antiquewhite'
+
+      menuNode.style.position='fixed'
+      menuNode.style.top=e.clientY+'px'
+      menuNode.style.left=e.clientX+'px'
+    }
+  })
 }) 
 const instance=getCurrentInstance()
 // 表单的数据
@@ -35,8 +71,9 @@ const formState: UnwrapRef<FormState> = reactive({
 });
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
   await query(formState)
+  console.log(tableData);
+  
  pagination.value.pageNo=1
-  console.log(formState.search);  
 };
 
 
@@ -44,7 +81,7 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
 // 模态窗数据
-    const visible = ref<boolean>(false);
+const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;      
 };
@@ -57,24 +94,19 @@ const showModal = () => {
 const closemodel = () => {
   clear()
   visible.value = false;
-  query()
 }
 // 模态窗表单
 
 let partype = ref('')
-  const options = ref<SelectProps['options']>([
+  const optiones = ref<SelectProps['options']>([
       {
-        value: 'Str',
-        label: 'Str',
+        value: 'str',
+        label: 'str',
       },
       {
-        value: 'Number',
-        label: 'Number',
-      },
-      {
-        value: 'ture',
-        label: 'ture',
-    },
+        value: 'float',
+        label: 'float',
+      },  
       {
         value: 'false',
         label: 'false',
@@ -98,11 +130,16 @@ let obj = ref<paramsobj>({ name: "", type: "" })
 // 添加功能的函数
 async function saveAw(data: any) {
   return new Promise((resolve, reject) => {
-    request.post("/api/hlfs", data).then(res => {
-    console.log(res);
-    
+    request.post("/api/hlfs", data).then(res => {   
+      if(res){
+        visible.value = false;
+        message.success("Added successfully")        
+        query()
+      }
+       
   }).catch(function (error) {
     if (error.response.status == 409) {
+      visible.value = false;
       message.error("Duplicate name or description")
     }
   });
@@ -147,13 +184,11 @@ const clear = () => {
 }
 // 添加和删除param
     function addparams() {
-  console.log(obj);
   modelstates.value.params.push({...obj.value})
-      
-  
+  obj.value = { name: '',  type:'' }
+  partype.value=''
 }
 function closepar(item:any) {
-  console.log(item);
   const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
   modelstates.value.params=parry
 }
@@ -190,21 +225,42 @@ let rules: Record<string, Rule[]> = {
 let refForm=ref(null)
 const onFinishForm = async (modelstates: any) => {  
   modelstates.value.tags = states.tags
-  if (modelstates.value.name && modelstates.value.description && modelstates.value.template) {
     if (modelstates.value._id) {
        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+       await query(formState)
         message.success("Modified successfully")
     } else {
-        delete modelstates.value._id
+      let typeName=ref(true)
+       query({search:modelstates.value.description}).then(res=>{
+    if(res.length>0){
+      if(res[0].description==modelstates.value.description){
+      typeName.value=false
+    }
+    }
+    return
+  })
+      let typeDscription=ref(true)
+      query({search:modelstates.value.name}).then(res=>{
+      if(res.length){
+        if(res[0].name==modelstates.value.name){
+        typeDscription.value=false
+        }
+      }
+      return
+  })
+        if(typeName.value && typeDscription.value){
+          delete modelstates.value._id
+          console.log(456);
+          
         await saveAw(modelstates.value)
-        message.success("Added successfully") 
+        console.log(123);
+        
+        
+        }
     } 
     visible.value = false;
     clear()
-    query()
-    }else {
-    return message.error("name and descript is required")
-  }
+    
   }
     // 判断修改或添加
       
@@ -370,9 +426,9 @@ const expend = (isExpand:any,rected:any) => {
 })
 
 const wrapperCol={span:24,offset:12}
-let treeData: TreeProps['treeData'] = [
+let treeData = ref([
    {
-        title: 'Setup',
+        title: 'setup',
         key: '0-0',
         children: [
           {
@@ -418,19 +474,35 @@ let treeData: TreeProps['treeData'] = [
           },
         ],
       },
-];
-// 模拟新增节点
-const inputTree = ref({
-  title: '新增节点',
-  key: '0',
-  children:[]
-})
-
-
-const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
-      console.log('selected', selectedKeys, info);
-};
-// 递归查询当前选中节点的方法
+])
+// const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
+//   console.log('selected', selectedKeys, info);
+//   info.node.showEdit=false
+//   info.node.dataRef.showEdit = false
+//   if (info.node.dataRef.title == "New Node") {
+//   info.node.showEdit=true
+//   info.node.dataRef.showEdit = true
+//   }// return selectedKeys
+// };
+// 查询父级节点的key
+const getTreeParentKey = (childs: any, findChild: any): any => {
+  let topkey = null
+  for (let i = 0, len = childs.length; i < len; i++){
+    let item = childs[i]
+    if (item.children! == findChild && item.children && item.children.length > 0) {
+      topkey=getTreeParentKey(item.children,findChild)
+    }
+    if (item.children == findChild) {
+      console.log(123);
+       topkey = item.key;
+    }
+    if (topkey != null) {
+       break
+     }
+  }
+  return topkey
+}
+// 递归查询当前选中节点的key方法
 const getchildKey = (childs: any, findKey: string): any => {
   let finditem = null;
    for (let i = 0, len = childs.length; i < len; i++) {
@@ -483,22 +555,23 @@ const getTreeDataByItem=(childs:any, findKey: any):any=> {
    return finditem
  }
 
-
 // 查询树节点的方法
 const expandedKeys = ref<(string | number)[]>([]);
- const autoExpandParent = ref<boolean>(true);
+ const autoExpandParent = ref<boolean>(false);
 const searchValues = ref<string>('');
 watch(searchValues, value => {  
       if(value.length != 0){
-        const expanded = treeData!.map((item: any) => {
+        const expanded = treeData.value.map((item: any) => {
           if (item.title.indexOf(value) == -1) {
-            return getchildKey(treeData,value);
+            return getchildKey(treeData.value,value);
           }
           return null;
         }).filter((item, i, self) => item && self.indexOf(item) === i);
       expandedKeys.value = expanded as any;
       searchValues.value = value;
         autoExpandParent.value = true;
+        console.log(expandedKeys.value);
+        
       }else{
         //折叠起来
         autoExpandParent.value =  false;
@@ -506,53 +579,137 @@ watch(searchValues, value => {
     })
 
 const onExpand = (keys: any) => {
-      console.log(keys);
       expandedKeys.value = keys ;
-      autoExpandParent.value = true;
+  autoExpandParent.value = false;
+            console.log(expandedKeys.value);
 };
-let treeswitch=ref(false)
-// 修改子节点的方法
-const updTree = (key: any) => {
-  treeswitch.value=true
-}
-let opendefault=ref("")
-// 点击添加子节点的方法
-const pushtree = (key: string) => {
-  let itemObj = getTreeDataByItem(treeData, key)
-  console.log(itemObj);
-  
-  let str
-  if (!itemObj.children) {
-    str= inputTree.value.key
-    inputTree.value.key=itemObj.key.concat(`-${str}`)
-    itemObj=Object.assign(itemObj,{children:[]})
-  } else {
-    str = inputTree.value.key = itemObj.children.length
-     inputTree.value.key=itemObj.key.concat(`-${str}`)
-  }
-    window.localStorage.setItem('savetree',JSON.stringify(inputTree.value))
-  itemObj.children.push({ ...inputTree.value })
 
-  let expendInputKey:any = ref([])
-  expendInputKey.value.push(inputTree.value.key)
-  expandedKeys.value=expendInputKey.value
-  autoExpandParent.value=true
+const onchangtitle = (data: any) => {
+  console.log(data);
+  // console.log(updTreedata);
+  data.title=updTreedata.value
+  data.data.title=updTreedata.value
+  data.dataRef.title=updTreedata.value
+  data.dataRef.showEdit=false
+  data.showEdit=false
+  data.data.showEdit=false
 }
+const vFocus = {
+  //必须以 vNameOfDirective 的形式来命名本地自定义指令，以使得它们可以直接在模板中使用。
+ onBeforeMount:(el:any)=>{
+  console.log(222);
+    //在元素上做些操作
+    nextTick(() => {
+      el.focus() //获取焦点
+    })
+ }
+}
+// 定义修改节点的变量
+let updTreedata=ref('')
+// 修改子节点的方法
+const updTree = (obj: any) => {
+  console.log(obj);
+  updTreedata.value=obj.title
+
+  obj.showEdit=true
+  obj.data.showEdit=true
+  obj.dataRef.showEdit=true
+}
+const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
+  ...item,
+  showEdit:false,
+  children: addKey(item.children)
+}))
+treeData.value = addKey(treeData.value)
+
+const newChild = ref(
+  {
+    title: 'New Node',
+    key: "/",
+    children: [],
+    showEdit: false //修改输入框
+  }
+)
+let newNum=ref(0)
+// 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
+const pushSubtree = (obj: any) => {
+  newNum.value=++newNum.value
+  console.log(newNum.value);
+  
+  newChild.value.title=newChild.value.title+newNum.value
+  
+  
+  console.log(obj.data);
+  newChild.value.key = obj.data.key + newChild.value.key
+  // autoExpandParent.value = true;
+  obj.data.children.push({...newChild.value})
+  newChild.value.key='/'
+  newChild.value.title='New Node'
+  treeData.value = [...treeData.value]
+  expandedKeys.value = [obj.data.key];
+  obj.expanded=false    
+}
+// 点击右键展开的数据
+const contextmenuData=ref({
+  menuName:'save Top Node',
+  axis:{
+    x:null,
+    y:null
+  },
+  menulists:[{
+    fnHandler:"Top Node",
+    btnName:'添加顶级节点'
+  }]
+})
+// 添加顶级节点的数据
+const topTree=ref({
+  title:'Top Node',
+  key:'Top Node',
+  children:[],
+  showEdit: false,
+  isLeaf:false
+})
+// 获取左侧区域的dom
+const leftRef=ref()
+// const leftNode=ref()
+// console.log(leftNode.value);
+
+// 添加顶级节点
+const addTop=()=>{
+  treeData.value.push({...topTree.value})
+  rightClick.value=false
+}
+// 添加同级时，需获取上级父节点的key，在上级父节点中push
+// const pushtree = (obj: any) => {
+//   console.log(obj);
+  
+    // 获取父节点
+    // let parentNode = getTreeParentChilds(treeData.value, obj.data.key)
+  // console.log(parentNode);
+    // 获取父节点的key与 将当前节点的key，与要添加的key拼接
+  // let parentKey = getTreeParentKey(treeData.value, parentNode)
+  // newChild.value.key = parentKey + newChild.value.key
+  // parentNode.push({...newChild.value})
+  // treeData.value = [...treeData.value]
+    // newChild.value.key='/'  
+  // }  
 
 // 删除树形控件数据
 const deltree = (key:string) => {
   // request.delete('/api/hlfs/_tree/delete',data:key)  
 }
-const confirmtree = (key:string) => {
-    let parent = getTreeParentChilds(treeData, key)
+const confirmtree = (obj:any) => {
+  console.log(obj);
+  
+    let parent = getTreeParentChilds(treeData.value, obj.key)
   console.log(parent);
   
-  let delIndex = parent.findIndex((item: { key: string; }) => item.key == key)
-  delete parent[delIndex]
+  let delIndex = parent.findIndex((item: { title: string; }) => item.title == obj.title)
+  parent.splice(delIndex,1)
+  treeData.value=[...treeData.value]
+  console.log(treeData.value);
+  
 }
-    const cancelTree = (e: MouseEvent) => {
-      console.log(e);
-    };
 
 // 右键点击树形控件触发的事件
 const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
@@ -563,69 +720,67 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
 
 <template>
   <main class="main"> 
+    <div ref="leftRef" style="height:100%">
       <SplitPanel>
+        
         <template #left-content>
-          <div class="flex justify-between">
-            <Space>
-              <Tooltip v-if="true" placement="top">
-                <template #title>新增部门 </template>
-              </Tooltip>
-              <Tooltip placement="top">
-                <template #title>刷新 </template>
-              </Tooltip>
-            </Space>
-          </div>
+          <!-- <vue-context-menu style="width:150px"
+          :contextmenu="contextmenuData"
+          @click="addTop"
+          >  
+          </vue-context-menu> -->
+          <!-- <mouse-menu ref="mousemenuEl" v-bind="options"></mouse-menu> -->
+          <a-menu mode="inline" v-show="rightClick" class="rightMenu">
+            <a-menu-item key="1" @click="addTop">Add Top Node</a-menu-item>
+          </a-menu>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
+          v-if="treeData?.length"
             :show-line="true"
             :tree-data="treeData"
-            @select="onSelect"
             :expanded-keys="expandedKeys"
             :auto-expand-parent="autoExpandParent"
-            @expand="onExpand"  >
+            @expand="onExpand">
       <template #icon><carry-out-outlined /></template>
-      <template #title="{key:treeKey, title }" >
-          <a-dropdown :trigger="['contextmenu']" >
-        <a-tooltip placement="right" overlayClassName="bgc_tooltip" trigger="click">
+      <template #title="item" >
+              
+        <a-tooltip  placement="right" overlayClassName="bgc_tooltip" >
             <template #title >
-              <a-menu mode="horizontal" @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
-                <a-menu-item  key="1" @click="pushtree(treeKey)">
-                  <template #icon >
-                    <plus-circle-two-tone />
-                  </template>
+              <a-menu mode="inline" @click="({ key: menuKey }) => onContextMenuClick(item.key, menuKey)">
+                  <!-- <a-menu-item  key="1" @click="pushtree(item)">
+                  Add Sibling
+                </a-menu-item> -->
+                <a-menu-item  key="1" @click="pushSubtree(item)">
+                  Add Node
                 </a-menu-item>
-                <a-menu-item key="2" @click="updTree(treeKey)">
-                  <template #icon>
-                    <edit-two-tone two-tone-color="#FFCC00"/>
-                  </template>
+                <a-menu-item key="2" @click="updTree(item)">
+                  Modify node
                 </a-menu-item>
-                        <a-popconfirm
-                          title="Are you sure delete this task?"
-                          ok-text="Yes"
-                          cancel-text="No"
-                        @confirm="confirmtree(treeKey)"
-                          @cancel="cancelTree"
-                        >
-                <a-menu-item key="3" @click="deltree(treeKey)">
-                  <template #icon>
-                    <delete-two-tone two-tone-color="#FF0000"/>
-                  </template>
+                  <a-popconfirm
+                  placement="right"
+                  title="Are you sure delete this task?"
+                  ok-text="Yes"
+                  cancel-text="No"
+                  @confirm="confirmtree(item)">
+                <a-menu-item key="2" @click="deltree(item.key)">
+                  Delete Node
                 </a-menu-item>
                 </a-popconfirm>
               </a-menu>
             </template>
-              <template v-if="searchValues &&  title.includes(searchValues)">
+            <template v-if="searchValues &&  item.title.includes(searchValues)">
                 <div style="color: #f50;"> 
-                  <span>{{title}}</span>
+                  <span>{{item.title}}</span>
                 </div>
                 </template>
-              <template v-else>{{ title }}</template>
-        </a-tooltip>
-    </a-dropdown>
+    <template v-else-if="!item.appendFlag&&!item.showEdit">{{item.title}}</template>
+    <a-input v-if="item.showEdit" type="text" v-focus v-model:value="updTreedata" @blur="onchangtitle(item)"/>
+        </a-tooltip>  
+        
     </template>
-
       </a-tree>
     </template>
+ 
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
@@ -636,19 +791,22 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
           @finish="handleFinish"
           @finishFailed="handleFinishFailed"
           :wrapperCol="wrapperCol">
-      <a-form-item :wrapper-col="{span:20}" class="searchForm">
+          <a-col :span="20">
 
-      <a-input style="width:18.15rem" v-model:value="formState.search" placeholder="hlf">
-      <template #prefix><search-outlined /></template>
-      </a-input>
-    
-    </a-form-item>
-    <a-form-item :wrapper-col="{span:20}">
-      <a-button type="primary" html-type="submit">search</a-button>
-    </a-form-item>
+<a-mentions v-model:value="formState.search"
+  placeholder="input @ to search tags, input name to search MBT">
+  <a-mentions-option value="tags:">
+    tags:
+  </a-mentions-option>
+</a-mentions>
+</a-col>
+
+<a-col :span="4">
+<a-button type="primary" html-type="submit">search</a-button>
+</a-col>
           </AForm>
         </a-col>
-        <a-col :span="4"><a-button type="primary" @click="showModal" >
+        <a-col :span="2"><a-button type="primary" @click="showModal" >
         <template #icon><plus-outlined /></template></a-button>
        </a-col>
        </a-row>
@@ -753,7 +911,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
                 v-model:value="partype"
                 style="width: 120px"
                 @change="handleChange"
-                :options="options"
+                :options="optiones"
                 placeholder="Parameter Type"
               >
                 <!-- <a-select-option v-for="item in partype" :key="item" :value="item">{{item}}</a-select-option> -->
@@ -852,6 +1010,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       </a-table>
         </template>
       </SplitPanel>
+    </div>
    <!-- </section> -->
    </main>
 </template>
@@ -884,24 +1043,54 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
   .searchForm{
     margin-right: 0.75rem;
   }
-  .highlight{
-    background-color: yellow;
-  }
-
-  </style>
+ 
+   </style>
   <style lang="less">
+      .rightMenu{
+        width: 5.8rem!important;
+        height: 2.15rem!important;
+        border: .0625rem solid antiquewhite;
+        border-right:.0625rem solid antiquewhite !important;
+        // background-color: antiquewhite !important;
+        font-size: .75rem;
+        box-shadow: -4px 4px 4px -5px rgba(0, 0, 0, 0.35), 2px 3px 4px -5px rgba(0, 0, 0, 0.35);
+        .ant-menu-item{
+          width: 96%;
+          text-align: center !important;;
+          padding:0 0!important;
+          height:1.575rem;
+          background-color: #fff;
+        }
+      }
     .found-kw{
     color: red!important;
     font-weight: 600;
   }
-.bgc_tooltip .ant-tooltip-inner{
+.bgc_tooltip{
+  .ant-tooltip-arrow::before {
+      // 这里是小三角形
+      background-color: #fff!important;
+    }
+  .ant-tooltip-inner{
+    
     background-color: white!important;
     width: 6.125rem;
     padding: 0;
     display: flex;
     align-items: center;
     .ant-menu{
+      font-size: .75rem;
       width: 6.125rem;
+      .ant-menu-item-only-child{
+        padding: 0!important;
+        width: 100%;
+        height: 1.75rem;
+        line-height: 1.75rem;
+        text-align: center;
+        margin:0;
+        // display: flex;
+        // justify-content: center!important;
+      }
     }
     .ant-menu-horizontal{
       border: 0;
@@ -909,15 +1098,21 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
         padding: 0 .3125rem;
       }
       
-      .ant-menu-item-only-child{
-        width: 30%;
-        display: flex;
-        justify-content: center!important;
-      }
+      
     }
     .ant-menu-overflow{
         display: flex;
         justify-content: space-around;
       }
     }
+  }
+  .topTree{
+    display: flex;
+    margin-bottom: .625rem;
+    .ant-btn{
+      width: 2.5rem;
+      font-size: .55rem;
+      padding: 0px 0.25rem;
+    }
+  }
   </style>

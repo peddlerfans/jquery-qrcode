@@ -62,9 +62,6 @@ function openMenuModal() {
   alert('good')
 }
 
-
-
-
 onBeforeMount(() => {
 
   updateTable()

@@ -148,7 +148,20 @@ export const routes: RouteRecordRaw[] = [
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }
     ]
-
+  },
+  {
+    path: '/metaModeler',
+    name: 'MetaModeler',
+    component: Layout,
+    redirect: { name: 'metaModeler' },    
+    children: [
+      {
+        path: '/metaModeler',
+        name: 'metaModeler',
+        component: () => import('@/views/metaModel.vue'),
+        meta: { hidden: true, title: 'MetaModeler', icon: LayoutOutlined }
+      }
+    ]
   }
 ]
 

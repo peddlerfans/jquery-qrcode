@@ -457,7 +457,7 @@ const response1 =
             }
         }
 
-        let temparry =[]
+        let temparry:any =[]
         temparry.push(response1)
 
         const responses1 =
