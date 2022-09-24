@@ -101,6 +101,9 @@ const showDrawer = (el?: any, aw?: string, id?: string) => {
 
 const onCloseDrawer = () => {
   visible.value = false;
+  // modeler.paper.update()
+  // modeler.paper.updateViews()
+  // modeler.paper.requestViewUpdate();
 };
 
 /** Panel -> AW part, including a searching form and table */
@@ -261,7 +264,8 @@ let awformdata = ref<Stores.awView>({
   name: '',
   description: '',
   params: ''
-  , tags: ''
+  , tags: '',
+  template:''
 });
 const globalschema = ref({
   // "title": "MBTConfiguration",
@@ -311,6 +315,13 @@ const awschema = ref({
     },
     "description": {
       "title": "Description",
+      "type": "string"
+      ,
+      "readOnly": true
+    }
+    ,
+    "template": {
+      "title": "Template",
       "type": "string"
       ,
       "readOnly": true
@@ -375,6 +386,9 @@ function awhandlerSubmit() {
     //       cacheprops.set(ev_id, { 'props': awformdata.value });
 
   } else {
+    currentElementMap.set(ev_id, { 'props': awformdata.value });
+    cacheprops.set(ev_id, { 'props': awformdata.value });
+
     for (let key of currentElementMap.keys()) {
 
       let tempaw = {}
@@ -382,26 +396,34 @@ function awhandlerSubmit() {
         let obj = JSON.parse(`{"${key}":"${value}"}`)
         Object.assign(tempaw, obj)
         if (key == "template" || key == "description") {
-
+          console.log('template in cache:',cacheprops.get(ev_id).props.template)
+          console.log('description in cache:',cacheprops.get(ev_id).props.description);
           let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
           let sizeX = showtext.length * 2.5;
           if (sizeX < 100 || sizeX > 150) sizeX = 160;
           let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
           if (sizeY < 45) sizeY = 45;
           if (sizeY > 135) sizeY = 180;
-
-          modeler.graph.getCell(ev_id + '').resize(sizeX, sizeY);
-          modeler.graph.getCell(ev_id + '').attr(
+         
+          let cell =modeler.graph.getCell(ev_id);
+          cell.resize(sizeX, sizeY);
+          cell.attr(
             "label/text", joint.util.breakText(showtext, {
               width: sizeX
             }, { ellipsis: true }))
-
+          
+            // let cellView = modeler.paper.findViewByModel(cell);
+            // console.log('........iiiiii.....',cellView)
+            
+            console.log('........jjjjj.....',modeler)
         }
       }
       cacheprops.set(key, { 'props': tempaw });
     }
   }
   onCloseDrawer();
+
+  
   message.success('Save aw Successfully');
 
 
@@ -584,13 +606,26 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route: any) {
-
-  console.log('saveMBT, ......cacheprops/', cacheprops)
+  let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
+  
   let tempdata: modelDefinition = {};
+  // modeler.graph.getCell(ev_id);
 
+  modeler.graph.getCells().forEach((item: any) => {
+    console.log('zzzzzzzz',item)
+    graphIds.push(item.id);
+    if (item.attributes.type == 'standard.Rectangle') {
+      let savelabel = cacheprops.get(item.id).props.templdate || cacheprops.get(item.id).props.description || 'aw'
+      modeler.graph.getCell(item).attr(
+          "label/text", savelabel );
+      if(cacheprops.get(item.id)==null){
+        cacheprops.set(item.id,item.attributes.attrs.label.text);
+      }
+
+    }})
   // let oldgraphData = modeler.graph.toJSON();
-  // // console.log(oldgraphData);
-  // let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
+  // console.log(oldgraphData);
+  // 
   // oldgraphData.cells.forEach((item: any) => {
   //   graphIds.push(item.id);
   //   if (item.type == 'standard.Rectangle') {
@@ -601,14 +636,18 @@ function saveMBT(route: any) {
 
   // })
   /*删除找不到的*/
-  // console.log('saveMBT, if not found ......cacheprops/',cacheprops)
-  // cacheprops.forEach((aw: any) => {
-  //   if (graphIds.find((id: string) => id == aw.id) == 'undefined') {
-  //     cacheprops.delete(aw)
-
-  //   }
-  // })
-
+  console.log('graphids:',graphIds)
+  console.log('saveMBT, if not found ......cacheprops/',cacheprops)
+  for (let key of cacheprops.keys()){
+  
+    console.log('awkey:',key)
+    if (!graphIds.includes(key)){
+     console.log('not found')
+      cacheprops.delete(key)
+    }
+    
+  }
+  console.log('saveMBT, ......cacheprops/', cacheprops)
   Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
 
   let obj = Object.fromEntries(cacheprops)
@@ -815,25 +854,46 @@ onMounted(() => {
   });
 
 
+  modeler.paper.on('element:delete', function(elementView:dia.ElementView, evt:Event) {
+  // Stop any further actions with the element view e.g. dragging
+  console.log('delete element:',elementView);
+  evt.stopPropagation();
+  if (confirm('Are you sure you want to delete this element?')) {
+      elementView.model!.remove();
+  }
+});
   /**
    *  When click the element/link/blank, show the propsPanel
    */
-  modeler.paper.on('link:pointerdblclick', function (linkView: any) {
-    currentLinkView = linkView;
+  // modeler.paper.on('link:pointerdblclick', function (linkView: any) {
+  //   currentLinkView = linkView;
 
-    isAW.value = false;
-    isLink.value = true;
-    isGlobal.value = false;
-    if (cacheprops.has(linkView.model.id)) {
-      cacheprops.get(linkView.model.id)
-    } else {
+  //   isAW.value = false;
+  //   isLink.value = true;
+  //   isGlobal.value = false;
+  //   if (cacheprops.has(linkView.model.id)) {
+  //     cacheprops.get(linkView.model.id)
+  //   } else {
 
-      currentLinkMap.set(linkView.model.id, { 'label': linkData.value });
-      cacheprops.set(linkView.model.id, { 'label': linkData.value });
+  //     currentLinkMap.set(linkView.model.id, { 'label': linkData.value });
+  //     cacheprops.set(linkView.model.id, { 'label': linkData.value });
 
-    }
-    showDrawer(linkView)
-  })
+  //   }
+  //   showDrawer(linkView)
+  // })
+  // modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+  //   console.log(elementView)
+  //   modeler.paper.requireView(ev_id)
+    // modeler.graph.resetCells(modeler.graph.getCell(ev_id),"label/text")
+
+    // elementView.requestUpdate(1);
+    // let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
+    // ev_id = elementView.model?.id + '';
+    // modeler.graph.getCell(ev_id).attr(
+    //       "label/text", joint.util.breakText(showtext, {
+    //         width: 100
+    //       }, { ellipsis: true }))
+  // })
 
 
   modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
@@ -910,9 +970,10 @@ onMounted(() => {
 
 
   });
-
+  
+  
   modeler.paper.on('blank:pointerdblclick', () => {
-
+    
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
@@ -1413,8 +1474,9 @@ header {
   height: 100%;
   overflow: hidden;
   position: relative;
-  margin: 10px;
-  width: 100px;
+  margin: 0px;
+  min-width: 58px;
+  width: 60px;
   background-color: #222222;
 }
 
