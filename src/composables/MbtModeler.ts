@@ -5,6 +5,7 @@ import { Ref, ref } from "vue";
 import { Stencil } from "@/composables/stencil";
 import { setupI18n } from "@/locales";
 import _ from 'lodash';
+import { PaperClipOutlined } from "@ant-design/icons-vue";
 window.joint = joint
 
 export class test extends joint.shapes.standard.Rectangle {
@@ -64,8 +65,14 @@ export class MbtModeler {
   removeButton = new joint.elementTools.Remove({
     rotate:true,
     x:'100%',
-    y:'100%'
-
+    y:'100%',
+  //   action: function(evt,view) {
+      
+  //     // alert('View id: ' +view.model?.id);
+  //     view.model?.remove(view.model)
+  //     // return view.model
+  // }
+  // + JSON.stringify(view)
   });
   connectButton = new joint.elementTools.Connect({
     // rotate:true
@@ -109,12 +116,13 @@ export class MbtModeler {
     });
  
   
-  this.paper.on('element:pointerclick', (elementView: any) => {
+  this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
 
     this.paper.removeTools(); 
 
     if (!elementView.hasTools()) {
       elementView.addTools(this.elementToolsView)
+      
     }
       elementView.showTools();
 
