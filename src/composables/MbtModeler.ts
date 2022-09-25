@@ -66,12 +66,12 @@ export class MbtModeler {
     rotate:true,
     x:'100%',
     y:'100%',
-    action: function(evt,view) {
+  //   action: function(evt,view) {
       
-      alert('View id: ' +view.model?.id);
-      view.model?.remove(view.model)
-      return view.model
-  }
+  //     // alert('View id: ' +view.model?.id);
+  //     view.model?.remove(view.model)
+  //     // return view.model
+  // }
   // + JSON.stringify(view)
   });
   connectButton = new joint.elementTools.Connect({
