@@ -156,7 +156,7 @@ export const routes: RouteRecordRaw[] = [
     redirect: { name: 'metaModeler' },    
     children: [
       {
-        path: '/metaModeler',
+        path: ':_id',
         name: 'metaModeler',
         component: () => import('@/views/metaModel.vue'),
         meta: { hidden: true, title: 'MetaModeler', icon: LayoutOutlined }

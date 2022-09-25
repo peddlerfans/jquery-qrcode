@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
-import {
-  SyncOutlined,
-  PlusOutlined,
-} from '@ant-design/icons-vue';
+import {  SyncOutlined,  PlusOutlined,} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs, ModelState} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
@@ -83,7 +80,6 @@ const onSizeChange =async (current: any, pageSize: number) => {
   console.log(isExpand,rected);
   
 }
-
 interface DataItem {
   key?: string;
   name: string;
@@ -98,6 +94,7 @@ const updMeta=async (data:any)=>{
 }
 // 点击Edit触发的函数
 const edit = (key: string) => {
+  console.log(editableData);
   
   editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
   console.log(editableData[key]);
@@ -184,7 +181,7 @@ const showInput = () => {
 };
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = () => {
-  let tags = states.tags;
+    let tags = states.tags;
   if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
     tags = [...tags, states.inputValue.toUpperCase()];
   }
@@ -193,6 +190,7 @@ const handleInputConfirm = () => {
     inputVisible: false,
     inputValue: '',
  });  
+  console.log(states.tags);
   
 }
 // 移除tags
@@ -200,15 +198,16 @@ const handleClose = (removedTag: string) => {
       const tags = states.tags.filter((tag: string) => tag !== removedTag);
       states.tags = tags;
 };
+
 let router=useRouter()
 // 点击跳转metamodel
-const jumpModel=(record:any)=>{
-  router.push({
-    name:'metaModeler',
-    path:'/metaModeler',
-    query:{ record:record.name}
-  })
-}
+// const jumpModel=(record:any)=>{
+//   router.push({
+//     name:'metaModeler',
+//     path:'/metaModeler',
+//     query:{ record:record._id}
+//   })
+// }
 // const jumpModel=(record:any)=>{
 //   router.push("/metaModeler"+record)
 // }
@@ -247,7 +246,7 @@ const jumpModel=(record:any)=>{
       </header>
       
       <a-table :columns="columns" :data-source="tableData" bordered>
-    <template #bodyCell="{ column, text, record }">
+      <template #bodyCell="{ column, text, record }">
       <template v-if='column.key==="name"'>
         <div>
           <a-input
@@ -256,7 +255,7 @@ const jumpModel=(record:any)=>{
             style="margin: -5px 0"
           />
           <template v-else>
-            <a href="javascript:;" @click="jumpModel(record)">{{text}}</a>
+            <a :href="'/#/metaModeler/'+record._id">{{text}}</a>
             <!-- <router-link :to="{path:'/metaModeler',query:{record}}">{{ text }}</router-link> -->
           </template>
         </div>
@@ -275,32 +274,32 @@ const jumpModel=(record:any)=>{
         </template>
           <template v-if="column.key === 'tags'">
             <template v-if="editableData[record.key]">
-              <template v-for="(tag, index) in states.tags" :key="tag">
-                <a-tooltip v-if="tag.length > 20" :title="tag">
-                  <a-tag :closable="true" @close="handleClose(tag)">
-                    {{ `${tag.slice(0, 20)}...` }}
-                  </a-tag>
-                </a-tooltip>
-                <a-tag v-else-if="tag.length==0"></a-tag>
-                <a-tag v-else :closable="true" @close="handleClose(tag)">
-                  {{tag}}
-                </a-tag>  
-              </template>
-              <a-input
-                v-if="states.inputVisible"
-                ref="inputRef"
-                v-model:value="states.inputValue"
-                type="text"
-                size="small"
-                :style="{ width: '78px' }"
-                @blur="handleInputConfirm"
-                @keyup.enter="handleInputConfirm"
-              />
-            <a-tag v-else style="background: #fff; border-style: dashed" 
-        @click="showInput">
-          <plus-outlined />
-          New Tag
-        </a-tag>
+                  <template v-for="(tag, index) in states.tags" :key="tag">
+                  <a-tooltip v-if="tag.length > 20" :title="tag">
+                    <a-tag :closable="true" @close="handleClose(tag)">
+                      {{ `${tag.slice(0, 20)}...` }}
+                    </a-tag>
+                  </a-tooltip>
+                  <a-tag v-else-if="tag.length==0"></a-tag>
+                  <a-tag v-else :closable="true" @close="handleClose(tag)">
+                    {{tag}}
+                  </a-tag>  
+                </template>
+                <a-input
+                  v-if="states.inputVisible"
+                  ref="inputRef"
+                  v-model:value="states.inputValue"
+                  type="text"
+                  size="small"
+                  :style="{ width: '78px' }"
+                  @blur="handleInputConfirm"
+                  @keyup.enter="handleInputConfirm"
+                />
+              <a-tag v-else style="background: #fff; border-style: dashed" 
+              @click="showInput">
+                <plus-outlined />
+                New Tag
+              </a-tag>
             </template>
               <span v-else>
                 <a-tag
