@@ -213,7 +213,8 @@ async function delmbt(key: any) {
   console.log('delete key:',key)
   console.log('delete url:',url+`/${key._id}`);
   let rst = await request.delete(url+`/${key._id}`)
-  query()
+  updateTable()
+  // query()
   console.log('rst:',rst);
 
 }
