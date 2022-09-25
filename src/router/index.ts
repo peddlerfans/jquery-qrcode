@@ -104,7 +104,7 @@ export const routes: RouteRecordRaw[] = [
   ,
   {
     path: '/awmodeler',
-    name: 'Awmodeler',
+    name: 'awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
     meta: { breadcrumb: false },
@@ -137,13 +137,13 @@ export const routes: RouteRecordRaw[] = [
   ,
   {
     path: '/mbtmodeler',
-    name: 'Mbtmodeler',
+    name: 'mbtmodeler',
     component: Layout,
     redirect: { name: 'mbtmodeler' },    
     children: [
       {
         path: ':name',
-        name: 'Mbtmodeler',
+        name: 'mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }

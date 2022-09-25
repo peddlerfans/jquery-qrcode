@@ -9,11 +9,12 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-v
 import {tableSearch , FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
 import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
-
+import { useRoute, useRouter } from 'vue-router'
 //Setting url for data fetching
 // const url=mockMBTUrl;
 const url=realMBTUrl;
-
+const route = useRoute()
+const router = useRouter()
 const tableRef = ref()
 let searchobj:tableSearch = reactive({
   search: "",
@@ -197,8 +198,18 @@ const onFinishForm = async (modelstates: any) => {
 
 };
 const handleOk = () => {
+  console.log('***********',modelstates.value.name)
+  let routeparam = `/mbtmodeler/${modelstates.value.name}`
+  // console.log('++++++++++++ ',modelstates.value)
+  debugger
   onFinishForm(modelstates)
   clear()
+  visible.value = false;
+ 
+  console.log('zzzzzzz',routeparam);
+  router.push({path:routeparam});
+  // router.push({name:'mbtmodeler',params:{id:modelstates.value.name}});
+  //route jump to modelstates.value._id
 };
 // 关闭模态窗触发事件
 const closemodel = () => {
