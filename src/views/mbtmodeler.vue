@@ -125,7 +125,7 @@ let searchobj: tableSearch = reactive({
   search: "",
   size: 20,
   page: 1,
-  perPage: 5
+  perPage: 10
 })
 
 const columns = reactive<Object[]>(
@@ -192,10 +192,10 @@ function onShow(cell?: any) {
 // 分页的数据
 let pagination = ref({
   pageNo: 1,
-  pageSize: 5, // 默认每页显示数量
+  pageSize: 10, // 默认每页显示数量
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
-  pageSizeOptions: ['5', '10', '20', '50', '100'], // 每页数量选项
+  pageSizeOptions: [ '10', '20', '50', '100'], // 每页数量选项
   showTotal: (total: any) => `共 ${total} 条`, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize),//点击页码事件
@@ -1423,5 +1423,8 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+}
+.ant-table-tbody > tr > td {
+padding: 3px 6px!important;
 }
 </style>

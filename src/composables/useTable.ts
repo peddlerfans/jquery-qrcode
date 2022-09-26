@@ -19,7 +19,7 @@ function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function
   const orz: TablePaginationConfig = {
     current: 1,
     pageSize: 10,
-    pageSizeOptions: ['5','10','20', '50', '100', '200'],
+    pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
     showTotal: (total, range) => `当前显示第${range[0]}-${range[1]}条，共${total}条`,
