@@ -9,11 +9,12 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-v
 import {tableSearch , FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
 import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
-
+import { useRoute, useRouter } from 'vue-router'
 //Setting url for data fetching
 // const url=mockMBTUrl;
 const url=realMBTUrl;
-
+const route = useRoute()
+const router = useRouter()
 const tableRef = ref()
 let searchobj:tableSearch = reactive({
   search: "",
@@ -84,20 +85,27 @@ async function query(data?: any) {
 
 
   if (rst.data) {
-    // console.log('rst:', rst.data)
+    // console.log('rst:', rst.data)   
+   
     dataSource.value = rst.data
     return rst.data
   }
 }
+
+/**
+ * Search the result
+ */
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // console.log(' formstate to search :', formState);
 
-  query(formState)
-  // highlight.value = dataSource.value.filter((item: any, index: any) => {
+  let fetchUrl ='';
+  if (formState && formState.search.toString().substring(0, 6) == '@tags:') {
+ 
+  fetchUrl= url+`?q=tags:` + formState.search.substring(6, formState.search.length).toUpperCase().trim();
+  }else{
+    fetchUrl= url+`?search=` + formState.search;
+  }
 
-  //   return item._highlight
-  // })
-  // console.log(highlight.value);
+  updateTable({fetchUrl:fetchUrl})
 
 };
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
@@ -196,9 +204,20 @@ const onFinishForm = async (modelstates: any) => {
   }
 
 };
+
+/**
+ * Create a new model and jump to moderler
+ */
 const handleOk = () => {
+  
+  let routeparam = `/mbtmodeler/${modelstates.value.name}`
+  
   onFinishForm(modelstates)
   clear()
+  visible.value = false;
+  
+  router.push({path:routeparam});
+
 };
 // 关闭模态窗触发事件
 const closemodel = () => {
@@ -210,12 +229,12 @@ const closemodel = () => {
 }
 // 删除功能
 async function delmbt(key: any) {
-  console.log('delete key:',key)
-  console.log('delete url:',url+`/${key._id}`);
+  // console.log('delete key:',key)
+  // console.log('delete url:',url+`/${key._id}`);
   let rst = await request.delete(url+`/${key._id}`)
   updateTable()
   // query()
-  console.log('rst:',rst);
+  // console.log('rst:',rst);
 
 }
 const confirm = (e: MouseEvent) => {
