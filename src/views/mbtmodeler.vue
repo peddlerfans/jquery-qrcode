@@ -381,6 +381,7 @@ function awhandlerSubmit() {
     currentElementMap.set(ev_id, { 'props': awformdata.value });
     // console.log('cacheprops set.....2')
     cacheprops.set(ev_id, { 'props': awformdata.value });
+  }
 
     for (let key of currentElementMap.keys()) {
 
@@ -410,14 +411,9 @@ function awhandlerSubmit() {
       }
 
     }
-  }
   currentElementMap.clear()
   onCloseDrawer();
-
-
   message.success('Save aw Successfully');
-
-
 };
 
 function globalhandlerSubmit() {
