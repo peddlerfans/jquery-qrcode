@@ -471,9 +471,17 @@ function handlerCancel() {
 };
 
 
+<<<<<<< HEAD
 
 let mbtCache: any;//save the data from backend Stores.mbt
 
+=======
+/**
+ * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
+ */
+let mbtCache: any;//save the data from backend Stores.mbt
+//route是响应式对象，可监控其变化，需要用useRoute()获取
+>>>>>>> a368b2f9798d30a2d2525d12dca40d2793112c97
 const route = useRoute()
 
 let toReload = ref(false);
