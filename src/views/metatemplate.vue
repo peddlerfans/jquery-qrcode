@@ -5,7 +5,7 @@ import {  SyncOutlined,  PlusOutlined,} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs, ModelState} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
-import { useRouter } from 'vue-router';
+import { useRouter,onBeforeRouteLeave } from 'vue-router';
 // import { FormState } from './componentTS/awmodeler';
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -198,19 +198,13 @@ const handleClose = (removedTag: string) => {
       const tags = states.tags.filter((tag: string) => tag !== removedTag);
       states.tags = tags;
 };
-
-let router=useRouter()
-// 点击跳转metamodel
-// const jumpModel=(record:any)=>{
-//   router.push({
-//     name:'metaModeler',
-//     path:'/metaModeler',
-//     query:{ record:record._id}
-//   })
+// onBeforeRouteLeave(async (to,form)=>{
+// console.log("to", to , "form", form);
+// if(to.path==`/metaModeler/${to.params._id}`){
+//   let rst=await request.get(`/api/templates/${to.params._id}`,{params:{category:'meta'}})
+//   to.meta.title=`MetaModel ${rst.name}`
 // }
-// const jumpModel=(record:any)=>{
-//   router.push("/metaModeler"+record)
-// }
+// })
 </script>
 
 <template>
@@ -255,7 +249,7 @@ let router=useRouter()
             style="margin: -5px 0"
           />
           <template v-else>
-            <a :href="'/#/metaModeler/'+record._id">{{text}}</a>
+            <a :href="'/#/metaModeler/'+record.name">{{text}}</a>
             <!-- <router-link :to="{path:'/metaModeler',query:{record}}">{{ text }}</router-link> -->
           </template>
         </div>

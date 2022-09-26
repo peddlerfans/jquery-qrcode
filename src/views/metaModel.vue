@@ -1,25 +1,30 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref, UnwrapRef } from 'vue';
-import { useRoute } from 'vue-router';
+import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
 import { PlusOutlined,PlusSquareFilled} from '@ant-design/icons-vue'
-import { statesTs } from './componentTS/metatemplate';
+import { table } from 'console';
 let route=useRoute()
-sessionStorage.setItem('meta_'+route.params._id,JSON.stringify(route.params._id))
+console.log(route.params.name);
+
+
+sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
+// sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
 // 获取当前数据并赋值
 let recordobj=ref()
 // 根据传来的name值获取到数据
 async function query (data?:any){
-   let rst=await request.get(`/api/templates/${data}`,{params:{category:'meta'}})
-    console.log(rst.model);
-    recordobj.value=rst
-    if(rst.model){
-  //       console.log(table[0].model);
-        tableData.value=arr(rst.model)
-        console.log(tableData.value);
-        
+   let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
+    if(rst){
+      rst.data.forEach((item:any)=>{
+        if(item.name==route.params.name){
+          recordobj.value=item
+          tableData.value=arr(item.model)
+        }
+      })
+      ;
     }else{
     alert('This template has no model')
    }
@@ -27,38 +32,35 @@ async function query (data?:any){
 // 给每条数据添加条属性
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
 onMounted(()=>{
-  let getId:any=sessionStorage.getItem('meta_'+route.params._id)
+  let getId:any=sessionStorage.getItem('meta_'+route.params.name)
 console.log(JSON.parse(getId));
   
     query(JSON.parse(getId))
 })
 // 表格的数据
 let tableData=ref<Array<any>>([])
-
 interface DataItem {
   key?: string;
   name: string;
   type: string;
-  enum:Array<string>;
+  enum:any;
 }
 const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 
 // 修改meta的方法
 const updMeta=async (data:any)=>{
-  console.log(123);
-  
   let rst=await request.put(`/api/templates/${data._id}`,data)
   message.success('Modification succeeded')
-  console.log(rst);
 }
-console.log(editableData);
+
 const edit = (key: string) => {
   editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
-  state.tags=editableData[key].enum
+  inputType.value=editableData[key].type
+  // state.tags=editableData[key].enum
 };
 // 点击save触发的函数
 const save =async (obj:any) => {
-  editableData[obj.key].enum=state.tags
+  // editableData[obj.key].enum=state.tags
   Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
 //   delete editableData[obj.key].key
   console.log(editableData[obj.key]);
@@ -71,24 +73,50 @@ const save =async (obj:any) => {
 }
 // 点击删除的方法
 const cancel =async (obj: any) => {
-//   let rst=await request.delete(`/api/templates/${obj._id}`)
+  // delete tableData.value[tableData.value.indexOf(obj)]
+  tableData.value=tableData.value.filter((item:any)=>item.name!==obj.name)
+  delete editableData[obj.key];
+  console.log(tableData.value);
+  recordobj.value.model=tableData.value
+  let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
+  
   message.success('test template has been deleted successfully')
   query()
-  delete editableData[obj.key];
 };
 // 点击添加数据
 const saveModel=()=>{
   const newModel={
     name:'new Model name',
     type:'new Model type',
-    enum:[]
+    enum:""
   }
   tableData.value.push({...newModel})
 }
+// 定义属性判断输入框该输入的数据类型
+let inputType=ref()
 // 改变type的值
 const handleChange = (value: any) => {      
-  console.log(value);
+  inputType.value=value
+  console.log(inputType.value);
+  
 };
+const changeType=(value:any)=>{
+  if(inputType.value=="int"){
+    let reg = /^[0-9]+$/; 
+    if(value!=""&&!reg.test(value)){ 
+        alert('只能输入整数！'); 
+        return false; 
+    } 
+  }
+  // if(inputType.value=='number'){
+  //   let type=typeof value
+  //   if(value!=""&& type!=='number'){
+  //     alert('只能输入数字')
+  //     return false
+  //   }
+  // }
+  
+}
 
 // 获取新建tags的dom
 let inputRef = ref();
@@ -96,8 +124,14 @@ let inputRef = ref();
 let state = reactive<statesTs>({
   inputVisible: false,
   inputValue: '',
-  tags: ["1"]
+  tags: null
 });
+// 定义tag标签的输入类型
+interface statesTs {
+  tags: any
+  inputVisible: Boolean;
+  inputValue: string
+}
 // 点击添加标签的方法
 const showInput = () => {
   state.inputVisible = true;
@@ -105,7 +139,6 @@ const showInput = () => {
     inputRef.value.focus();
     })
 };
-
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = () => {
   let tags = state.tags;
@@ -123,8 +156,6 @@ const handleClose = (removedTag: string) => {
       const tags = state.tags.filter((tag: string) => tag !== removedTag);
       state.tags = tags;
 };
-
-
 // 表格的数据结构
 const columns=reactive<Object[]>(
   [
@@ -164,8 +195,8 @@ const optiones = ref<SelectProps['options']>([
         label: 'float',
       },  
       {
-        value: 'false',
-        label: 'false',
+        value: 'boolean',
+        label: 'boolean',
     },
       {
         value: 'number',
@@ -221,8 +252,38 @@ const optiones = ref<SelectProps['options']>([
           </div>
           </template>
           <template v-if="column.key === 'enum'">
-            <template v-if="editableData[record.key]">
-              <template v-for="(tag, index) in state.tags" :key="tag">
+              <div>
+            <a-input
+              v-if="editableData[record.key] && inputType=='str'"
+              v-model:value="editableData[record.key].enum"
+              style="margin: -5px 0"
+              placeholder="请输入字符类型"
+              @blur="changeType(editableData[record.key].enum)"
+            />       
+            <a-input
+              v-else-if="editableData[record.key] && inputType=='number'"
+              v-model:value="editableData[record.key].enum"
+              style="margin: -5px 0"
+              placeholder="请输入数字类型"
+              @blur="changeType(editableData[record.key].enum)"
+            />   
+            <a-input
+              v-else-if="editableData[record.key] && inputType=='boolean'"
+              v-model:value="editableData[record.key].enum"
+              style="margin: -5px 0"
+              placeholder="请输入布尔类型"
+            />       
+            <a-input
+              v-else-if="editableData[record.key] && inputType=='int'"
+              v-model:value="editableData[record.key].enum"
+              style="margin: -5px 0"
+              placeholder="请输入整数类型"
+            />  
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+              <!-- <template v-for="(tag, index) in state.tags" :key="tag">
                 <a-tooltip v-if="tag.length > 20" :title="tag">
                   <a-tag :closable="true" @close="handleClose(tag)">
                     {{ `${tag.slice(0, 20)}...` }}
@@ -258,8 +319,7 @@ const optiones = ref<SelectProps['options']>([
           >
             {{ tag.toUpperCase() }}
           </a-tag>
-        </span>
-        </template>
+        </span> -->
       </template>
 
             <template v-else-if="column.dataIndex === 'action'">
