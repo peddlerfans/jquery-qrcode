@@ -62,7 +62,17 @@ interface FormState {
   search?: string
 }
 
+interface DataDefinition {
+  data:any[],
+  meta:any[],
+  resources:any[]
+}
 let cacheprops = new Map();
+let cacheDataDefinition :DataDefinition ={
+  data:[],
+  meta:[],
+  resources:[]
+}
 let ev_id = '';
 
 
@@ -418,6 +428,14 @@ function awhandlerSubmit() {
 
 function globalhandlerSubmit() {
 
+  //save metaeditdata 
+  console.log(globalformData,metadataSource)  
+
+  cacheDataDefinition.meta = metadataSource.value
+
+  
+
+
   message.success('Save config Successfully');
 };
 
@@ -596,6 +614,7 @@ function saveMBT(route: any) {
   Object.assign(tempdata, { props: obj })
 
   mbtCache['modelDefinition'] = tempdata;
+  mbtCache['dataDefinition'] = cacheDataDefinition;
 
   updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
   message.success("Save MBT model successfully")
@@ -708,6 +727,12 @@ onMounted(() => {
           cacheprops = map;
           // console.log('onMounted.has modelDefinition.....cacheprops/', cacheprops)
 
+        }
+        //dataDefinition includes meta, datapool and resources
+        if(value.dataDefinition.meta.length>0){
+          cacheDataDefinition.meta =value.dataDefinition.meta
+          metadataSource.value = cacheDataDefinition.meta 
+          
         }
       }
     })
@@ -901,6 +926,7 @@ onMounted(() => {
 });
 
 function showGlobalInfo() {
+  globalformData.value._id = localStorage.getItem('mbt_'+route.params.name+'_id')+'';
   globalformData.value.tags = ''
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
 
@@ -1038,13 +1064,13 @@ const attributesdataSource: Ref<AttributesDataItem[]> = ref([
 const metadataSource: Ref<MetaDataItem[]> = ref([
   {
     key: '0',
-    title: 'Edward King 0',
-    content: 'London, Park Lane no. 0',
+    title: 'ID',
+    content: 'oppo.test',
   },
   {
     key: '1',
-    title: 'Edward King 1',
-    content: 'London, Park Lane no. 1',
+    title: 'Description',
+    content: '测试触控力度',
   },
 ]);
 
@@ -1080,14 +1106,14 @@ const onMetaDelete = (key: string) => {
 const metahandleAdd = () => {
   const newData = {
     key: `${metacount.value}`,
-    title: `Edward King ${metacount.value}`,
-    content: `London, Park Lane no. ${metacount.value}`,
+    title: `Objective${metacount.value}`,
+    content: `details${metacount.value}`,
   };
   metadataSource.value.push(newData);
 };
 
 
-const resourcescount = computed(() => metadataSource.value.length + 1);
+const resourcescount = computed(() => resourcesdataSource.value.length + 1);
 const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
 
 const resourcesedit = (key: string) => {
@@ -1271,7 +1297,7 @@ const resourceshandleAdd = () => {
                         </div>
                       </div>
                     </template>
-                    <template v-else-if="column.dataIndex === 'operation'">
+                    <template v-else-if="column.dataIndex === 'operation' && record.key>1">
                       <a-popconfirm v-if="metadataSource.length" title="Sure to delete?"
                         @confirm="onMetaDelete(record.key)">
                         <a>Delete</a>
@@ -1279,6 +1305,7 @@ const resourceshandleAdd = () => {
                     </template>
                   </template>
                 </a-table>
+                <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto;">
