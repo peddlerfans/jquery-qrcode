@@ -19,7 +19,7 @@ function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function
   const orz: TablePaginationConfig = {
     current: 1,
     pageSize: 10,
-    pageSizeOptions: ['10','20', '50', '100', '200'],
+    pageSizeOptions: ['5','10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
     showTotal: (total, range) => `当前显示第${range[0]}-${range[1]}条，共${total}条`,
@@ -60,7 +60,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
   }
 
   function updateTable({ fetchUrl }: { fetchUrl?: string } = {}) {
-    debugger
+    
     if (!fetchUrl) fetchUrl = updateTableOptions.fetchUrl
     if (!fetchUrl) return console.warn('表格更新失败，请检查参数{fetchUrl}')
     selectedRowKeys.value = []
@@ -78,7 +78,8 @@ export default function ({ table, columns, pagination, updateTableOptions }:
       Object.assign(res.data,{total:temptotal})
       
       _dataSource.value = res.data?.data      
-      _pagination.total = res.data?.total
+      _pagination.total = res.total
+      
     }).catch(e=>{
       console.log('err:',e)
     })

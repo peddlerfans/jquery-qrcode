@@ -45,8 +45,8 @@ import { chromium, test, expect } from '@playwright/test';
 // }))
 
 test('Success Login', async ({ page }) => {
-    // await page.goto('https://mbt-dev.oppo.itealab.net/');
-    await page.goto('http://localhost:7777/');
+    await page.goto('https://mbt-dev.oppo.itealab.net/');
+    // await page.goto('http://localhost:7777/');
 
     await page.waitForSelector('#loginForm_username');
     await page.fill('#loginForm_username', "david");
