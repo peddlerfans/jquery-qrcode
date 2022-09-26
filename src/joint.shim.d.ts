@@ -74,7 +74,7 @@ interface ModelDefinition {
 }
 declare module 'axios' {
     interface ResponseData<T> {
-
+        model(model: any): any[];
         code: number,
         msg: string,
         data: T | null
@@ -83,7 +83,8 @@ declare module 'axios' {
         _id?:string,
         description?:string,
         tags?:[],
-        modelDefinition?:ModelDefinition
+        modelDefinition?:ModelDefinition,
+        model:any
     }
 }
 

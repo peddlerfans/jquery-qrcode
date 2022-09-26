@@ -11,7 +11,7 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-v
 import request from '@/utils/request';
 import { SmileOutlined, SearchOutlined } from '@ant-design/icons-vue';
 import { Stores } from '../../types/stores'
-import $, { param } from "jquery";
+import $, { param } from "jquery"; 
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
 import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
@@ -472,7 +472,11 @@ function handlerCancel() {
 
 
 
+/**
+ * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
+ */
 let mbtCache: any;//save the data from backend Stores.mbt
+//route是响应式对象，可监控其变化，需要用useRoute()获取
 
 const route = useRoute()
 
@@ -485,6 +489,8 @@ let toReload = ref(false);
  * Without id, the response is an array of object
  * If reload is true, it will fetch AW info from backend
  */
+console.log(route.params.name);
+
 async function mbtquery(id?: any, reLoad?: boolean) {
 
   let rst;
@@ -508,7 +514,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         return mbtCache
       }
     }
-
     ).catch(err => console.log(err))
 
   } else if (id) {
@@ -617,7 +622,7 @@ function saveMBT(route: any) {
   mbtCache['dataDefinition'] = cacheDataDefinition;
 
   updateMBT(url + `/${mbtCache['_id']}`, mbtCache)
-  message.success("Save MBT model successfully")
+  message.success("Savembtquery MBT model successfully")
 
 }
 
