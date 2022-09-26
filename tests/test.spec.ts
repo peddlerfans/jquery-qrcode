@@ -34,7 +34,7 @@
 
 // });
 
-import { chromium, test, expect } from '@playwright/test';
+// import { chromium, test, expect } from '@playwright/test';
 
 // test('Success checking bing', (async () => {
 //     const browser = await chromium.launch();
@@ -44,22 +44,22 @@ import { chromium, test, expect } from '@playwright/test';
 //     await browser.close();
 // }))
 
-test('Success Login', async ({ page }) => {
-    await page.goto('https://mbt-dev.oppo.itealab.net/');
-    // await page.goto('http://localhost:7777/');
+// test('Success Login', async ({ page }) => {
+//     await page.goto('https://mbt-dev.oppo.itealab.net/');
+//     // await page.goto('http://localhost:7777/');
 
-    await page.waitForSelector('#loginForm_username');
-    await page.fill('#loginForm_username', "david");
-    await page.fill('#loginForm_password', "123456");
-    await Promise.all([
-        page.click('button[type=submit]'),
-        page.waitForNavigation({ waitUntil: 'networkidle' })]);
+//     await page.waitForSelector('#loginForm_username');
+//     await page.fill('#loginForm_username', "david");
+//     await page.fill('#loginForm_password', "123456");
+//     await Promise.all([
+//         page.click('button[type=submit]'),
+//         page.waitForNavigation({ waitUntil: 'networkidle' })]);
 
-    expect(await page.url(), "should navigate to dahsboard page").toMatch(/dashboard$/);
+//     expect(await page.url(), "should navigate to dahsboard page").toMatch(/dashboard$/);
 
-    await Promise.all([page.click('*[data-menu-id="/awmodeler/index"]'),
-    page.waitForNavigation({timeout:5000})]);
-    await page.screenshot({path:"./test.png"});
-    expect(await page.url(), "should navigate to awmodeler page").toMatch(/awmodeler.*/);
+//     await Promise.all([page.click('*[data-menu-id="/awmodeler/index"]'),
+//     page.waitForNavigation({timeout:5000})]);
+//     await page.screenshot({path:"./test.png"});
+//     expect(await page.url(), "should navigate to awmodeler page").toMatch(/awmodeler.*/);
 
-})
+// })

@@ -127,16 +127,11 @@ let searchobj: tableSearch = reactive({
   page: 1,
   perPage: 5
 })
-// const colSpan = ref('10');
+
 const columns = reactive<Object[]>(
 
   [
-    // {
-    //   name: '_id',
-    //   dataIndex: '_id',
-    //   key: '_id',
-    //   hidden:true
-    // },
+
     {
       name: 'Name',
       dataIndex: 'name',
@@ -157,18 +152,7 @@ const columns = reactive<Object[]>(
       dataIndex: 'tags',
       key: 'tags'
     }
-    // {
-    //   name: 'Name',
-    //   dataIndex: 'name',
-    //   key: 'name',
-    //   width: '150px'
-    // },
-    // {
-    //   title: 'description',
-    //   dataIndex: 'description',
-    //   key: 'description',
-    //   width: '150px'
-    // }
+
   ]);
 
 
@@ -179,7 +163,7 @@ async function awqueryById(id: string) {
     return rst.data
   }
 }
-//ids: xxxxxxxx1|yyyyyyyyy2
+//i.g.    ids: xxxxxxxx1|yyyyyyyyy2
 async function awqueryByBatchIds(ids: string) {
   // console.log(ids)
   let rst = await request.get("/api/hlfs?q=_id:" + ids)
@@ -368,10 +352,9 @@ let currentLinkView: dia.LinkView;
 
 function awhandlerSubmit() {
   // console.log('awhandlerSubmit......cacheprops/', cacheprops)
-  // ev_id = elementView.model.id + '';
-  // console.log('awformdata:', awformdata)
+
   isAW.value = true;
-  debugger
+  // debugger
   isLink.value = false;
   isGlobal.value = false;
   if (currentElementMap.size == 0) {
@@ -394,7 +377,7 @@ function awhandlerSubmit() {
 
 
   } else {
-    // debugger
+
     currentElementMap.set(ev_id, { 'props': awformdata.value });
     // console.log('cacheprops set.....2')
     cacheprops.set(ev_id, { 'props': awformdata.value });
@@ -422,15 +405,10 @@ function awhandlerSubmit() {
               width: sizeX
             }, { ellipsis: true }))
 
-          // let cellView = modeler.paper.findViewByModel(cell);
-          // console.log('........iiiiii.....',cellView)
 
-          // console.log('........jjjjj.....',modeler)
         }
       }
-      // console.log('cacheprops set....3..key:',key)
-      // cacheprops.set(key, { 'props': tempaw });
-      // break;
+
     }
   }
   currentElementMap.clear()
@@ -479,12 +457,8 @@ function handlerCancel() {
 };
 
 
-/**
- * Global https://mbt-dev.oppo.itealab.net/api/test-models?search=
- */
-let mbtCache: any;//save the data from backend Stores.mbt
-//route是响应式对象，可监控其变化，需要用useRoute()获取
 
+let mbtCache: any;//save the data from backend Stores.mbt
 
 const route = useRoute()
 
@@ -509,47 +483,8 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         idstr = response._id + '';
         if (response.modelDefinition && response.modelDefinition.props) {
           const propsMap = new Map(Object.entries(JSON.parse(JSON.stringify(response.modelDefinition.props))))
-          let cells = response.modelDefinition.cellsinfo.cells
+          // let cells = response.modelDefinition.cellsinfo.cells
           cacheprops = propsMap;
-          /*
-           propsMap.forEach((val: any, key: any) => {
-             //Only element has name, link doesn't have it
-             if (val.props.hasOwnProperty('name') && val.props.hasOwnProperty('_id')) {
-               // console.log(key);//element id in the paper of modeler
-               //Get the latest AW from backend one by one
-               debugger
-               awqueryById(val.props._id).then((awresponse: Stores.aw) => {
-                 let tempparams = ''
-                 if (_.isArray(awresponse.params)) {
-                   _.forEach(awresponse.params, function (value: any, key) {
-                     tempparams += value.name + ' '
- 
-                   })
-                 }
-                 //Update aw info and save them to cacheprops
-                 cacheprops.set(key, {
-                   "props": {
-                     "name": awresponse.name,
-                     "_id": awresponse._id,
-                     "description": awresponse.description,
-                     "template": awresponse.template,
-                     "params": tempparams
-                   }
-                 })
- 
-                 // if type == standard.Rectangle replace attrs label text by id which is the key 
-                 cells.forEach(cell => {
-                   if (cell.type == 'standard.Rectangle' && cell.id == key) {
-                     cell.attrs!.label.text = cacheprops.get(key)['props']['template'] || cacheprops.get(key)['props']['description']
-                   }
-                 })
- 
-               }).catch(err => {
-                 console.log(err)
-               })
-             }
-           })*/
-          // console.log('refresh aw from backend and save them to cache,', cacheprops);
         } else {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
@@ -562,8 +497,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
     ).catch(err => console.log(err))
 
-
-
   } else if (id) {
 
     // console.log('reloadfunc, if id not reload......cacheprops/', cacheprops)
@@ -572,21 +505,16 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     // console.log('id query:', id, rst)
     if (rst && rst.name == route.params.name) {
       let str = rst._id + '';
-
       mbtCache = rst;
       localStorage.setItem('mbt_' + route.params.name + '_id', str)
       localStorage.setItem('mbt_' + route.params.name, JSON.stringify(rst._id))
-
-
     }
-
   }
   else {
     // console.log('reloadfunc, no id no reload......cacheprops/', cacheprops)
     rst = await request.get(url + "?search=" + route.params.name)
     // console.log('name query:', route.params.name)
     if (rst.data) {
-
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record
@@ -622,42 +550,44 @@ function saveMBT(route: any) {
   let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
 
   let tempdata: modelDefinition = {};
-  // modeler.graph.getCell(ev_id);
 
   modeler.graph.getCells().forEach((item: any) => {
-    // console.log('zzzzzzzz', item)
+
     graphIds.push(item.id);
     if (item.attributes.type == 'standard.Rectangle') {
-      let savelabel = cacheprops.get(item.id).props.templdate || cacheprops.get(item.id).props.description || 'aw'
-      modeler.graph.getCell(item).attr(
-        "label/text", savelabel);
-      if (cacheprops.get(item.id) == null) {
-        // console.log('cacheprops set....6')
+      if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props && cacheprops.get(item.id).props.name && cacheprops.get(item.id).props.name.length > 0) {
+
+        let showtext = cacheprops.get(item.id).props.template || cacheprops.get(item.id).props.description || 'aw'
+        let sizeX = showtext.length * 2.5;
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY = cacheprops.get(item.id).props.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 180;
+
+
+        modeler.graph.getCell(item.id).resize(sizeX, sizeY);
+        modeler.graph.getCell(item.id).attr(
+          "label/text", joint.util.breakText(showtext, {
+            width: sizeX
+          }, { ellipsis: true }))
+
+      }
+      else if (cacheprops.get(item.id) == null) {
+
         cacheprops.set(item.id, item.attributes.attrs.label.text);
       }
 
     }
   })
-  // let oldgraphData = modeler.graph.toJSON();
-  // console.log(oldgraphData);
-  // 
-  // oldgraphData.cells.forEach((item: any) => {
-  //   graphIds.push(item.id);
-  //   if (item.type == 'standard.Rectangle') {
-  //     //if label in the element is different with cacheprops, correct it as same as cacheprops
-  //     item.attrs.label.text = cacheprops.get(item.id)
-  //   }
-  //   // console.log(oldgraphData);
 
-  // })
+
+
+  
   /*删除找不到的*/
   // console.log('graphids:', graphIds)
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
   for (let key of cacheprops.keys()) {
-
-    // console.log('awkey:', key)
     if (!graphIds.includes(key)) {
-      // console.log('not found')
       cacheprops.delete(key)
     }
 
@@ -691,10 +621,10 @@ function reloadMBT(route: any) {
     res = mbtquery();
   }
   res.then((value: any) => {
-    // let tempdata: modelDefinition = {};
+    
     let graphIds: string[] = [];//Save aw ids for all elements,links,etc on the paper. 
     if (value.hasOwnProperty('modelDefinition') && value.modelDefinition.hasOwnProperty('cellsinfo')) {
-      // let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
+    
       let sqlstr = ''
 
       if (value.modelDefinition.hasOwnProperty('props')) {
@@ -704,7 +634,7 @@ function reloadMBT(route: any) {
         // console.log('after:',cacheprops)
       }
       modeler.graph.getCells().forEach((item: any) => {
-        // console.log('zzzzzzzz2', item)
+        
         if (item.attributes.type == 'standard.Rectangle') {
           graphIds.push(item.id);
           sqlstr += cacheprops.get(item.id).props._id + '|'
@@ -719,17 +649,16 @@ function reloadMBT(route: any) {
       // console.log('...sqlstr:', sqlstr)
       let tempdata = awqueryByBatchIds(sqlstr);
       tempdata.then(aws => {
-        // console.log('xxxxxx', aws)
+        
         aws.forEach((aw: Stores.aw) => {
           for (let [key, val] of cacheprops) {
-            // console.log('key in props:', key)
-        //update cacheprops
+            //update cacheprops
             if (val.props._id == aw._id) {
               val.props.description = aw.description
               val.props.template = aw.template
             }
-        //update aw details in value.modelDefinition.cellsinfo
-        //rendering using updated cellsinfo
+            //update aw details in value.modelDefinition.cellsinfo
+            //rendering using updated cellsinfo
             tempcellsinfo.cells.forEach((cell: any) => {
               if (cell.type == 'standard.Rectangle' && cell.id == key) {
                 cell.attrs.label.text = aw.template || aw.description
@@ -737,73 +666,24 @@ function reloadMBT(route: any) {
             })
           }
 
-        })
-        // console.log('cacheprops:', cacheprops)
-        
-        // console.log('tempcellsinfo:', tempcellsinfo)
+        })        
+        // console.log('tempcellsinfo:', tempcellsinfo,'cacheprops:', cacheprops)
         let tempstr = JSON.stringify(tempcellsinfo);
         modeler.graph.fromJSON(JSON.parse(tempstr));//Loading data from backend
-
-
 
 
       })
 
     }
   })
-  message.success("MBT model reloaded")
-
-
-  // if (item.attributes.type == 'standard.Rectangle') {
-  //   let savelabel = cacheprops.get(item.id).props.templdate || cacheprops.get(item.id).props.description || 'aw'
-  //   modeler.graph.getCell(item).attr(
-  //     "label/text", savelabel);
-  //   if (cacheprops.get(item.id) == null) {
-  //     console.log('cacheprops set....6')
-  //     cacheprops.set(item.id, item.attributes.attrs.label.text);
-  //   }
-  // Object.assign(tempdata, { cellsinfo: modeler.graph.toJSON() })
-
-  // let obj = Object.fromEntries(cacheprops)
-
-  // Object.assign(tempdata, { props: obj })
-
-  // mbtCache['modelDefinition'] = tempdata;
-
-  // updateMBT(url + `/${mbtCache['_id']}`, mbtCache) ///should use | 
-  //igexample: https://mbt-dev.oppo.itealab.net/api/hlfs?q=_id:6322b94d853ce5bb9b0ff4e5|6322b94c853ce5bb9b0ff4e4,name.keyword:OPPO_51
+  message.success("MBT model reloaded") 
 
 }
 
 
 
 
-// let tempdata: modelDefinition = {};
 
-// let oldgraphData = modeler.graph.toJSON();
-
-// let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
-// oldgraphData.cells.forEach((item: any) => {
-//   graphIds.push(item.id);
-//   if (item.type == 'standard.Rectangle') {
-//     //if label in the element is different with cacheprops, correct it as same as cacheprops
-//     item.attrs.label.text = cacheprops.get(item.id)
-//   }
-
-
-// })
-
-// /*删除找不到的*/
-// cacheprops.forEach((aw: any) => {
-//   if (graphIds.find((id: string) => id == aw.id) == 'undefined') {
-//     cacheprops.delete(aw)
-
-// }
-// })
-
-
-
-// }
 
 /**
  * Localstorage saving the data of this model
@@ -923,11 +803,6 @@ onMounted(() => {
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
-      // awformdata.value.description = '';
-      // awformdata.value.name = '';
-      // awformdata.value.params = ''
-      // awformdata.value.tags = ''
-      // awformdata.value.template = ''
       if (aw.length > 0)
         showDrawer('', aw, cellid);
     });
@@ -949,9 +824,7 @@ onMounted(() => {
 
 
   modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
-    // console.log(elementView)
-    // console.log('element:pointerclick......cacheprops/', cacheprops)
-    debugger
+
 
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
@@ -984,13 +857,9 @@ onMounted(() => {
   });
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
-    // awformdata.value.description = '';
-    // awformdata.value.name = '';
-    // awformdata.value.params = ''
-    // awformdata.value.tags = ''
-    // awformdata.value.template = ''
+
     // console.log('element:pointerdblclick......cacheprops/', cacheprops)
-    debugger
+    // debugger
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
