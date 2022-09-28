@@ -5,25 +5,23 @@ import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
 import { PlusOutlined,PlusSquareFilled} from '@ant-design/icons-vue'
-import { table } from 'console';
 let route=useRoute()
-console.log(route.params.name);
+console.log(route);
 
 
-sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
+sessionStorage.setItem('meta_'+route.params._id,JSON.stringify(route.params._id))
 // sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
 // 获取当前数据并赋值
 let recordobj=ref()
 // 根据传来的name值获取到数据
 async function query (data?:any){
-   let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
-    if(rst){
-      rst.data.forEach((item:any)=>{
-        if(item.name==route.params.name){
-          recordobj.value=item
-          tableData.value=arr(item.model)
-        }
-      })
+  //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
+  let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
+   console.log(rst);
+   
+    if(rst.model){      
+          recordobj.value=rst.model
+          tableData.value=arr(rst.model)
       ;
     }else{
     alert('This template has no model')
@@ -32,7 +30,7 @@ async function query (data?:any){
 // 给每条数据添加条属性
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
 onMounted(()=>{
-  let getId:any=sessionStorage.getItem('meta_'+route.params.name)
+  let getId:any=sessionStorage.getItem('meta_'+route.params._id)
 console.log(JSON.parse(getId));
   
     query(JSON.parse(getId))
