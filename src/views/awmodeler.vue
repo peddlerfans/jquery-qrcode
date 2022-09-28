@@ -10,10 +10,7 @@ import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
-<<<<<<< HEAD
-=======
 // import VueContextMenu from 'vue-contextmenu'
->>>>>>> dev
 import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
 let tableData:any= ref([])
