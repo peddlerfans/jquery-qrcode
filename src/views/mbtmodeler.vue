@@ -88,7 +88,7 @@
 
   const showDrawer = (el?: dia.LinkView|dia.ElementView|undefined, aw?: string, id?: string) => {
     visible.value = true;
-    debugger
+    
     if(typeof el == 'undefined' && aw == 'aw' && id){
 
       isAW.value = true;
@@ -120,6 +120,9 @@
   
   const onCloseDrawer = () => {
     visible.value = false;
+    linkData.value.label=''
+   
+  
     // modeler.paper.update()
     // modeler.paper.updateViews()
     // modeler.paper.requestViewUpdate();
@@ -269,6 +272,7 @@
   
   });
   let linkData = ref({
+
     label: ''
   })
   let awformdata = ref<Stores.awView>({
@@ -449,8 +453,9 @@
   };
   
   function linkhandlerSubmit() {
-  debugger
-  console.log('linkdata:',linkData)
+  
+  // console.log('linkdata:',linkData)
+  // console.log('.......',currentLinkMap);
     for (let key of currentLinkMap.keys()) {
       let templink = {}
       for (const [key, value] of Object.entries(linkData.value)) {
@@ -480,7 +485,11 @@
       }
       // console.log('cacheprops set....4')
       cacheprops.set(key, { 'props': templink });
+      // currentLinkMap.set(key,{ 'props': templink })
     }
+    currentLinkMap.clear()
+    
+    onCloseDrawer()
     message.success('Save it Successfully');
   };
   
@@ -583,7 +592,7 @@
     let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
   
     let tempdata: modelDefinition = {};
-  
+    // console.log(modeler.graph);
     modeler.graph.getCells().forEach((item: any) => {
   
       graphIds.push(item.id);
@@ -610,6 +619,30 @@
           cacheprops.set(item.id, item.attributes.attrs.label.text);
         }
   
+      }else if (item.attributes.type == 'standard.Link') {
+        if(_.isArray(item.attributes.labels)){
+          // alert(item.attributes.labels[0].attrs.text.text)
+          // modeler.graph.getCell(item.id)
+
+          while(modeler.graph.getCell(item.id).hasLabels){
+            modeler.graph.getCell(item.id).removeLabel(-1)
+            break;
+          }
+          
+  
+          
+          modeler.graph.getCell(item.id).appendLabel({
+            attrs: {
+              text: {
+                text: cacheprops.get(item.id).props.label
+              }
+            }
+          })
+        }else {//labels undefined
+          // alert(item.attributes.labels)
+        }
+        
+
       }
     })
   
@@ -850,43 +883,29 @@
     });
   
   
-    // modeler.paper.on('element:delete', function (elementView: dia.ElementView, evt: Event) {
-    //   // Stop any further actions with the element view e.g. dragging
-    //   // console.log('delete element:', elementView);
-    //   evt.stopPropagation();
-    //   if (confirm('Are you sure you want to delete this element?')) {
-    //     elementView.model!.remove();
-    //   }
-    // });
+ 
     /**
      *  When click the element/link/blank, show the propsPanel
      */
-    //  modeler.paper.on('link:pointerdblclick',
-    //  modeler.paper.on('link:pointerdblclick', (linkView: dia.LinkView) => {
-    //  alert('link click')
-    //  isAW.value = false;
-    //   isLink.value = true;
-    //   isGlobal.value = false;
-    //   showLinkInfo(linkView);
-    //   showDrawer()
-    // })
+
   
     modeler.paper.on('link:pointerdblclick', function (linkView: any) {
   
-      currentLinkView = linkView;
-          
+      currentLinkView = linkView;     
       isAW.value = false;
       isLink.value = true;
       isGlobal.value = false;
       if (cacheprops.has(linkView.model.id)) {
-        cacheprops.get(linkView.model.id)
+        currentLinkMap.set(linkView.model.id, cacheprops.get(linkView.model.id))
+        linkData.value.label = cacheprops.get(linkView.model.id).props.label
       } else {
         // todo link props
-        
-        cacheprops.set(linkView.model.id, { 'label': linkData.value||'' });
+        currentLinkMap.set(linkView.model.id, cacheprops.get(linkView.model.id))
+        cacheprops.set(linkView.model.id, { 'label': linkData.value.label||'' });
       
       }
-      currentLinkMap.set(linkView.model.id, { 'label': linkData.value||'' });
+      // console.log('cacheprops for link dblclick:',cacheprops)
+      // console.log('currentLinkMap',currentLinkMap);
       showDrawer(linkView)
     })
   
@@ -1017,7 +1036,7 @@
   }
   
   function showLinkInfo(rowobj: any) {
-    alert(rowobj.toString())
+    // alert(rowobj.toString())
     // hasLinkInfo.value = true;
     // awformdata.value.name = rowobj.name
     // awformdata.value.description = rowobj.description
