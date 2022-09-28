@@ -79,16 +79,18 @@
   /** drawer  */
   //drawer visible
   const visible = ref(false);
+
+  /**
+   *First param used when clicking an element or a link.If it'sUndefined, that means not clicking  
+   * second param used by aw, id specify the element/link id
+   */
+  
+
   const showDrawer = (el?: dia.LinkView|dia.ElementView|undefined, aw?: string, id?: string) => {
     visible.value = true;
-    if (el!.hasOwnProperty('path')) {
-      
-      if(el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-      linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
-    } else if (el && _.isObject(el)) {
-      // console.log('click element')
-    } else if (el == '' && aw == 'aw' && id) {
-      // console.log('drag & drop from stentil', id)
+    debugger
+    if(typeof el == 'undefined' && aw == 'aw' && id){
+
       isAW.value = true;
       ev_id = id
   
@@ -102,9 +104,14 @@
       // handlerCancel()
       hasAWInfo.value = false;
       awquery()
-      // awqueryById(el);
-  
     }
+    else if (el!.hasOwnProperty('path')) {
+      
+      if(el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
+      linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
+    } else if (el && _.isObject(el)) {
+      // console.log('click element')
+    } 
     else {
       // console.log('click blank')
     }
@@ -838,7 +845,7 @@
         flyShape.remove();
         $("#flyPaper").remove();
         if (aw.length > 0)
-          showDrawer(undefined,aw, cellid);
+          showDrawer(undefined,aw, cellid);//First param used when clicking an element or a link. Undefined means not clicking 
       });
     });
   

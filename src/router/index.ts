@@ -155,9 +155,11 @@ export const routes: RouteRecordRaw[] = [
       }
     ], 
     beforeEnter(to,form,next){
-      if(to.path==`/mbtmodeler/${to.params._id}/${to.params.name}`){
-        to.meta.title=`MBTmodel ${to.params.name}`
-        
+      let pathname =`${to.params.name}`;
+      if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=`MBTModel `+pathname
+       
         }
         next()
       }
