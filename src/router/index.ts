@@ -175,6 +175,20 @@ export const routes: RouteRecordRaw[] = [
       }
       next()
     }
+  },
+  {
+    path: '/dynamicModeler',
+    name: 'DynamicModeler',
+    component: Layout,
+    redirect: { name: 'dynamicModeler' },
+    children: [
+      {
+        path: ':_id',
+        name: 'dynamicModeler',
+        component: () => import('@/views/dynamicModel.vue'),
+        meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
+      }
+    ]
   }
 ]
 
