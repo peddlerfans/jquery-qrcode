@@ -148,12 +148,19 @@ export const routes: RouteRecordRaw[] = [
     redirect: { name: 'mbtmodeler' },    
     children: [
       {
-        path: ':name',
+        path: ':_id/:name',
         name: 'mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }
-    ]
+    ], 
+    beforeEnter(to,form,next){
+      if(to.path==`/mbtmodeler/${to.params._id}/${to.params.name}`){
+        to.meta.title=`MBTmodel ${to.params.name}`
+        
+        }
+        next()
+      }
   },
   {
     path: '/metaModeler',
