@@ -79,7 +79,7 @@
   /** drawer  */
   //drawer visible
   const visible = ref(false);
-  const showDrawer = (el?: dia.LinkView|dia.ElementView, aw?: string, id?: string) => {
+  const showDrawer = (el?: dia.LinkView|dia.ElementView|undefined, aw?: string, id?: string) => {
     visible.value = true;
     if (el!.hasOwnProperty('path')) {
       
@@ -838,7 +838,7 @@
         flyShape.remove();
         $("#flyPaper").remove();
         if (aw.length > 0)
-          showDrawer('', aw, cellid);
+          showDrawer(undefined,aw, cellid);
       });
     });
   

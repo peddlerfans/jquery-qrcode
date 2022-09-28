@@ -3,7 +3,7 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
+  AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -116,7 +116,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'codegen',
         name: 'codegenTemplate',
         component: () => import('@/views/codegentemplate.vue'),
-        meta: { title: 'Codegen Template', icon: FireOutlined, keepAlive: true }
+        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
       }
 
     ]
