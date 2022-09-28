@@ -56,6 +56,22 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+  {
+    path: '/awmodeler',
+    name: 'awmodeler',
+    component: Layout,
+    redirect: { name: 'awmodeler' },
+    meta: { breadcrumb: false },
+    children: [
+      {
+        path: 'index',
+        name: 'awmodeler',
+        component: () => import('@/views/awmodeler.vue'),
+        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
+      }
+    ]
+  }
+  ,
 
   {
     path: '/mbtstore',
@@ -96,28 +112,18 @@ export const routes: RouteRecordRaw[] = [
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
         meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
+      },{
+        path: 'codegen',
+        name: 'codegenTemplate',
+        component: () => import('@/views/codegentemplate.vue'),
+        meta: { title: 'Codegen Template', icon: FireOutlined, keepAlive: true }
       }
 
     ]
   }
 
   ,
-  {
-    path: '/awmodeler',
-    name: 'awmodeler',
-    component: Layout,
-    redirect: { name: 'awmodeler' },
-    meta: { breadcrumb: false },
-    children: [
-      {
-        path: 'index',
-        name: 'awmodeler',
-        component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
-      }
-    ]
-  }
-  ,
+  
 
   {
     path: '/account',

@@ -315,7 +315,7 @@ const handleInputConfirm = () => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"
+              <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
