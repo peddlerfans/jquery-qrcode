@@ -458,7 +458,6 @@ function getPath(key:any,treearr:any){
 let clickKey:any=ref()
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-  
   let str=getPath(info.node.dataRef.key,treeData.value)
   clickKey.value=str
   console.log(selectedKeys);
@@ -586,26 +585,27 @@ const onExpand = (keys: any) => {
 // 失去焦点，真正修改树节点的地方
 const onchangtitle =async (data: any) => {
   console.log(updTreedata.value);
+  let nowNode=getTreeDataByItem(treeData.value,data)
+  // 获取当前节点的整条路径
+  let str=getPath(data,treeData.value)
+  console.log(str);
   
-  // let nowNode=getTreeDataByItem(treeData.value,data)
-  // // 获取当前节点的整条路径
-  // let str=getPath(data,treeData.value)
-  // // 将新输入的值拼接到newPath
-  // let newStrIndex=str.lastIndexOf('/')
-  // let newStr=str.substring(0,newStrIndex+1)
-  // let pathnew=newStr+updTreedata.value
-  // console.log(pathnew);
-  // await request.post("/api/hlfs/_rename",{path:str,newPath:pathnew})
-  // if(nowNode.children.length==0){
-  //   // 这里走精准匹配
-  //    query({q:`path.keyword:${pathnew}`,search:''})
-  //   }else{
-  // // 这里走前置匹配
-  //  query({q:`path:${pathnew}`,search:''})
-  // }
-  // await queryTree()
-  // updTreedata.value=""
-  // nowNode.showEdit=false
+  // 将新输入的值拼接到newPath
+  let newStrIndex=str.lastIndexOf('/')
+  let newStr=str.substring(0,newStrIndex+1)
+  let pathnew=newStr+updTreedata.value
+  console.log(pathnew);
+  await request.post("/api/hlfs/_rename",{path:str,newPath:pathnew})
+  if(nowNode.children.length==0){
+    // 这里走精准匹配
+     query({q:`path:${pathnew}`,search:''})
+    }else{
+  // 这里走前置匹配
+   query({q:`path:${pathnew}`,search:''})
+  }
+  await queryTree()
+  updTreedata.value=""
+  nowNode.showEdit=false
 }
 
 // 定义修改节点的变量
@@ -630,7 +630,7 @@ const updTree = (key: any) => {
   }
 }
 // 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
-const pushSubtree = (key: any) => {
+const pushSubtree =async (key: any) => {
   console.log(key);
   // 获取当前添加节点的对象
   // let pushChild=getTreeDataByItem(treeData.value,key)
@@ -642,12 +642,13 @@ const pushSubtree = (key: any) => {
   let pushPath=str+'/'+'NewNode'
   console.log(pushPath);
 
-  request.post("/api/hlfs?isFolder=true",{path:pushPath})
+ await request.post("/api/hlfs?isFolder=true",{path:pushPath})
   expandedKeys.value = [key];
   // pushChild.children.push({...newChild.value})
   getloop(treeData.value,key)
   treeData.value = [...treeData.value]
   autoExpandParent.value=true
+  queryTree()
 }
 // 定义添加节点的函数
  //找到需要添加的节点并添加下级
@@ -657,7 +658,7 @@ const getloop=(arr:Array<any>, key:string)=> {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: '子节点',
+            title: 'childNode',
             key: key + '/' + s,
             children:[],
             showEdit: false,
@@ -678,13 +679,13 @@ const getloop=(arr:Array<any>, key:string)=> {
         }
       }
 }
-const pushSib=(arr:Array<any>, key:string)=> {
+const pushSib=async(arr:Array<any>, key:string)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: '新增节点',
+            title: 'NewNode',
             key: uuid(),
             children:[],
             showEdit: false,
@@ -693,8 +694,10 @@ const pushSib=(arr:Array<any>, key:string)=> {
           if (arr[s].children == undefined) {
             arr[s].children = [];
             arr.push(obj);
+            await request.post("/api/hlfs?isFolder=true",{path:obj.key})
           } else {
             arr.push(obj);
+            await request.post("/api/hlfs?isFolder=true",{path:obj.key})
           }
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
@@ -716,7 +719,7 @@ const pushSib=(arr:Array<any>, key:string)=> {
 //   scopedSlots: {title: 'custom'},
 // })
 // 添加顶级节点
-const addSib=(key:any)=>{
+const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
   // let rst=getTreeParentChilds(treeData.value,key)
   // console.log(rst);
@@ -727,13 +730,16 @@ const addSib=(key:any)=>{
   pushSib(treeData.value,key)
   console.log(key);
   treeData.value = [...treeData.value]
+  queryTree()
 }
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any) => {
   let str=getPath(key,treeData.value)
+  console.log(str);
+  
  let rst=await request.post("/api/hlfs/_deleteFolder",{path:str})
-  await queryTree()
+  queryTree()
 }
 // 右键展开菜单项
  const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
@@ -813,7 +819,7 @@ const confirmtree =async (key:any) => {
                   title="Are you sure delete this task?"
                   ok-text="Yes"
                   cancel-text="No"
-                  @confirm="confirmtree(title)">
+                  @confirm="confirmtree(treeKey)">
             <a-menu-item key="4" @click="deltree(title)"> Delete Node</a-menu-item>
           </a-popconfirm>
           </a-menu>
