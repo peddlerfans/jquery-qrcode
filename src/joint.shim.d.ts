@@ -72,9 +72,15 @@ interface ModelDefinition {
     cellsinfo:Cells,
     props:object
 }
+interface DynamicModel {
+    option?: any
+    factor?: any
+    constraint?: any
+}
 declare module 'axios' {
     interface ResponseData<T> {
-        model(model: any): any[];
+        // model(model: any): any;
+        model?: DynamicModel
         code: number,
         msg: string,
         data: T | null

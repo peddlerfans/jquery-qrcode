@@ -1,0 +1,1055 @@
+<script setup lang="ts">
+import {
+  ref,
+  reactive,
+  computed,
+  onBeforeMount,
+  defineComponent,
+  UnwrapRef,
+  onMounted,
+  nextTick,
+  toRaw,
+  getCurrentInstance
+} from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import request from '@/utils/request';
+import {
+  templateUrl
+} from '@/appConfig'
+import * as _ from 'lodash'
+import { cloneDeep } from 'lodash-es';
+import type {
+  FormProps,
+  SelectProps,
+} from 'ant-design-vue';
+import {
+  SyncOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+  SwapOutlined,
+} from '@ant-design/icons-vue';
+import {
+  message,
+  Table
+} from 'ant-design-vue/es'
+import { Rule } from 'ant-design-vue/es/form';
+import { Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
+import {
+  tableSearch,
+  FormState,
+  paramsobj,
+  ModelState,
+  statesTs,
+  Model,
+  Factor,
+  Constraint,
+  valueStatesTs,
+} from "./componentTS/dynamictemplate";
+import { purple } from '@ant-design/colors';
+
+
+// Specify the api for dynamic template data CRUD
+let url = templateUrl;
+let route = useRoute()
+let finalResult: any;
+
+sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.params._id))
+// 获取当前数据并赋值
+let finalModel: Model = reactive({
+  option: {
+    strategy:''
+  },
+  factor: [],
+  constraint: []
+})// 根据传来的id值获取到数据
+async function query(id?: any) {
+  finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
+
+  finalModel.factor = finalResult.model!.factor.map((e: any) => {
+    return {
+      ...e, editing: false, inputVisible: false, inputValue: ''
+    }
+  })
+  finalModel.constraint = finalResult.model!.constraint.map((e: any) => {
+    return {
+      ...e, editing: false
+    }
+  })
+}
+let modelId: any
+onMounted(() => {
+  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
+  console.log('onMounted');
+  console.log(JSON.parse(modelId));
+
+  query(JSON.parse(modelId))
+})
+
+
+const saveModel = async () => {
+  console.log('saveModel');
+  if (showAddFactorBtn.value && showAddConstraintBtn.value){
+    if (finalModel.factor.length<2){
+      message.warning('It is requires at least TWO factors in a model')
+    }else{
+      let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
+      console.log(rst);
+      message.success('Model is saved successfully')
+    }
+  }else{
+    message.warning('Please save all the editing fields first')
+  }
+
+
+}
+
+
+// Types of factor
+const orderOptions = ref<SelectProps['options']>([
+  {
+    value: 'pairwise',
+    label: 'Pairwise',
+  },
+  {
+    value: 'fullcombination',
+    label: 'Full Combination',
+  },
+  {
+    value: 'random',
+    label: 'Random',
+  }
+])
+
+const typeOptions = ref<SelectProps['options']>([
+  {
+    value: 'string',
+    label: 'String',
+  },
+  {
+    value: 'number',
+    label: 'Number',
+  }
+])
+
+// Initialize an obj for a single factor
+let factorState = reactive<Factor>({
+  name: '',
+  type: '',
+  values: [],
+  editing: true,
+  inputVisible: false,
+  inputValue: '',
+})
+
+const factorColumns = [ // Setup the header of columns
+  {
+    title: 'Name',
+    dataIndex: 'name',
+    key: 'name',
+    // width: 40
+  },
+  {
+    title: 'Type',
+    dataIndex: 'type',
+    key: 'type',
+    // width: 120
+  },
+  {
+    title: 'Values',
+    dataIndex: 'values',
+    key: 'values',
+  },
+  {
+    title: 'Action',
+    dataIndex: 'action',
+    key: 'action',
+    // width: 100
+  },
+
+
+]
+
+let newValue = ref();
+let showAddFactorBtn = ref(true)
+
+const addNewFactor = () => {
+  showAddFactorBtn.value = false;
+  finalModel.factor.push({
+    name: '',
+    type: '',
+    values: [],
+    editing: true,
+    inputVisible: true,
+    inputValue: ''
+  })
+}
+
+const editFactor = (record: Factor) => {
+  console.log('editFactor')
+  console.log(record)
+
+  factorState.name = record.name
+  factorState.type = record.type
+  factorState.values = record.values
+  showAddFactorBtn.value=false
+
+  console.log(factorState)
+
+  record.editing = true
+
+}
+
+
+const saveFactor = async (record: Factor) => {
+  record.editing = false
+
+  clearFactorState()
+  showAddFactorBtn.value = true
+}
+
+
+const deleteFactor = (record: Factor) => {
+  const index= finalModel.factor.findIndex(e => e === record)
+  console.log('deleteFactorByName')
+  console.log(index)
+  finalModel.factor.splice(index,1);
+  message.success('Delete Successfully!');
+}
+const cancelFactor = (record: Factor) => {
+  if (factorState.name === ''){
+    const index= finalModel.factor.findIndex(e => e === record)
+    finalModel.factor.splice(index,1);
+  }else{
+    record.name = factorState.name
+    record.type = factorState.type
+    record.values = factorState.values
+
+    record.editing = false
+  }
+
+  clearFactorState()
+  showAddFactorBtn.value = true
+}
+const clearFactorState = () => {
+  factorState.name = ''
+  factorState.type = ''
+  factorState.values = []
+  factorState.editing = true
+  factorState.inputVisible = false
+  factorState.inputValue = '';
+
+  // (instance?.refs.refFactorForm as any).resetFields();
+}
+
+// Handel Tags in modal form
+const handleCloseTag = (record: Factor, removedTag: string) => {
+  console.log('tags');
+  console.log(record.values);
+  const tags = record.values.filter((tag: string) => tag !== removedTag);
+  record.values = tags;
+  console.log(record.values);
+
+};
+let inputRef = ref();
+
+const handleFactorValueConfirm = (record: Factor) => {
+  let values = record.values;
+  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+    values = [...values, record.inputValue];
+  }
+  Object.assign(record, {
+    values: values,
+    inputVisible: false,
+    inputValue: '',
+  });
+  console.log("handleModelTagConfirm")
+}
+
+const newFactorValueInput = (record: Factor) => {
+  record.inputVisible = true;
+
+  nextTick(() => {
+    inputRef.value.focus();
+    inputRef.value.toString();
+  })
+};
+
+
+
+
+
+
+
+
+
+
+const constraintColumns = [ // Setup the header of columns
+  {
+    title: 'IF',
+    children: [
+      {
+        title: 'Name',
+        dataIndex: 'ifname',
+        key: 'ifname',
+        // width: 40
+      },
+      {
+        title: 'Operator',
+        dataIndex: 'ifoperator',
+        key: 'ifoperator',
+        // width: 120
+      },
+      {
+        title: 'Value',
+        dataIndex: 'ifvalues',
+        key: 'ifvalues',
+      }
+    ]
+  },
+  {
+    title: 'THEN',
+    children: [
+      {
+        title: 'Name',
+        dataIndex: 'thenname',
+        key: 'thenname',
+        // width: 40
+      },
+      {
+        title: 'Operator',
+        dataIndex: 'thenoperator',
+        key: 'thenoperator',
+        // width: 120
+      },
+      {
+        title: 'Value',
+        dataIndex: 'thenvalues',
+        key: 'thenvalues',
+      }
+    ]
+  },
+  {
+    title: 'Action',
+    dataIndex: 'action',
+    key: 'action',
+  }
+]
+
+// Operators
+
+const stringOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  },
+  {
+    value: 'LIKE',
+    label: 'LIKE',
+  }
+]
+const numberOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<',
+    label: '<',
+  },
+  {
+    value: '>',
+    label: '>',
+  },
+  {
+    value: '<=',
+    label: '<=',
+  },
+  {
+    value: '>=',
+    label: '>=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  }
+]
+const ifOperatorOptions = computed(() => {
+  if (constraintState.ifname == '') {
+    return ref<SelectProps['options']>([]).value;
+  } else {
+    if (finalModel.factor.filter(e => e.name == constraintState.ifname)[0].type == 'string') {
+      return ref<SelectProps['options']>(stringOptions).value
+    } else {
+      return ref<SelectProps['options']>(numberOptions).value
+    }
+  }
+})
+
+const thenOperatorOptions = computed(() => {
+  if (constraintState.thenname == '') {
+    return ref<SelectProps['options']>([]).value;
+  } else {
+    if (finalModel.factor.filter(e => e.name == constraintState.thenname)[0].type == 'string') {
+      return ref<SelectProps['options']>(stringOptions).value
+    } else {
+      return ref<SelectProps['options']>(numberOptions).value
+    }
+  }
+})
+
+const ifNameOpetions = computed(() => {
+  return ref<SelectProps['options']>(finalModel.factor.map(e => { return { value: e.name, label: e.name } })).value
+})
+
+const ifValueOpetions = computed(() => {
+  if (constraintState.ifname == '') {
+    return ref<SelectProps['options']>([]).value
+  } else {
+    return ref<SelectProps['options']>(
+      finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
+        .map(e => { return { value: e, label: e } })).value
+  }
+})
+
+const thenNameOpetions = computed(() => {
+  return ref<SelectProps['options']>(finalModel.factor.filter(e => e.name != constraintState.ifname).map(e => { return { value: e.name, label: e.name } })).value
+})
+
+
+const thenValueOpetions = computed(() => {
+  if (constraintState.thenname == '') {
+    return ref<SelectProps['options']>([]).value
+  } else {
+    return ref<SelectProps['options']>(
+      finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
+        .map(e => { return { value: e, label: e } })).value
+  }
+})
+
+let showAddConstraintBtn = ref(true)
+
+let constraintState = reactive<Constraint>({
+  ifname: '',
+  ifoperator: '',
+  ifvalues: [],
+  thenname: '',
+  thenoperator: '',
+  thenvalues: [],
+})
+
+let currentFactorName = reactive([])
+
+const addNewConstraint = () => {
+  console.log('addNewConstraint')
+  clearConstraintState()
+  showAddConstraintBtn.value = false;
+
+  finalModel.constraint.push({
+    ifname: '',
+    ifoperator: '',
+    ifvalues: '',
+    thenname: '',
+    thenoperator: '',
+    thenvalues: '',
+    editing: true,
+  })
+  console.log(finalModel)
+  console.log(constraintState)
+}
+const saveConstraint = (record: Constraint) => {
+  console.log('saveConstraint')
+  console.log(constraintState)
+
+  Object.assign(record, {
+    ifname: constraintState.ifname,
+    ifoperator: constraintState.ifoperator,
+    thenname: constraintState.thenname,
+    thenoperator: constraintState.thenoperator,
+    editing: false
+  });
+
+  if (Array.isArray(constraintState.ifvalues)) {
+    Object.assign(record, {
+      ifvalues: []
+    });
+    constraintState.ifvalues.map((v) => { record.ifvalues.push(v) })
+  } else {
+    Object.assign(record, {
+      ifvalues: constraintState.ifvalues
+    });
+  }
+
+  if (Array.isArray(constraintState.thenvalues)) {
+    Object.assign(record, {
+      thenvalues: []
+    });
+    constraintState.thenvalues.map((v) => { record.thenvalues.push(v) })
+  } else {
+    Object.assign(record, {
+      thenvalues: constraintState.thenvalues
+    });
+  }
+
+  record.editing = false
+
+  console.log(finalModel)
+
+  showAddConstraintBtn.value = true
+}
+const editConstraint = (record: Constraint) => {
+  console.log('editFactor')
+  console.log(finalModel.constraint)
+
+  constraintState.ifname = record.ifname
+  constraintState.ifoperator = record.ifoperator
+  constraintState.ifvalues = record.ifvalues
+  constraintState.thenname = record.thenname
+  constraintState.thenoperator = record.thenoperator
+  constraintState.thenvalues = record.thenvalues
+
+
+  console.log(constraintState)
+
+  record.editing = true
+
+}
+const updateConstraint = async (record: Constraint) => {
+  console.log('updateConstraint')
+  console.log(record)
+
+  record.editing = false
+
+  clearConstraintState()
+  showAddConstraintBtn.value = true
+}
+
+const deleteConstraint = (record: Constraint) => {
+  const index= finalModel.constraint.findIndex(e => e === record)
+  finalModel.constraint.splice(index,1);
+  message.success('Delete Successfully!');
+}
+const cancelConstraint = (record: Constraint) => {
+  if (constraintState.ifname === ''){
+    const index= finalModel.constraint.findIndex(e => e === record)
+    finalModel.constraint.splice(index,1);
+  }else{
+    record.ifname=constraintState.ifname
+    record.ifoperator=constraintState.ifoperator
+    record.ifvalues=constraintState.ifvalues
+    record.thenname=constraintState.thenname
+    record.thenoperator=constraintState.thenoperator
+    record.thenvalues=constraintState.thenvalues
+
+    record.editing = false
+  }
+  // clearConstraintState()
+  showAddConstraintBtn.value = true
+}
+
+
+const instance = getCurrentInstance()
+
+
+
+const clearConstraintState = () => {
+  constraintState.ifname = ''
+  constraintState.ifoperator = ''
+  constraintState.ifvalues = []
+  constraintState.thenname = ''
+  constraintState.thenoperator = ''
+  constraintState.thenvalues = [];
+
+  // (instance?.refs.refConstraintForm as any).resetFields();
+}
+
+
+
+
+
+const cancel = (e: MouseEvent) => {
+  console.log(e);
+};
+
+const focus = () => {
+  console.log('focus');
+  // console.log(constraintState);
+};
+
+</script>
+
+
+
+<template>
+
+  <main style="height:100%;overflow-x: hidden!important;">
+
+    <!-- ############ -->
+    <!-- Options info -->
+    <!-- ############ -->
+
+    <div>
+      <h2>Option (required)</h2>
+      <a-form
+          name="basic"
+          :wrapper-col="{ span: 2 }"
+          autocomplete="off"
+      >
+      <a-form-item label="Strategy">
+      <a-select v-model:value="finalModel.option.order" :options="orderOptions"></a-select>
+      </a-form-item>
+      </a-form>
+    </div>
+
+
+
+    <!-- ############ -->
+    <!-- Factors info -->
+    <!-- ############ -->
+
+    <div style="margin: 30px 0px 8px 0px;">
+      <h2 style="display: inline;">Factors (required)</h2>
+      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">Add a
+        New Factor</a-button>
+
+    </div>
+
+
+    <a-table v-if="finalModel.factor.length>0" :columns="factorColumns" :data-source="finalModel.factor" bordered>
+      <template #bodyCell="{ column, text, record }">
+
+        <template v-if='column.key==="name"'>
+          <div>
+            <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
+            <template v-else>
+              {{text}}
+            </template>
+          </div>
+        </template>
+
+
+        <template v-if='column.key==="type"'>
+          <div>
+            <!-- <a-form-item label="Type" name="type">
+              <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
+            </a-form-item>
+            <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="typeOptions"
+              @focus="focus"></a-select>
+
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+        </template>
+
+
+        <template v-if="column.key === 'values'">
+          <template v-if="record.editing">
+            <template v-for="(tag) in record.values" :key="tag">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" @close="handleCloseTag(record, tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" @close="handleCloseTag(record, tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="record.inputVisible" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
+              size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+              @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
+              <plus-outlined />
+              Add a New Value
+            </a-tag>
+          </template>
+
+          <span v-else>
+            <a-tag v-for="tag in record.values" :key="tag" color="cyan">
+              {{ tag }}
+            </a-tag>
+          </span>
+        </template>
+        <template v-else-if="column.dataIndex === 'action'">
+          <div class="editable-row-operations">
+            <span v-if="record.editing">
+              <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
+              <a-divider type="vertical" />
+              <a-popconfirm title="Sure to cancel?" @confirm="cancelFactor(record)">
+                <a>Cancel</a>
+              </a-popconfirm>
+            </span>
+
+            <span v-else>
+              <a @click="editFactor(record)">Edit</a>
+              <a-divider type="vertical" />
+              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+                @confirm="deleteFactor(record)" @cancel="cancel">
+                <a>Delete</a>
+              </a-popconfirm>
+            </span>
+
+          </div>
+        </template>
+      </template>
+    </a-table>
+
+
+
+
+    <!-- ################ -->
+    <!-- Constraints info -->
+    <!-- ################ -->
+
+    <div style="margin: 30px 0px 8px 0px;">
+      <h2 style="display: inline;">Constraint (optional)</h2>
+      <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
+        style="margin-left: 12px;">Add a New Constraint</a-button>
+    </div>
+
+    <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
+      <template #bodyCell="{ column, text, record }">
+
+        <template v-if='column.key==="ifname"'>
+          <div>
+            <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.ifname"
+              :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus">
+            </a-select>
+            <template v-else>
+              {{text}}
+            </template>
+          </div>
+        </template>
+
+
+        <template v-if='column.key==="ifoperator"'>
+          <div>
+            <!-- <a-form-item label="Type" name="type">
+                  <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
+                </a-form-item>
+                <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.ifoperator"
+              :options="ifOperatorOptions" @focus="focus">
+            </a-select>
+
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+        </template>
+
+
+        <template v-if="column.key === 'ifvalues'">
+          <template v-if="record.editing">
+
+            <a-select v-if="constraintState.ifoperator == 'IN'" mode="multiple" ref="select"
+              v-model:value.trim="constraintState.ifvalues" :options="ifValueOpetions" :disabled="false" @focus="focus">
+            </a-select>
+            <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
+              style="margin: -5px 0" @focus="focus" />
+            <a-select v-else ref="select" v-model:value.trim="constraintState.ifvalues" :options="ifValueOpetions"
+              :disabled="false" @focus="focus">
+            </a-select>
+          </template>
+
+          <span v-else>
+            <template v-if="Array.isArray(record.ifvalues)">
+              <a-tag v-for="tag in record.ifvalues" :key="tag" color="cyan">
+                {{ tag }}
+              </a-tag>
+            </template>
+            <template v-else>
+
+              <a-tag v-if="record.ifoperator !== 'LIKE'" color="cyan">
+                {{ text }}
+              </a-tag>
+              <span v-else>
+                {{ text }}
+              </span>
+
+            </template>
+
+          </span>
+        </template>
+
+
+        <template v-if='column.key==="thenname"'>
+          <div>
+            <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.thenname"
+              :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus">
+            </a-select>
+            <template v-else>
+              {{text}}
+            </template>
+          </div>
+        </template>
+
+
+        <template v-if='column.key==="thenoperator"'>
+          <div>
+            <!-- <a-form-item label="Type" name="type">
+                  <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
+                </a-form-item>
+                <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.thenoperator"
+              :options="thenOperatorOptions" @focus="focus">
+            </a-select>
+
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+        </template>
+
+        <template v-if='column.key === "thenvalues"'>
+          <template v-if="record.editing">
+            <a-select v-if="constraintState.thenoperator === 'IN'" mode="multiple" ref="select1"
+              v-model:value.trim="constraintState.thenvalues" :options="thenValueOpetions" :disabled="false" @focus="focus">
+            </a-select>
+            <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
+              style="margin: -5px 0" @focus="focus" />
+            <a-select v-else ref="select2" v-model:value.trim="constraintState.thenvalues" :options="thenValueOpetions"
+              :disabled="false" @focus="focus">
+            </a-select>
+          </template>
+
+          <span v-else>
+            <template v-if="Array.isArray(record.thenvalues)">
+              <a-tag v-for="tag in record.thenvalues" :key="tag" color="cyan">
+                {{ tag }}
+              </a-tag>
+            </template>
+            <span v-else>
+              <a-tag v-if="record.thenoperator !== 'LIKE'" color="cyan">
+                {{ text }}
+              </a-tag>
+              <span v-else>
+                {{ text }}
+              </span>
+            </span>
+
+          </span>
+        </template>
+
+
+
+
+        <template v-if='column.key === "action"'>
+          <span v-if="record.editing">
+            <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
+            <a-divider type="vertical" />
+            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
+              <a>Cancel</a>
+            </a-popconfirm>
+          </span>
+
+          <span v-else>
+            <a @click="editConstraint(record)">Edit</a>
+            <a-divider type="vertical" />
+            <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+              @confirm="deleteConstraint(record.name)" @cancel="cancel">
+              <a>Delete</a>
+            </a-popconfirm>
+          </span>
+        </template>
+      </template>
+    </a-table>
+
+    <a-divider/>
+
+    <div style="margin-top: 30px">
+      <a-button type="primary" @click="saveModel" class=""
+        style="margin-bottom: 8px">Save Model</a-button>
+    </div>
+
+
+
+    <!-- <header class="block shadow">
+      <a-row>
+        <a-col :span="20">
+          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
+            <a-col :span="20">
+
+              <a-mentions v-model:value="formState.search"
+                placeholder="input @ to search tags, input name to search Dynamic Templates">
+                <a-mentions-option value="tags:">
+                  tags:
+                </a-mentions-option>
+              </a-mentions>
+            </a-col>
+
+            <a-col :span="4">
+              <a-button type="primary" html-type="submit">search</a-button>
+            </a-col>
+
+          </AForm>
+        </a-col>
+        <a-col :span="4">
+          <a-button type="primary" @click="showModal">
+            <template #icon>
+              <plus-outlined />
+            </template>
+          </a-button>
+        </a-col>
+      </a-row>
+    </header> -->
+
+
+    <!-- 模态窗 -->
+
+    <!-- <div>
+      <a-modal v-model:visible="visibleModel"
+        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
+        @ok="handleOk" :width="900">
+
+
+        <h2>Model</h2>
+
+        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
+          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+          <a-form-item label="Name" name="name">
+            <a-input v-model:value="modelState.name" />
+          </a-form-item>
+
+          <a-form-item label="Description" name="description">
+            <a-input v-model:value="modelState.description" />
+          </a-form-item>
+
+          <a-form-item label="Tag" name="tags">
+            <template v-for="(tag) in modelState.tags" :key="tag">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" @close="handleCloseTag(tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
+              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
+              @keyup.enter="handleModelTagConfirm" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
+              <plus-outlined />
+              Add a New Tag
+            </a-tag>
+          </a-form-item>
+        </a-form>
+
+        <template #footer>
+          <a-button @click="closeModel">Cancel</a-button>
+          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
+        </template>
+
+
+      </a-modal>
+    </div> -->
+
+
+
+
+    <!-- ######################### -->
+    <!-- List of dynamic templates -->
+    <!-- ######################### -->
+
+
+
+
+
+
+    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
+      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
+      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'name'">
+          <span>
+            <edit-outlined />
+            Name
+          </span>
+        </template>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'name'">
+
+          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
+        </template>
+
+        <template v-else-if="column.key === 'description'">
+
+          {{ record.description }}
+
+        </template>
+        <template v-else-if="column.key === 'tags'">
+          <span>
+            <a-tag v-for="tag in record.tags" :key="tag"
+              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
+              {{ tag.toUpperCase() }}
+            </a-tag>
+          </span>
+        </template>
+
+        <template v-else-if="column.key === 'action'">
+          <span>
+            <a @click="editModel(record)">Edit</a>
+            <a-divider type="vertical" />
+            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+              @confirm="deleteModel(record._id)" @cancel="cancel">
+              <a>Delete</a>
+            </a-popconfirm>
+          </span>
+        </template>
+      </template>
+
+
+    </ATable> -->
+    <!-- </section> -->
+  </main>
+</template>
+
+<style lang="postcss" scoped>
+main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  margin-bottom: 1rem;
+}
+
+footer {
+  margin-top: 1rem;
+}
+
+∏ .table {
+  width: 100%;
+  height: 100px;
+  flex: 1;
+  background-color: #fff;
+  border-radius: 0.7rem;
+}
+</style>
+<style>
+
+</style>
