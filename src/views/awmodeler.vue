@@ -15,7 +15,6 @@ import request from '@/utils/request';
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
-import { MouseMenuDirective } from '@howdyjs/mouse-menu';
 import _ from 'lodash';
 import { TreeNodeProps } from 'ant-design-vue/lib/vc-tree';
 import { TreeDataItem } from 'ant-design-vue/lib/tree';
