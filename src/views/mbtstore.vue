@@ -210,7 +210,7 @@ const onFinishForm = async (modelstates: any) => {
  */
 const handleOk = () => {
   
-  let routeparam = `/mbtmodeler/${modelstates.value.name}`
+  let routeparam = `/mbtmodeler/${modelstates.value._id}/${modelstates.value.name}`
   
   onFinishForm(modelstates)
   clear()
@@ -315,7 +315,7 @@ const handleInputConfirm = () => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"
+              <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
@@ -396,7 +396,7 @@ const handleInputConfirm = () => {
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
 
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
+          <a :href="'/#/mbtmodeler/'+ record._id+'/'+record.name">{{ record.name }}</a>
         </template>
 
         <template v-else-if="column.key === 'description'">
