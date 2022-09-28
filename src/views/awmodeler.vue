@@ -430,7 +430,7 @@ function objToArr(obj:Object) {
         for (var i in obj) {          
           var oo:any = {
             title: i,
-            key:i,
+            key:uuid(),
             children: objToArr(obj[i as keyof typeof objToArr])
           };
           arr.push(oo);
@@ -448,9 +448,9 @@ const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
 // 定义一个返回路径的函数
 function getPath(key:any,treearr:any){
   let rst:any
-  let res=getPathByKey(key,'key',treearr)
+  let res=getPathByKey(key,'title',treearr)
   rst=res?.map((obj:any)=>{
-    return obj.key
+    return obj.title
   }).join('/')
   return rst
 }
@@ -459,8 +459,10 @@ function getPath(key:any,treearr:any){
 let clickKey:any=ref()
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-  let str=getPath(info.node.dataRef.key,treeData.value)
+  let str=getPath(info.node.dataRef.title,treeData.value)
   clickKey.value=str
+  console.log(str);
+  
   console.log(selectedKeys);
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
@@ -587,8 +589,10 @@ const onExpand = (keys: any) => {
 const onchangtitle =async (data: any) => {
   console.log(updTreedata.value);
   let nowNode=getTreeDataByItem(treeData.value,data)
+  console.log(nowNode);
+  
   // 获取当前节点的整条路径
-  let str=getPath(data,treeData.value)
+  let str=getPath(nowNode.title,treeData.value)
   console.log(str);
   
   // 将新输入的值拼接到newPath
@@ -596,7 +600,7 @@ const onchangtitle =async (data: any) => {
   let newStr=str.substring(0,newStrIndex+1)
   let pathnew=newStr+updTreedata.value
   console.log(pathnew);
-  await request.post("/api/hlfs/_rename",{path:str,newPath:pathnew})
+  await request.post("/api/hlfs/_rename?force=true",{path:str,newPath:pathnew})
   if(nowNode.children.length==0){
     // 这里走精准匹配
      query({q:`path:${pathnew}`,search:''})
@@ -630,28 +634,43 @@ const updTree = (key: any) => {
   })
   }
 }
-// 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
-const pushSubtree =async (key: any) => {
-  console.log(key);
-  // 获取当前添加节点的对象
-  // let pushChild=getTreeDataByItem(treeData.value,key)
-  // 添加节点时通过当前的key获取整条路经
-  let res=getPathByKey(key,"key",treeData.value);
-  let str:any=res?.map((item:any)=>{
-    return item.key
-  }).join("/")
-  let pushPath=str+'/'+'NewNode'
-  console.log(pushPath);
 
- await request.post("/api/hlfs?isFolder=true",{path:pushPath})
-  expandedKeys.value = [key];
-  // pushChild.children.push({...newChild.value})
+// 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
+const pushSubtree =async (key: any,title:any) => {
+  console.log(key,title);
+  // 获取当前添加节点的对象
+  let nowNode=getTreeDataByItem(treeData.value,key)
   getloop(treeData.value,key)
   treeData.value = [...treeData.value]
+  let expandKey=queryKey(treeData.value,key)
+console.log(expandKey)
+  let res=getPathByKey(nowNode.title,"title",treeData.value);
+  let str:any=res?.map((item:any)=>{
+    return item.title
+  }).join("/")
+  let pushPath=str+'/'+'childNode'
+  console.log(pushPath);
+
+ await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
+  expandedKeys.value = [nowNode.title];
   autoExpandParent.value=true
   queryTree()
 }
-// 定义添加节点的函数
+// 找到需要展开节点的key
+const queryKey=(arr:any,key:string)=>{
+  let expandKey
+  for(let i=0;i<arr.length;i++){
+    if(arr[i].key==key){
+      arr[i].children.forEach((item:any)=>{
+        if(item.title=="childNode"){
+          expandKey=item.key
+        }})
+    }else if(arr[i].children && arr[i].children.length>0){
+      queryKey(arr[i].children,key)
+    }
+  }
+  return expandKey
+}
  //找到需要添加的节点并添加下级
 const getloop=(arr:Array<any>, key:string)=> {
       //首先循环arr最外层数据
@@ -659,7 +678,7 @@ const getloop=(arr:Array<any>, key:string)=> {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'childNode',
+            title: 'childNode'+s,
             key: key + '/' + s,
             children:[],
             showEdit: false,
@@ -695,10 +714,9 @@ const pushSib=async(arr:Array<any>, key:string)=> {
           if (arr[s].children == undefined) {
             arr[s].children = [];
             arr.push(obj);
-            await request.post("/api/hlfs?isFolder=true",{path:obj.key})
+            
           } else {
             arr.push(obj);
-            await request.post("/api/hlfs?isFolder=true",{path:obj.key})
           }
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
@@ -709,37 +727,37 @@ const pushSib=async(arr:Array<any>, key:string)=> {
         }
       }
 }
-
-// 添加同级节点的数据
-// const topTree=ref({
-//   title:'新增节点',
-//   key:uuid(),
-//   children:[],
-//   showEdit: false,
-//   isLeaf:false,
-//   scopedSlots: {title: 'custom'},
-// })
+// 判断当前节点的上一级是否有值，若无知（path=‘NewNode’） 有值酒吧当前点击的替换
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
+  let nowNode=getTreeDataByItem(treeData.value,key)
   // let rst=getTreeParentChilds(treeData.value,key)
-  // console.log(rst);
   // rst.push({...topTree.value})
-  let str=getPath(key,treeData)
-  console.log(str);
-  
+  let str=getPath(nowNode.title,treeData.value)
+  if(str.indexOf('/')){
+    let newStrIndex=str.lastIndexOf('/')
+  let newStr=str.substring(0,newStrIndex+1)
+  let pathnew=newStr+'NewNode'
+    await request.post("/api/hlfs?isFolder=true",{path:pathnew})
+  }else{
+    await request.post("/api/hlfs?isFolder=true",{path:'NewNode'})
+  }
   pushSib(treeData.value,key)
-  console.log(key);
+  expandedKeys.value = [key];
   treeData.value = [...treeData.value]
   queryTree()
 }
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any) => {
-  let str=getPath(key,treeData.value)
+  let nowNode=getTreeDataByItem(treeData.value,key)
+  console.log(nowNode);
+  
+  let str=getPath(nowNode.title,treeData.value)
   console.log(str);
   
- let rst=await request.post("/api/hlfs/_deleteFolder",{path:str})
+ let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
   queryTree()
 }
 // 右键展开菜单项
@@ -813,7 +831,7 @@ const confirmtree =async (key:any) => {
         <template #overlay>
           <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
             <a-menu-item key="1" @click="addSib(treeKey)">Add sibling node</a-menu-item>
-            <a-menu-item key="2" @click="pushSubtree(treeKey)">Add Child Node</a-menu-item>
+            <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
             <a-menu-item key="3" @click="updTree(treeKey)"> Modify node</a-menu-item>
             <a-popconfirm
                   placement="right"
