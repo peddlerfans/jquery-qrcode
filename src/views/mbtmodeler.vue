@@ -114,8 +114,8 @@ const showDrawer = (el?: dia.LinkView | dia.ElementView | undefined, aw?: string
 
   else if (el!.hasOwnProperty('path')) {
 
-    if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-      linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
+    // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
+    //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
   } else if (el && _.isObject(el)) {
     // console.log('click element')
   }
@@ -466,7 +466,11 @@ function linkhandlerSubmit() {
   for (let key of currentLinkMap.keys()) {
     let templink = {}
     for (const [key, value] of Object.entries(linkData.value)) {
-      let obj = JSON.parse(`{"${key}":"${value}"}`)
+      let obj;
+      if(typeof value == 'undefined'){
+        obj = JSON.parse(`{"${key}":""}`)
+      }else 
+       obj= JSON.parse(`{"${key}":"${value}"}`)
       Object.assign(templink, obj)
       if (key == "label" && value) {
         // console.log(currentLinkView)
@@ -488,6 +492,21 @@ function linkhandlerSubmit() {
         })
 
 
+      }else if (key == "label") {//when delete the value in the form for label
+        while (currentLinkView.model?.hasLabels) {
+          currentLinkView.model?.removeLabel(-1)
+          break;
+        }
+
+
+
+        currentLinkView.model?.appendLabel({
+          attrs: {
+            text: {
+              text: ``
+            }
+          }
+        })
       }
     }
     // console.log('cacheprops set....4')
