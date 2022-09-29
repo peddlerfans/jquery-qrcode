@@ -4,7 +4,7 @@ import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from 'ant-design-vue/es'
-import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive, toRefs } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref } from "vue";
 import type { Ref } from "vue";
 import { useRoute } from 'vue-router'
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
@@ -387,15 +387,15 @@ function awhandlerSubmit() {
 
   isLink.value = false;
   isGlobal.value = false;
-  let tempformdata:Stores.awView= {
-    _id:'',
-    name:'',
-    tags:'',
-    template:'',
-    description:'',
-    params:''
+  let tempformdata: Stores.awView = {
+    _id: '',
+    name: '',
+    tags: '',
+    template: '',
+    description: '',
+    params: ''
   };
-  
+
 
   if (currentElementMap.size == 0) {
     if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.name.length > 0) {
@@ -410,26 +410,26 @@ function awhandlerSubmit() {
       // console.log('Not found evid, save data to currentElementMap')
       currentElementMap.set(ev_id, { 'props': awformdata.value });
       // console.log('cacheprops set....1')
-      
+
       tempformdata._id = awformdata.value._id;
       tempformdata.name = awformdata.value.name
       tempformdata.description = awformdata.value.description
       if (_.isArray(awformdata.value.tags)) {
-    _.forEach(awformdata.value.tags, function (value, key) {
-      tempformdata.tags += value + ' '
-    })
-  }
+        _.forEach(awformdata.value.tags, function (value, key) {
+          tempformdata.tags += value + ' '
+        })
+      }
 
 
-  if (_.isArray(awformdata.value.params)) {
-    _.forEach(awformdata.value.params, function (value, key) {
-      tempformdata.params += value.name + ' '
+      if (_.isArray(awformdata.value.params)) {
+        _.forEach(awformdata.value.params, function (value, key) {
+          tempformdata.params += value.name + ' '
 
-    })
-  }
-  
-       cacheprops.set(ev_id, { 'props': tempformdata });
-      // cacheprops.set(ev_id, { 'props': awformdata.value });
+        })
+      }
+
+      cacheprops.set(ev_id, { 'props': tempformdata });
+      // cacheprops.set(ev_id, { 'props': unref(awformdata.value) });
       // console.log('cacheprops1:',cacheprops);
       // console.log('tempformdata:',tempformdata);
       // console.log('awformdata:',awformdata);
@@ -442,34 +442,52 @@ function awhandlerSubmit() {
 
     currentElementMap.set(ev_id, { 'props': awformdata.value });
     // console.log('cacheprops set.....2')
-    cacheprops.set(ev_id, { 'props': awformdata.value });
+    tempformdata._id = awformdata.value._id;
+    tempformdata.name = awformdata.value.name
+    tempformdata.description = awformdata.value.description
+    if (_.isArray(awformdata.value.tags)) {
+      _.forEach(awformdata.value.tags, function (value, key) {
+        tempformdata.tags += value + ' '
+      })
+    }
+
+
+    if (_.isArray(awformdata.value.params)) {
+      _.forEach(awformdata.value.params, function (value, key) {
+        tempformdata.params += value.name + ' '
+
+      })
+    }
+
+    cacheprops.set(ev_id, { 'props': tempformdata });
+    // cacheprops.set(ev_id, { 'props': awformdata.value });
   }
 
   // for (let key of currentElementMap.keys()) {
 
-    let tempaw = {}
-    for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props)) {
-      let obj = JSON.parse(`{"${key}":"${value}"}`)
-      Object.assign(tempaw, obj)
-      if (key == "template" || key == "description") {
+  let tempaw = {}
+  for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props)) {
+    let obj = JSON.parse(`{"${key}":"${value}"}`)
+    Object.assign(tempaw, obj)
+    if (key == "template" || key == "description") {
 
-        let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
-        let sizeX = showtext.length * 2.5;
-        if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
-        if (sizeY < 45) sizeY = 45;
-        if (sizeY > 135) sizeY = 180;
+      let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
+      let sizeX = showtext.length * 2.5;
+      if (sizeX < 100 || sizeX > 150) sizeX = 160;
+      let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
+      if (sizeY < 45) sizeY = 45;
+      if (sizeY > 135) sizeY = 180;
 
-        let cell = modeler.graph.getCell(ev_id);
-        cell.resize(sizeX, sizeY);
-        cell.attr(
-          "label/text", joint.util.breakText(showtext, {
-            width: sizeX
-          }, { ellipsis: true }))
+      let cell = modeler.graph.getCell(ev_id);
+      cell.resize(sizeX, sizeY);
+      cell.attr(
+        "label/text", joint.util.breakText(showtext, {
+          width: sizeX
+        }, { ellipsis: true }))
 
 
-      }
     }
+  }
 
 
   // }
@@ -977,7 +995,7 @@ onMounted(() => {
 
   modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
-    
+
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
@@ -1011,7 +1029,14 @@ onMounted(() => {
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
     // console.log('element:pointerdblclick......cacheprops/', cacheprops)
-
+    let tempformdata: Stores.awView = {
+      _id: '',
+      name: '',
+      tags: '',
+      template: '',
+      description: '',
+      params: ''
+    };
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
@@ -1030,7 +1055,25 @@ onMounted(() => {
         // todo
         currentElementMap.set(ev_id, { 'props': awformdata.value });
         // console.log('cacheprops dbl set....6')
-        cacheprops.set(ev_id, { 'props': awformdata.value });
+        tempformdata._id = awformdata.value._id;
+        tempformdata.name = awformdata.value.name
+        tempformdata.description = awformdata.value.description
+        if (_.isArray(awformdata.value.tags)) {
+          _.forEach(awformdata.value.tags, function (value, key) {
+            tempformdata.tags += value + ' '
+          })
+        }
+
+
+        if (_.isArray(awformdata.value.params)) {
+          _.forEach(awformdata.value.params, function (value, key) {
+            tempformdata.params += value.name + ' '
+
+          })
+        }
+
+        cacheprops.set(ev_id, { 'props': tempformdata });
+        // cacheprops.set(ev_id, { 'props': awformdata.value });
 
       }
 
@@ -1268,19 +1311,19 @@ const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
   },
 ]);
 
-function setFormData(awformData:Stores.aw){
-  let tempformdata:Stores.awView= {
-    _id:'',
-    name:'',
-    tags:'',
-    template:'',
-    description:'',
-    params:''
+function setFormData(awformData: Stores.aw) {
+  let tempformdata: Stores.awView = {
+    _id: '',
+    name: '',
+    tags: '',
+    template: '',
+    description: '',
+    params: ''
   };
   tempformdata._id = awformdata.value._id;
-      tempformdata.name = awformdata.value.name
-      tempformdata.description = awformdata.value.description
-      if (_.isArray(awformdata.value.tags)) {
+  tempformdata.name = awformdata.value.name
+  tempformdata.description = awformdata.value.description
+  if (_.isArray(awformdata.value.tags)) {
     _.forEach(awformdata.value.tags, function (value, key) {
       tempformdata.tags += value + ' '
     })
@@ -1293,7 +1336,7 @@ function setFormData(awformData:Stores.aw){
 
     })
   }
-return tempformdata
+  return tempformdata
 }
 const metacount = computed(() => metadataSource.value.length + 1);
 const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
