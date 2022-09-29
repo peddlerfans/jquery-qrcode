@@ -654,7 +654,7 @@ console.log(expandKey)
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
   expandedKeys.value = [nowNode.title];
   autoExpandParent.value=true
-  queryTree()
+  // queryTree()
 }
 // 找到需要展开节点的key
 const queryKey=(arr:any,key:string)=>{
@@ -678,7 +678,7 @@ const getloop=(arr:Array<any>, key:string)=> {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'childNode'+s,
+            title: 'childNode',
             key: key + '/' + s,
             children:[],
             showEdit: false,
@@ -746,7 +746,7 @@ const addSib=async(key:any)=>{
   pushSib(treeData.value,key)
   expandedKeys.value = [key];
   treeData.value = [...treeData.value]
-  queryTree()
+  // queryTree()
 }
 // 删除树形控件数据
 const deltree = (key:string) => {}

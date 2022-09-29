@@ -4,7 +4,8 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
-import { PlusOutlined,PlusSquareFilled} from '@ant-design/icons-vue'
+import { PlusOutlined,PlusSquareFilled,DeleteOutlined} from '@ant-design/icons-vue'
+import { object } from 'vue-types';
 let route=useRoute()
 console.log(route);
 
@@ -18,9 +19,10 @@ async function query (data?:any){
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
    console.log(rst);
-   
+   recordobj.value=rst
     if(rst.model){      
-          recordobj.value=rst.model
+          
+          recordobj.value.model=rst.model
           tableData.value=arr(rst.model)
       ;
     }else{
@@ -47,7 +49,8 @@ const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 
 // 修改meta的方法
 const updMeta=async (data:any)=>{
-  let rst=await request.put(`/api/templates/${data._id}`,data)
+  
+  let rst=await request.put(`/api/templates/${recordobj.value._id}`,data)
   message.success('Modification succeeded')
 }
 
@@ -62,6 +65,7 @@ const save =async (obj:any) => {
   Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
 //   delete editableData[obj.key].key
   console.log(editableData[obj.key]);
+  
   recordobj.value.model=tableData.value
   console.log(recordobj.value);
   
@@ -72,11 +76,12 @@ const save =async (obj:any) => {
 // 点击删除的方法
 const cancel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
-  tableData.value=tableData.value.filter((item:any)=>item.name!==obj.name)
+  tableData.value=tableData.value.filter((item:any)=>item.enum!==obj.enum)
   delete editableData[obj.key];
-  console.log(tableData.value);
+  console.log(recordobj.value,tableData.value);
   recordobj.value.model=tableData.value
   let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
+  console.log(rst);
   
   message.success('test template has been deleted successfully')
   query()
@@ -325,7 +330,7 @@ const optiones = ref<SelectProps['options']>([
             <span v-if="editableData[record.key]">
               <a-typography-link @click="save(record)">Save</a-typography-link>
               <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-                <a>Cancel</a>
+                <a style="margin-left:10px;font-size:14px"><delete-outlined /></a>
               </a-popconfirm>
             </span>
             <span v-else>
