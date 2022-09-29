@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
-import {  SyncOutlined,  PlusOutlined,} from '@ant-design/icons-vue';
+import {  SyncOutlined,  PlusOutlined,DeleteOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs, ModelState} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
@@ -310,7 +310,7 @@ const handleClose = (removedTag: string) => {
           <span v-if="editableData[record.key]">
             <a-typography-link @click="save(record)">Save</a-typography-link>
             <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-              <a>Cancel</a>
+              <a style="margin-left:10px;font-size:14px"><delete-outlined /></a>
             </a-popconfirm>
           </span>
           <span v-else>
