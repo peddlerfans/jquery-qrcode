@@ -18,7 +18,7 @@ function tableColumns(columns: TableColumnsType) {
 function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function) {
   const orz: TablePaginationConfig = {
     current: 1,
-    pageSize: 10,
+    pageSize: 20,
     pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,

@@ -540,7 +540,7 @@ let toReload = ref(false);
  * If reload is true, it will fetch AW info from backend
  */
 async function mbtquery(id?: any, reLoad?: boolean) {
-
+  console.log('mbtq:',id)
   let rst;
   let idstr = '';
   if (id && reLoad == true) {
@@ -557,8 +557,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
         mbtCache = response;//should work on here
-        localStorage.setItem('mbt_' + route.params.name + '_id', idstr)
-        localStorage.setItem('mbt_' + route.params.name, JSON.stringify(response._id))
+        localStorage.setItem('mbt_' + route.params._id +route.params.name + '_id', idstr)
+        
+        localStorage.setItem('mbt_' + route.params._id + route.params.name, JSON.stringify(response))
         return mbtCache
       }
     }
@@ -574,8 +575,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     if (rst && rst.name == route.params.name) {
       let str = rst._id + '';
       mbtCache = rst;
-      localStorage.setItem('mbt_' + route.params.name + '_id', str)
-      localStorage.setItem('mbt_' + route.params.name, JSON.stringify(rst._id))
+      
+      localStorage.setItem('mbt_' + route.params._id+route.params.name + '_id', str)
+      localStorage.setItem('mbt_' + route.params._id+route.params.name , JSON.stringify(rst))
     }
   }
   else {
@@ -586,8 +588,8 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record
-          localStorage.setItem('mbt_' + route.params.name + '_id', record._id)
-          localStorage.setItem('mbt_' + route.params.name, JSON.stringify(record))
+          localStorage.setItem('mbt_' + route.params._id+route.params.name + '_id', record._id)
+          localStorage.setItem('mbt_' + route.params._id+route.params.name , JSON.stringify(record))
         }
       })
     }
@@ -703,7 +705,7 @@ function saveMBT(route?: any) {
 function reloadMBT(route: any) {
   // console.log('reloadMBT, if id not reload......cacheprops/', cacheprops)
   let res;
-  let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id') + '';
+  let mbtId = localStorage.getItem('mbt_' + route.params._id+route.params.name + '_id') + '';
 
   if (mbtId.length > 0) {
 
@@ -788,7 +790,8 @@ function reloadMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id');
+  // console.log('-------',route.params)
+  let mbtId = localStorage.getItem('mbt_' + route.params._id+route.params.name + '_id');
   let res;
 
   if (mbtId) {
@@ -1018,7 +1021,7 @@ onMounted(() => {
 });
 
 function showGlobalInfo() {
-  globalformData.value._id = localStorage.getItem('mbt_' + route.params.name + '_id') + '';
+  globalformData.value._id = localStorage.getItem('mbt_' + route.params._id+route.params.name + '_id') + '';
   globalformData.value.tags = ''
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
 
@@ -1061,32 +1064,8 @@ function showAWInfo(rowobj: any) {
 
 }
 
-function showLinkInfo(rowobj: any) {
-  // alert(rowobj.toString())
-  // hasLinkInfo.value = true;
-  // awformdata.value.name = rowobj.name
-  // awformdata.value.description = rowobj.description
-  // awformdata.value.tags = ''
-  // awformdata.value.params = ''
-  // awformdata.value._id = rowobj._id
-
-  // if (_.isArray(rowobj.tags)) {
-  //   _.forEach(rowobj.tags, function (value, key) {
-  //     awformdata.value.tags += value + ' '
-  //   })
-  // }
 
 
-  // if (_.isArray(rowobj.params)) {
-  //   _.forEach(rowobj.params, function (value, key) {
-  //     awformdata.value.params += value.name + ' '
-
-  //   })
-  // }
-
-
-
-}
 const activeKey = ref('2')
 const metaActiveKey = ref(['1']);
 
@@ -1134,7 +1113,50 @@ interface MetaDataItem {
 //   }
 
 // ];
-
+const dataPoolcolumns: columnDefinition[] = [
+  {
+    title: 'id',
+    dataIndex: 'id',
+    width: '10%',
+  },
+  {
+    title: 'description',
+    dataIndex: 'description',
+  },
+  {
+    title: 'typeformat',
+    dataIndex: 'typeformat',
+  }
+  ,
+  {
+    title: 'resolution',
+    dataIndex: 'resolution',
+  },
+  {
+    title: 'url',
+    dataIndex: 'url',
+  },
+  {
+    title: 'fps',
+    dataIndex: 'fps',
+  },
+  {
+    title: 'videotype',
+    dataIndex: 'videotype',
+  },
+];
+// const dataPooldataSource: Ref<DataPoolDataItem[]> = ref([
+//   {
+//     key: '0',
+//     title: 'ID',
+//     content: 'oppo.test',
+//   },
+//   {
+//     key: '1',
+//     title: 'Description',
+//     content: '测试触控力度',
+//   },
+// ]);
 const resourcescolumns: columnDefinition[] = [
   {
     title: 'alias',
