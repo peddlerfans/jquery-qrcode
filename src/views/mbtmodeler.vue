@@ -4,7 +4,7 @@ import { Stencil } from "@/composables/stencil";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from 'ant-design-vue/es'
-import { ref, onMounted, UnwrapRef, onUpdated, watchEffect, watch, reactive, toRefs } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref } from "vue";
 import type { Ref } from "vue";
 import { useRoute } from 'vue-router'
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
@@ -18,7 +18,7 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./compo
 import _ from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 import { Context } from "vm";
-import { useCurrentElement } from "@vueuse/core";
+import { StorageSerializers, useCurrentElement } from "@vueuse/core";
 
 import { computed, defineComponent, } from 'vue';
 
@@ -102,15 +102,15 @@ const showDrawer = (el?: dia.LinkView | dia.ElementView | undefined, aw?: string
     awformdata.value.tags = ''
     awformdata.value.template = ''
     // handlerCancel()
-    
-    
+
+
     hasAWInfo.value = false;
 
     awquery()
-  }else if (typeof el == 'undefined'){
+  } else if (typeof el == 'undefined') {
     // console.log('click blank')
 
-  } 
+  }
 
   else if (el!.hasOwnProperty('path')) {
 
@@ -382,17 +382,27 @@ let currentLinkView: dia.LinkView;
 
 function awhandlerSubmit() {
   // console.log('awhandlerSubmit......cacheprops/', cacheprops)
-
+  // console.log('1111111111', ev_id)
   isAW.value = true;
 
   isLink.value = false;
   isGlobal.value = false;
+  let tempformdata: Stores.awView = {
+    _id: '',
+    name: '',
+    tags: '',
+    template: '',
+    description: '',
+    params: ''
+  };
+
+
   if (currentElementMap.size == 0) {
     if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.name.length > 0) {
 
       let awformData = cacheprops.get(ev_id)
       awformdata.value = awformData.props;
-
+      // console.log('map set....0')
       currentElementMap.set(ev_id, { 'props': awformdata.value });
       hasAWInfo.value = true;
     } else {
@@ -400,7 +410,29 @@ function awhandlerSubmit() {
       // console.log('Not found evid, save data to currentElementMap')
       currentElementMap.set(ev_id, { 'props': awformdata.value });
       // console.log('cacheprops set....1')
-      cacheprops.set(ev_id, { 'props': awformdata.value });
+
+      tempformdata._id = awformdata.value._id;
+      tempformdata.name = awformdata.value.name
+      tempformdata.description = awformdata.value.description
+      if (_.isArray(awformdata.value.tags)) {
+        _.forEach(awformdata.value.tags, function (value, key) {
+          tempformdata.tags += value + ' '
+        })
+      }
+
+
+      if (_.isArray(awformdata.value.params)) {
+        _.forEach(awformdata.value.params, function (value, key) {
+          tempformdata.params += value.name + ' '
+
+        })
+      }
+
+      cacheprops.set(ev_id, { 'props': tempformdata });
+      // cacheprops.set(ev_id, { 'props': unref(awformdata.value) });
+      // console.log('cacheprops1:',cacheprops);
+      // console.log('tempformdata:',tempformdata);
+      // console.log('awformdata:',awformdata);
 
     }
 
@@ -410,37 +442,56 @@ function awhandlerSubmit() {
 
     currentElementMap.set(ev_id, { 'props': awformdata.value });
     // console.log('cacheprops set.....2')
-    cacheprops.set(ev_id, { 'props': awformdata.value });
-  }
-
-  for (let key of currentElementMap.keys()) {
-
-    let tempaw = {}
-    for (const [key, value] of Object.entries(awformdata.value)) {
-      let obj = JSON.parse(`{"${key}":"${value}"}`)
-      Object.assign(tempaw, obj)
-      if (key == "template" || key == "description") {
-        // console.log('template in cache:', cacheprops.get(ev_id).props.template)
-        // console.log('description in cache:', cacheprops.get(ev_id).props.description);
-        let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
-        let sizeX = showtext.length * 2.5;
-        if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
-        if (sizeY < 45) sizeY = 45;
-        if (sizeY > 135) sizeY = 180;
-
-        let cell = modeler.graph.getCell(ev_id);
-        cell.resize(sizeX, sizeY);
-        cell.attr(
-          "label/text", joint.util.breakText(showtext, {
-            width: sizeX
-          }, { ellipsis: true }))
-
-
-      }
+    tempformdata._id = awformdata.value._id;
+    tempformdata.name = awformdata.value.name
+    tempformdata.description = awformdata.value.description
+    if (_.isArray(awformdata.value.tags)) {
+      _.forEach(awformdata.value.tags, function (value, key) {
+        tempformdata.tags += value + ' '
+      })
     }
 
+
+    if (_.isArray(awformdata.value.params)) {
+      _.forEach(awformdata.value.params, function (value, key) {
+        tempformdata.params += value.name + ' '
+
+      })
+    }
+
+    cacheprops.set(ev_id, { 'props': tempformdata });
+    // cacheprops.set(ev_id, { 'props': awformdata.value });
   }
+
+  // for (let key of currentElementMap.keys()) {
+
+  let tempaw = {}
+  for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props)) {
+    let obj = JSON.parse(`{"${key}":"${value}"}`)
+    Object.assign(tempaw, obj)
+    if (key == "template" || key == "description") {
+
+      let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
+      let sizeX = showtext.length * 2.5;
+      if (sizeX < 100 || sizeX > 150) sizeX = 160;
+      let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
+      if (sizeY < 45) sizeY = 45;
+      if (sizeY > 135) sizeY = 180;
+
+      let cell = modeler.graph.getCell(ev_id);
+      cell.resize(sizeX, sizeY);
+      cell.attr(
+        "label/text", joint.util.breakText(showtext, {
+          width: sizeX
+        }, { ellipsis: true }))
+
+
+    }
+  }
+
+
+  // }
+
   currentElementMap.clear()
   onCloseDrawer();
   message.success('Save aw Successfully');
@@ -449,7 +500,7 @@ function awhandlerSubmit() {
 function globalhandlerSubmit() {
 
   //save metaeditdata 
-  console.log(globalformData, metadataSource)
+  // console.log(globalformData, metadataSource)
 
   cacheDataDefinition.meta = metadataSource.value
 
@@ -467,10 +518,10 @@ function linkhandlerSubmit() {
     let templink = {}
     for (const [key, value] of Object.entries(linkData.value)) {
       let obj;
-      if(typeof value == 'undefined'){
+      if (typeof value == 'undefined') {
         obj = JSON.parse(`{"${key}":""}`)
-      }else 
-       obj= JSON.parse(`{"${key}":"${value}"}`)
+      } else
+        obj = JSON.parse(`{"${key}":"${value}"}`)
       Object.assign(templink, obj)
       if (key == "label" && value) {
         // console.log(currentLinkView)
@@ -492,7 +543,7 @@ function linkhandlerSubmit() {
         })
 
 
-      }else if (key == "label") {//when delete the value in the form for label
+      } else if (key == "label") {//when delete the value in the form for label
         while (currentLinkView.model?.hasLabels) {
           currentLinkView.model?.removeLabel(-1)
           break;
@@ -540,11 +591,12 @@ let toReload = ref(false);
  * If reload is true, it will fetch AW info from backend
  */
 async function mbtquery(id?: any, reLoad?: boolean) {
-
+  // console.log('mbtq:', id)
   let rst;
   let idstr = '';
   if (id && reLoad == true) {
     toReload.value = true;
+    // console.log('cacheprops clear')
     cacheprops.clear()
     rst = await request.get(url + "/" + id).then(response => {
       if (response && response.name == route.params.name) {
@@ -557,8 +609,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
         mbtCache = response;//should work on here
-        localStorage.setItem('mbt_' + route.params.name + '_id', idstr)
-        localStorage.setItem('mbt_' + route.params.name, JSON.stringify(response._id))
+        localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', idstr)
+
+        localStorage.setItem('mbt_' + route.params._id + route.params.name, JSON.stringify(response))
         return mbtCache
       }
     }
@@ -574,8 +627,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     if (rst && rst.name == route.params.name) {
       let str = rst._id + '';
       mbtCache = rst;
-      localStorage.setItem('mbt_' + route.params.name + '_id', str)
-      localStorage.setItem('mbt_' + route.params.name, JSON.stringify(rst._id))
+
+      localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', str)
+      localStorage.setItem('mbt_' + route.params._id + route.params.name, JSON.stringify(rst))
     }
   }
   else {
@@ -586,8 +640,8 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record
-          localStorage.setItem('mbt_' + route.params.name + '_id', record._id)
-          localStorage.setItem('mbt_' + route.params.name, JSON.stringify(record))
+          localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', record._id)
+          localStorage.setItem('mbt_' + route.params._id + route.params.name, JSON.stringify(record))
         }
       })
     }
@@ -615,7 +669,7 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route?: any) {
-  let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from cacheprops.
+  let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from 
 
   let tempdata: modelDefinition = {};
   // console.log(modeler.graph);
@@ -641,7 +695,7 @@ function saveMBT(route?: any) {
 
       }
       else if (cacheprops.get(item.id) == null) {
-
+        // console.log('cacheprops set....3')
         cacheprops.set(item.id, item.attributes.attrs.label.text);
       }
 
@@ -680,6 +734,7 @@ function saveMBT(route?: any) {
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
   for (let key of cacheprops.keys()) {
     if (!graphIds.includes(key)) {
+      // console.log('delete cacheprops')
       cacheprops.delete(key)
     }
 
@@ -703,7 +758,7 @@ function saveMBT(route?: any) {
 function reloadMBT(route: any) {
   // console.log('reloadMBT, if id not reload......cacheprops/', cacheprops)
   let res;
-  let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id') + '';
+  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id') + '';
 
   if (mbtId.length > 0) {
 
@@ -788,7 +843,8 @@ function reloadMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  let mbtId = localStorage.getItem('mbt_' + route.params.name + '_id');
+  // console.log('-------',route.params)
+  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id');
   let res;
 
   if (mbtId) {
@@ -927,6 +983,7 @@ onMounted(() => {
     } else {
       // todo link props
       currentLinkMap.set(linkView.model.id, cacheprops.get(linkView.model.id))
+      // console.log('cacheprops set link....1')
       cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
 
     }
@@ -965,14 +1022,21 @@ onMounted(() => {
       }
     }
     // currentElementView.requestUpdate(1);
-    elementView.requestUpdate(1);
+    // elementView.requestUpdate(1);
     // awquery()
   });
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
     // console.log('element:pointerdblclick......cacheprops/', cacheprops)
-
+    let tempformdata: Stores.awView = {
+      _id: '',
+      name: '',
+      tags: '',
+      template: '',
+      description: '',
+      params: ''
+    };
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
@@ -990,7 +1054,26 @@ onMounted(() => {
       } else {
         // todo
         currentElementMap.set(ev_id, { 'props': awformdata.value });
-        cacheprops.set(ev_id, { 'props': awformdata.value });
+        // console.log('cacheprops dbl set....6')
+        tempformdata._id = awformdata.value._id;
+        tempformdata.name = awformdata.value.name
+        tempformdata.description = awformdata.value.description
+        if (_.isArray(awformdata.value.tags)) {
+          _.forEach(awformdata.value.tags, function (value, key) {
+            tempformdata.tags += value + ' '
+          })
+        }
+
+
+        if (_.isArray(awformdata.value.params)) {
+          _.forEach(awformdata.value.params, function (value, key) {
+            tempformdata.params += value.name + ' '
+
+          })
+        }
+
+        cacheprops.set(ev_id, { 'props': tempformdata });
+        // cacheprops.set(ev_id, { 'props': awformdata.value });
 
       }
 
@@ -1012,13 +1095,13 @@ onMounted(() => {
     isLink.value = false;
     isGlobal.value = true;
     showGlobalInfo();
-    showDrawer(undefined,'','')
+    showDrawer(undefined, '', '')
   });
 
 });
 
 function showGlobalInfo() {
-  globalformData.value._id = localStorage.getItem('mbt_' + route.params.name + '_id') + '';
+  globalformData.value._id = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id') + '';
   globalformData.value.tags = ''
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty('name')) {
 
@@ -1061,32 +1144,8 @@ function showAWInfo(rowobj: any) {
 
 }
 
-function showLinkInfo(rowobj: any) {
-  // alert(rowobj.toString())
-  // hasLinkInfo.value = true;
-  // awformdata.value.name = rowobj.name
-  // awformdata.value.description = rowobj.description
-  // awformdata.value.tags = ''
-  // awformdata.value.params = ''
-  // awformdata.value._id = rowobj._id
-
-  // if (_.isArray(rowobj.tags)) {
-  //   _.forEach(rowobj.tags, function (value, key) {
-  //     awformdata.value.tags += value + ' '
-  //   })
-  // }
 
 
-  // if (_.isArray(rowobj.params)) {
-  //   _.forEach(rowobj.params, function (value, key) {
-  //     awformdata.value.params += value.name + ' '
-
-  //   })
-  // }
-
-
-
-}
 const activeKey = ref('2')
 const metaActiveKey = ref(['1']);
 
@@ -1134,7 +1193,50 @@ interface MetaDataItem {
 //   }
 
 // ];
-
+const dataPoolcolumns: columnDefinition[] = [
+  {
+    title: 'id',
+    dataIndex: 'id',
+    width: '10%',
+  },
+  {
+    title: 'description',
+    dataIndex: 'description',
+  },
+  {
+    title: 'typeformat',
+    dataIndex: 'typeformat',
+  }
+  ,
+  {
+    title: 'resolution',
+    dataIndex: 'resolution',
+  },
+  {
+    title: 'url',
+    dataIndex: 'url',
+  },
+  {
+    title: 'fps',
+    dataIndex: 'fps',
+  },
+  {
+    title: 'videotype',
+    dataIndex: 'videotype',
+  },
+];
+// const dataPooldataSource: Ref<DataPoolDataItem[]> = ref([
+//   {
+//     key: '0',
+//     title: 'ID',
+//     content: 'oppo.test',
+//   },
+//   {
+//     key: '1',
+//     title: 'Description',
+//     content: '测试触控力度',
+//   },
+// ]);
 const resourcescolumns: columnDefinition[] = [
   {
     title: 'alias',
@@ -1209,6 +1311,33 @@ const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
   },
 ]);
 
+function setFormData(awformData: Stores.aw) {
+  let tempformdata: Stores.awView = {
+    _id: '',
+    name: '',
+    tags: '',
+    template: '',
+    description: '',
+    params: ''
+  };
+  tempformdata._id = awformdata.value._id;
+  tempformdata.name = awformdata.value.name
+  tempformdata.description = awformdata.value.description
+  if (_.isArray(awformdata.value.tags)) {
+    _.forEach(awformdata.value.tags, function (value, key) {
+      tempformdata.tags += value + ' '
+    })
+  }
+
+
+  if (_.isArray(awformdata.value.params)) {
+    _.forEach(awformdata.value.params, function (value, key) {
+      tempformdata.params += value.name + ' '
+
+    })
+  }
+  return tempformdata
+}
 const metacount = computed(() => metadataSource.value.length + 1);
 const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
 
@@ -1262,7 +1391,7 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
-const onImportFromMetaTemplate = () =>{
+const onImportFromMetaTemplate = () => {
 
 }
 </script>
