@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
-import {  SyncOutlined,  PlusOutlined,DeleteOutlined} from '@ant-design/icons-vue';
+import {  SyncOutlined,  PlusOutlined,DeleteTwoTone,CheckCircleTwoTone} from '@ant-design/icons-vue';
 import request from "@/utils/request"
-import { tableSearch ,FormState, statesTs, ModelState} from './componentTS/metatemplate';
+import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 // import { FormState } from './componentTS/awmodeler';
@@ -83,10 +83,10 @@ const onSizeChange =async (current: any, pageSize: number) => {
 interface DataItem {
   key?: string;
   name: string;
+  category:string
   description: string;
   tags: Array<string>;
-}
-const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
+}let editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 // 点击修改meta的方法
 const updMeta=async (data:any)=>{
   let rst=await request.put(`/api/templates/${data._id}`,data)
@@ -104,18 +104,24 @@ const edit = (key: string) => {
 };
 // 点击save触发的函数
 const save =async (obj:any) => {
-  // Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
-  editableData[obj.key].tags=states.tags
-  delete editableData[obj.key].key
+  console.log(obj);
+  
+  Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
   console.log(editableData[obj.key]);
+  
+  editableData[obj.key].tags=states.tags
+  editableData[obj.key].category="meta"
+  console.log(editableData[obj.key]);
+  
   
   if(obj._id){
     await updMeta(editableData[obj.key])
   }else{
+    
+  console.log(tableData.value);
     await request.post("/api/templates",editableData[obj.key])
   }
   await query()
-  console.log(editableData[obj.key]);
   delete editableData[obj.key];
   
 }
@@ -128,17 +134,26 @@ const createMeta=()=>{
     tags:[]
   }
   tableData.value.push({...newMeta})
+  editableData[newMeta.key]=tableData.value[newMeta.key]
 }
 // 点击删除的方法
-const cancel =async (obj: any) => {
+const delmodel =async (obj: any) => {
   if(obj._id){
     let rst=await request.delete(`/api/templates/${obj._id}`)
+    query()
+  }else{
+    delete tableData.value[obj.key]
   }
   delete editableData[obj.key];
   message.success('test template has been deleted successfully')
-  query()
+  
   
 };
+
+// 点击取消的函数
+const cancel=(key:any)=>{
+  delete editableData[key]
+}
 // 表格的结构
 const columns = reactive<Object[]>(
   [
@@ -307,11 +322,15 @@ const handleClose = (removedTag: string) => {
           </template>
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
-          <span v-if="editableData[record.key]">
-            <a-typography-link @click="save(record)">Save</a-typography-link>
-            <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-              <a style="margin-left:10px;font-size:14px"><delete-outlined /></a>
+          <span v-if="editableData[record.key] ">
+            <a-typography-link @click="save(record)" style="font-size:16px">
+              <check-circle-two-tone two-tone-color="#52c41a"/>
+            </a-typography-link>
+            <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
+                <delete-two-tone two-tone-color="#EB6420"/></a>
             </a-popconfirm>
+            <a-typography-link @click="cancel(record.key)" >cancel</a-typography-link>
           </span>
           <span v-else>
             <a @click="edit(record.key)">Edit</a>
