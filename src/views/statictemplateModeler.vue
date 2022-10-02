@@ -4,7 +4,7 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
-import { PlusOutlined, PlusSquareFilled, DeleteOutlined, SmileOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, PlusSquareFilled, DeleteOutlined, SmileOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { object } from 'vue-types';
 import * as _ from 'lodash';
 let route = useRoute()
@@ -52,7 +52,7 @@ const dynamiccolumns: Ref<ColumnItem[]> = ref([{
   title: 'action',
   dataIndex: 'action',
   key: 'action',
-  fixed:'right',
+  fixed: 'right',
   width: 100
 }
 ])
@@ -65,7 +65,7 @@ const tableData: Ref<any[]> = ref([
     msg: '{{DS.test}}',
     terminator: '{{phone2}}',
     phonenum: '{{phone2.num}}',
-    test:'test'
+    test: 'test'
   },
   {
     key: '2',
@@ -74,7 +74,7 @@ const tableData: Ref<any[]> = ref([
     msg: '{{DS.test}}',
     terminator: '{{phone3}}',
     phonenum: '{{phone4.num}}',
-    test:'test'
+    test: 'test'
   },
 ]);
 
@@ -111,21 +111,21 @@ const columnshandleAdd = () => {
     key: `Property${tablecolcount.value}`
 
   };
-  const actionColumn= {
-  title: 'action',
-  dataIndex: 'action',
-  key: 'action',
-  fixed:'right',
-  width: 100
-};
+  const actionColumn = {
+    title: 'action',
+    dataIndex: 'action',
+    key: 'action',
+    fixed: 'right',
+    width: 100
+  };
   //  _.without(dynamiccolumns.value, ()=>{
   //    return if(item.key == 'action')
   // })
   // let actionIndex = _.sortedLastIndexBy(dynamiccolumns.value, { "key": "action","title":"Action","dataIndex":"action" }, function(o) { return o.key; });
   // console.log(actionIndex);
-  _.remove(dynamiccolumns.value,(item:ColumnItem)=>{
+  _.remove(dynamiccolumns.value, (item: ColumnItem) => {
     return item.key == 'action'
-  }) 
+  })
   dynamiccolumns.value.push(newcolumn);
   dynamiccolumns.value.push(actionColumn);
 };
@@ -160,7 +160,12 @@ onMounted(() => {
 
   query(JSON.parse(getId))
 })
-const editableData: UnwrapRef<Record<string, TableDataItem>> = reactive({});
+const editableData2: UnwrapRef<Record<string, TableDataItem>> = reactive({});
+const editableData1: UnwrapRef<Record<string, any>> = reactive({});
+
+const editableHeaderData: UnwrapRef<Record<string, ColumnItem>> = reactive({});
+
+
 
 // 修改static的方法
 const updstatic = async (data: any) => {
@@ -170,16 +175,16 @@ const updstatic = async (data: any) => {
 }
 
 const edit = (key: string) => {
-  editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
-  inputType.value = editableData[key].contacttype
+  editableData1[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
+  // inputType.value = editableData[key].contacttype
   // state.tags=editableData[key].enum
 };
 // 点击save触发的函数
 const save = async (obj: any) => {
   // editableData[obj.key].enum=state.tags
-  Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
+  Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData1[obj.key]);
   //   delete editableData[obj.key].key
-  console.log(editableData[obj.key]);
+  // console.log(editableData[obj.key]);
 
   recordobj.value.model = tableData.value
   console.log(recordobj.value);
@@ -192,7 +197,7 @@ const save = async (obj: any) => {
 const cancel = async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
   tableData.value = tableData.value.filter((item: any) => item.enum !== obj.enum)
-  delete editableData[obj.key];
+  delete editableData1[obj.key];
   console.log(recordobj.value, tableData.value);
   recordobj.value.model = tableData.value
   let rst = await request.put(`/api/templates/${recordobj.value._id}`, recordobj.value)
@@ -266,13 +271,27 @@ const handleClose = (removedTag: string) => {
 
 function deleteCol(key: string) {
 
-  
-  _.remove(dynamiccolumns.value,(item:ColumnItem)=>{
+
+  _.remove(dynamiccolumns.value, (item: ColumnItem) => {
     return item.key == key
-  }) 
+  })
 
 }
+// function headsave(key:any){
+//   Object.assign(metadataSource.value.filter(item => key === item.key)[0], metaeditableData[key]);
+//   delete metaeditableData[key];
 
+// }
+
+const headedit = (key: string) => {
+  console.log(key)
+  debugger
+  editableHeaderData[key] = cloneDeep(dynamiccolumns.value.filter(item => key === item.title)[0]);
+};
+const headsave = (key: string) => {
+  Object.assign(dynamiccolumns.value.filter(item => key === item.title)[0], editableHeaderData[key]);
+  delete editableHeaderData[key];
+};
 </script>
 
 <template>
@@ -283,46 +302,65 @@ function deleteCol(key: string) {
       </a-button>
     </div>
     <div>
-      <a-table :dataSource="tableData" :columns="dynamiccolumns" >
-        <template #headerCell="{ column,text,record }" >
-         <template v-if="column.key !== 'action'">
-            <!-- <span>{{column.title}}</span> -->
+      <a-table :dataSource="tableData" :columns="dynamiccolumns">
+        <template #headerCell="{ column }">
+          <template v-if="column.key !== 'action'">
+            <!-- <span>{{column.title}}</span> 
             <a-input v-if="editableData[column.key]" v-model:value="editableData[column.key].name"
                   style="margin: -5px 0" />
                 <template v-else>
-                  {{column.title}}
+                  {{column.title}}--{{column.key}}
                 </template>
             <delete-outlined @click="deleteCol(column.key)"></delete-outlined>
-          </template> 
+              -->
+
+
+            <div class="editable-cell">
+
+              <div v-if="editableHeaderData[column.title]" class="editable-cell-input-wrapper">
+                <a-input v-model:value="editableHeaderData[column.title].title" @pressEnter="headsave(column.title)" />
+                <check-outlined class="editable-cell-icon-check" @click="headsave(column.title)" />
+
+              </div>
+              <div v-else class="editable-cell-text-wrapper">
+                {{ column.title}}
+                <edit-outlined class="editable-cell-icon" @click="headedit(column.title)" />
+
+                <delete-outlined @click="deleteCol(column.key)"></delete-outlined>
+              </div>
+
+            </div>
 
           </template>
-          <template #bodyCell="{ column, text, record }">
-            <template v-if='column.key==="name"'>
-              <div>
-                <a-input v-if="editableData[record.key]" v-model:value="editableData[record.key].name"
-                  style="margin: -5px 0" />
-                <template v-else>
-                  {{text}}
-                </template>
-              </div>
-            </template>
 
-            <template v-else-if="column.dataIndex === 'action'">
-              <div class="editable-row-operations">
-                <span v-if="editableData[record.key]">
-                  <a-typography-link @click="save(record)">Save</a-typography-link>
-                  <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-                    <a style="margin-left:10px;font-size:14px">
-                      <delete-outlined />
-                    </a>
-                  </a-popconfirm>
-                </span>
-                <span v-else>
-                  <a @click="edit(record.key)">Edit</a>
-                </span>
-              </div>
-            </template>
+        </template>
+        <template #bodyCell="{ column, text, record }">
+          <template v-if="column.key !== 'action'">
+            <div>
+              <a-input v-if="editableData1[record.key]" v-model:value="editableData1[record.key][column.title]"
+                style="margin: -5px 0" />
+              <template v-else>
+                {{text}}
+              </template>
+            </div>
           </template>
+
+          <template v-else-if="column.dataIndex === 'action'">
+            <div class="editable-row-operations">
+              <span v-if="editableData1[record.key]">
+                <a-typography-link @click="save(record)">Save</a-typography-link>
+                <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
+                  <a style="margin-left:10px;font-size:14px">
+                    <delete-outlined />
+                  </a>
+                </a-popconfirm>
+              </span>
+              <span v-else>
+                <a @click="edit(record.key)">Edit</a>
+              </span>
+            </div>
+          </template>
+        </template>
       </a-table>
 
     </div>
@@ -351,5 +389,9 @@ function deleteCol(key: string) {
     background: none !important;
     //这里是将鼠标移入时的背景色取消掉了
   }
+}
+
+.editable-cell-icon {
+  padding: 5px;
 }
 </style>

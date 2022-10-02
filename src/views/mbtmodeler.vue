@@ -1342,6 +1342,8 @@ const metacount = computed(() => metadataSource.value.length + 1);
 const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
 
 const metaedit = (key: string) => {
+  console.log(metaeditableData)
+  console.log(metaeditableData[key])
   metaeditableData[key] = cloneDeep(metadataSource.value.filter(item => key === item.key)[0]);
 };
 const metasave = (key: string) => {
