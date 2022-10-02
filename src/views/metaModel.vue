@@ -4,8 +4,7 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
-import { PlusOutlined,PlusSquareFilled,DeleteOutlined} from '@ant-design/icons-vue'
-import { object } from 'vue-types';
+import { PlusSquareFilled,DeleteTwoTone,CheckCircleTwoTone} from '@ant-design/icons-vue'
 let route=useRoute()
 console.log(route);
 
@@ -19,15 +18,13 @@ async function query (data?:any){
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
    console.log(rst);
-   recordobj.value=rst
-    if(rst.model){      
+   route.params.name=rst.name
+   recordobj.value=rst   
           
           recordobj.value.model=rst.model
           tableData.value=arr(rst.model)
       ;
-    }else{
-    alert('This template has no model')
-   }
+   
 }
 // 给每条数据添加条属性
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
@@ -42,15 +39,17 @@ let tableData=ref<Array<any>>([])
 interface DataItem {
   key?: string;
   name: string;
+  description:string
   type: string;
   enum:any;
+  delekey?:any
 }
 const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 
 // 修改meta的方法
 const updMeta=async (data:any)=>{
   
-  let rst=await request.put(`/api/templates/${recordobj.value._id}`,data)
+  let rst=await request.put(`/api/templates/${data._id}`,data)
   message.success('Modification succeeded')
 }
 
@@ -61,12 +60,11 @@ const edit = (key: string) => {
 };
 // 点击save触发的函数
 const save =async (obj:any) => {
-  // editableData[obj.key].enum=state.tags
+  delete editableData[obj.key].delekey
   Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
 //   delete editableData[obj.key].key
-  console.log(editableData[obj.key]);
   
-  recordobj.value.model=tableData.value
+  recordobj.value.model=tableData.value  
   console.log(recordobj.value);
   
   await updMeta(recordobj.value)
@@ -74,26 +72,34 @@ const save =async (obj:any) => {
   
 }
 // 点击删除的方法
-const cancel =async (obj: any) => {
+const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
-  tableData.value=tableData.value.filter((item:any)=>item.enum!==obj.enum)
-  delete editableData[obj.key];
-  console.log(recordobj.value,tableData.value);
+  tableData.value=tableData.value.filter((item:any)=>item.key!==obj.key)
+  console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
+if(editableData[obj.key].delekey!==1){
   let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
-  console.log(rst);
-  
-  message.success('test template has been deleted successfully')
   query()
+} 
+  delete editableData[obj.key];
+  message.success('test template has been deleted successfully')
+  
 };
+// 点击取消的函数
+const cancel=(key:any)=>{
+  delete editableData[key]
+}
 // 点击添加数据
 const saveModel=()=>{
   const newModel={
+    key:tableData.value.length,
     name:'new Model name',
     type:'new Model type',
-    enum:""
+    enum:"",
+    delekey:1
   }
   tableData.value.push({...newModel})
+  editableData[newModel.key]=tableData.value[newModel.key]
 }
 // 定义属性判断输入框该输入的数据类型
 let inputType=ref()
@@ -169,6 +175,12 @@ const columns=reactive<Object[]>(
     width:180
   },
   {
+    title:'description',
+    dataIndex:'description',
+    key:'description',
+    width:180
+  },
+  {
     title: 'type',
     dataIndex: 'type',
     key: 'type',
@@ -235,6 +247,18 @@ const optiones = ref<SelectProps['options']>([
             <a-input
               v-if="editableData[record.key]"
               v-model:value="editableData[record.key].name"
+              style="margin: -5px 0"
+            />           
+            <template v-else>
+              {{ text }}
+            </template>
+          </div>
+          </template>
+          <template v-if='column.key==="description"'>
+          <div>
+            <a-input
+              v-if="editableData[record.key]"
+              v-model:value="editableData[record.key].description"
               style="margin: -5px 0"
             />           
             <template v-else>
@@ -328,10 +352,14 @@ const optiones = ref<SelectProps['options']>([
             <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
-              <a-typography-link @click="save(record)">Save</a-typography-link>
-              <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-                <a style="margin-left:10px;font-size:14px"><delete-outlined /></a>
-              </a-popconfirm>
+              <a-typography-link @click="save(record)" style="font-size:16px">
+              <check-circle-two-tone two-tone-color="#52c41a"/>
+            </a-typography-link>
+            <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
+                <delete-two-tone two-tone-color="#EB6420"/></a>
+            </a-popconfirm>
+            <a-typography-link @click="cancel(record.key)" >cancel</a-typography-link>
             </span>
             <span v-else>
               <a @click="edit(record.key)">Edit</a>

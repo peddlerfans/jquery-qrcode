@@ -31,7 +31,8 @@ async function query(data?: any) {
   let rst;
     rst = await request.get("/api/hlfs", { params: data || searchobj })
   if (rst.data) {
-    pagination.value.total = rst.total    
+    pagination.value.total = rst.total  
+    pagination.value.pageNo=1  
     tableData.value = rst.data
   }
   return rst.data
@@ -49,37 +50,6 @@ let checked=ref(false)
 const checkquery=()=>{
   checked.value!=checked.value  
 }
-// 获取左侧区域的dom
-const leftRef=ref()
-const rightClick=ref(false)
-// function rightNode(){
-//   let leftNode=leftRef.value.children[0].children[0].children[0]
-//   let menuNode=leftNode.children[0]
-//   let treeNode=leftNode.children[2]
-//   console.log(treeNode);
-  
-//   // 计算元素距离视图的总宽高
-//   let leftNodeWidth=leftNode.getBoundingClientRect().right
-//   let leftNodeHight=leftNode.getBoundingClientRect().bottom
-//   // 计算树节点距离视图的总宽高
-//   let treeNodeWidth=treeNode.getBoundingClientRect().right
-//   let treeNodeHight=treeNode.getBoundingClientRect().bottom
-//   window.addEventListener('click',function(){rightClick.value=false})
-//   // 给空白区域绑定点击事件
-//   leftNode.addEventListener('contextmenu',function(e:any){
-//     e.preventDefault()    
-//     if(treeNodeHight<e.clientY && e.clientY<leftNodeHight){
-//       const {x,y}=e
-//       // leftNode.style.position='relative'
-//       rightClick.value=true
-//       // menuNode.style.backgroundColor='antiquewhite'
-
-//       menuNode.style.position='fixed'
-//       menuNode.style.top=e.clientY+'px'
-//       menuNode.style.left=e.clientX+'px'
-//     }
-//   })
-// }
 const instance=getCurrentInstance()
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -296,10 +266,12 @@ async function delaw(key:any) {
   let rst = await request.delete(`/api/hlfs/${key._id}`)
   formState.search=""
       query()
+      pagination.value.pageNo=1
 }
 const confirm = (e: MouseEvent) => {
       delaw(e)
       query()
+      pagination.value.pageNo=1
       message.success('Delete on Successed');
 };
 const cancel = (e: MouseEvent) => {
@@ -466,7 +438,7 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   console.log(selectedKeys);
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
-    await query({q:`path:${str}`,search:''})
+    await query({q:`path:/.*${str}/`,search:''})
 
   }else{
   // 这里走前置匹配
