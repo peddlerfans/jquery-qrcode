@@ -73,9 +73,11 @@ interface ModelDefinition {
     props:object
 }
 interface DynamicModel {
-    option?: any
-    factor?: any
-    constraint?: any
+[x: string]: any[],
+    option?: any,
+    factor?: any,
+    constraint?: any,
+    data?:any
 }
 declare module 'axios' {
     interface ResponseData<T> {
@@ -90,7 +92,7 @@ declare module 'axios' {
         description?:string,
         tags?:[],
         modelDefinition?:ModelDefinition,
-        model:any
+        // model:any
     }
 }
 

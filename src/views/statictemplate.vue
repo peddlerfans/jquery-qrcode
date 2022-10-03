@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
-import { SyncOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { SyncOutlined, PlusOutlined, DeleteOutlined ,DeleteTwoTone,CheckCircleTwoTone} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch, FormState, statesTs, ModelState } from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
@@ -83,10 +83,13 @@ const expend = (isExpand: any, rected: any) => {
 interface DataItem {
   key?: string;
   name: string;
+  category:string;
   description: string;
   tags: Array<string>;
-  
+
 }
+
+const isLink = ref<boolean>(false);
 const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 // 点击修改static的方法
 const updstatic = async (data: any) => {
@@ -105,19 +108,26 @@ const edit = (key: string) => {
 };
 // 点击save触发的函数
 const save = async (obj: any) => {
-  // Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
-  editableData[obj.key].tags = states.tags
-  delete editableData[obj.key].key
+  
+  console.log(obj)
+  Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
   console.log(editableData[obj.key]);
-
-  if (obj._id) {
+  
+  editableData[obj.key].tags=states.tags
+  editableData[obj.key].category="static"
+  console.log(editableData[obj.key]);
+  
+  
+  if(obj._id){
     await updstatic(editableData[obj.key])
-  } else {
-    await request.post("/api/templates", editableData[obj.key])
+  }else{
+    
+  console.log(tableData.value);
+    await request.post("/api/templates",editableData[obj.key])
   }
   await query()
-  console.log(editableData[obj.key]);
   delete editableData[obj.key];
+
 
 }
 const createstatic = () => {
@@ -127,12 +137,18 @@ const createstatic = () => {
     description: 'New template',
     category: 'static',
     tags: []
-    
+
   }
   tableData.value.push({ ...newstatic })
+  editableData[newstatic.key]=tableData.value[newstatic.key]
 }
+
+
+
+
+
 // 点击删除的方法
-const cancel = async (obj: any) => {
+const delmodel = async (obj: any) => {
   if (obj._id) {
     let rst = await request.delete(`/api/templates/${obj._id}`)
   }
@@ -141,6 +157,10 @@ const cancel = async (obj: any) => {
   query()
 
 };
+// 点击取消的函数
+const cancel = (key: any) => {
+  delete editableData[key]
+}
 // 表格的结构
 const columns = reactive<Object[]>(
   [
@@ -245,13 +265,15 @@ const handleClose = (removedTag: string) => {
     <a-table :columns="columns" :data-source="tableData" bordered>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
-          <div>
+          <div  >
             <a-input v-if="editableData[record.key]" v-model:value="editableData[record.key].name"
               style="margin: -5px 0" />
-            <template v-else>
-              <a :href="'/#/staticModeler/'+record._id+'/'+record.name">{{text}}</a>
-              <!-- <router-link :to="{path:'/staticModeler',query:{record}}">{{ text }}</router-link> -->
-            </template>
+               
+          
+          <template v-else>
+              <!-- <p>{{text}}</p> -->
+              <a :href="'/#/staticModeler/'+record._id+'/'+record.name">{{text}}</a>    
+          </template>
           </div>
         </template>
         <template v-if='column.key==="description"'>
@@ -293,12 +315,15 @@ const handleClose = (removedTag: string) => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
-              <a-typography-link @click="save(record)">Save</a-typography-link>
-              <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
-                <a style="margin-left:10px;font-size:14px">
-                  <delete-outlined />
+              <a-typography-link @click="save(record)" style="font-size:16px">
+                <check-circle-two-tone two-tone-color="#52c41a" />
+              </a-typography-link>
+              <a-popconfirm title="Sure to cancel?" @confirm="delmodel(record)">
+                <a style="margin-left:10px;margin-right:10px;font-size:16px;">
+                  <delete-two-tone two-tone-color="#EB6420" />
                 </a>
               </a-popconfirm>
+              <a-typography-link @click="cancel(record.key)">cancel</a-typography-link>
             </span>
             <span v-else>
               <a @click="edit(record.key)">Edit</a>

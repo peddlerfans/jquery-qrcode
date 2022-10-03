@@ -4,15 +4,16 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
-import { PlusOutlined, PlusSquareFilled, DeleteOutlined, SmileOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, PlusSquareFilled, DeleteOutlined, CheckCircleTwoTone, SmileOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
 import { object } from 'vue-types';
 import * as _ from 'lodash';
+import dayjs from 'dayjs';
 let route = useRoute()
-console.log(route);
+// console.log(route);
 
 interface TableDataItem {
   key: string,
-  name?: string,
+  id?: string,
   contacttype?: number,
   msg?: string,
   terminator?: string,
@@ -23,30 +24,45 @@ interface ColumnItem {
   dataIndex: string,
   key: string
 }
+
+const dynamicschema: Ref<ColumnItem[]> = ref([{
+  title: 'ID',
+  dataIndex: 'ID',
+  key: 'ID'
+},
+{
+  title: 'action',
+  dataIndex: 'action',
+  key: 'action',
+  fixed: 'right',
+  width: 100
+}
+])
+
 const dynamiccolumns: Ref<ColumnItem[]> = ref([{
   title: 'ID',
-  dataIndex: 'name',
-  key: 'name',
-},
-{
-  title: 'ContactType',
-  dataIndex: 'contacttype',
-  key: 'contacttype',
-},
-{
-  title: 'MSG',
-  dataIndex: 'msg',
-  key: 'msg',
-},
-{
-  title: 'Terminatior',
-  dataIndex: 'terminator',
-  key: 'terminator',
-},
-{
-  title: 'PhoneNum',
-  dataIndex: 'phonenum',
-  key: 'phonenum',
+  dataIndex: 'ID',
+  key: 'ID',
+// },
+// {
+//   title: 'ContactType',
+//   dataIndex: 'ContactType',
+//   key: 'ContactType',
+// },
+// {
+//   title: 'MSG',
+//   dataIndex: 'MSG',
+//   key: 'MSG',
+// },
+// {
+//   title: 'Terminator',
+//   dataIndex: 'Terminator',
+//   key: 'Terminator',
+// },
+// {
+//   title: 'PhoneNum',
+//   dataIndex: 'PhoneNum',
+//   key: 'PhoneNum',
 },
 {
   title: 'action',
@@ -60,48 +76,69 @@ const tableData: Ref<any[]> = ref([
 
   {
     key: '1',
-    name: '1',
-    contacttype: 'real contact',
-    msg: '{{DS.test}}',
-    terminator: '{{phone2}}',
-    phonenum: '{{phone2.num}}',
-    test: 'test'
-  },
-  {
-    key: '2',
-    name: '2',
-    contacttype: 'system contact',
-    msg: '{{DS.test}}',
-    terminator: '{{phone3}}',
-    phonenum: '{{phone4.num}}',
-    test: 'test'
-  },
+    ID: '1',
+    ContactType: 'real contact',
+    MSG: '{{DS.test}}',
+    Terminator: '{{phone2}}',
+    PhoneNum: '{{phone2.num}}',
+
+  }
 ]);
 
 
-const tablecolcount = computed(() => dynamiccolumns.value.length + 1);
+const tablecolcount = computed(() => {
+  if(dynamiccolumns && dynamiccolumns.value && dynamiccolumns.value.length){
+    return dynamiccolumns.value.length + 1;
+  }
+  else{
+  // dynamiccolumns = dynamicschema;
+
+  }})
+  
 const tablecount = computed(() => tableData.value.length + 1);
 const staticeditableData: UnwrapRef<Record<string, TableDataItem>> = reactive({});
 
 const tableDataedit = (key: string) => {
   staticeditableData[key] = cloneDeep(tableData.value.filter(item => key === item.key)[0]);
 };
-// const tableDatasave = (key: string) => {
-//   Object.assign(tableData.value.filter(item => key === item.key)[0], static[key]);
-//   delete static[key];
-// };
+const tableDatasave = async () => {
+  
+  let model = {'model':{'schema':[],'data':[]}}
+  Object.assign(model.model['schema'],dynamiccolumns.value)
+  Object.assign(model.model['data'],tableData.value)
+  
+  let rst = await request.put(`/api/templates/${recordobj.value._id}`, model)
+  message.success('Modification succeeded')
+};
 
 const ontableDataDelete = (key: string) => {
   tableData.value = tableData.value.filter(item => item.key !== key);
 };
 const tableDatahandleAdd = () => {
-  const newData = {
-    key: `${tablecount.value}`,
-    name: `Objective${tablecount.value}`,
-    age: tablecount.value,
-    address: `details${tablecount.value}`,
-  };
+
+
+  let colnames: any[] = [];
+  dynamiccolumns.value.forEach((col: any) => {
+    colnames.push(col)
+  })
+  let newData ={};
+  let tempkey='key'
+  colnames.forEach((key: any) => {
+    
+    tempkey = key['title'];
+    if (tempkey == 'key') {
+      Object.assign(newData, { key: `${tablecount.value}` })
+    } else
+      Object.assign(newData, { [tempkey]: "" })
+    // Object.assign(newData,{key:`${tablecount.value}`})
+    // editableData1[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
+  })
+
+
   tableData.value.push(newData);
+  // tableData.value[newstatic.key]
+  // editableData1[tempkey]=tableData.value[newData!.key]
+
 };
 
 const columnshandleAdd = () => {
@@ -141,26 +178,35 @@ let recordobj = ref()
 async function query(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:static', search:data}})
   let rst = await request.get(`/api/templates/${data}`, { params: { q: 'category:static', search: '' } })
-  console.log(rst);
+  // console.log(rst);
   recordobj.value = rst
   if (rst.model) {
 
     recordobj.value.model = rst.model
-    tableData.value = arr(rst.model)
-      ;
+    
+    tableData.value = rst.model.data;
+    dynamiccolumns.value = rst.model.schema;
+    // tableData.value = arr(rst.model)  ;
   } else {
 
   }
 }
+
+// async function query(data?: any) {
+//   let rst = await request.get("/api/templates", { params: data || searchobj })
+//   console.log(rst.data);
+
+//   tableData.value = arr(rst.data)
+// }
 // 给每条数据添加条属性
 const arr = (dataArr: any) => dataArr.map((item: any, index: string) => ({ ...item, key: index }))
 onMounted(() => {
   let getId: any = sessionStorage.getItem('static_' + route.params._id)
-  console.log(JSON.parse(getId));
+  // console.log(JSON.parse(getId));
 
   query(JSON.parse(getId))
 })
-const editableData2: UnwrapRef<Record<string, TableDataItem>> = reactive({});
+// const editableData1: UnwrapRef<Record<string, TableDataItem>> = reactive({});
 const editableData1: UnwrapRef<Record<string, any>> = reactive({});
 
 const editableHeaderData: UnwrapRef<Record<string, ColumnItem>> = reactive({});
@@ -187,10 +233,10 @@ const save = async (obj: any) => {
   // console.log(editableData[obj.key]);
 
   recordobj.value.model = tableData.value
-  console.log(recordobj.value);
+  // console.log('result:', recordobj.value, '    schema:', dynamiccolumns);
 
   // await updstatic(recordobj.value)
-  // delete editableData[obj.key];
+  delete editableData1[obj.key];
 
 }
 // 点击删除的方法
@@ -198,10 +244,10 @@ const cancel = async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
   tableData.value = tableData.value.filter((item: any) => item.enum !== obj.enum)
   delete editableData1[obj.key];
-  console.log(recordobj.value, tableData.value);
+  // console.log(recordobj.value, tableData.value);
   recordobj.value.model = tableData.value
   let rst = await request.put(`/api/templates/${recordobj.value._id}`, recordobj.value)
-  console.log(rst);
+  // console.log(rst);
 
   message.success('test template has been deleted successfully')
   query()
@@ -220,7 +266,7 @@ let inputType = ref()
 // 改变type的值
 const handleChange = (value: any) => {
   inputType.value = value
-  console.log(inputType.value);
+  // console.log(inputType.value);
 
 };
 const changeType = (value: any) => {
@@ -284,39 +330,69 @@ function deleteCol(key: string) {
 // }
 
 const headedit = (key: string) => {
-  console.log(key)
-  debugger
+  // console.log(key)
   editableHeaderData[key] = cloneDeep(dynamiccolumns.value.filter(item => key === item.title)[0]);
+  
 };
 const headsave = (key: string) => {
   Object.assign(dynamiccolumns.value.filter(item => key === item.title)[0], editableHeaderData[key]);
+
+  let currentVal = editableHeaderData[key].title;
+  // console.log(dynamiccolumns.value,';;;;;;;; ',currentVal,' key:',key)
+  // Object.assign(
+  dynamiccolumns.value.filter((item: any) => {
+    if (currentVal === item.title) {
+      Object.assign(item, { title: currentVal });
+      Object.assign(item, { "dataIndex": currentVal });
+      Object.assign(item, { key: currentVal });
+      // console.log('++++++',item)
+      //     return item} 
+    }
+  })
+
+
+  //   // [0], editableHeaderData[key]);  
+  // console.log('kkkkk ',dynamiccolumns.value)
   delete editableHeaderData[key];
 };
+
+
+
 </script>
 
 <template>
   <main style="height:100%;overflow-x: hidden!important;">
-    <div class="statictemplate">
+    <a-row>
+      <a-col span="21">
+    <!-- <div class="statictemplateleft"> -->
+
+      <span style="margin-left: 5px;">
+        <a-button danger @click="tableDatasave()">
+          Save
+        </a-button>
+      </span>
+    <!-- </div> -->
+  </a-col>
+  <a-col span="3">
+    <!-- <div class="statictemplate"> -->
       <a-button type="primary" @click="columnshandleAdd()">
         Add column
       </a-button>
-    </div>
+      <span style="margin-left: 5px;">
+        <a-button type="primary" @click="tableDatahandleAdd()">
+          <template #icon>
+            <plus-outlined />
+          </template>
+        </a-button>
+      </span>
+    <!-- </div> -->
+  </a-col>
+  </a-row>
     <div>
       <a-table :dataSource="tableData" :columns="dynamiccolumns">
         <template #headerCell="{ column }">
           <template v-if="column.key !== 'action'">
-            <!-- <span>{{column.title}}</span> 
-            <a-input v-if="editableData[column.key]" v-model:value="editableData[column.key].name"
-                  style="margin: -5px 0" />
-                <template v-else>
-                  {{column.title}}--{{column.key}}
-                </template>
-            <delete-outlined @click="deleteCol(column.key)"></delete-outlined>
-              -->
-
-
             <div class="editable-cell">
-
               <div v-if="editableHeaderData[column.title]" class="editable-cell-input-wrapper">
                 <a-input v-model:value="editableHeaderData[column.title].title" @pressEnter="headsave(column.title)" />
                 <check-outlined class="editable-cell-icon-check" @click="headsave(column.title)" />
@@ -337,7 +413,10 @@ const headsave = (key: string) => {
         <template #bodyCell="{ column, text, record }">
           <template v-if="column.key !== 'action'">
             <div>
-              <a-input v-if="editableData1[record.key]" v-model:value="editableData1[record.key][column.title]"
+              <!-- <a-input v-if="editableData1[record.key]" v-model:value="editableData1[record.key][column.title]"
+                --{{record.key}}***{{column.title}}--{{column.dataIndex}}--{{column.key}}
+                style="margin: -5px 0" /> -->
+              <a-input v-if="editableData1[record.key]" v-model:value="editableData1[record.key][column.dataIndex]"
                 style="margin: -5px 0" />
               <template v-else>
                 {{text}}
@@ -348,7 +427,9 @@ const headsave = (key: string) => {
           <template v-else-if="column.dataIndex === 'action'">
             <div class="editable-row-operations">
               <span v-if="editableData1[record.key]">
-                <a-typography-link @click="save(record)">Save</a-typography-link>
+                <a-typography-link @click="save(record)" style="font-size:16px">
+                  <check-circle-two-tone two-tone-color="#52c41a" />
+                </a-typography-link>
                 <a-popconfirm title="Sure to cancel?" @confirm="cancel(record)">
                   <a style="margin-left:10px;font-size:14px">
                     <delete-outlined />
@@ -368,12 +449,17 @@ const headsave = (key: string) => {
 </template>
 
 <style scoped lang="less">
+.statictemplateleft {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
 .statictemplate {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  align-content: flex-end;
-  align-items: flex-end;
+//   align-content: flex-end;
+//   align-items: flex-end;
 }
 
 .iconsave {
