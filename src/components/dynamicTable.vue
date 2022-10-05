@@ -1,13 +1,24 @@
 <script setup lang="ts">
+  
   import { nextTick, onMounted, reactive, ref, UnwrapRef, Ref, computed } from 'vue';
   import { onBeforeRouteLeave, useRoute } from 'vue-router';
   import request from "@/utils/request"
   import { cloneDeep } from 'lodash-es';
-  import { message, SelectProps } from 'ant-design-vue';
+  
   import { PlusOutlined, PlusSquareFilled, DeleteOutlined, CheckCircleTwoTone, SmileOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
-  import { object } from 'vue-types';
+  
   import * as _ from 'lodash';
-  import dayjs from 'dayjs';
+  
+  defineProps<{
+  dataDefData?: any[]
+
+}>()
+
+const emit = defineEmits<{
+  // (e: 'change', id: number): void
+  (e: 'update', value: any[]): void
+}>()
+
   let route = useRoute()
   // console.log(route);
   
@@ -50,6 +61,8 @@
   }
   ])
   
+
+
   const tableDataOrigin: Ref<any[]> = ref([
   
     {

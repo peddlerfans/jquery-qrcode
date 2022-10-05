@@ -5,11 +5,11 @@ import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
 import { PlusOutlined, PlusSquareFilled, DeleteOutlined, CheckCircleTwoTone, SmileOutlined, CheckOutlined, EditOutlined } from '@ant-design/icons-vue'
-import { object } from 'vue-types';
+
 import * as _ from 'lodash';
-import dayjs from 'dayjs';
+
 let route = useRoute()
-// console.log(route);
+
 
 // interface TableDataItem {
 //   key: string,
@@ -96,8 +96,8 @@ const tablecount = computed(() => tableData.value.length + 1);
 
 
 const tableDatasave = async () => {
-  console.log('recordobj:', recordobj)
-  debugger
+  
+  
   let model = { 'model': { 'schema': [], 'data': [] } }
   Object.assign(model.model['schema'], dynamiccolumns.value)
   Object.assign(model.model['data'], tableData.value)
@@ -133,10 +133,10 @@ const addRow = () => {
     key:'key'
   })
   colnames.push(newkeycol.value)
-  console.log(',,,,,,,col   ',colnames)
+  
 
   colnames.forEach((key: any) => {
-debugger
+
     tempkey = key['title'];
     if (tempkey == 'key') {
       Object.assign(newData, { 'key': `${tablecount.value}` })
@@ -147,7 +147,7 @@ debugger
   if (tableData && typeof (tableData.value) == 'undefined')
     tableData.value = tableDataOrigin.value
   tableData.value.push(newData);
-  console.log('---=++++++',tableData.value)
+  
 
 
 };
@@ -155,7 +155,7 @@ debugger
 // 点击删除的方法
 const delRow = async (key: string) => {
   
-  debugger
+  
   tableData.value = tableData.value.filter((item: any) => item.key !== key)
   delete editableData1[key];
   // recordobj.value.model = tableData.value
@@ -164,23 +164,14 @@ const delRow = async (key: string) => {
 // 点击save a row
 const saveRow = (key: string) => {
 
-  console.log('tableData:', tableData)
-  console.log('editableData1:', editableData1)
-  debugger
+  
   Object.assign(tableData.value.filter(item => key === item.key)[0], editableData1[key]);
-  // let model = {'model':{'schema':[],'data':[]}}
-  // Object.assign(model.model['schema'],dynamiccolumns.value)
-  // Object.assign(model.model['data'],tableData.value)
-  // if(tableData.value && tableData.value.model )
-  //   recordobj.value.model = tableData.value.model
-  // console.log(recordobj.value);
   delete editableData1[key];
 }
 
 //edit row
 const editRow = (key: string) => {
-  console.log('kkkkkey:',key)
-  debugger
+  
   editableData1[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
   
 };
@@ -228,7 +219,7 @@ function delCol(key: string) {
 }
 
 const editCol = (key: string) => {
-  // console.log(key)
+  
   editableHeaderData[key] = cloneDeep(dynamiccolumns.value.filter(item => key === item.title)[0]);
 
 };
@@ -260,29 +251,20 @@ const query = async (data?: any) => {
 
   //  request.get("/api/templates", { params: data || searchobj })
   let rst = await request.get(`/api/templates/${data}`, { params: { q: 'category:static', search: '' } })
-  console.log('----1111--', rst,' rst model:',rst.model);
+  
   recordobj.value = rst
   if (rst.model && rst.model.schema.length > 0 ) {
-    // debugger
+    
     recordobj.value.model = rst.model
 
     tableData.value = rst.model.data;
-    // Object.assign(tableData.value,rst.model.data)
-    // rst.model.schema.forEach(item=>{
-    //   dynamiccolumns.value.push(item)
-    // })
+    
     dynamiccolumns.value=rst.model.schema
-    // Object.assign(dynamiccolumns.value,rst.model.schema)
-    // tableData.value = arr(rst.model.data)  ;1
+    
   } 
-  // else if (rst.model && _.isArray(rst.model.schema) && rst.model.schema.length == 0) {
-
-  //   tableData.value = tableDataOrigin.value
-  //   dynamiccolumns.value = dynamicschema.value
-
-  // } 
+  
   else {
-    console.log('No model in the backend system')
+    // console.log('No model in the backend system')
   }
 }
 

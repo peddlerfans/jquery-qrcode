@@ -77,6 +77,7 @@ let cacheDataDefinition: DataDefinition = {
 let ev_id = '';
 
 
+
 /** drawer  */
 //drawer visible
 const visible = ref(false);
@@ -582,6 +583,14 @@ let mbtCache: any;//save the data from backend Stores.mbt
 
 const route = useRoute()
 
+let dataDefData :Ref<any[]>=ref([])
+let cacheDataSchema:any[] = []
+let cacheDataContent:any[] = []
+
+// let dataDef_data= []
+// dataDef_data[0]=cacheDataSchema
+// dataDef_data[1]=cacheDataContent
+
 let toReload = ref(false);
 /**
  * 
@@ -609,6 +618,15 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         } else {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
+        if(response.dataDefinition && response.dataDefinition.data.length>0){
+          dataDefData.value.push(response.dataDefinition.data)
+
+        }else if(response.dataDefinition && response.dataDefinition.meta.length>0){
+          //read meta info from backend, todo
+        }else if(response.dataDefinition && response.dataDefinition.resources.length>0){
+          //read resources info from backend, todo
+        }
+
         mbtCache = response;//should work on here
         localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', idstr)
 
@@ -1589,7 +1607,7 @@ const importfromstatic = () =>{
               <a-tab-pane key="3" tab="Data Pool">
                 <a-collapse v-model:activeKey="metaActiveKey">
                   <a-collapse-panel key="1" header="Input directly">                    
-                <dynamic-table></dynamic-table>
+                <dynamic-table ></dynamic-table>
                   </a-collapse-panel>
                   <a-collapse-panel key="2" header="Import From Template">
                     <a-button type="primary" @click="importfromstatic()">Import</a-button>

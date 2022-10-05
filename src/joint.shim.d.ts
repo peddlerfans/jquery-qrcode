@@ -72,6 +72,12 @@ interface ModelDefinition {
     cellsinfo:Cells,
     props:object
 }
+
+interface DataDefinition {
+    data:[],
+    meta:[],
+    resources:[]
+}
 interface DynamicModel {
 [x: string]: any[],
     option?: any,
@@ -92,6 +98,7 @@ declare module 'axios' {
         description?:string,
         tags?:[],
         modelDefinition?:ModelDefinition,
+        dataDefinition?:DataDefinition
         // model:any
     }
 }
