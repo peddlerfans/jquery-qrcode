@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
+import dynamicTable from '@/components/dynamicTable.vue';
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from 'ant-design-vue/es'
@@ -1396,6 +1397,10 @@ const resourceshandleAdd = () => {
 const onImportFromMetaTemplate = () => {
 
 }
+
+const importfromstatic = () =>{
+  
+}
 </script>
   
 <template>
@@ -1581,7 +1586,17 @@ const onImportFromMetaTemplate = () => {
                   </div>
                 </a-card>
               </a-tab-pane>
-              <a-tab-pane key="3" tab="Data Pool">Content of datapool</a-tab-pane>
+              <a-tab-pane key="3" tab="Data Pool">
+                <a-collapse v-model:activeKey="metaActiveKey">
+                  <a-collapse-panel key="1" header="Input directly">                    
+                <dynamic-table></dynamic-table>
+                  </a-collapse-panel>
+                  <a-collapse-panel key="2" header="Import From Template">
+                    <a-button type="primary" @click="importfromstatic()">Import</a-button>
+                  </a-collapse-panel>
+                </a-collapse>
+
+              </a-tab-pane>
               <a-tab-pane key="4" tab="Resources">
                 <a-button class="editable-add-btn" style="margin-bottom: 8px" @click="resourceshandleAdd">Add
                 </a-button>

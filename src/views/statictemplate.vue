@@ -31,7 +31,7 @@ let searchobj: tableSearch = reactive({
 const arr = (dataArr: any) => dataArr.map((item: any, index: string) => ({ ...item, key: index }))
 async function query(data?: any) {
   let rst = await request.get("/api/templates", { params: data || searchobj })
-  console.log(rst.data);
+  // console.log(rst.data);
 
   tableData.value = arr(rst.data)
 }
@@ -76,10 +76,7 @@ const onSizeChange = async (current: any, pageSize: number) => {
   }
   await query()
 }
-const expend = (isExpand: any, rected: any) => {
-  console.log(isExpand, rected);
 
-}
 interface DataItem {
   key?: string;
   name: string;
@@ -89,19 +86,19 @@ interface DataItem {
 
 }
 
-const isLink = ref<boolean>(false);
+
 const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 // 点击修改static的方法
 const updstatic = async (data: any) => {
   let rst = await request.put(`/api/templates/${data._id}`, data)
-  console.log(rst);
+  // console.log(rst);
 }
 // 点击Edit触发的函数
 const edit = (key: string) => {
-  console.log(editableData);
+  // console.log(editableData);
 
   editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
-  console.log(editableData[key]);
+  // console.log(editableData[key]);
 
   states.tags = editableData[key].tags
 
@@ -109,20 +106,20 @@ const edit = (key: string) => {
 // 点击save触发的函数
 const save = async (obj: any) => {
   
-  console.log(obj)
+  // console.log(obj)
   Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
-  console.log(editableData[obj.key]);
+  // console.log(editableData[obj.key]);
   
   editableData[obj.key].tags=states.tags
   editableData[obj.key].category="static"
-  console.log(editableData[obj.key]);
+  // console.log(editableData[obj.key]);
   
   
   if(obj._id){
     await updstatic(editableData[obj.key])
   }else{
     
-  console.log(tableData.value);
+  // console.log(tableData.value);
     await request.post("/api/templates",editableData[obj.key])
   }
   await query()
@@ -213,7 +210,7 @@ const handleInputConfirm = () => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log(states.tags);
+  // console.log(states.tags);
 
 }
 // 移除tags
@@ -318,7 +315,7 @@ const handleClose = (removedTag: string) => {
               <a-typography-link @click="save(record)" style="font-size:16px">
                 <check-circle-two-tone two-tone-color="#52c41a" />
               </a-typography-link>
-              <a-popconfirm title="Sure to cancel?" @confirm="delmodel(record)">
+              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
                 <a style="margin-left:10px;margin-right:10px;font-size:16px;">
                   <delete-two-tone two-tone-color="#EB6420" />
                 </a>
