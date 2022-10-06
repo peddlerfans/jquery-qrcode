@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, reactive, computed, onBeforeMount } from 'vue';
+  import { ref, reactive, computed, onBeforeMount ,Ref,UnwrapRef} from 'vue';
   import type { TreeProps } from 'ant-design-vue';
   import {
     SyncOutlined,
@@ -14,7 +14,7 @@
   // import type { TreeDataItem } from '@/core/permission/utils';
   import { SplitPanel } from '@/components/basic/split-panel';
   import request from "@/utils/request"
-  
+  import { cloneDeep } from 'lodash-es';
   interface State {
     expandedKeys: number[];
     // departmentIds: number[];
@@ -48,7 +48,112 @@
   const fetchStaticTemplate = async () => {
     
   };
-  
+  // let dataSource= [
+  //         {
+  //           key: '1',
+  //           name: 'Mike',
+  //           age: 32,
+  //           address: '10 Downing Street',
+  //         },
+  //         {
+  //           key: '2',
+  //           name: 'John',
+  //           age: 42,
+  //           address: '10 Downing Street',
+  //         },
+  //       ];
+
+        interface TableDataItem{
+          key:string,
+          name:string,
+          age:number,
+          address:string
+        }
+        interface ColumnItem{
+          title: string,
+            dataIndex: string,
+            key: string
+        }
+        const dynamiccolumns: Ref<ColumnItem[]> = ref([{
+            title: 'Name',
+            dataIndex: 'name',
+            key: 'name',
+          },
+          {
+            title: 'Age',
+            dataIndex: 'age',
+            key: 'age',
+          },
+          {
+            title: 'Address',
+            dataIndex: 'address',
+            key: 'address',
+          }])
+        const TabledataSource: Ref<TableDataItem[]> = ref([
+          {
+            key: '1',
+            name: 'Mike',
+            age: 32,
+            address: '10 Downing Street',
+          },
+          {
+            key: '2',
+            name: 'John',
+            age: 42,
+            address: '10 Downing Street',
+          },
+]);
+
+const tablecount = computed(() => TabledataSource.value.length + 1);
+const metaeditableData: UnwrapRef<Record<string, TableDataItem>> = reactive({});
+
+const tableDataedit = (key: string) => {
+  metaeditableData[key] = cloneDeep(TabledataSource.value.filter(item => key === item.key)[0]);
+};
+const tableDatasave = (key: string) => {
+  Object.assign(TabledataSource.value.filter(item => key === item.key)[0], metaeditableData[key]);
+  delete metaeditableData[key];
+};
+
+const ontableDataDelete = (key: string) => {
+  TabledataSource.value = TabledataSource.value.filter(item => item.key !== key);
+};
+const tableDatahandleAdd = () => {
+  const newData = {
+    key: `${tablecount.value}`,
+    name: `Objective${tablecount.value}`,
+    age: tablecount.value,
+    address: `details${tablecount.value}`,
+  };
+  TabledataSource.value.push(newData);
+};
+
+const columnshandleAdd = () => {
+  const newcolumn = {
+    title: `${tablecount.value}`,
+    dataIndex: `Objective${tablecount.value}`,
+    key: `${tablecount.value}`
+    
+  };
+  dynamiccolumns.value.push(newcolumn);
+};
+      //  let columns= ref([
+      //     {
+      //       title: 'Name',
+      //       dataIndex: 'name',
+      //       key: 'name',
+      //     },
+      //     {
+      //       title: 'Age',
+      //       dataIndex: 'age',
+      //       key: 'age',
+      //     },
+      //     {
+      //       title: 'Address',
+      //       dataIndex: 'address',
+      //       key: 'address',
+      //     },
+      //   ]);
   
   const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
   
@@ -74,7 +179,17 @@
       ],
     },
   ];
-  
+  // function addColumn(){
+  //   console.log(dynamiccolumns.value)
+  //   let newcol = {
+  //           title: 'Newcol',
+  //           dataIndex: 'Newcol',
+  //           key: 'Newcol',
+  //         };
+  //   columns.value=columns.value.splice(0,0,newcol)
+  //   console.log(columns)
+
+  // }
   </script>
   
   <template>
@@ -118,6 +233,10 @@
             </Tree>
           </template>
           <template #right-content>
+            <a-button type="primary" @click="columnshandleAdd()">
+          Save
+        </a-button>
+            <a-table :dataSource="TabledataSource" :columns="dynamiccolumns" />
             <!-- <p>
               Show the details of organization
             </p> -->

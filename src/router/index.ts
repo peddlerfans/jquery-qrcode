@@ -197,6 +197,29 @@ export const routes: RouteRecordRaw[] = [
         meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
       }
     ]
+  },
+  {
+    path: '/staticModeler',
+    name: 'staticmodeler',
+    component: Layout,
+    redirect: { name: 'staticmodeler' },    
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'staticmodeler',
+        component: () => import('@/views/statictemplateModeler.vue'),
+        meta: { hidden: true, title: 'Static Template Modeler', icon: LayoutOutlined }
+      }
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      if(to.path==`/staticModeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=`Static `+pathname
+       
+        }
+        next()
+      }
   }
 ]
 
