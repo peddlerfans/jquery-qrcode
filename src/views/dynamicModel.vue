@@ -58,15 +58,14 @@ let finalResult: any;
 sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.params._id))
 // 获取当前数据并赋值
 let finalModel: Model = reactive({
-  option: {
-    strategy:''
-  },
+  option: {},
   factor: [],
   constraint: []
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
 
+  finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
       ...e, editing: false, inputVisible: false, inputValue: ''
@@ -77,6 +76,10 @@ async function query(id?: any) {
       ...e, editing: false
     }
   })
+
+  console.log('finalModel')
+  console.log(finalResult)
+  console.log(finalModel)
 }
 let modelId: any
 onMounted(() => {
@@ -245,7 +248,7 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
-  console.log('tags');
+  console.log('close tags');
   console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
@@ -420,8 +423,8 @@ const ifValueOpetions = computed(() => {
     return ref<SelectProps['options']>([]).value
   } else {
     return ref<SelectProps['options']>(
-      finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
-        .map(e => { return { value: e, label: e } })).value
+        finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
+            .map(e => { return { value: e, label: e } })).value
   }
 })
 
@@ -435,8 +438,8 @@ const thenValueOpetions = computed(() => {
     return ref<SelectProps['options']>([]).value
   } else {
     return ref<SelectProps['options']>(
-      finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
-        .map(e => { return { value: e, label: e } })).value
+        finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
+            .map(e => { return { value: e, label: e } })).value
   }
 })
 
@@ -525,8 +528,42 @@ const editConstraint = (record: Constraint) => {
   console.log(constraintState)
 
   record.editing = true
+  showAddConstraintBtn.value = false
 
 }
+
+const changeIfName = () => {
+  constraintState.ifoperator=''
+  constraintState.ifvalues=''
+  constraintState.thenoperator=''
+  constraintState.thenvalues=''
+}
+const changeIfOperator = () => {
+  if (constraintState.ifoperator==='IN'){
+    constraintState.ifvalues=[]
+  }else{
+    constraintState.ifvalues=''
+  }
+}
+
+const changeThenName = () => {
+  constraintState.thenoperator=''
+  constraintState.thenvalues=''
+}
+const changeThenOperator = () => {
+  if (constraintState.thenoperator==='IN'){
+    constraintState.thenvalues=[]
+  }else{
+    constraintState.thenvalues=''
+  }
+}
+
+
+
+
+
+
+
 const updateConstraint = async (record: Constraint) => {
   console.log('updateConstraint')
   console.log(record)
@@ -556,8 +593,15 @@ const cancelConstraint = (record: Constraint) => {
 
     record.editing = false
   }
-  // clearConstraintState()
+
+  console.log('cancelConstraint')
+  console.log(record)
+  console.log(constraintState)
+  clearConstraintState()
+  console.log(constraintState)
+
   showAddConstraintBtn.value = true
+
 }
 
 
@@ -608,9 +652,9 @@ const focus = () => {
           :wrapper-col="{ span: 2 }"
           autocomplete="off"
       >
-      <a-form-item label="Strategy">
-      <a-select v-model:value="finalModel.option.order" :options="orderOptions"></a-select>
-      </a-form-item>
+        <a-form-item label="Strategy">
+          <a-select v-model:value="finalModel.option.strategy" :options="orderOptions"></a-select>
+        </a-form-item>
       </a-form>
     </div>
 
@@ -648,7 +692,7 @@ const focus = () => {
             </a-form-item>
             <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
             <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="typeOptions"
-              @focus="focus"></a-select>
+                      @focus="focus"></a-select>
 
             <template v-else>
               {{ text }}
@@ -661,18 +705,18 @@ const focus = () => {
           <template v-if="record.editing">
             <template v-for="(tag) in record.values" :key="tag">
               <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(record, tag)">
+                <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
                   {{ `${tag.slice(0, 20)}...` }}
                 </a-tag>
               </a-tooltip>
               <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(record, tag)">
+              <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
                 {{tag}}
               </a-tag>
             </template>
             <a-input v-if="record.inputVisible" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-              @keyup.enter="handleFactorValueConfirm(record)" />
+                     size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+                     @keyup.enter="handleFactorValueConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
               <plus-outlined />
               Add a New Value
@@ -699,7 +743,7 @@ const focus = () => {
               <a @click="editFactor(record)">Edit</a>
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                @confirm="deleteFactor(record)" @cancel="cancel">
+                            @confirm="deleteFactor(record)" @cancel="cancel">
                 <a>Delete</a>
               </a-popconfirm>
             </span>
@@ -719,7 +763,7 @@ const focus = () => {
     <div style="margin: 30px 0px 8px 0px;">
       <h2 style="display: inline;">Constraint (optional)</h2>
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
-        style="margin-left: 12px;">Add a New Constraint</a-button>
+                style="margin-left: 12px;">Add a New Constraint</a-button>
     </div>
 
     <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
@@ -728,8 +772,8 @@ const focus = () => {
         <template v-if='column.key==="ifname"'>
           <div>
             <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.ifname"
-              :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus">
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifname"
+                      :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus" @change="changeIfName()">
             </a-select>
             <template v-else>
               {{text}}
@@ -744,8 +788,8 @@ const focus = () => {
                   <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
                 </a-form-item>
                 <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.ifoperator"
-              :options="ifOperatorOptions" @focus="focus">
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator"
+                      :options="ifOperatorOptions" @focus="focus" @change="changeIfOperator()">
             </a-select>
 
             <template v-else>
@@ -759,12 +803,12 @@ const focus = () => {
           <template v-if="record.editing">
 
             <a-select v-if="constraintState.ifoperator == 'IN'" mode="multiple" ref="select"
-              v-model:value.trim="constraintState.ifvalues" :options="ifValueOpetions" :disabled="false" @focus="focus">
+                      v-model:value="constraintState.ifvalues" :options="ifValueOpetions" :disabled="false" @focus="focus">
             </a-select>
             <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
-              style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select" v-model:value.trim="constraintState.ifvalues" :options="ifValueOpetions"
-              :disabled="false" @focus="focus">
+                     style="margin: -5px 0" @focus="focus" />
+            <a-select v-else ref="select" v-model:value="constraintState.ifvalues" :options="ifValueOpetions"
+                      :disabled="false" @focus="focus">
             </a-select>
           </template>
 
@@ -792,8 +836,8 @@ const focus = () => {
         <template v-if='column.key==="thenname"'>
           <div>
             <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.thenname"
-              :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus">
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenname"
+                      :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus"  @change="changeThenName()">>
             </a-select>
             <template v-else>
               {{text}}
@@ -808,8 +852,8 @@ const focus = () => {
                   <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
                 </a-form-item>
                 <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="constraintState.thenoperator"
-              :options="thenOperatorOptions" @focus="focus">
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator"
+                      :options="thenOperatorOptions" @focus="focus"  @change="changeThenOperator()">
             </a-select>
 
             <template v-else>
@@ -821,12 +865,12 @@ const focus = () => {
         <template v-if='column.key === "thenvalues"'>
           <template v-if="record.editing">
             <a-select v-if="constraintState.thenoperator === 'IN'" mode="multiple" ref="select1"
-              v-model:value.trim="constraintState.thenvalues" :options="thenValueOpetions" :disabled="false" @focus="focus">
+                      v-model:value="constraintState.thenvalues" :options="thenValueOpetions" :disabled="false" @focus="focus">
             </a-select>
             <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
-              style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select2" v-model:value.trim="constraintState.thenvalues" :options="thenValueOpetions"
-              :disabled="false" @focus="focus">
+                     style="margin: -5px 0" @focus="focus" />
+            <a-select v-else ref="select2" v-model:value="constraintState.thenvalues" :options="thenValueOpetions"
+                      :disabled="false" @focus="focus">
             </a-select>
           </template>
 
@@ -864,7 +908,7 @@ const focus = () => {
             <a @click="editConstraint(record)">Edit</a>
             <a-divider type="vertical" />
             <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-              @confirm="deleteConstraint(record.name)" @cancel="cancel">
+                          @confirm="deleteConstraint(record.name)" @cancel="cancel">
               <a>Delete</a>
             </a-popconfirm>
           </span>
@@ -876,7 +920,7 @@ const focus = () => {
 
     <div style="margin-top: 30px">
       <a-button type="primary" @click="saveModel" class=""
-        style="margin-bottom: 8px">Save Model</a-button>
+                style="margin-bottom: 8px">Save Model</a-button>
     </div>
 
 

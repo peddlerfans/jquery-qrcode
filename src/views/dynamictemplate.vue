@@ -166,6 +166,8 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
+  console.log('query')
+  console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
@@ -359,7 +361,13 @@ const cancelModel = () => {
   modelState.inputValue = ''
 }
 
+const previewModel = async (id: string) => {
+  console.log('previewModel')
+  console.log(url+`/${id}/preview`)
+  let rst = await request.post(url+`/${id}/preview`)
 
+  console.log(rst)
+}
 // ################################
 // ######## Model CRUD END ########
 // ################################
@@ -467,7 +475,100 @@ onMounted(() => {
   query()
 })
 
+const columns2 = reactive([
+  {
+    title: '芯片',
+    dataIndex: 'k1',
+    key: 'k1',
+  },
+  {
+    title: '内存',
+    dataIndex: 'k2',
+    key: 'k2',
+  },
+  {
+    title: '显卡',
+    dataIndex: 'k3',
+    key: 'k3',
+  },
+]);
 
+
+const modelData=reactive({
+  "data": [
+    {
+      "k1": "高通芯片",
+      "k2": "6G",
+      "k3": "512M"
+    },
+    {
+      "k1": "联发科芯片",
+      "k2": "8G",
+      "k3": "512M"
+    },
+    {
+      "k1": "联发科芯片",
+      "k2": "12G",
+      "k3": "512M"
+    },
+    {
+      "k1": "联发科芯片",
+      "k2": "6G",
+      "k3": "512M"
+    },
+    {
+      "k1": "联发科芯片",
+      "k2": "4G",
+      "k3": "512M"
+    },
+    {
+      "k1": "高通芯片",
+      "k2": "8G",
+      "k3": "512M"
+    },
+    {
+      "k1": "高通芯片",
+      "k2": "4G",
+      "k3": "512M"
+    },
+    {
+      "k1": "高通芯片",
+      "k2": "12G",
+      "k3": "512M"
+    }
+  ],
+  "model": {
+    "parameters": [
+      {
+        "property": "芯片",
+        "values": [
+          "高通芯片",
+          "联发科芯片"
+        ]
+      },
+      {
+        "property": "内存",
+        "values": [
+          "4G",
+          "6G",
+          "8G",
+          "12G"
+        ]
+      },
+      {
+        "property": "显卡",
+        "values": [
+          "512M"
+        ]
+      }
+    ],
+    "constrains": [
+      "IF [芯片] = \"高通芯片\"   THEN [内存] = \"8G\" ;"
+    ]
+  }
+})
+console.log(modelData.data)
+const prev=false;
 </script>
 
 
@@ -567,6 +668,35 @@ onMounted(() => {
 
 
 
+
+
+
+    <a-modal v-model:visible="prev" :title="modelState._id? 'Model preview':'Model preview'" @cancel="closeModel"
+             @ok="handleOk" :width="900">
+
+      <!-- Model meta info -->
+
+      <h2>Data</h2>
+
+      <a-table :columns="columns2" :data-source="modelData.data" bordered>
+        <template #bodyCell="{ column, text, record }">
+          <template v-if='column.key==="name"'><div>{{ text }}</div></template>
+          <template v-if='column.key==="age"'><div>{{ text }}</div></template>
+          <template v-if='column.key==="address"'><div>{{ text }}</div></template>
+
+        </template>
+      </a-table>
+
+      <template #footer>
+<!--        <a-button @click="closeModel">Cancel</a-button>-->
+      </template>
+
+      <h2>Model</h2>
+      <pre>{{ JSON.stringify(toRaw(modelData.model), null, 2) }}</pre>
+
+    </a-modal>
+
+
     <!-- ######################### -->
     <!-- List of dynamic templates -->
     <!-- ######################### -->
@@ -579,7 +709,16 @@ onMounted(() => {
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
               <a :href="'/#/dynamicModeler/'+ record._id">{{text}}</a>
-              <!-- <router-link :to="{path:'/metaModeler',query:{record}}">{{ text }}</router-link> -->
+<!--              <a-button type="primary" @click="previewModel(record._id)">-->
+<!--                <template #icon>-->
+<!--&lt;!&ndash;                  <EyeOutlined />&ndash;&gt;-->
+<!--                  <plus-outlined />-->
+<!--                </template>-->
+
+<!--              </a-button>-->
+<!--              <template #icon @click="previewModel(record._id)">-->
+<!--                -->
+<!--              </template>-->
             </template>
           </div>
         </template>
