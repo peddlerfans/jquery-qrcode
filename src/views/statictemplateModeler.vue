@@ -50,31 +50,31 @@ let dynamiccolumns: Ref<ColumnItem[]> = ref([{
 }
 ])
 
-const tableDataOrigin: Ref<any[]> = ref([
+const tableDataOrigin: Ref<any[]> = ref([])
 
-  {
-    key: '1',
-    ID: '1',
-    // ContactType: 'real contact',
-    // MSG: '{{DS.test}}',
-    // Terminator: '{{phone2}}',
-    // PhoneNum: '{{phone2.num}}',
+//   {
+//     key: '1',
+//     ID: '1',
+//     // ContactType: 'real contact',
+//     // MSG: '{{DS.test}}',
+//     // Terminator: '{{phone2}}',
+//     // PhoneNum: '{{phone2.num}}',
 
-  }
-]);
+//   }
+// ]);
 
-let tableData: Ref<any[]> = ref([
+let tableData: Ref<any[]> = ref([])
 
-  {
-    key: '1',
-    ID: '1',
-    // ContactType: 'real contact',
-    // MSG: '{{DS.test}}',
-    // Terminator: '{{phone2}}',
-    // PhoneNum: '{{phone2.num}}',
+//   {
+//     key: '1',
+//     ID: '1',
+//     // ContactType: 'real contact',
+//     // MSG: '{{DS.test}}',
+//     // Terminator: '{{phone2}}',
+//     // PhoneNum: '{{phone2.num}}',
 
-  }
-]);
+//   }
+// ]);
 
 
 /**
