@@ -1,32 +1,34 @@
 <script setup lang="ts">
 import request from '@/utils/request';
 import useTable from '@/composables/useTable';
-import { mockMBTUrl,realMBTUrl } from '@/appConfig'
+import { mockMBTUrl, realMBTUrl } from '@/appConfig'
 import { message } from 'ant-design-vue/es'
 import * as _ from 'lodash'
-import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch ,getCurrentInstance} from 'vue';
+import { Stores } from '../../types/stores'
+import { ref, reactive, computed, onBeforeMount, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
 import type { FormProps, SelectProps, TableProps, TreeProps } from 'ant-design-vue';
-import {tableSearch , FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
+import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from 'ant-design-vue/es/form';
-import {  PlusOutlined,  EditOutlined,} from '@ant-design/icons-vue';
-
+import { PlusOutlined, EditOutlined, } from '@ant-design/icons-vue';
+import { useRoute, useRouter } from 'vue-router'
 //Setting url for data fetching
 // const url=mockMBTUrl;
-const url=realMBTUrl;
-
+const url = realMBTUrl;
+const route = useRoute()
+const router = useRouter()
 const tableRef = ref()
-let searchobj:tableSearch = reactive({
+let searchobj: tableSearch = reactive({
   search: "",
   size: 20,
-  page:1,
-  perPage:10
+  page: 1,
+  perPage: 20
 })
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: ''
 });
 
-const instance=getCurrentInstance()
+const instance = getCurrentInstance()
 
 
 const {
@@ -52,18 +54,15 @@ const {
   ],
   updateTableOptions: {
     fetchUrl:
-    url
-      // '/mbtlist/mbt-models'//For mockup
-      // '/api/test-models'// For real backend
+      url
+    // '/mbtlist/mbt-models'//For mockup
+    // '/api/test-models'// For real backend
     // '/mbtapi/mbt-models'
   }
 })
 function openMenuModal() {
   alert('good')
 }
-
-
-
 
 onBeforeMount(() => {
 
@@ -80,27 +79,34 @@ async function query(data?: any) {
 
   let rst;
   if (data && data.search.toString().substring(0, 6) == '@tags:') {
-    rst = await request.get(url+`?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
+    rst = await request.get(url + `?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
   } else {
     rst = await request.get(url, { params: data || searchobj })
   }
 
 
   if (rst.data) {
-    // console.log('rst:', rst.data)
+    // console.log('rst:', rst.data)   
+
     dataSource.value = rst.data
     return rst.data
   }
 }
+
+/**
+ * Search the result
+ */
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // console.log(' formstate to search :', formState);
 
-  query(formState)
-  // highlight.value = dataSource.value.filter((item: any, index: any) => {
+  let fetchUrl = '';
+  if (formState && formState.search.toString().substring(0, 6) == '@tags:') {
 
-  //   return item._highlight
-  // })
-  // console.log(highlight.value);
+    fetchUrl = url + `?q=tags:` + formState.search.substring(6, formState.search.length).toUpperCase().trim();
+  } else {
+    fetchUrl = url + `?search=` + formState.search;
+  }
+
+  updateTable({ fetchUrl: fetchUrl })
 
 };
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
@@ -121,27 +127,27 @@ let modelstates = ref<ModelState>({
 });
 onMounted(() => {
 
-   query()    
- }) 
+  query()
+})
 // 修改功能4
 // 修改函数
 async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data)
   // console.log(rst);
 }
-let refForm=ref(null)
+let refForm = ref(null)
 // 清除模态窗数据
 const clear = () => {
-  
+
   modelstates.value = {
     name: "",
     description: '',
     _id: "",
     tags: []
   },
-    states.tags = []; 
+    states.tags = [];
 
-    (instance?.refs.refForm as any).resetFields()
+  (instance?.refs.refForm as any).resetFields()
 
 }
 
@@ -167,7 +173,7 @@ async function saveMBT(data: any) {
 
   return new Promise((resolve, reject) => {
     request.post(url, data).then(res => {
-      // console.log(res);
+      console.log('post successfully',res);
 
     }).catch(function (error) {
       if (error.response.status == 409) {
@@ -180,15 +186,18 @@ async function saveMBT(data: any) {
 
 const onFinishForm = async (modelstates: any) => {
   modelstates.value.tags = states.tags
+  
   // 判断修改或添加
   if (modelstates.value.name && modelstates.value.description) {
     if (modelstates.value._id) {
-      await updateMBT(url+`/${modelstates.value._id}`, modelstates.value)
+      await updateMBT(url + `/${modelstates.value._id}`, modelstates.value)
       message.success("Modified successfully")
     } else {
       delete modelstates.value._id
-      await saveMBT(modelstates.value)
+      // await saveMBT(modelstates.value)
       message.success("Added successfully")
+      return saveMBT(modelstates.value)
+     
     }
     // }
     visible.value = false;
@@ -199,9 +208,28 @@ const onFinishForm = async (modelstates: any) => {
   }
 
 };
+
+/**
+ * Create a new model and jump to moderler
+ */
 const handleOk = () => {
-  onFinishForm(modelstates)
+  debugger
+  visible.value = false;
+
+  onFinishForm(modelstates).then((res: Stores.mbt) => {
+    console.log("res,",res)
+    let routeparam = '';
+    if (res._id) {
+      routeparam = `/mbtmodeler/${res._id}/${res.name}`
+      router.push({ path: routeparam });
+    }
+
+  })
   clear()
+
+
+
+
 };
 // 关闭模态窗触发事件
 const closemodel = () => {
@@ -213,11 +241,12 @@ const closemodel = () => {
 }
 // 删除功能
 async function delmbt(key: any) {
-  console.log('delete key:',key)
-  console.log('delete url:',url+`/${key._id}`);
-  let rst = await request.delete(url+`/${key._id}`)
-  query()
-  console.log('rst:',rst);
+  // console.log('delete key:',key)
+  // console.log('delete url:',url+`/${key._id}`);
+  let rst = await request.delete(url + `/${key._id}`)
+  updateTable()
+  // query()
+  // console.log('rst:',rst);
 
 }
 const confirm = (e: MouseEvent) => {
@@ -298,7 +327,7 @@ const handleInputConfirm = () => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"
+              <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
@@ -329,8 +358,8 @@ const handleInputConfirm = () => {
           <a-button @click="closemodel">cancel</a-button>
           <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
         </template>
-        <a-form ref="refForm" :model="modelstates" :rules="rules" name="basic" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }"
-          autocomplete="off" @finish="onFinishForm" @finishFailed="onFinishFailedForm">
+        <a-form ref="refForm" :model="modelstates" :rules="rules" name="basic" :label-col="{ span: 6 }"
+          :wrapper-col="{ span: 16 }" autocomplete="off" @finish="onFinishForm" @finishFailed="onFinishFailedForm">
           <a-form-item label="name" name="name">
             <a-input v-model:value="modelstates.name" />
           </a-form-item>
@@ -379,7 +408,7 @@ const handleInputConfirm = () => {
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
 
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
+          <a :href="`/#/mbtmodeler/${record._id}/${record.name}`">{{ record.name }}</a>
         </template>
 
         <template v-else-if="column.key === 'description'">

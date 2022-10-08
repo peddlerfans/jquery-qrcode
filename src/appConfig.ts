@@ -46,4 +46,4 @@ export enum transitions {
  */
  export const realMBTUrl= '/api/test-models'
 
- 
+export const templateUrl = '/api/templates'

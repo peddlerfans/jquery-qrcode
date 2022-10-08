@@ -3,7 +3,7 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
+  AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -56,6 +56,22 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+  {
+    path: '/awmodeler',
+    name: 'awmodeler',
+    component: Layout,
+    redirect: { name: 'awmodeler' },
+    meta: { breadcrumb: false },
+    children: [
+      {
+        path: 'index',
+        name: 'awmodeler',
+        component: () => import('@/views/awmodeler.vue'),
+        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
+      }
+    ]
+  }
+  ,
 
   {
     path: '/mbtstore',
@@ -96,28 +112,18 @@ export const routes: RouteRecordRaw[] = [
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
         meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
+      },{
+        path: 'codegen',
+        name: 'codegenTemplate',
+        component: () => import('@/views/codegentemplate.vue'),
+        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
       }
 
     ]
   }
 
   ,
-  {
-    path: '/awmodeler',
-    name: 'Awmodeler',
-    component: Layout,
-    redirect: { name: 'awmodeler' },
-    meta: { breadcrumb: false },
-    children: [
-      {
-        path: 'index',
-        name: 'awmodeler',
-        component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
-      }
-    ]
-  }
-  ,
+  
 
   {
     path: '/account',
@@ -137,18 +143,83 @@ export const routes: RouteRecordRaw[] = [
   ,
   {
     path: '/mbtmodeler',
-    name: 'Mbtmodeler',
+    name: 'mbtmodeler',
     component: Layout,
     redirect: { name: 'mbtmodeler' },    
     children: [
       {
-        path: ':name',
-        name: 'Mbtmodeler',
+        path: ':_id/:name',
+        name: 'mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
         meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
       }
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=`MBTModel `+pathname
+       
+        }
+        next()
+      }
+  },
+  {
+    path: '/metaModeler',
+    name: 'MetaModeler',
+    component: Layout,
+    redirect: { name: 'metaModeler' },    
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'metaModeler',
+        component: () => import('@/views/metaModel.vue'),
+        meta: { hidden: true, title: 'MetaModel', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+    if(to.params._id && to.params.name){
+      to.meta.title=`MetaModel ${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/dynamicModeler',
+    name: 'DynamicModeler',
+    component: Layout,
+    redirect: { name: 'dynamicModeler' },
+    children: [
+      {
+        path: ':_id',
+        name: 'dynamicModeler',
+        component: () => import('@/views/dynamicModel.vue'),
+        meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
+      }
     ]
-
+  },
+  {
+    path: '/staticModeler',
+    name: 'staticmodeler',
+    component: Layout,
+    redirect: { name: 'staticmodeler' },    
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'staticmodeler',
+        component: () => import('@/views/statictemplateModeler.vue'),
+        meta: { hidden: true, title: 'Static Template Modeler', icon: LayoutOutlined }
+      }
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      if(to.path==`/staticModeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=`Static `+pathname
+       
+        }
+        next()
+      }
   }
 ]
 

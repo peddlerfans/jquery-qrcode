@@ -38,6 +38,7 @@ interface IElementType {
 // }
 export const awStore = defineStore('aw', {
   state: (): Stores.aw => ({
+    _id:'',
     name: '',
     description: '',
     tags: [],
