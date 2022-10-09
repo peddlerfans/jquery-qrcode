@@ -64,7 +64,8 @@ let finalModel: Model = reactive({
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
-
+  console.log('finalModel')
+  console.log(finalResult)
   finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
@@ -77,8 +78,7 @@ async function query(id?: any) {
     }
   })
 
-  console.log('finalModel')
-  console.log(finalResult)
+
   console.log(finalModel)
 }
 let modelId: any
@@ -459,17 +459,23 @@ let currentFactorName = reactive([])
 const addNewConstraint = () => {
   console.log('addNewConstraint')
   clearConstraintState()
-  showAddConstraintBtn.value = false;
 
-  finalModel.constraint.push({
-    ifname: '',
-    ifoperator: '',
-    ifvalues: '',
-    thenname: '',
-    thenoperator: '',
-    thenvalues: '',
-    editing: true,
-  })
+  if (finalModel.factor.length<2){
+    message.warning('Please add at least two factors first')
+  }else{
+    showAddConstraintBtn.value = false;
+
+    finalModel.constraint.push({
+      ifname: '',
+      ifoperator: '',
+      ifvalues: '',
+      thenname: '',
+      thenoperator: '',
+      thenvalues: '',
+      editing: true,
+    })
+  }
+
   console.log(finalModel)
   console.log(constraintState)
 }
@@ -765,7 +771,6 @@ const focus = () => {
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
                 style="margin-left: 12px;">Add a New Constraint</a-button>
     </div>
-
     <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
       <template #bodyCell="{ column, text, record }">
 
@@ -788,7 +793,7 @@ const focus = () => {
                   <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
                 </a-form-item>
                 <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator"
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator" :disabled="constraintState.ifname===''"
                       :options="ifOperatorOptions" @focus="focus" @change="changeIfOperator()">
             </a-select>
 
@@ -808,7 +813,7 @@ const focus = () => {
             <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
                      style="margin: -5px 0" @focus="focus" />
             <a-select v-else ref="select" v-model:value="constraintState.ifvalues" :options="ifValueOpetions"
-                      :disabled="false" @focus="focus">
+                      :disabled="constraintState.ifoperator == ''" @focus="focus">
             </a-select>
           </template>
 
@@ -852,7 +857,7 @@ const focus = () => {
                   <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
                 </a-form-item>
                 <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator"
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator" :disabled="constraintState.thenname === ''"
                       :options="thenOperatorOptions" @focus="focus"  @change="changeThenOperator()">
             </a-select>
 
@@ -870,7 +875,7 @@ const focus = () => {
             <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
                      style="margin: -5px 0" @focus="focus" />
             <a-select v-else ref="select2" v-model:value="constraintState.thenvalues" :options="thenValueOpetions"
-                      :disabled="false" @focus="focus">
+                      :disabled="constraintState.thenoperator === ''" @focus="focus">
             </a-select>
           </template>
 
