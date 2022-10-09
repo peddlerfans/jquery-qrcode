@@ -74,7 +74,9 @@ let cacheDataDefinition: DataDefinition = {
   meta: [],
   resources: []
 }
-let ev_id = '';
+let ev_id = ''; //elememtview id
+
+let lv_id = '';//linkview id
 
 
 
@@ -129,7 +131,7 @@ const showDrawer = (el?: dia.LinkView | dia.ElementView | undefined, aw?: string
 
 const onCloseDrawer = () => {
   visible.value = false;
-  linkData.value.label = ''
+  // linkData.value.label = ''
 
 
   // modeler.paper.update()
@@ -281,9 +283,23 @@ let globalformData = ref<Stores.mbtView>({
 
 });
 let linkData = ref({
-
-  label: ''
+  _id: '',
+  label: '',
+  loop: false,
+  loopcount: 1
 })
+interface LinkFormData {
+  _id: string,
+  label: string,
+  loop?: boolean,
+  loopcount?: number
+}
+let linkFormData: LinkFormData = {
+  _id: '',
+  label: '',
+  loop: false,
+  loopcount: 1
+};
 let awformdata = ref<Stores.awView>({
   _id: '',
   name: '',
@@ -366,25 +382,44 @@ const awschema = ref({
     }
   }
 })
-
+// linkData
+// "ui:hidden": "{{linkData.loop === false}}"
 const linkschema = ref({
   "title": "LINK",
   "description": "Configuration for Link",
   "type": "object",
   "properties": {
+    "_id": {
+      "type": "string",
+      "ui:hidden": true,
+      "required": true
+    },
     "label": {
       "title": "Label",
-      "type": "string"
+      "type": "string",
+      // "ui:hidden": "{{parentFormData.loop === true}}"
+    },
+    "loop": {
+      "type": "boolean",
+      "title": "Loop",
+      "default": false
+    },
+    "loopcount": {
+      "title": "Loop count",
+      "type": "integer",
+      "minimum": 1,
+      "ui:hidden": "{{parentFormData.loop === false}}"
+
     }
 
   }
 })
-let currentElementView: dia.ElementView;
-let currentLinkView: dia.LinkView;
+
+
 
 function awhandlerSubmit() {
   // console.log('awhandlerSubmit......cacheprops/', cacheprops)
-  // console.log('1111111111', ev_id)
+  
   isAW.value = true;
 
   isLink.value = false;
@@ -404,7 +439,7 @@ function awhandlerSubmit() {
 
       let awformData = cacheprops.get(ev_id)
       awformdata.value = awformData.props;
-      // console.log('map set....0')
+      
       currentElementMap.set(ev_id, { 'props': awformdata.value });
       hasAWInfo.value = true;
     } else {
@@ -431,10 +466,8 @@ function awhandlerSubmit() {
       }
 
       cacheprops.set(ev_id, { 'props': tempformdata });
-      // cacheprops.set(ev_id, { 'props': unref(awformdata.value) });
-      // console.log('cacheprops1:',cacheprops);
-      // console.log('tempformdata:',tempformdata);
-      // console.log('awformdata:',awformdata);
+      
+
 
     }
 
@@ -513,61 +546,60 @@ function globalhandlerSubmit() {
 };
 
 function linkhandlerSubmit() {
-
-  // console.log('linkdata:',linkData)
-  // console.log('.......',currentLinkMap);
-  for (let key of currentLinkMap.keys()) {
-    let templink = {}
-    for (const [key, value] of Object.entries(linkData.value)) {
-      let obj;
-      if (typeof value == 'undefined') {
-        obj = JSON.parse(`{"${key}":""}`)
-      } else
-        obj = JSON.parse(`{"${key}":"${value}"}`)
-      Object.assign(templink, obj)
-      if (key == "label" && value) {
-        // console.log(currentLinkView)
-
-        // currentLinkView.model?.attr('label/text/text', `${value}`);
-        while (currentLinkView.model?.hasLabels) {
-          currentLinkView.model?.removeLabel(-1)
-          break;
-        }
+  
+  linkData.value._id = lv_id
 
 
+  linkFormData._id = linkData.value._id;
+  linkFormData.label = linkData.value.label
+  linkFormData.loop = linkData.value.loop
+  linkFormData.loopcount = linkData.value.loopcount
 
-        currentLinkView.model?.appendLabel({
-          attrs: {
-            text: {
-              text: `${value}`
-            }
-          }
-        })
-
-
-      } else if (key == "label") {//when delete the value in the form for label
-        while (currentLinkView.model?.hasLabels) {
-          currentLinkView.model?.removeLabel(-1)
-          break;
-        }
-
-
-
-        currentLinkView.model?.appendLabel({
-          attrs: {
-            text: {
-              text: ``
-            }
-          }
-        })
-      }
+  let loopcount1 = linkData.value.loopcount;
+  while (modeler.graph.getCell(lv_id).hasLabels) {
+      modeler.graph.getCell(lv_id).removeLabel(-1)
+      break;
     }
-    // console.log('cacheprops set....4')
-    cacheprops.set(key, { 'props': templink });
-    // currentLinkMap.set(key,{ 'props': templink })
-  }
-  currentLinkMap.clear()
+  if (linkFormData.loop == true) {
 
+    modeler.graph.getCell(lv_id).appendLabel({
+      attrs: {
+        text: {
+          text: linkFormData.label + ` Loop : ${loopcount1}`
+        }
+      }})
+      modeler.graph.getCell(lv_id).attr('line/stroke', 'red');
+      linkFormData.label += ` Loop : ${loopcount1}`
+
+  }
+  else {
+
+    if (typeof linkFormData.label=='undefined')
+    linkFormData.label =''
+    modeler.graph.getCell(lv_id).appendLabel({
+      attrs: {
+        text: {
+          text: linkFormData.label||'',
+
+        },
+
+      
+      }
+    })
+
+    modeler.graph.getCell(lv_id).attr('line/stroke', 'black');
+
+  }
+
+  
+  let tempObj ={}
+  Object.assign(tempObj,{'_id':linkFormData._id})
+  Object.assign(tempObj,{'label':linkFormData.label})
+  Object.assign(tempObj,{'loop':linkFormData.loop})
+  Object.assign(tempObj,{'loopcount':linkFormData.loopcount})
+  cacheprops.set(lv_id, { 'props': tempObj });
+  
+  
   onCloseDrawer()
   message.success('Save it Successfully');
 };
@@ -583,9 +615,9 @@ let mbtCache: any;//save the data from backend Stores.mbt
 
 const route = useRoute()
 
-let dataDefData :Ref<any[]>=ref([])
-let cacheDataSchema:any[] = []
-let cacheDataContent:any[] = []
+let dataDefData: Ref<any[]> = ref([])
+let cacheDataSchema: any[] = []
+let cacheDataContent: any[] = []
 
 // let dataDef_data= []
 // dataDef_data[0]=cacheDataSchema
@@ -618,12 +650,12 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         } else {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
-        if(response.dataDefinition && response.dataDefinition.data.length>0){
+        if (response.dataDefinition && response.dataDefinition.data.length > 0) {
           dataDefData.value.push(response.dataDefinition.data)
 
-        }else if(response.dataDefinition && response.dataDefinition.meta.length>0){
+        } else if (response.dataDefinition && response.dataDefinition.meta.length > 0) {
           //read meta info from backend, todo
-        }else if(response.dataDefinition && response.dataDefinition.resources.length>0){
+        } else if (response.dataDefinition && response.dataDefinition.resources.length > 0) {
           //read resources info from backend, todo
         }
 
@@ -991,19 +1023,24 @@ onMounted(() => {
 
 
   modeler.paper.on('link:pointerdblclick', function (linkView: any) {
+    lv_id = linkView.model.id + '';
 
-    currentLinkView = linkView;
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
-      currentLinkMap.set(linkView.model.id, cacheprops.get(linkView.model.id))
-      linkData.value.label = cacheprops.get(linkView.model.id).props.label
+      currentLinkMap.set(lv_id, { props: cacheprops.get(linkView.model.id) })
+      linkData.value.label = cacheprops.get(linkView.model.id).props.label;
+      linkData.value.loop = cacheprops.get(linkView.model.id).props.loop;
+      linkData.value.loopcount = cacheprops.get(linkView.model.id).props.loopcount;
+      linkData.value._id = linkView.model.id
     } else {
       // todo link props
-      currentLinkMap.set(linkView.model.id, cacheprops.get(linkView.model.id))
-      // console.log('cacheprops set link....1')
-      cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
+
+      currentLinkMap.set(linkView.model.id, { 'props': {} })
+      // // console.log('cacheprops set link....1')
+      // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
+      cacheprops.set(linkView.model.id, { 'props': {} });
 
     }
     // console.log('cacheprops for link dblclick:',cacheprops)
@@ -1040,9 +1077,7 @@ onMounted(() => {
 
       }
     }
-    // currentElementView.requestUpdate(1);
-    // elementView.requestUpdate(1);
-    // awquery()
+
   });
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
@@ -1101,9 +1136,6 @@ onMounted(() => {
     } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
       // message.success("Save MBT model successfully")
     }
-    // currentElementView.requestUpdate(1);
-    // elementView.requestUpdate(1);
-
 
   });
 
@@ -1294,13 +1326,7 @@ const metacolumns: columnDefinition[] = [
   },
 ];
 
-// const attributesdataSource: Ref<AttributesDataItem[]> = ref([
-//   {
-//     key: '0',
-//     description: 'Phone 1',
-//     requirements: 'London, Park Lane no. 0',
-//   }
-// ]);
+
 
 const metadataSource: Ref<MetaDataItem[]> = ref([
   {
@@ -1361,8 +1387,8 @@ const metacount = computed(() => metadataSource.value.length + 1);
 const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
 
 const metaedit = (key: string) => {
-  console.log(metaeditableData)
-  console.log(metaeditableData[key])
+  // console.log(metaeditableData)
+  // console.log(metaeditableData[key])
   metaeditableData[key] = cloneDeep(metadataSource.value.filter(item => key === item.key)[0]);
 };
 const metasave = (key: string) => {
@@ -1416,8 +1442,8 @@ const onImportFromMetaTemplate = () => {
 
 }
 
-const importfromstatic = () =>{
-  
+const importfromstatic = () => {
+
 }
 </script>
   
@@ -1550,6 +1576,7 @@ const importfromstatic = () =>{
 
           </div>
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
+          
             <VueForm v-model="linkData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer">
             </VueForm>
           </div>
@@ -1606,8 +1633,8 @@ const importfromstatic = () =>{
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
                 <a-collapse v-model:activeKey="metaActiveKey">
-                  <a-collapse-panel key="1" header="Input directly">                    
-                <dynamic-table ></dynamic-table>
+                  <a-collapse-panel key="1" header="Input directly">
+                    <dynamic-table></dynamic-table>
                   </a-collapse-panel>
                   <a-collapse-panel key="2" header="Import From Template">
                     <a-button type="primary" @click="importfromstatic()">Import</a-button>
