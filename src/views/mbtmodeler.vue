@@ -153,12 +153,7 @@ const onAWExpectedBack = () => {
 
 const onCloseDrawer = () => {
   visible.value = false;
-  // linkData.value.label = ''
 
-
-  // modeler.paper.update()
-  // modeler.paper.updateViews()
-  // modeler.paper.requestViewUpdate();
 };
 
 /** Panel -> AW part, including a searching form and table */
@@ -549,18 +544,13 @@ function awhandlerSubmit() {
       let awformData = cacheprops.get(ev_id).props.primaryprops
       // awformdata.value = awformData.props;
       awformdata.value = awformData;
-      currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value } });
-      // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
-      // currentElementMap.set(ev_id, { 'expectedprops': awformdata.value });
+      currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value } });      
       hasAWInfo.value = true;
     } else //新的aw拖入modeler 
     {
-      // console.log('cacheprops set.....1/2', cacheprops)
-      // console.log('Not found evid, save data to currentElementMap')
-      // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
+     
       currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value } });
-      // currentElementMap.set(ev_id, { 'expectedprops': awformdata.value });
-      // console.log('cacheprops set....1')
+     
       tempformdata._id = awformdata.value._id;
       tempformdata.name = awformdata.value.name
       tempformdata.description = awformdata.value.description
@@ -581,10 +571,8 @@ function awhandlerSubmit() {
     }
   } else//1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   {
-    // console.log('cacheprops set.....2  ', currentElementMap,',   ev_id:',ev_id)
     //获取epected的
-    // console.log(' 2/1 : currentElementMap.get(ev_id).props', currentElementMap.get(ev_id).props);
-    let tempexpected;
+        let tempexpected;
     if (currentElementMap.get(ev_id) && currentElementMap.get(ev_id).props && currentElementMap.get(ev_id).props.expectedprops) {
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
     }
@@ -647,7 +635,6 @@ function awhandlerSubmit() {
       // breaklineHeight = sizeY;
       if (sizeY < 45) sizeY = 45;
       if (sizeY > 135) sizeY = 150;
-
       
       // console.log('sizex:', sizeX, '  sizey:', sizeY, ' , breaklineheight:', breaklineHeight);
       maxX = maxX > sizeX ? maxX : sizeX
@@ -696,17 +683,14 @@ function awhandlerSubmit() {
     
       cell.attr('header', { width: maxX, height: (maxY*0.5) });
       cell.attr('header').transform = "matrix(1,0,0,1,0,-20)"
-      cell.resize(maxX, (maxY*0.5-20))
-      
+      cell.resize(maxX, (maxY*0.5-20))      
   } 
   else // For both primary and expected 
-  {
-    
+  {    
       cell.attr('header', { width: maxX, height: (maxY*0.5) });
       cell.attr('header').transform = "matrix(1,0,0,1,0,-20)"
       cell.attr('body').transform = "matrix(1,0,0,1,0,-20)"
-      cell.resize(maxX, (maxY-10))
-    
+      cell.resize(maxX, (maxY-10))    
   }
 
   
@@ -819,7 +803,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         } else if (response.dataDefinition && typeof response.dataDefinition.resources!= 'undefined') {
           //read resources info from backend, todo
         }
-
         mbtCache = response;//should work on here
         localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', idstr)
 
@@ -885,54 +868,14 @@ function saveMBT(route?: any) {
 
     graphIds.push(item.id);
     if (item.attributes.type == 'standard.HeaderedRectangle') {
-      /*
-       if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props && cacheprops.get(item.id).props.primaryprops && cacheprops.get(item.id).props.primaryprops.name && cacheprops.get(item.id).props.primaryprops.name.length > 0) {
- 
-         let showheadtext = cacheprops.get(item.id).props.primaryprops.template || cacheprops.get(item.id).props.primaryprops.description || 'aw'
- 
-         let sizeX = showheadtext.length * 3.5;
-         if (sizeX < 100 || sizeX > 150) sizeX = 160;
-         let sizeY = cacheprops.get(item.id).props.primaryprops.description.length * 3.5;
-         if (sizeY < 45) sizeY = 45;
-         if (sizeY > 135) sizeY = 180;
- 
- 
-         modeler.graph.getCell(item.id).resize(sizeX, sizeY);
-         // modeler.graph.getCell(item.id).attr(
-         //   "label/text", joint.util.breakText(showtext, {
-         //     width: sizeX
-         //   }, { ellipsis: true }))
-         modeler.graph.getCell(item.id).attr('headerText/text', joint.util.breakText(showheadtext, {
-           width: sizeX
-         }, { ellipsis: true }))
- 
-         if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props.expectedprops && cacheprops.get(item.id).props.expectedprops.name && cacheprops.get(item.id).props.expectedprops.name.length > 0) {
-           let showbodytext = cacheprops.get(item.id).props.expectedprops.template || cacheprops.get(item.id).props.expectedprops.description || ''
-           modeler.graph.getCell(item.id).attr('bodyText/text', joint.util.breakText(showbodytext, {
-             width: sizeX
-           }, { ellipsis: true }))
- 
-         }
- 
-       }
-       else if (cacheprops.get(item.id) == null) {
-         console.log('cacheprops set....3....', item)
-         cacheprops.set(item.id, item.attributes.attrs.label.text);
-       }
-       */
 
     } else if (item.attributes.type == 'standard.Link') {
       if (_.isArray(item.attributes.labels)) {
-        // alert(item.attributes.labels[0].attrs.text.text)
         // modeler.graph.getCell(item.id)
-
         while (modeler.graph.getCell(item.id).hasLabels) {
           modeler.graph.getCell(item.id).removeLabel(-1)
           break;
         }
-
-
-
         modeler.graph.getCell(item.id).appendLabel({
           attrs: {
             text: {
@@ -940,11 +883,7 @@ function saveMBT(route?: any) {
             }
           }
         })
-      } else {//labels undefined
-        // alert(item.attributes.labels)
       }
-
-
     }
   })
 
@@ -1039,7 +978,6 @@ function reloadMBT(route: any) {
         let tempstr = JSON.stringify(tempcellsinfo);
         modeler.graph.fromJSON(JSON.parse(tempstr));//Loading data from backend
 
-
       })
 
     }
@@ -1048,27 +986,13 @@ function reloadMBT(route: any) {
 
 }
 
-
-
-
-
-
-/**
- * Localstorage saving the data of this model
- */
-
-
-
-
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  // console.log('-------',route.params)
+
   let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id');
   let res;
-
   if (mbtId) {
-
     res = mbtquery(mbtId);
     res.then((value: any) => {
 
@@ -1077,11 +1001,9 @@ onMounted(() => {
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
         if (value.modelDefinition.hasOwnProperty('props')) {
-
           const map = new Map(Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props))))
           cacheprops = map;
           // console.log('onMounted.has modelDefinition.....cacheprops/', cacheprops)
-
         }
         //dataDefinition includes meta, datapool and resources
         if (value.dataDefinition.meta.length > 0) {
@@ -1170,11 +1092,6 @@ onMounted(() => {
           aw = 'aw';
           cellid = s.id + '';
         }
-
-
-
-
-
       }
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
@@ -1226,64 +1143,20 @@ onMounted(() => {
       isAW.value = true;
 
       isLink.value = false;
-      isGlobal.value = false;
-      /*
-            if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops && cacheprops.get(ev_id).props.primaryprops.name && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
-      
-              let showheadtext = cacheprops.get(ev_id).props.primaryprops.template || cacheprops.get(ev_id).props.primaryprops.description
-      
-      
-              let sizeX = showheadtext.length * 3.5;
-              if (sizeX < 100 || sizeX > 150) sizeX = 180;
-              let sizeY = cacheprops.get(ev_id).props.primaryprops.description.length * 3.5;
-              if (sizeY < 45) sizeY = 45;
-              if (sizeY > 135) sizeY = 360;
-      
-      
-              modeler.graph.getCell(ev_id).resize(sizeX, sizeY);
-              // modeler.graph.getCell(ev_id).attr(
-              //   "label/text", joint.util.breakText(showtext, {
-              //     width: sizeX
-              //   }, { ellipsis: true }))
-              modeler.graph.getCell(ev_id).attr('header', { fill: '#fffaaa', width: 170, height: 80 })
-      
-              modeler.graph.getCell(ev_id).attr('headerText/text', joint.util.breakText(showheadtext, {
-                width: sizeX - 30
-              }, { 'font-size': 12 }))
-      
-              if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).expectedyprops && cacheprops.get(ev_id).expectedyprops.name && cacheprops.get(ev_id).expectedyprops.name.length > 0) {
-                let showbodytext = cacheprops.get(ev_id).expectedyprops.template || cacheprops.get(ev_id).expectedyprops.description;
-                modeler.graph.getCell(ev_id).attr('bodyText/text', joint.util.breakText(showbodytext, {
-                  width: sizeX
-                }, { ellipsis: true }))
-                modeler.graph.getCell(ev_id).attr('body', { fill: '#ffaaaa', height: 100 })
-              }
-      
-      
-      
-            }*/
+      isGlobal.value = false;      
     }
 
   });
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
-    console.log('element:pointerdblclick......cacheprops/', cacheprops)
-    let tempformdata: Stores.awView = {
-      _id: '',
-      name: '',
-      tags: '',
-      template: '',
-      description: '',
-      params: ''
-    };
     if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.HeaderedRectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
-      debugger
+
       if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
         // console.log('success    ', cacheprops.get(ev_id).props.primaryprops)
         let awformData = cacheprops.get(ev_id).props.primaryprops
@@ -1304,39 +1177,9 @@ onMounted(() => {
         // console.log('final result cacheprops:    ', cacheprops)
         hasAWInfo.value = true;
 
-      } else if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.expectedprops && cacheprops.get(ev_id).props.expectedprops.name.length > 0) {
+      } 
 
-        // let awformdataExpected = cacheprops.get(ev_id).props.expectedprops
-        // awformdata.value = awformdataExpected;
-
-        // currentElementMap.set(ev_id, {props: { 'expectedprops': awformdata.value }});
-
-        // console.log('setting without primary   ', currentElementMap)
-        // // todo
-
-        // currentElementMap.set(ev_id, { 'primaryprops': awformdata.value });
-        // // console.log('cacheprops dbl set....6')
-        // tempformdata._id = awformdata.value._id;
-        // tempformdata.name = awformdata.value.name
-        // tempformdata.description = awformdata.value.description
-        // if (_.isArray(awformdata.value.tags)) {
-        //   _.forEach(awformdata.value.tags, function (value, key) {
-        //     tempformdata.tags += value + ' '
-        //   })
-        // }
-
-
-        // if (_.isArray(awformdata.value.params)) {
-        //   _.forEach(awformdata.value.params, function (value, key) {
-        //     tempformdata.params += value.name + ' '
-
-        //   })
-        // }
-
-        // cacheprops.set(ev_id, { 'primaryprops': tempformdata });
-        // cacheprops.set(ev_id, { 'props': awformdata.value });
-
-      } else {
+      else {
         // console.log('empty   ', currentElementMap)
 
       }
