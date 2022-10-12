@@ -16,7 +16,7 @@ import $, { param } from "jquery";
 import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta, grey } from '@ant-design/colors';
 import VueForm from '@lljj/vue3-form-ant';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
-import _ from "lodash";
+import _, { transform } from "lodash";
 import { mockMBTUrl, realMBTUrl } from '@/appConfig';
 import { Context } from "vm";
 import { StorageSerializers, useCurrentElement } from "@vueuse/core";
@@ -35,11 +35,23 @@ const formFooter = {
   okBtn: '保存', // 确认按钮文字
   okBtnProps: { type: 'primary' }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
   cancelBtn: '编辑', // 取消按钮文字
+  nextBtn: '选择下一个',
+  // 透传给formFooter 中的formItem组件的参数
+  // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
+  formItemAttrs: {}
+}
+
+const formExpectedFooter = {
+  show: true, // 是否显示默认底部
+  okBtn: '确定', // 确认按钮文字
+  okBtnProps: { type: 'primary' }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
+  cancelBtn: '编辑', // 取消按钮文字
 
   // 透传给formFooter 中的formItem组件的参数
   // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
   formItemAttrs: {}
 }
+
 
 //Setting url for data fetching
 // const url=mockMBTUrl;
@@ -111,6 +123,7 @@ const showDrawer = (el?: dia.LinkView | dia.ElementView | undefined, aw?: string
     hasAWInfo.value = false;
 
     awquery()
+    awquery('', true)
   } else if (typeof el == 'undefined') {
     // console.log('click blank')
 
@@ -128,6 +141,15 @@ const showDrawer = (el?: dia.LinkView | dia.ElementView | undefined, aw?: string
   }
 };
 
+const onBack = () => {
+  // hasAWInfo.value = !hasAWInfo.value
+  hasAWInfo.value = true;
+}
+
+const onAWExpectedBack = () => {
+  // hasAWInfo.value = !hasAWInfo.value
+  hasAWExpectedInfo.value = true;
+}
 
 const onCloseDrawer = () => {
   visible.value = false;
@@ -145,7 +167,8 @@ let isAW = ref(false);
 let isGlobal = ref(false);
 let isLink = ref(false);
 let hasAWInfo = ref(false);
-// aw form searching
+let hasAWExpectedInfo = ref(false);
+// aw form searching primary
 const formState = reactive<FormState>({
   awname: '',
   description: '',
@@ -153,8 +176,25 @@ const formState = reactive<FormState>({
   search: ''
 });
 
+
+// aw form searching expected
+const formStateExpected = reactive<FormState>({
+  awname: '',
+  description: '',
+  remember: true,
+  search: ''
+});
+
 let tableData = ref([])
+let tableDataExpected = ref([])
 let searchobj: tableSearch = reactive({
+  search: "",
+  size: 20,
+  page: 1,
+  perPage: 10
+})
+
+let searchobjExpected: tableSearch = reactive({
   search: "",
   size: 20,
   page: 1,
@@ -205,13 +245,28 @@ async function awqueryByBatchIds(ids: string) {
     return rst.data
   }
 }
-async function awquery(data?: any) {
-  let rst = await request.get("/api/hlfs", { params: data || searchobj })
+async function awquery(data?: any, isExpected?: boolean) {
+
+  let rst;
+  if (isExpected) {
+    rst = await request.get("/api/hlfs", { params: data || searchobjExpected })
+  } else {
+    rst = await request.get("/api/hlfs", { params: data || searchobj })
+  }
+
   if (rst.data) {
     // console.log('rst:', rst.data)
-    pagination.value.total = rst.total
+
     // console.log('rst total:', rst.total, '  pagination page size:', pagination.value.pageSize)
-    tableData.value = rst.data
+    if (isExpected) {
+      // console.log('awquery for pagechange or onSizeChangeExpected');
+      paginationExpected.value.total = rst.total
+      tableDataExpected.value = rst.data
+    } else {
+      pagination.value.total = rst.total
+      tableData.value = rst.data
+    }
+
     // console.log(tableData, tableData.value);
     return rst.data
   }
@@ -260,13 +315,61 @@ const onSizeChange = async (current: any, pageSize: number) => {
   await awquery()
 }
 
+// 分页的数据-expected
+let paginationExpected = ref({
+  pageNo: 1,
+  pageSize: 10, // 默认每页显示数量
+  showQuickJumper: true,
+  showSizeChanger: true, // 显示可改变每页数量
+  pageSizeOptions: ['10', '25', '50', '100'], // 每页数量选项
+  showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+  onShowSizeChange: (current: any, pageSize: any) => onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
+  onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize),//点击页码事件
+  total: 0 //总条数
+})
+
+const onPageChangeExpected = async (page: number, pageSize: any) => {
+
+  paginationExpected.value.pageNo = page
+  paginationExpected.value.pageSize = pageSize
+  searchobjExpected.page = page
+  searchobjExpected.perPage = pageSize
+  if (formStateExpected.search) {
+    searchobjExpected.search = formStateExpected.search
+  } else {
+    searchobjExpected.search = ''
+  }
+  await awquery('', true)
+}
+const onSizeChangeExpected = async (current: any, pageSize: number) => {
+  
+  paginationExpected.value.pageNo = current
+  paginationExpected.value.pageSize = pageSize
+  searchobjExpected.page = current
+  searchobjExpected.perPage = pageSize
+  if (formStateExpected.search) {
+    searchobjExpected.search = formStateExpected.search
+  } else {
+    searchobjExpected.search = ''
+  }
+  await awquery('', true)
+}
+
+
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  awquery(formState)
+  awquery(formState, false)
   pagination.value.pageNo = 1
   onShow();
 };
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
   console.log(errors);
+};
+
+
+const handleFinishExpected: FormProps['onFinish'] = (values: any) => {
+  awquery(formStateExpected, true)
+  paginationExpected.value.pageNo = 1
+  onShow();
 };
 
 
@@ -308,6 +411,16 @@ let awformdata = ref<Stores.awView>({
   , tags: '',
   template: ''
 });
+
+//For expected
+let awformdataExpected = ref<Stores.awView>({
+  _id: '',
+  name: '',
+  description: '',
+  params: ''
+  , tags: '',
+  template: ''
+});
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -327,13 +440,7 @@ const globalschema = ref({
       "title": "Tags",
       "type": "string",
       "readOnly": true
-    },
-    // // "requirements":{
-    // //   "title":"Requirements",
-    // //   "type":"string",
-
-
-    // }
+    }
 
   }
 })
@@ -414,14 +521,16 @@ const linkschema = ref({
 
   }
 })
-
+const onExpectedAW = () => {
+  awActiveKey.value = '2'
+  isDisabled.value = false;
+}
 
 
 function awhandlerSubmit() {
-  // console.log('awhandlerSubmit......cacheprops/', cacheprops)
-  
-  isAW.value = true;
 
+  // console.log('primary started.')
+  isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
   let tempformdata: Stores.awView = {
@@ -432,22 +541,26 @@ function awhandlerSubmit() {
     description: '',
     params: ''
   };
-
-
+  //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.name.length > 0) {
-
-      let awformData = cacheprops.get(ev_id)
-      awformdata.value = awformData.props;
-      
-      currentElementMap.set(ev_id, { 'props': awformdata.value });
+    // console.log('cacheprops set.....1', cacheprops)
+    if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
+      // console.log('cacheprops set.....1/1', cacheprops)
+      let awformData = cacheprops.get(ev_id).props.primaryprops
+      // awformdata.value = awformData.props;
+      awformdata.value = awformData;
+      currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value } });
+      // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
+      // currentElementMap.set(ev_id, { 'expectedprops': awformdata.value });
       hasAWInfo.value = true;
-    } else {
-      // todo
+    } else //新的aw拖入modeler 
+    {
+      // console.log('cacheprops set.....1/2', cacheprops)
       // console.log('Not found evid, save data to currentElementMap')
-      currentElementMap.set(ev_id, { 'props': awformdata.value });
+      // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
+      currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value } });
+      // currentElementMap.set(ev_id, { 'expectedprops': awformdata.value });
       // console.log('cacheprops set....1')
-
       tempformdata._id = awformdata.value._id;
       tempformdata.name = awformdata.value.name
       tempformdata.description = awformdata.value.description
@@ -456,27 +569,30 @@ function awhandlerSubmit() {
           tempformdata.tags += value + ' '
         })
       }
-
-
       if (_.isArray(awformdata.value.params)) {
         _.forEach(awformdata.value.params, function (value, key) {
           tempformdata.params += value.name + ' '
-
         })
       }
 
-      cacheprops.set(ev_id, { 'props': tempformdata });
-      
+      cacheprops.set(ev_id, { props: { 'primaryprops': tempformdata } });
 
-
+      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
     }
+  } else//1. 双击状态 ，2. 设置primary后 currentElementMap不为空
+  {
+    // console.log('cacheprops set.....2  ', currentElementMap,',   ev_id:',ev_id)
+    //获取epected的
+    // console.log(' 2/1 : currentElementMap.get(ev_id).props', currentElementMap.get(ev_id).props);
+    let tempexpected;
+    if (currentElementMap.get(ev_id) && currentElementMap.get(ev_id).props && currentElementMap.get(ev_id).props.expectedprops) {
+      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+    }
+    // console.log(' 2/1-1 : tempexpected', tempexpected);
+    // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
 
 
 
-  } else {
-
-    currentElementMap.set(ev_id, { 'props': awformdata.value });
-    // console.log('cacheprops set.....2')
     tempformdata._id = awformdata.value._id;
     tempformdata.name = awformdata.value.name
     tempformdata.description = awformdata.value.description
@@ -485,144 +601,188 @@ function awhandlerSubmit() {
         tempformdata.tags += value + ' '
       })
     }
-
-
     if (_.isArray(awformdata.value.params)) {
       _.forEach(awformdata.value.params, function (value, key) {
         tempformdata.params += value.name + ' '
-
       })
     }
+    // console.log('cacheprops set.....2/2', cacheprops)
+    if (typeof tempexpected != 'undefined') {
+      currentElementMap.set(ev_id, { 'props': { 'primaryprops': tempformdata, 'expectedprops': tempexpected } });
+      cacheprops.set(ev_id, { 'props': { 'primaryprops': tempformdata, 'expectedprops': tempexpected } });
 
-    cacheprops.set(ev_id, { 'props': tempformdata });
-    // cacheprops.set(ev_id, { 'props': awformdata.value });
+    } else //未设置expected，只存primary
+    {
+      currentElementMap.set(ev_id, { 'props': { 'primaryprops': tempformdata } });
+      cacheprops.set(ev_id, { 'props': { 'primaryprops': tempformdata } });
+
+    }
+
+
   }
 
-  // for (let key of currentElementMap.keys()) {
-
+  //画图
   let tempaw = {}
-  for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props)) {
+  let maxX = 180;
+  let maxY = 150;
+  // let breaklineHeight = 120;
+  // let breaklineHeightExpected = 0;
+  let showheadtext = ''
+  let showbodytext = '';
+  let cell = modeler.graph.getCell(ev_id);
+  let isOneAW = true;
+  for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props.primaryprops)) {
     let obj = JSON.parse(`{"${key}":"${value}"}`)
     Object.assign(tempaw, obj)
     if (key == "template" || key == "description") {
-
-      let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
-      let sizeX = showtext.length * 2.5;
+      showheadtext = cacheprops.get(ev_id).props.primaryprops.template || cacheprops.get(ev_id).props.primaryprops.description
+      
+      if(showheadtext.length>45){
+        showheadtext = showheadtext.slice(0,42)+' ...';
+      }
+      let sizeX = showheadtext.length * 2.5;
+      
       if (sizeX < 100 || sizeX > 150) sizeX = 160;
-      let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
+      let sizeY = cacheprops.get(ev_id).props.primaryprops.description.length * 2.5;
+      // breaklineHeight = sizeY;
       if (sizeY < 45) sizeY = 45;
-      if (sizeY > 135) sizeY = 180;
+      if (sizeY > 135) sizeY = 150;
 
-      let cell = modeler.graph.getCell(ev_id);
-      cell.resize(sizeX, sizeY);
-      cell.attr(
-        "label/text", joint.util.breakText(showtext, {
-          width: sizeX
-        }, { ellipsis: true }))
-
-
+      
+      // console.log('sizex:', sizeX, '  sizey:', sizeY, ' , breaklineheight:', breaklineHeight);
+      maxX = maxX > sizeX ? maxX : sizeX
+      maxY = maxY > sizeY ? maxX : sizeY
+      break;
+    }
+  }
+  if (currentElementMap.get(ev_id) && currentElementMap.get(ev_id).props && currentElementMap.get(ev_id).props.expectedprops) {
+    isOneAW = false;
+    for (const [key, value] of Object.entries(currentElementMap.get(ev_id).props.expectedprops)) {
+      let obj = JSON.parse(`{"${key}":"${value}"}`)
+      Object.assign(tempaw, obj)
+      if (key == "template" || key == "description") {
+        showbodytext = cacheprops.get(ev_id).props.expectedprops.template || cacheprops.get(ev_id).props.expectedprops.description
+        let sizeX = showbodytext.length * 2.5;
+        if(showbodytext.length>45){
+          showbodytext = showbodytext.slice(0,42)+' ...';
+      }
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY = cacheprops.get(ev_id).props.expectedprops.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 150;
+        // breaklineHeightExpected = sizeY;
+        maxX = maxX > sizeX ? maxX : sizeX
+        maxY = maxY > sizeY ? maxX : sizeY
+        break;
+      }
     }
   }
 
 
-  // }
 
+  /**
+   * For only primary
+   */
+   cell.attr('headerText/text', joint.util.breakText(showheadtext, {
+    width: maxX
+  }, { 'font-size': 16 }))
+
+  if (showbodytext.length > 0)
+    cell.attr('bodyText/text', joint.util.breakText(showbodytext, {
+      width: maxX
+    }, { 'font-size': 16 }))
+
+  if (isOneAW) {
+    
+      cell.attr('header', { width: maxX, height: (maxY*0.5) });
+      cell.attr('header').transform = "matrix(1,0,0,1,0,-20)"
+      cell.resize(maxX, (maxY*0.5-20))
+      
+  } 
+  else // For both primary and expected 
+  {
+    
+      cell.attr('header', { width: maxX, height: (maxY*0.5) });
+      cell.attr('header').transform = "matrix(1,0,0,1,0,-20)"
+      cell.resize(maxX, (maxY-10))
+    
+  }
+
+  
+  // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear()
   onCloseDrawer();
   message.success('Save aw Successfully');
 };
 
+
 function globalhandlerSubmit() {
-
-  //save metaeditdata 
-  // console.log(globalformData, metadataSource)
-
   cacheDataDefinition.meta = metadataSource.value
-
-
-
-
   message.success('Save config Successfully');
 };
 
 function linkhandlerSubmit() {
-  
-  linkData.value._id = lv_id
-
-
+  linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
   linkFormData.label = linkData.value.label
   linkFormData.loop = linkData.value.loop
   linkFormData.loopcount = linkData.value.loopcount
-
   let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
-      modeler.graph.getCell(lv_id).removeLabel(-1)
-      break;
-    }
+    modeler.graph.getCell(lv_id).removeLabel(-1)
+    break;
+  }
   if (linkFormData.loop == true) {
-
     modeler.graph.getCell(lv_id).appendLabel({
       attrs: {
         text: {
           text: linkFormData.label + ` Loop : ${loopcount1}`
         }
-      }})
-      modeler.graph.getCell(lv_id).attr('line/stroke', 'red');
-      linkFormData.label += ` Loop : ${loopcount1}`
-
+      }
+    })
+    modeler.graph.getCell(lv_id).attr('line/stroke', 'red');
+    linkFormData.label += ` Loop : ${loopcount1}`
   }
   else {
-
-    if (typeof linkFormData.label=='undefined')
-    linkFormData.label =''
+    if (typeof linkFormData.label == 'undefined')
+      linkFormData.label = ''
     modeler.graph.getCell(lv_id).appendLabel({
       attrs: {
         text: {
-          text: linkFormData.label||'',
-
+          text: linkFormData.label || '',
         },
-
-      
       }
     })
-
     modeler.graph.getCell(lv_id).attr('line/stroke', 'black');
-
   }
-
-  
-  let tempObj ={}
-  Object.assign(tempObj,{'_id':linkFormData._id})
-  Object.assign(tempObj,{'label':linkFormData.label})
-  Object.assign(tempObj,{'loop':linkFormData.loop})
-  Object.assign(tempObj,{'loopcount':linkFormData.loopcount})
+  let tempObj = {}
+  Object.assign(tempObj, { '_id': linkFormData._id })
+  Object.assign(tempObj, { 'label': linkFormData.label })
+  Object.assign(tempObj, { 'loop': linkFormData.loop })
+  Object.assign(tempObj, { 'loopcount': linkFormData.loopcount })
   cacheprops.set(lv_id, { 'props': tempObj });
-  
-  
   onCloseDrawer()
   message.success('Save it Successfully');
+};
+
+function handlerEditExpected() {
+  awquery('', true)
+  hasAWExpectedInfo.value = false;
+
 };
 
 function handlerCancel() {
   awquery()
   hasAWInfo.value = false;
+
 };
 
 
-
 let mbtCache: any;//save the data from backend Stores.mbt
-
 const route = useRoute()
-
 let dataDefData: Ref<any[]> = ref([])
 let cacheDataSchema: any[] = []
 let cacheDataContent: any[] = []
-
-// let dataDef_data= []
-// dataDef_data[0]=cacheDataSchema
-// dataDef_data[1]=cacheDataContent
-
 let toReload = ref(false);
 /**
  * 
@@ -650,12 +810,12 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         } else {
           // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
         }
-        if (response.dataDefinition && response.dataDefinition.data.length > 0) {
+        if (response.dataDefinition && typeof response.dataDefinition.data!= 'undefined') {
           dataDefData.value.push(response.dataDefinition.data)
 
-        } else if (response.dataDefinition && response.dataDefinition.meta.length > 0) {
+        } else if (response.dataDefinition && typeof response.dataDefinition.meta!= 'undefined') {
           //read meta info from backend, todo
-        } else if (response.dataDefinition && response.dataDefinition.resources.length > 0) {
+        } else if (response.dataDefinition && typeof response.dataDefinition.resources!= 'undefined') {
           //read resources info from backend, todo
         }
 
@@ -670,15 +830,11 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     ).catch(err => console.log(err))
 
   } else if (id) {
-
-    // console.log('reloadfunc, if id not reload......cacheprops/', cacheprops)
-
     rst = await request.get(url + "/" + id)
     // console.log('id query:', id, rst)
     if (rst && rst.name == route.params.name) {
       let str = rst._id + '';
       mbtCache = rst;
-
       localStorage.setItem('mbt_' + route.params._id + route.params.name + '_id', str)
       localStorage.setItem('mbt_' + route.params._id + route.params.name, JSON.stringify(rst))
     }
@@ -720,35 +876,49 @@ let modeler: MbtModeler;
 let stencil: Stencil;
 
 function saveMBT(route?: any) {
-  let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove from 
+  let graphIds: string[] = [];//Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them 
 
   let tempdata: modelDefinition = {};
   // console.log(modeler.graph);
   modeler.graph.getCells().forEach((item: any) => {
 
     graphIds.push(item.id);
-    if (item.attributes.type == 'standard.Rectangle') {
-      if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props && cacheprops.get(item.id).props.name && cacheprops.get(item.id).props.name.length > 0) {
-
-        let showtext = cacheprops.get(item.id).props.template || cacheprops.get(item.id).props.description || 'aw'
-        let sizeX = showtext.length * 2.5;
-        if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY = cacheprops.get(item.id).props.description.length * 2.5;
-        if (sizeY < 45) sizeY = 45;
-        if (sizeY > 135) sizeY = 180;
-
-
-        modeler.graph.getCell(item.id).resize(sizeX, sizeY);
-        modeler.graph.getCell(item.id).attr(
-          "label/text", joint.util.breakText(showtext, {
-            width: sizeX
-          }, { ellipsis: true }))
-
-      }
-      else if (cacheprops.get(item.id) == null) {
-        // console.log('cacheprops set....3')
-        cacheprops.set(item.id, item.attributes.attrs.label.text);
-      }
+    if (item.attributes.type == 'standard.HeaderedRectangle') {
+      /*
+       if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props && cacheprops.get(item.id).props.primaryprops && cacheprops.get(item.id).props.primaryprops.name && cacheprops.get(item.id).props.primaryprops.name.length > 0) {
+ 
+         let showheadtext = cacheprops.get(item.id).props.primaryprops.template || cacheprops.get(item.id).props.primaryprops.description || 'aw'
+ 
+         let sizeX = showheadtext.length * 3.5;
+         if (sizeX < 100 || sizeX > 150) sizeX = 160;
+         let sizeY = cacheprops.get(item.id).props.primaryprops.description.length * 3.5;
+         if (sizeY < 45) sizeY = 45;
+         if (sizeY > 135) sizeY = 180;
+ 
+ 
+         modeler.graph.getCell(item.id).resize(sizeX, sizeY);
+         // modeler.graph.getCell(item.id).attr(
+         //   "label/text", joint.util.breakText(showtext, {
+         //     width: sizeX
+         //   }, { ellipsis: true }))
+         modeler.graph.getCell(item.id).attr('headerText/text', joint.util.breakText(showheadtext, {
+           width: sizeX
+         }, { ellipsis: true }))
+ 
+         if (cacheprops.get(item.id) != null && cacheprops.get(item.id).props.expectedprops && cacheprops.get(item.id).props.expectedprops.name && cacheprops.get(item.id).props.expectedprops.name.length > 0) {
+           let showbodytext = cacheprops.get(item.id).props.expectedprops.template || cacheprops.get(item.id).props.expectedprops.description || ''
+           modeler.graph.getCell(item.id).attr('bodyText/text', joint.util.breakText(showbodytext, {
+             width: sizeX
+           }, { ellipsis: true }))
+ 
+         }
+ 
+       }
+       else if (cacheprops.get(item.id) == null) {
+         console.log('cacheprops set....3....', item)
+         cacheprops.set(item.id, item.attributes.attrs.label.text);
+       }
+       */
 
     } else if (item.attributes.type == 'standard.Link') {
       if (_.isArray(item.attributes.labels)) {
@@ -834,15 +1004,13 @@ function reloadMBT(route: any) {
       }
       modeler.graph.getCells().forEach((item: any) => {
 
-        if (item.attributes.type == 'standard.Rectangle') {
+        if (item.attributes.type == 'standard.HeaderedRectangle') {
           graphIds.push(item.id);
           sqlstr += cacheprops.get(item.id).props._id + '|'
         }
       })
 
-      // for(let i=0;i<graphIds.length;i++){
-      //   sqlstr+=graphIds[i]+'|'
-      // }
+
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log('...sqlstr:', sqlstr)
@@ -859,7 +1027,7 @@ function reloadMBT(route: any) {
             //update aw details in value.modelDefinition.cellsinfo
             //rendering using updated cellsinfo
             tempcellsinfo.cells.forEach((cell: any) => {
-              if (cell.type == 'standard.Rectangle' && cell.id == key) {
+              if (cell.type == 'standard.HeaderedRectangle' && cell.id == key) {
                 cell.attrs.label.text = aw.template || aw.description
               }
             })
@@ -997,7 +1165,7 @@ onMounted(() => {
 
         modeler.graph.addCell(s);
         // console.log('sss:', s);
-        if (s.attributes.type == 'standard.Rectangle') {
+        if (s.attributes.type == 'standard.HeaderedRectangle') {
           aw = 'aw';
           cellid = s.id + '';
         }
@@ -1052,30 +1220,47 @@ onMounted(() => {
   modeler.paper.on('element:pointerclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
 
-    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.HeaderedRectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
-
-      if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props && cacheprops.get(ev_id).props.name && cacheprops.get(ev_id).props.name.length > 0) {
-
-        let showtext = cacheprops.get(ev_id).props.template || cacheprops.get(ev_id).props.description
-        let sizeX = showtext.length * 2.5;
-        if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY = cacheprops.get(ev_id).props.description.length * 2.5;
-        if (sizeY < 45) sizeY = 45;
-        if (sizeY > 135) sizeY = 180;
-
-
-        modeler.graph.getCell(ev_id).resize(sizeX, sizeY);
-        modeler.graph.getCell(ev_id).attr(
-          "label/text", joint.util.breakText(showtext, {
-            width: sizeX
-          }, { ellipsis: true }))
-
-      }
+      /*
+            if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops && cacheprops.get(ev_id).props.primaryprops.name && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
+      
+              let showheadtext = cacheprops.get(ev_id).props.primaryprops.template || cacheprops.get(ev_id).props.primaryprops.description
+      
+      
+              let sizeX = showheadtext.length * 3.5;
+              if (sizeX < 100 || sizeX > 150) sizeX = 180;
+              let sizeY = cacheprops.get(ev_id).props.primaryprops.description.length * 3.5;
+              if (sizeY < 45) sizeY = 45;
+              if (sizeY > 135) sizeY = 360;
+      
+      
+              modeler.graph.getCell(ev_id).resize(sizeX, sizeY);
+              // modeler.graph.getCell(ev_id).attr(
+              //   "label/text", joint.util.breakText(showtext, {
+              //     width: sizeX
+              //   }, { ellipsis: true }))
+              modeler.graph.getCell(ev_id).attr('header', { fill: '#fffaaa', width: 170, height: 80 })
+      
+              modeler.graph.getCell(ev_id).attr('headerText/text', joint.util.breakText(showheadtext, {
+                width: sizeX - 30
+              }, { 'font-size': 12 }))
+      
+              if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).expectedyprops && cacheprops.get(ev_id).expectedyprops.name && cacheprops.get(ev_id).expectedyprops.name.length > 0) {
+                let showbodytext = cacheprops.get(ev_id).expectedyprops.template || cacheprops.get(ev_id).expectedyprops.description;
+                modeler.graph.getCell(ev_id).attr('bodyText/text', joint.util.breakText(showbodytext, {
+                  width: sizeX
+                }, { ellipsis: true }))
+                modeler.graph.getCell(ev_id).attr('body', { fill: '#ffaaaa', height: 100 })
+              }
+      
+      
+      
+            }*/
     }
 
   });
@@ -1091,43 +1276,66 @@ onMounted(() => {
       description: '',
       params: ''
     };
-    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.Rectangle') {
+    if (elementView.model && elementView.model.attributes && elementView.model.attributes.type && elementView.model.attributes.type == 'standard.HeaderedRectangle') {
       ev_id = elementView.model.id + '';
       isAW.value = true;
 
       isLink.value = false;
       isGlobal.value = false;
 
-      if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.name.length > 0) {
+      if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
+        // console.log('success    ', cacheprops.get(ev_id).props.primaryprops)
+        let awformData = cacheprops.get(ev_id).props.primaryprops
+        awformdata.value = awformData;
 
-        let awformData = cacheprops.get(ev_id)
-        awformdata.value = awformData.props;
 
-        currentElementMap.set(ev_id, { 'props': awformdata.value });
+        if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.expectedprops && cacheprops.get(ev_id).props.expectedprops.name.length > 0) {
+          // console.log('success 2   ', cacheprops.get(ev_id).props.expectedprops)
+          let awformdataExpected = cacheprops.get(ev_id).props.expectedprops
+          awformdata.value = awformdataExpected;
+          hasAWExpectedInfo.value = true;
+          currentElementMap.set(ev_id, { props: { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
+        } else {
+          // cacheprops.set(ev_id, { props: { 'primaryprops': awformdata.value, 'expectedprops': awformdataExpected } });
+          currentElementMap.set(ev_id, { props: { 'primaryprops': awformdata.value } });
+        }
+        // console.log('final result cacheprops:    ', cacheprops)
         hasAWInfo.value = true;
-      } else {
-        // todo
-        currentElementMap.set(ev_id, { 'props': awformdata.value });
-        // console.log('cacheprops dbl set....6')
-        tempformdata._id = awformdata.value._id;
-        tempformdata.name = awformdata.value.name
-        tempformdata.description = awformdata.value.description
-        if (_.isArray(awformdata.value.tags)) {
-          _.forEach(awformdata.value.tags, function (value, key) {
-            tempformdata.tags += value + ' '
-          })
-        }
+
+      } else if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.expectedprops && cacheprops.get(ev_id).props.expectedprops.name.length > 0) {
+
+        // let awformdataExpected = cacheprops.get(ev_id).props.expectedprops
+        // awformdata.value = awformdataExpected;
+
+        // currentElementMap.set(ev_id, {props: { 'expectedprops': awformdata.value }});
+
+        // console.log('setting without primary   ', currentElementMap)
+        // // todo
+
+        // currentElementMap.set(ev_id, { 'primaryprops': awformdata.value });
+        // // console.log('cacheprops dbl set....6')
+        // tempformdata._id = awformdata.value._id;
+        // tempformdata.name = awformdata.value.name
+        // tempformdata.description = awformdata.value.description
+        // if (_.isArray(awformdata.value.tags)) {
+        //   _.forEach(awformdata.value.tags, function (value, key) {
+        //     tempformdata.tags += value + ' '
+        //   })
+        // }
 
 
-        if (_.isArray(awformdata.value.params)) {
-          _.forEach(awformdata.value.params, function (value, key) {
-            tempformdata.params += value.name + ' '
+        // if (_.isArray(awformdata.value.params)) {
+        //   _.forEach(awformdata.value.params, function (value, key) {
+        //     tempformdata.params += value.name + ' '
 
-          })
-        }
+        //   })
+        // }
 
-        cacheprops.set(ev_id, { 'props': tempformdata });
+        // cacheprops.set(ev_id, { 'primaryprops': tempformdata });
         // cacheprops.set(ev_id, { 'props': awformdata.value });
+
+      } else {
+        // console.log('empty   ', currentElementMap)
 
       }
 
@@ -1170,6 +1378,7 @@ function showGlobalInfo() {
 
 
 function showAWInfo(rowobj: any) {
+  // console.log('showAWInfo')
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name
   awformdata.value.description = rowobj.description
@@ -1191,14 +1400,41 @@ function showAWInfo(rowobj: any) {
     })
   }
 
+}
 
+function showAWExpectedInfo(rowobj: any) {
+  // console.log('showAWExpectedInfo， currentelement：', currentElementMap)
+  // console.log('showAWExpectedInfo， cacheprops：', cacheprops)
+  // currentElementMap.set(ev_id, { props: { 'primaryprops': awformdataExpected.value, 'expectedprops': awformdataExpected.value } });
+  hasAWExpectedInfo.value = true;
+  awformdataExpected.value.name = rowobj.name
+  awformdataExpected.value.description = rowobj.description
+  awformdataExpected.value.tags = ''
+  awformdataExpected.value.params = ''
+  awformdataExpected.value._id = rowobj._id
 
+  if (_.isArray(rowobj.tags)) {
+    _.forEach(rowobj.tags, function (value, key) {
+      awformdataExpected.value.tags += value + ' '
+    })
+  }
+
+  if (_.isArray(rowobj.params)) {
+    _.forEach(rowobj.params, function (value, key) {
+      awformdataExpected.value.params += value.name + ' '
+
+    })
+  }
+  currentElementMap.set(ev_id, { props: { 'expectedprops': awformdataExpected.value } });
+  cacheprops.set(ev_id, { props: { 'expectedprops': awformdataExpected.value } });
+  awActiveKey.value = '1';
 }
 
 
 
 const activeKey = ref('2')
 const metaActiveKey = ref(['1']);
+const awActiveKey = ref('1');
 
 
 interface columnDefinition {
@@ -1445,6 +1681,7 @@ const onImportFromMetaTemplate = () => {
 const importfromstatic = () => {
 
 }
+const isDisabled = ref(true)
 </script>
   
 <template>
@@ -1483,103 +1720,195 @@ const importfromstatic = () => {
           <div class="canvas" ref="canvas"></div>
         </a-col>
 
+        <!-- aw-panel -->
         <a-drawer width="50%" placement="right" :closable="false" :visible="visible" :get-container="false"
           :style="{ position: 'absolute' , overflow:'hidden' }" @close="onCloseDrawer">
           <div class="infoPanel" ref="infoPanel" v-if="isAW">
+            <a-tabs v-model:activeKey="awActiveKey">
+              <a-tab-pane key="1" tab="Primary">
+                <AForm v-if="!hasAWInfo && isAW" layout="inline" class="search_form" :model="formState"
+                  @finish="handleFinish" @finishFailed="handleFinishFailed">
+                  <a-form-item :wrapper-col="{ span: 24 }">
+                    <a-input v-model:value="formState.search" placeholder="aw">
+                      <template #prefix>
+                        <search-outlined />
+                      </template>
+                    </a-input>
+                  </a-form-item>
+                  <a-form-item :wrapper-col="{ span: 4 }">
+                    <a-button type="primary" html-type="submit">search</a-button>
+                  </a-form-item>
+                </AForm>
 
-            <AForm v-if="!hasAWInfo && isAW" layout="inline" class="search_form" :model="formState"
-              @finish="handleFinish" @finishFailed="handleFinishFailed">
-              <a-form-item :wrapper-col="{ span: 24 }">
-                <a-input v-model:value="formState.search" placeholder="aw">
-                  <template #prefix>
-                    <search-outlined />
-                  </template>
-                </a-input>
-              </a-form-item>
+                <div class="awtable" v-if="!hasAWInfo && isAW">
+                  <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
+                    class="components-table-demo-nested" :pagination="pagination">
+                    <template #headerCell="{ column }">
+                      <template v-if="column.key === 'name'">
+                        <span>
+                          <smile-outlined />
+                          Name
+                        </span>
+                      </template>
+                    </template>
+                    <template #bodyCell="{ column,text, record }">
+                      <template v-if="column.key === 'name'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.name">
+                            <a-button type="link" @click="showAWInfo(record)">
+                              <p v-for="item in record._highlight.name" v-html="item"></p>
+                            </a-button>
+                          </div>
+                          <div v-else>
+                            <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
+                        </div>
+                      </template>
+                      <template v-if="column.key === 'description'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.description">
+                            <p v-for="item in record._highlight.description" v-html="item"></p>
+                          </div>
+                          <div v-else>{{record.description}}</div>
+                        </div>
+                        <div v-else>{{record.description}}</div>
+                      </template>
+                      <template v-if="column.key === 'template'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.template">
+                            <p v-for="item in record._highlight.template" v-html="item"></p>
+                          </div>
+                          <div v-else>{{record.template}}</div>
+                        </div>
+                        <div v-else>{{record.template}}</div>
+                      </template>
 
-              <a-form-item :wrapper-col="{ span: 4 }">
-                <a-button type="primary" html-type="submit">search</a-button>
-              </a-form-item>
-            </AForm>
+                      <template v-if="column.key === 'tags'">
+                        <span>
+                          <a-tag v-for="tag in record.tags" :key="tag" :color="tag === 'test' ? 'volcano' : 'red'">
+                            {{ tag.toUpperCase() }}
+                          </a-tag>
+                        </span>
+                      </template>
+                    </template>
+                  </a-table>
+                  <span style="margin-right: 5px;">
+                    <a-button type="primary" @click="onCloseDrawer()">Close </a-button>
+                  </span>
 
-            <div class="awtable" v-if="!hasAWInfo && isAW">
-              <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableData"
-                class="components-table-demo-nested" :pagination="pagination">
-                <template #headerCell="{ column }">
-                  <template v-if="column.key === 'name'">
-                    <span>
-                      <smile-outlined />
-                      Name
+                  <a-button danger v-if="!hasAWInfo" @click="onBack()">Back </a-button>
+
+                </div>
+                <VueForm v-model="awformdata" :schema="awschema" v-if="isAW && hasAWInfo">
+                  <div slot-scope="{ awformdata }">
+                    <span style="margin-right: 5px;">
+                      <a-button type="primary" @click="awhandlerSubmit()">Submit</a-button>
                     </span>
-                  </template>
-
-                </template>
-
-                <template #bodyCell="{ column,text, record }">
-                  <template v-if="column.key === 'name'">
-                    <div v-if="record._highlight">
-                      <div v-if="record._highlight.name">
-                        <a-button type="link" @click="showAWInfo(record)">
-                          <p v-for="item in record._highlight.name" v-html="item"></p>
-                        </a-button>
-                      </div>
-                      <div v-else>
-                        <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
-                      </div>
-                    </div>
-                    <div v-else>
-                      <a-button type="link" @click="showAWInfo(record)"> {{record.name}}</a-button>
-                    </div>
-                  </template>
-
-
-                  <template v-if="column.key === 'description'">
-                    <div v-if="record._highlight">
-                      <div v-if="record._highlight.description">
-                        <p v-for="item in record._highlight.description" v-html="item"></p>
-                      </div>
-                      <div v-else>{{record.description}}</div>
-                    </div>
-                    <div v-else>{{record.description}}</div>
-                  </template>
-                  <template v-if="column.key === 'template'">
-                    <div v-if="record._highlight">
-                      <div v-if="record._highlight.template">
-                        <p v-for="item in record._highlight.template" v-html="item"></p>
-                      </div>
-                      <div v-else>{{record.template}}</div>
-                    </div>
-                    <div v-else>{{record.template}}</div>
-                  </template>
-
-                  <template v-if="column.key === 'tags'">
-                    <span>
-                      <a-tag v-for="tag in record.tags" :key="tag" :color="tag === 'test' ? 'volcano' : 'red'">
-                        {{ tag.toUpperCase() }}
-                      </a-tag>
+                    <span style="margin-right: 5px;">
+                      <a-button type="primary" @click="handlerCancel()">Edit</a-button>
                     </span>
-                  </template>
+                    <a-button danger @click="onExpectedAW()">Next</a-button>
+                  </div>
+                </VueForm>
+              </a-tab-pane>
 
+              <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
+                <AForm v-if="!hasAWExpectedInfo && isAW" layout="inline" class="search_form" :model="formStateExpected"
+                  @finish="handleFinishExpected" @finishFailed="handleFinishFailed">
+                  <a-form-item :wrapper-col="{ span: 24 }">
+                    <a-input v-model:value="formStateExpected.search" placeholder="aw">
+                      <template #prefix>
+                        <search-outlined />
+                      </template>
+                    </a-input>
+                  </a-form-item>
+                  <a-form-item :wrapper-col="{ span: 4 }">
+                    <a-button type="primary" html-type="submit">search</a-button>
+                  </a-form-item>
+                </AForm>
+                <div class="awtable" v-if="!hasAWExpectedInfo && isAW">
+                  <a-table bordered row-key="record=>record._id" :columns="columns" :data-source="tableDataExpected"
+                    class="components-table-demo-nested" :pagination="paginationExpected">
+                    <template #headerCell="{ column }">
+                      <template v-if="column.key === 'name'">
+                        <span>
+                          <smile-outlined />
+                          Name
+                        </span>
+                      </template>
+                    </template>
+                    <template #bodyCell="{ column,text, record }">
+                      <template v-if="column.key === 'name'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.name">
+                            <a-button type="link" @click="showAWExpectedInfo(record)">
+                              <p v-for="item in record._highlight.name" v-html="item"></p>
+                            </a-button>
+                          </div>
+                          <div v-else>
+                            <a-button type="link" @click="showAWExpectedInfo(record)"> {{record.name}}</a-button>
+                          </div>
+                        </div>
+                        <div v-else>
+                          <a-button type="link" @click="showAWExpectedInfo(record)"> {{record.name}}</a-button>
+                        </div>
+                      </template>
+                      <template v-if="column.key === 'description'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.description">
+                            <p v-for="item in record._highlight.description" v-html="item"></p>
+                          </div>
+                          <div v-else>{{record.description}}</div>
+                        </div>
+                        <div v-else>{{record.description}}</div>
+                      </template>
+                      <template v-if="column.key === 'template'">
+                        <div v-if="record._highlight">
+                          <div v-if="record._highlight.template">
+                            <p v-for="item in record._highlight.template" v-html="item"></p>
+                          </div>
+                          <div v-else>{{record.template}}</div>
+                        </div>
+                        <div v-else>{{record.template}}</div>
+                      </template>
+                      <template v-if="column.key === 'tags'">
+                        <span>
+                          <a-tag v-for="tag in record.tags" :key="tag" :color="tag === 'test' ? 'volcano' : 'red'">
+                            {{ tag.toUpperCase() }}
+                          </a-tag>
+                        </span>
+                      </template>
+                    </template>
+                  </a-table>
 
+                  <a-button type="primary" @click="onAWExpectedBack()">Back </a-button>
+                </div>
+                <VueForm v-model="awformdataExpected" :schema="awschema" v-if="isAW && hasAWExpectedInfo">
+                  <div slot-scope="{ awformdataExpected }">
 
+                    <span style="margin-right: 5px;">
+                      <a-button type="primary" @click="handlerEditExpected()">Edit</a-button>
+                    </span>
 
-
-
-                </template>
-              </a-table>
-              <a-button type="primary" @click="onCloseDrawer()">Close </a-button>
-
-            </div>
-            <VueForm v-model="awformdata" :schema="awschema" :formFooter="formFooter" @submit="awhandlerSubmit()"
-              @cancel="handlerCancel" v-if="isAW && hasAWInfo">
-            </VueForm>
-
+                  </div>
+                </VueForm>
+              </a-tab-pane>
+            </a-tabs>
           </div>
+
+          <!-- link panel -->
+
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
-          
             <VueForm v-model="linkData" :schema="linkschema" @submit="linkhandlerSubmit" @cancel="onCloseDrawer">
             </VueForm>
           </div>
+
+
+          <!-- Global panel -->
+
           <div class="infoPanel">
             <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
               <a-tab-pane key="1" tab="Meta">
@@ -1615,9 +1944,7 @@ const importfromstatic = () => {
                   <a-collapse-panel key="2" header="Import from Meta Template">
                     <a-button type="primary" @click="onImportFromMetaTemplate">导入</a-button>
                   </a-collapse-panel>
-
                 </a-collapse>
-
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto;">
@@ -1626,8 +1953,6 @@ const importfromstatic = () => {
                     <VueForm v-model="globalformData" :schema="globalschema" @submit="globalhandlerSubmit"
                       @cancel="onCloseDrawer" v-if="isGlobal">
                     </VueForm>
-
-
                   </div>
                 </a-card>
               </a-tab-pane>
@@ -1659,7 +1984,6 @@ const importfromstatic = () => {
                           {{ text || ' ' }}
                           <edit-outlined class="editable-cell-icon" @click="resourcesedit(record.key)" />
                         </div>
-
                       </div>
                     </template>
                     <template v-else-if="column.dataIndex === 'operation'">
@@ -1686,24 +2010,13 @@ const importfromstatic = () => {
                 <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
               </a-tab-pane>
             </a-tabs>
-
           </div>
-
-
-
-
         </a-drawer>
-
-
       </a-row>
-
     </section>
   </main>
 </template>
-  <!-- <div slot-scope="{ formData, formRefFn }">
-    <pre style="background-color: #eee;">{{ JSON.stringify(formData, null, 4) }}</pre>
-    <p><el-button @click="consoleLog(formRefFn)" type="primary">点击</el-button></p>
-  </div> -->
+
 <style lang="less">
 #content-window {
   overflow: hidden !important;

@@ -242,7 +242,7 @@ const saveCol = (key: string) => {
 
 
 
-sessionStorage.setItem('static_' + route.params._id, JSON.stringify(route.params._id))
+sessionStorage.setItem('static_' + route.params._id, route.params._id as string)
 
 // 获取当前数据并赋值
 let recordobj = ref()
@@ -253,7 +253,7 @@ const query = async (data?: any) => {
   let rst = await request.get(`/api/templates/${data}`, { params: { q: 'category:static', search: '' } })
   
   recordobj.value = rst
-  if (rst.model && rst.model.schema.length > 0 ) {
+  if (rst.model ) {
     
     recordobj.value.model = rst.model
 
@@ -273,9 +273,9 @@ const arr = (dataArr: any) => dataArr.map((item: any, index: string) => ({ ...it
 
 onMounted(() => {
 
-  let getId: any = sessionStorage.getItem('static_' + route.params._id)
+  let getId: string = sessionStorage.getItem('static_' + route.params._id) as string;
   // console.log(JSON.parse(getId));
-  query(JSON.parse(getId))
+  query(getId)
 })
 
 

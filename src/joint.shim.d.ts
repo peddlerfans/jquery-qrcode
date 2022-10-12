@@ -74,9 +74,9 @@ interface ModelDefinition {
 }
 
 interface DataDefinition {
-    data:[],
-    meta:[],
-    resources:[]
+    data:object,
+    meta:object,
+    resources:object
 }
 interface DynamicModel {
 [x: string]: any[],
