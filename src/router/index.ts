@@ -191,12 +191,18 @@ export const routes: RouteRecordRaw[] = [
     redirect: { name: 'dynamicModeler' },
     children: [
       {
-        path: ':_id',
+        path: ':_id/:name',
         name: 'dynamicModeler',
         component: () => import('@/views/dynamicModel.vue'),
         meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
       }
-    ]
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`dynamicModeler ${to.params.name}`
+      }
+      next()
+    }
   },
   {
     path: '/staticModeler',

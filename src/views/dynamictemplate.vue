@@ -343,25 +343,6 @@ const cancelModel = () => {
   modelState.inputValue = ''
 }
 
-let columnPreview=ref<any>()
-let modelDataPreview=ref<any>()
-let prev=ref<boolean>(false);
-
-const previewModel = async (id: string) => {
-  let rst = await request.post(url+`/${id}/preview`)
-
-  modelDataPreview.value=rst
-  columnPreview.value=rst.model?.parameters.map((e:any)=>{
-    return {
-      title: e.property,
-      dataIndex: e.property,
-      key: e.property,
-    }
-  })
-
-  prev.value=true
-
-}
 
 // ################################
 // ######## Model CRUD END ########
@@ -569,33 +550,6 @@ onMounted(() => {
 
 
 
-
-
-    <a-modal v-model:visible="prev" :title="modelState._id? 'Model preview':'Model preview'" :width="900">
-
-      <!-- Model meta info -->
-
-      <h2>Data</h2>
-
-      <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        <template #bodyCell="{ column, text, record }">
-<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-          {{ text }}
-        </template>
-      </a-table>
-
-      <template #footer>
-<!--        <a-button @click="closeModel">Cancel</a-button>-->
-      </template>
-
-      <h2>Model</h2>
-      <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-
-    </a-modal>
-
-
     <!-- ######################### -->
     <!-- List of dynamic templates -->
     <!-- ######################### -->
@@ -607,8 +561,7 @@ onMounted(() => {
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a>
-              <span v-else>{{text}}</span>
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
             </template>
           </div>
         </template>
@@ -655,15 +608,12 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
-                <a>Cancel</a>
-              </a-popconfirm>
+              <a @click="clearModelState()">Cancel</a>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
-              <a-divider type="vertical" />
-              <a :href="'/#/dynamicModeler/'+ record._id">Config</a>
+
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">

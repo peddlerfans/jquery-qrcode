@@ -54,8 +54,9 @@ import { purple } from '@ant-design/colors';
 let url = templateUrl;
 let route = useRoute()
 let finalResult: any;
+let modelId: any;
 
-sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.params._id))
+sessionStorage.setItem('dynamic_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
 let finalModel: Model = reactive({
   option: {},
@@ -81,13 +82,14 @@ async function query(id?: any) {
 
   console.log(finalModel)
 }
-let modelId: any
+
 onMounted(() => {
   modelId = sessionStorage.getItem('dynamic_' + route.params._id)
+  // modelId=JSON.parse(modelId)
   console.log('onMounted');
-  console.log(JSON.parse(modelId));
+  console.log(modelId);
 
-  query(JSON.parse(modelId))
+  query(modelId)
 })
 
 
@@ -100,12 +102,14 @@ const saveModel = async () => {
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
       console.log(rst);
       message.success('Model is saved successfully')
+      // query(JSON.parse(modelId))
+
     }
   }else{
     message.warning('Please save all the editing fields first')
   }
 
-
+  prev.value=true
 }
 
 
@@ -207,17 +211,17 @@ const editFactor = (record: Factor) => {
 
 const saveFactor = async (record: Factor) => {
   record.editing = false
-
   clearFactorState()
   showAddFactorBtn.value = true
+  prev.value=false
 }
 
 
 const deleteFactor = (record: Factor) => {
   const index= finalModel.factor.findIndex(e => e === record)
-  console.log('deleteFactorByName')
-  console.log(index)
+
   finalModel.factor.splice(index,1);
+  prev.value=false
   message.success('Delete Successfully!');
 }
 const cancelFactor = (record: Factor) => {
@@ -518,6 +522,7 @@ const saveConstraint = (record: Constraint) => {
   console.log(finalModel)
 
   showAddConstraintBtn.value = true
+  prev.value=false
 }
 const editConstraint = (record: Constraint) => {
   console.log('editFactor')
@@ -583,6 +588,7 @@ const updateConstraint = async (record: Constraint) => {
 const deleteConstraint = (record: Constraint) => {
   const index= finalModel.constraint.findIndex(e => e === record)
   finalModel.constraint.splice(index,1);
+  prev.value=false
   message.success('Delete Successfully!');
 }
 const cancelConstraint = (record: Constraint) => {
@@ -627,7 +633,36 @@ const clearConstraintState = () => {
 }
 
 
+// ###############################
+// ######## Preview modal ########
+// ###############################
 
+let columnPreview=ref<any>()
+let modelDataPreview=ref<any>()
+let prev=ref<boolean>(true);
+let visibleModal=ref<boolean>(false);
+
+const previewModel = async () => {
+  if (prev.value){
+    let rst = await request.post(url+`/${route.params._id}/preview`)
+    console.log(rst);
+    modelDataPreview.value=rst
+    columnPreview.value=rst.model?.parameters.map((e:any)=>{
+      return {
+        title: e.property,
+        dataIndex: e.property,
+        key: e.property,
+      }
+    })
+    visibleModal.value=true
+
+  }else{
+    message.warning("This model is changed, please save it first and then preview")
+  }
+
+
+
+}
 
 
 const cancel = (e: MouseEvent) => {
@@ -646,6 +681,37 @@ const focus = () => {
 <template>
 
   <main style="height:100%;overflow-x: hidden!important;">
+
+    <!-- ############ -->
+    <!-- Preview info -->
+    <!-- ############ -->
+
+
+
+    <a-modal v-model:visible="visibleModal" title="Model preview" :width="900">
+
+      <!-- Model meta info -->
+
+      <h2>Data</h2>
+
+      <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        <template #bodyCell="{ column, text, record }">
+          <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+          <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+          <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+          {{ text }}
+        </template>
+      </a-table>
+
+      <template #footer>
+        <!--        <a-button @click="closeModel">Cancel</a-button>-->
+      </template>
+
+      <h2>Model</h2>
+      <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+
+    </a-modal>
+
 
     <!-- ############ -->
     <!-- Options info -->
@@ -740,9 +806,7 @@ const focus = () => {
             <span v-if="record.editing">
               <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="cancelFactor(record)">
-                <a>Cancel</a>
-              </a-popconfirm>
+              <a @click="cancelFactor(record)">Cancel</a>
             </span>
 
             <span v-else>
@@ -904,9 +968,7 @@ const focus = () => {
           <span v-if="record.editing">
             <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
             <a-divider type="vertical" />
-            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
-              <a>Cancel</a>
-            </a-popconfirm>
+            <a @click="cancelConstraint(record)">Cancel</a>
           </span>
 
           <span v-else>
@@ -926,152 +988,11 @@ const focus = () => {
     <div style="margin-top: 30px">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
+      <a-button :disabled="finalModel.factor.length<2" @click="previewModel()" style="margin-left:30px">Preview</a-button>
+
     </div>
 
 
-
-    <!-- <header class="block shadow">
-      <a-row>
-        <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-              <a-mentions v-model:value="formState.search"
-                placeholder="input @ to search tags, input name to search Dynamic Templates">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-              </a-mentions>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-col>
-
-          </AForm>
-        </a-col>
-        <a-col :span="4">
-          <a-button type="primary" @click="showModal">
-            <template #icon>
-              <plus-outlined />
-            </template>
-          </a-button>
-        </a-col>
-      </a-row>
-    </header> -->
-
-
-    <!-- 模态窗 -->
-
-    <!-- <div>
-      <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
-        @ok="handleOk" :width="900">
-
-
-        <h2>Model</h2>
-
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item label="Name" name="name">
-            <a-input v-model:value="modelState.name" />
-          </a-form-item>
-
-          <a-form-item label="Description" name="description">
-            <a-input v-model:value="modelState.description" />
-          </a-form-item>
-
-          <a-form-item label="Tag" name="tags">
-            <template v-for="(tag) in modelState.tags" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
-              <plus-outlined />
-              Add a New Tag
-            </a-tag>
-          </a-form-item>
-        </a-form>
-
-        <template #footer>
-          <a-button @click="closeModel">Cancel</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
-        </template>
-
-
-      </a-modal>
-    </div> -->
-
-
-
-
-    <!-- ######################### -->
-    <!-- List of dynamic templates -->
-    <!-- ######################### -->
-
-
-
-
-
-
-    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
-      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
-      <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
-          <span>
-            <edit-outlined />
-            Name
-          </span>
-        </template>
-      </template>
-
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'name'">
-
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
-        </template>
-
-        <template v-else-if="column.key === 'description'">
-
-          {{ record.description }}
-
-        </template>
-        <template v-else-if="column.key === 'tags'">
-          <span>
-            <a-tag v-for="tag in record.tags" :key="tag"
-              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
-              {{ tag.toUpperCase() }}
-            </a-tag>
-          </span>
-        </template>
-
-        <template v-else-if="column.key === 'action'">
-          <span>
-            <a @click="editModel(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-              @confirm="deleteModel(record._id)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-
-
-    </ATable> -->
-    <!-- </section> -->
   </main>
 </template>
 
