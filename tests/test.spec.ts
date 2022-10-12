@@ -15,12 +15,12 @@ test('Success Login', async ({ page }) => {
         page.waitForNavigation({waitUntil:'networkidle'})]);
 
   expect(await page.url(), "should navigate to dahsboard page").toMatch(/dashboard$/);
-  await Promise.all([    page.click('*[data-menu-id="/awmodeler/index"]'),
+  await Promise.all([    page.click('*[data-menu-id="/awmodeler/index"] a'),
      page.waitForNavigation({waitUntil:'networkidle'})]);
 await delay(1000);
     //  console.log(await page.url())
    try {
-     await page.click('*[data-menu-id="/awmodeler/index"]');
+     await page.click('*[data-menu-id="/awmodeler/index"] a');
      await page.waitForNavigation({timeout:5000});
    } catch (e) {
 
