@@ -321,7 +321,7 @@ let paginationExpected = ref({
   pageSize: 10, // 默认每页显示数量
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
-  pageSizeOptions: ['10', '25', '50', '100'], // 每页数量选项
+  pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
   showTotal: (total: any) => `共 ${total} 条`, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize),//点击页码事件
@@ -704,6 +704,7 @@ function awhandlerSubmit() {
     
       cell.attr('header', { width: maxX, height: (maxY*0.5) });
       cell.attr('header').transform = "matrix(1,0,0,1,0,-20)"
+      cell.attr('body').transform = "matrix(1,0,0,1,0,-20)"
       cell.resize(maxX, (maxY-10))
     
   }
@@ -1267,7 +1268,7 @@ onMounted(() => {
 
   modeler.paper.on('element:pointerdblclick', (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
 
-    // console.log('element:pointerdblclick......cacheprops/', cacheprops)
+    console.log('element:pointerdblclick......cacheprops/', cacheprops)
     let tempformdata: Stores.awView = {
       _id: '',
       name: '',
@@ -1282,7 +1283,7 @@ onMounted(() => {
 
       isLink.value = false;
       isGlobal.value = false;
-
+      debugger
       if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.primaryprops && cacheprops.get(ev_id).props.primaryprops.name.length > 0) {
         // console.log('success    ', cacheprops.get(ev_id).props.primaryprops)
         let awformData = cacheprops.get(ev_id).props.primaryprops
@@ -1291,8 +1292,9 @@ onMounted(() => {
 
         if (cacheprops.get(ev_id) != null && cacheprops.get(ev_id).props.expectedprops && cacheprops.get(ev_id).props.expectedprops.name.length > 0) {
           // console.log('success 2   ', cacheprops.get(ev_id).props.expectedprops)
-          let awformdataExpected = cacheprops.get(ev_id).props.expectedprops
-          awformdata.value = awformdataExpected;
+          awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops
+          isDisabled.value =false;
+          // awformdata.value = awformdataExpected;
           hasAWExpectedInfo.value = true;
           currentElementMap.set(ev_id, { props: { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
         } else {
@@ -1340,7 +1342,7 @@ onMounted(() => {
       }
 
       showDrawer(elementView, 'aw', ev_id);
-      modeler.graph.getCell(ev_id).graph.resize;
+      // modeler.graph.getCell(ev_id).graph.resize;
     } else if (elementView && elementView.model && elementView.model.attributes && elementView.model.attributes.type == 'standard.Polygon') {
       // message.success("Save MBT model successfully")
     }
