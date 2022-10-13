@@ -151,6 +151,31 @@ const showDrawer = (
   }
 };
 
+// 获取当前数据并赋值
+let metatemplaterecordobj = ref();
+// 根据传来的name值获取到数据
+async function metatemplatequery(data?: any) {
+  //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
+  let meta_id = "";
+  let strsql = `/api/templates?search=&q=category:meta`;
+  let rst = await request.get(strsql).then((record: any) => {
+    return (meta_id = record.data[0]._id);
+  });
+  let rst1 = await request.get(`/api/templates/${meta_id}`, {
+    params: { q: "category:meta", search: "" },
+  });
+  metatemplaterecordobj.value = rst1;
+
+  metatemplaterecordobj.value.model = rst1.model;
+  metatemplatetableData.value = arr(rst1.model);
+  // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
+  //  console.log(rst);
+  //  route.params.name=rst.name
+}
+// 给每条数据添加条属性
+const arr = (dataArr: any) =>
+  dataArr.map((item: any, index: string) => ({ ...item, key: index }));
+
 const onBack = () => {
   // hasAWInfo.value = !hasAWInfo.value
   hasAWInfo.value = true;
@@ -187,7 +212,7 @@ const formStateExpected = reactive<FormState>({
   remember: true,
   search: "",
 });
-
+let metatemplatetableData = ref([]);
 let tableData = ref([]);
 let tableDataExpected = ref([]);
 let searchobj: tableSearch = reactive({
@@ -203,7 +228,26 @@ let searchobjExpected: tableSearch = reactive({
   page: 1,
   perPage: 10,
 });
-
+const metatemplatecolumns = reactive<Object[]>([
+  {
+    title: "name",
+    dataIndex: "name",
+    key: "name",
+    width: 180,
+  },
+  {
+    title: "description",
+    dataIndex: "description",
+    key: "description",
+    width: 180,
+  },
+  {
+    title: "type",
+    dataIndex: "type",
+    key: "type",
+    width: 180,
+  },
+]);
 const columns = reactive<Object[]>([
   {
     name: "Name",
@@ -884,7 +928,7 @@ let stencil: Stencil;
 
 function saveMBT(route?: any) {
   let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
-  
+
   let tempdata: modelDefinition = {};
   // console.log(modeler.graph);
   modeler.graph.getCells().forEach((item: any) => {
@@ -997,7 +1041,7 @@ function reloadMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-
+  metatemplatequery();
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
@@ -1530,16 +1574,16 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
-const onImportFromMetaTemplate = () => {};
+const onImportFromMetaTemplate = () => {
+  console.log('import other meta template')
+};
 
 const importfromstatic = () => {};
 const isDisabled = ref(true);
 const value1 = ref<number>(1);
 const onAfterChange = (value: any) => {
-     
-      modeler.paper.scale(value)
-     
-    };
+  modeler.paper.scale(value);
+};
 </script>
 
 <template>
@@ -1560,10 +1604,13 @@ const onAfterChange = (value: any) => {
         <a-col span="4">
           <label>Zoom</label>
 
-          <a-slider  v-model:value="value1"  
-          :min="0.2" :max="3" :step="0.2" 
-          @afterChange="onAfterChange"   />
-          
+          <a-slider
+            v-model:value="value1"
+            :min="0.2"
+            :max="3"
+            :step="0.2"
+            @afterChange="onAfterChange"
+          />
         </a-col>
       </a-row>
     </header>
@@ -1852,7 +1899,36 @@ const onAfterChange = (value: any) => {
             <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
               <a-tab-pane key="1" tab="Meta">
                 <a-collapse v-model:activeKey="metaActiveKey">
-                  <a-collapse-panel key="1" header="Input directly">
+                  <a-collapse-panel key="1" header="Import from Meta Template">
+                    <a-table
+                      :columns="metatemplatecolumns"
+                      :data-source="metatemplatetableData"
+                      bordered
+                    >
+                      <template #headerCell="{ column }"> </template>
+                      <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.key === 'name'">
+                          <div>
+                            {{ text }}
+                          </div>
+                        </template>
+                        <template v-if="column.key === 'description'">
+                          <div>
+                            {{ text }}
+                          </div>
+                        </template>
+                        <template v-if="column.key === 'type'">
+                          <div>
+                            {{ text }}
+                          </div>
+                        </template>
+                      </template>
+                    </a-table>
+                    <a-button type="primary" @click="onImportFromMetaTemplate"
+                      >导入其他模版</a-button
+                    >
+                  </a-collapse-panel>
+                  <a-collapse-panel key="2" header="Input directly">
                     <a-button
                       class="editable-add-btn"
                       style="margin-bottom: 8px"
@@ -1903,11 +1979,6 @@ const onAfterChange = (value: any) => {
                       </template>
                     </a-table>
                     <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
-                  </a-collapse-panel>
-                  <a-collapse-panel key="2" header="Import from Meta Template">
-                    <a-button type="primary" @click="onImportFromMetaTemplate"
-                      >导入</a-button
-                    >
                   </a-collapse-panel>
                 </a-collapse>
               </a-tab-pane>
