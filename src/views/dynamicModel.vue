@@ -647,7 +647,7 @@ const focus = () => {
   console.log('focus');
   // console.log(constraintState);
 };
-
+const activeKey = ref(['1']);
 </script>
 
 
@@ -662,27 +662,30 @@ const focus = () => {
 
 
 
-    <a-modal v-model:visible="visibleModal" title="Model preview" :width="900">
+    <a-modal v-model:visible="visibleModal" title="Preview" :width="900">
 
       <!-- Model meta info -->
 
-      <h2>Data</h2>
-
-      <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        <template #bodyCell="{ column, text, record }">
-          <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-          <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-          <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-          {{ text }}
-        </template>
-      </a-table>
 
       <template #footer>
         <!--        <a-button @click="closeModel">Cancel</a-button>-->
       </template>
 
-      <h2>Model</h2>
-      <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+
+      <a-collapse v-model:activeKey="activeKey">
+        <a-collapse-panel key="1" header="Data">
+          <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+            <template #bodyCell="{ column, text, record }">
+              {{ text }}
+            </template>
+          </a-table>
+        </a-collapse-panel>
+        <a-collapse-panel key="2" header="Model">
+          <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+        </a-collapse-panel>
+      </a-collapse>
+<!--      <h2>Model</h2>-->
+
 
     </a-modal>
 
