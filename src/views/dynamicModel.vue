@@ -54,9 +54,22 @@ import { purple } from '@ant-design/colors';
 let url = templateUrl;
 let route = useRoute()
 let finalResult: any;
+let modelId: any;
 
-sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.params._id))
+sessionStorage.setItem('dynamic_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
+
+onMounted(() => {
+  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
+
+  if (modelId === null){
+    message.error("Model cannot be found")
+  }else{
+    query(modelId)
+  }
+})
+
+
 let finalModel: Model = reactive({
   option: {},
   factor: [],
@@ -64,8 +77,6 @@ let finalModel: Model = reactive({
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
-  console.log('finalModel')
-  console.log(finalResult)
   finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
@@ -77,35 +88,31 @@ async function query(id?: any) {
       ...e, editing: false
     }
   })
-
-
-  console.log(finalModel)
 }
-let modelId: any
-onMounted(() => {
-  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
-  console.log('onMounted');
-  console.log(JSON.parse(modelId));
 
-  query(JSON.parse(modelId))
-})
+
 
 
 const saveModel = async () => {
-  console.log('saveModel');
   if (showAddFactorBtn.value && showAddConstraintBtn.value){
     if (finalModel.factor.length<2){
       message.warning('It is requires at least TWO factors in a model')
-    }else{
-      let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-      console.log(rst);
-      message.success('Model is saved successfully')
+    }else {
+      try {
+        let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
+        console.log(rst)
+
+        message.success('Model is saved successfully')
+      } catch (err) {
+        console.log(err)
+        message.error("Cannot save the model")
+      }
     }
   }else{
     message.warning('Please save all the editing fields first')
   }
 
-
+  prev.value=true
 }
 
 
@@ -190,15 +197,11 @@ const addNewFactor = () => {
 }
 
 const editFactor = (record: Factor) => {
-  console.log('editFactor')
-  console.log(record)
 
   factorState.name = record.name
   factorState.type = record.type
   factorState.values = record.values
   showAddFactorBtn.value=false
-
-  console.log(factorState)
 
   record.editing = true
 
@@ -207,17 +210,17 @@ const editFactor = (record: Factor) => {
 
 const saveFactor = async (record: Factor) => {
   record.editing = false
-
   clearFactorState()
   showAddFactorBtn.value = true
+  prev.value=false
 }
 
 
 const deleteFactor = (record: Factor) => {
   const index= finalModel.factor.findIndex(e => e === record)
-  console.log('deleteFactorByName')
-  console.log(index)
+
   finalModel.factor.splice(index,1);
+  prev.value=false
   message.success('Delete Successfully!');
 }
 const cancelFactor = (record: Factor) => {
@@ -248,12 +251,8 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
-  console.log('close tags');
-  console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
-  console.log(record.values);
-
 };
 let inputRef = ref();
 
@@ -267,7 +266,6 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log("handleModelTagConfirm")
 }
 
 const newFactorValueInput = (record: Factor) => {
@@ -457,7 +455,6 @@ let constraintState = reactive<Constraint>({
 let currentFactorName = reactive([])
 
 const addNewConstraint = () => {
-  console.log('addNewConstraint')
   clearConstraintState()
 
   if (finalModel.factor.length<2){
@@ -476,13 +473,8 @@ const addNewConstraint = () => {
     })
   }
 
-  console.log(finalModel)
-  console.log(constraintState)
 }
 const saveConstraint = (record: Constraint) => {
-  console.log('saveConstraint')
-  console.log(constraintState)
-
   Object.assign(record, {
     ifname: constraintState.ifname,
     ifoperator: constraintState.ifoperator,
@@ -515,13 +507,10 @@ const saveConstraint = (record: Constraint) => {
 
   record.editing = false
 
-  console.log(finalModel)
-
   showAddConstraintBtn.value = true
+  prev.value=false
 }
 const editConstraint = (record: Constraint) => {
-  console.log('editFactor')
-  console.log(finalModel.constraint)
 
   constraintState.ifname = record.ifname
   constraintState.ifoperator = record.ifoperator
@@ -529,9 +518,6 @@ const editConstraint = (record: Constraint) => {
   constraintState.thenname = record.thenname
   constraintState.thenoperator = record.thenoperator
   constraintState.thenvalues = record.thenvalues
-
-
-  console.log(constraintState)
 
   record.editing = true
   showAddConstraintBtn.value = false
@@ -571,8 +557,6 @@ const changeThenOperator = () => {
 
 
 const updateConstraint = async (record: Constraint) => {
-  console.log('updateConstraint')
-  console.log(record)
 
   record.editing = false
 
@@ -583,6 +567,7 @@ const updateConstraint = async (record: Constraint) => {
 const deleteConstraint = (record: Constraint) => {
   const index= finalModel.constraint.findIndex(e => e === record)
   finalModel.constraint.splice(index,1);
+  prev.value=false
   message.success('Delete Successfully!');
 }
 const cancelConstraint = (record: Constraint) => {
@@ -600,11 +585,7 @@ const cancelConstraint = (record: Constraint) => {
     record.editing = false
   }
 
-  console.log('cancelConstraint')
-  console.log(record)
-  console.log(constraintState)
   clearConstraintState()
-  console.log(constraintState)
 
   showAddConstraintBtn.value = true
 
@@ -627,7 +608,35 @@ const clearConstraintState = () => {
 }
 
 
+// ###############################
+// ######## Preview modal ########
+// ###############################
 
+let columnPreview=ref<any>()
+let modelDataPreview=ref<any>()
+let prev=ref<boolean>(true);
+let visibleModal=ref<boolean>(false);
+
+const previewModel = async () => {
+  if (prev.value){
+    let rst = await request.post(url+`/${route.params._id}/preview`)
+    modelDataPreview.value=rst
+    columnPreview.value=rst.model?.parameters.map((e:any)=>{
+      return {
+        title: e.property,
+        dataIndex: e.property,
+        key: e.property,
+      }
+    })
+    visibleModal.value=true
+
+  }else{
+    message.warning("This model is changed, please save it first and then preview")
+  }
+
+
+
+}
 
 
 const cancel = (e: MouseEvent) => {
@@ -638,7 +647,7 @@ const focus = () => {
   console.log('focus');
   // console.log(constraintState);
 };
-
+const activeKey = ref(['1']);
 </script>
 
 
@@ -646,6 +655,40 @@ const focus = () => {
 <template>
 
   <main style="height:100%;overflow-x: hidden!important;">
+
+    <!-- ############ -->
+    <!-- Preview info -->
+    <!-- ############ -->
+
+
+
+    <a-modal v-model:visible="visibleModal" title="Preview" :width="900">
+
+      <!-- Model meta info -->
+
+
+      <template #footer>
+        <!--        <a-button @click="closeModel">Cancel</a-button>-->
+      </template>
+
+
+      <a-collapse v-model:activeKey="activeKey">
+        <a-collapse-panel key="1" header="Data">
+          <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+            <template #bodyCell="{ column, text, record }">
+              {{ text }}
+            </template>
+          </a-table>
+        </a-collapse-panel>
+        <a-collapse-panel key="2" header="Model">
+          <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+        </a-collapse-panel>
+      </a-collapse>
+<!--      <h2>Model</h2>-->
+
+
+    </a-modal>
+
 
     <!-- ############ -->
     <!-- Options info -->
@@ -740,9 +783,7 @@ const focus = () => {
             <span v-if="record.editing">
               <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="cancelFactor(record)">
-                <a>Cancel</a>
-              </a-popconfirm>
+              <a @click="cancelFactor(record)">Cancel</a>
             </span>
 
             <span v-else>
@@ -904,9 +945,7 @@ const focus = () => {
           <span v-if="record.editing">
             <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
             <a-divider type="vertical" />
-            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
-              <a>Cancel</a>
-            </a-popconfirm>
+            <a @click="cancelConstraint(record)">Cancel</a>
           </span>
 
           <span v-else>
@@ -926,152 +965,11 @@ const focus = () => {
     <div style="margin-top: 30px">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
+      <a-button :disabled="finalModel.factor.length<2" @click="previewModel()" style="margin-left:30px">Preview</a-button>
+
     </div>
 
 
-
-    <!-- <header class="block shadow">
-      <a-row>
-        <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-              <a-mentions v-model:value="formState.search"
-                placeholder="input @ to search tags, input name to search Dynamic Templates">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-              </a-mentions>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-col>
-
-          </AForm>
-        </a-col>
-        <a-col :span="4">
-          <a-button type="primary" @click="showModal">
-            <template #icon>
-              <plus-outlined />
-            </template>
-          </a-button>
-        </a-col>
-      </a-row>
-    </header> -->
-
-
-    <!-- 模态窗 -->
-
-    <!-- <div>
-      <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
-        @ok="handleOk" :width="900">
-
-
-        <h2>Model</h2>
-
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item label="Name" name="name">
-            <a-input v-model:value="modelState.name" />
-          </a-form-item>
-
-          <a-form-item label="Description" name="description">
-            <a-input v-model:value="modelState.description" />
-          </a-form-item>
-
-          <a-form-item label="Tag" name="tags">
-            <template v-for="(tag) in modelState.tags" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
-              <plus-outlined />
-              Add a New Tag
-            </a-tag>
-          </a-form-item>
-        </a-form>
-
-        <template #footer>
-          <a-button @click="closeModel">Cancel</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
-        </template>
-
-
-      </a-modal>
-    </div> -->
-
-
-
-
-    <!-- ######################### -->
-    <!-- List of dynamic templates -->
-    <!-- ######################### -->
-
-
-
-
-
-
-    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
-      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
-      <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
-          <span>
-            <edit-outlined />
-            Name
-          </span>
-        </template>
-      </template>
-
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'name'">
-
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
-        </template>
-
-        <template v-else-if="column.key === 'description'">
-
-          {{ record.description }}
-
-        </template>
-        <template v-else-if="column.key === 'tags'">
-          <span>
-            <a-tag v-for="tag in record.tags" :key="tag"
-              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
-              {{ tag.toUpperCase() }}
-            </a-tag>
-          </span>
-        </template>
-
-        <template v-else-if="column.key === 'action'">
-          <span>
-            <a @click="editModel(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-              @confirm="deleteModel(record._id)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-
-
-    </ATable> -->
-    <!-- </section> -->
   </main>
 </template>
 
