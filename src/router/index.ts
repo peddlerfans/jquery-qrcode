@@ -202,7 +202,7 @@ export const routes: RouteRecordRaw[] = [
     ],
     beforeEnter(to,form,next){
       if(to.params._id && to.params.name){
-        to.meta.title=`dynamicModeler ${to.params.name}`
+        to.meta.title=`${to.params.name}`
       }
       next()
     }

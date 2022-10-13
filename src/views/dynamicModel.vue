@@ -58,6 +58,18 @@ let modelId: any;
 
 sessionStorage.setItem('dynamic_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
+
+onMounted(() => {
+  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
+
+  if (modelId === null){
+    message.error("Model cannot be found")
+  }else{
+    query(modelId)
+  }
+})
+
+
 let finalModel: Model = reactive({
   option: {},
   factor: [],
@@ -65,8 +77,6 @@ let finalModel: Model = reactive({
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
-  console.log('finalModel')
-  console.log(finalResult)
   finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
@@ -78,32 +88,25 @@ async function query(id?: any) {
       ...e, editing: false
     }
   })
-
-
-  console.log(finalModel)
 }
 
-onMounted(() => {
-  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
-  // modelId=JSON.parse(modelId)
-  console.log('onMounted');
-  console.log(modelId);
 
-  query(modelId)
-})
 
 
 const saveModel = async () => {
-  console.log('saveModel');
   if (showAddFactorBtn.value && showAddConstraintBtn.value){
     if (finalModel.factor.length<2){
       message.warning('It is requires at least TWO factors in a model')
-    }else{
-      let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-      console.log(rst);
-      message.success('Model is saved successfully')
-      // query(JSON.parse(modelId))
+    }else {
+      try {
+        let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
+        console.log(rst)
 
+        message.success('Model is saved successfully')
+      } catch (err) {
+        console.log(err)
+        message.error("Cannot save the model")
+      }
     }
   }else{
     message.warning('Please save all the editing fields first')
@@ -194,15 +197,11 @@ const addNewFactor = () => {
 }
 
 const editFactor = (record: Factor) => {
-  console.log('editFactor')
-  console.log(record)
 
   factorState.name = record.name
   factorState.type = record.type
   factorState.values = record.values
   showAddFactorBtn.value=false
-
-  console.log(factorState)
 
   record.editing = true
 
@@ -252,12 +251,8 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
-  console.log('close tags');
-  console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
-  console.log(record.values);
-
 };
 let inputRef = ref();
 
@@ -271,7 +266,6 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log("handleModelTagConfirm")
 }
 
 const newFactorValueInput = (record: Factor) => {
@@ -461,7 +455,6 @@ let constraintState = reactive<Constraint>({
 let currentFactorName = reactive([])
 
 const addNewConstraint = () => {
-  console.log('addNewConstraint')
   clearConstraintState()
 
   if (finalModel.factor.length<2){
@@ -480,13 +473,8 @@ const addNewConstraint = () => {
     })
   }
 
-  console.log(finalModel)
-  console.log(constraintState)
 }
 const saveConstraint = (record: Constraint) => {
-  console.log('saveConstraint')
-  console.log(constraintState)
-
   Object.assign(record, {
     ifname: constraintState.ifname,
     ifoperator: constraintState.ifoperator,
@@ -519,14 +507,10 @@ const saveConstraint = (record: Constraint) => {
 
   record.editing = false
 
-  console.log(finalModel)
-
   showAddConstraintBtn.value = true
   prev.value=false
 }
 const editConstraint = (record: Constraint) => {
-  console.log('editFactor')
-  console.log(finalModel.constraint)
 
   constraintState.ifname = record.ifname
   constraintState.ifoperator = record.ifoperator
@@ -534,9 +518,6 @@ const editConstraint = (record: Constraint) => {
   constraintState.thenname = record.thenname
   constraintState.thenoperator = record.thenoperator
   constraintState.thenvalues = record.thenvalues
-
-
-  console.log(constraintState)
 
   record.editing = true
   showAddConstraintBtn.value = false
@@ -576,8 +557,6 @@ const changeThenOperator = () => {
 
 
 const updateConstraint = async (record: Constraint) => {
-  console.log('updateConstraint')
-  console.log(record)
 
   record.editing = false
 
@@ -606,11 +585,7 @@ const cancelConstraint = (record: Constraint) => {
     record.editing = false
   }
 
-  console.log('cancelConstraint')
-  console.log(record)
-  console.log(constraintState)
   clearConstraintState()
-  console.log(constraintState)
 
   showAddConstraintBtn.value = true
 
@@ -645,7 +620,6 @@ let visibleModal=ref<boolean>(false);
 const previewModel = async () => {
   if (prev.value){
     let rst = await request.post(url+`/${route.params._id}/preview`)
-    console.log(rst);
     modelDataPreview.value=rst
     columnPreview.value=rst.model?.parameters.map((e:any)=>{
       return {

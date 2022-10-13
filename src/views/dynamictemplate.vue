@@ -163,12 +163,9 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
-  console.log('query')
-  console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
-    // console.log('rst:', rst.data)
     dataSource.value = rst.data
     tableData.value = rst.data
 
@@ -177,14 +174,8 @@ async function query(data?: any) {
 }
 
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // console.log(' formstate to search :', formState);
 
   query(formState)
-  // highlight.value = dataSource.value.filter((item: any, index: any) => {
-
-  //   return item._highlight
-  // })
-  // console.log(highlight.value);
 
 };
 
@@ -241,13 +232,11 @@ const closeModel = () => {
   clearModelState()
 
   query()
-  // console.log(modelstates);
 }
 
 // Handel Tags in modal form
 const handleCloseTag = (removedTag: string) => {
   const tags = modelState.tags.filter((tag: string) => tag !== removedTag);
-  console.log(tags);
   modelState.tags = tags;
 
 };
@@ -372,60 +361,6 @@ let modelRules: Record<string, Rule[]> = {
 };
 
 
-// const handleOk = () => {
-//   onFinishForm(modelState)
-//
-//   clearModelState()
-//   query()
-// };
-
-
-// const onFinishForm = async (modelState: any) => {
-//   // 输入验证
-//
-//   const model = {
-//     name: modelState.name,
-//     description: modelState.description,
-//     tags: toRaw(modelState.tags),
-//     category: "dynamic",
-//     templateText: '',
-//     model: {
-//       option: {},
-//       factor: [],
-//       constraint: []
-//     }
-//   }
-//
-//   visibleModel.value = false;
-//
-//   // 判断修改或添加
-//   if (modelState._id) {
-//     let rst = await request.put(url + `/${modelState.value._id}`, model)
-//     // message.success("Modified successfully")
-//   } else {
-//     // delete modelState.value._id
-//     let rst = await request.post(url, model)
-//     console.log(rst)
-//     message.success("Added successfully")
-//   }
-//
-//   // showAddConstraint.value = false
-//   // showAddFactor.value = false
-//   // if (modelState.value.name && modelState.value.description) {
-//
-//   //   // }
-//   //   visible.value = false;
-//   //   clear()
-//   //   query()
-//   // } else {
-//   //   return message.error("name and descript is required")
-//   // }
-// };
-
-// const onFinishFailedForm = (errorInfo: any) => {
-//   console.log('Failed:', errorInfo);
-// };
-
 
 // Antdv select
 const focus = () => {
@@ -441,13 +376,10 @@ const cancel = (e: MouseEvent) => {
 };
 
 onBeforeMount(() => {
-  console.log("xxxxxxxxxx")
+  console.log("")
 })
 
 onMounted(() => {
-  console.log("onMounted: dataSource")
-  console.log(dataSource)
-  console.log(tableData)
   query()
 })
 
