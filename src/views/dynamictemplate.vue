@@ -60,6 +60,11 @@ const url = templateUrl;
 // Inital a null reference for the model list table
 const tableRef = ref()
 
+const initModelAttr={
+  option: {strategy:''},
+  factor: [],
+  constraint: []
+}
 // ##### Invoke table hook #####
 // Initialize  without pagination ??????
 
@@ -146,14 +151,6 @@ let tableData = ref<Array<any>>([])
 // 点击跳转metamodel
 let router = useRouter()
 
-const viewModel = (id: string) => {
-  router.push({
-    name: 'dynamicmodeler',
-    path: '/dynamicmodeler',
-    query: { record: id }
-  })
-}
-
 // Setup query for the searching in table
 async function query(data?: any) {
 
@@ -166,12 +163,9 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
-  console.log('query')
-  console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
-    // console.log('rst:', rst.data)
     dataSource.value = rst.data
     tableData.value = rst.data
 
@@ -180,14 +174,8 @@ async function query(data?: any) {
 }
 
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // console.log(' formstate to search :', formState);
 
   query(formState)
-  // highlight.value = dataSource.value.filter((item: any, index: any) => {
-
-  //   return item._highlight
-  // })
-  // console.log(highlight.value);
 
 };
 
@@ -244,17 +232,13 @@ const closeModel = () => {
   clearModelState()
 
   query()
-  // console.log(modelstates);
 }
 
 // Handel Tags in modal form
 const handleCloseTag = (removedTag: string) => {
   const tags = modelState.tags.filter((tag: string) => tag !== removedTag);
-  console.log(tags);
   modelState.tags = tags;
 
-  console.log("handleCloseTag")
-  console.log(modelState.tags)
 };
 
 const newModelTagInput = (index: number) => {
@@ -284,8 +268,6 @@ const handleModelTagConfirm = () => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log("handleModelTagConfirm")
-  console.log(modelState.tags)
 }
 
 // 修改的函数
@@ -297,8 +279,6 @@ const editModel = (rowobj: any) => {
   modelState.tags = rowobj.tags
   modelState.editing = true
 
-  console.log("editModel")
-  console.log(modelState)
 }
 
 const saveModel = async () => {
@@ -308,16 +288,11 @@ const saveModel = async () => {
     tags: toRaw(modelState.tags),
     category: "dynamic",
     templateText: '',
-    model: {
-      factor: [],
-      constraint: []
-    }
+    model: initModelAttr
   }
-
   let rst = await request.post(url, model)
   message.success("Created a model successfully")
 
-  console.log(rst)
   closeModel()
 }
 
@@ -331,11 +306,7 @@ const updateModel = async () => {
   }
 
   if (modelState._id) {
-    console.log('updateModel')
-    console.log(`/${modelState._id}`)
-    console.log(model)
     let rst = await request.put(url + `/${modelState._id}`, model)
-
     query()
     message.success("Updated a model successfully")
   } else {
@@ -361,13 +332,7 @@ const cancelModel = () => {
   modelState.inputValue = ''
 }
 
-const previewModel = async (id: string) => {
-  console.log('previewModel')
-  console.log(url+`/${id}/preview`)
-  let rst = await request.post(url+`/${id}/preview`)
 
-  console.log(rst)
-}
 // ################################
 // ######## Model CRUD END ########
 // ################################
@@ -396,60 +361,6 @@ let modelRules: Record<string, Rule[]> = {
 };
 
 
-const handleOk = () => {
-  onFinishForm(modelState)
-
-  clearModelState()
-  query()
-};
-
-
-const onFinishForm = async (modelState: any) => {
-  // 输入验证
-
-  const model = {
-    name: modelState.name,
-    description: modelState.description,
-    tags: toRaw(modelState.tags),
-    category: "dynamic",
-    templateText: '',
-    model: {
-      option: {},
-      factor: [],
-      constraint: []
-    }
-  }
-
-  visibleModel.value = false;
-
-  // 判断修改或添加
-  if (modelState._id) {
-    let rst = await request.put(url + `/${modelState.value._id}`, model)
-    // message.success("Modified successfully")
-  } else {
-    // delete modelState.value._id
-    let rst = await request.post(url, model)
-    console.log(rst)
-    message.success("Added successfully")
-  }
-
-  // showAddConstraint.value = false
-  // showAddFactor.value = false
-  // if (modelState.value.name && modelState.value.description) {
-
-  //   // }
-  //   visible.value = false;
-  //   clear()
-  //   query()
-  // } else {
-  //   return message.error("name and descript is required")
-  // }
-};
-
-const onFinishFailedForm = (errorInfo: any) => {
-  console.log('Failed:', errorInfo);
-};
-
 
 // Antdv select
 const focus = () => {
@@ -465,110 +376,13 @@ const cancel = (e: MouseEvent) => {
 };
 
 onBeforeMount(() => {
-  console.log("xxxxxxxxxx")
+  console.log("")
 })
 
 onMounted(() => {
-  console.log("onMounted: dataSource")
-  console.log(dataSource)
-  console.log(tableData)
   query()
 })
 
-const columns2 = reactive([
-  {
-    title: '芯片',
-    dataIndex: 'k1',
-    key: 'k1',
-  },
-  {
-    title: '内存',
-    dataIndex: 'k2',
-    key: 'k2',
-  },
-  {
-    title: '显卡',
-    dataIndex: 'k3',
-    key: 'k3',
-  },
-]);
-
-
-const modelData=reactive({
-  "data": [
-    {
-      "k1": "高通芯片",
-      "k2": "6G",
-      "k3": "512M"
-    },
-    {
-      "k1": "联发科芯片",
-      "k2": "8G",
-      "k3": "512M"
-    },
-    {
-      "k1": "联发科芯片",
-      "k2": "12G",
-      "k3": "512M"
-    },
-    {
-      "k1": "联发科芯片",
-      "k2": "6G",
-      "k3": "512M"
-    },
-    {
-      "k1": "联发科芯片",
-      "k2": "4G",
-      "k3": "512M"
-    },
-    {
-      "k1": "高通芯片",
-      "k2": "8G",
-      "k3": "512M"
-    },
-    {
-      "k1": "高通芯片",
-      "k2": "4G",
-      "k3": "512M"
-    },
-    {
-      "k1": "高通芯片",
-      "k2": "12G",
-      "k3": "512M"
-    }
-  ],
-  "model": {
-    "parameters": [
-      {
-        "property": "芯片",
-        "values": [
-          "高通芯片",
-          "联发科芯片"
-        ]
-      },
-      {
-        "property": "内存",
-        "values": [
-          "4G",
-          "6G",
-          "8G",
-          "12G"
-        ]
-      },
-      {
-        "property": "显卡",
-        "values": [
-          "512M"
-        ]
-      }
-    ],
-    "constrains": [
-      "IF [芯片] = \"高通芯片\"   THEN [内存] = \"8G\" ;"
-    ]
-  }
-})
-console.log(modelData.data)
-const prev=false;
 </script>
 
 
@@ -616,8 +430,7 @@ const prev=false;
 
     <div>
       <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
-        @ok="handleOk" :width="900">
+        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel" :width="900">
 
         <!-- Model meta info -->
 
@@ -669,34 +482,6 @@ const prev=false;
 
 
 
-
-
-    <a-modal v-model:visible="prev" :title="modelState._id? 'Model preview':'Model preview'" @cancel="closeModel"
-             @ok="handleOk" :width="900">
-
-      <!-- Model meta info -->
-
-      <h2>Data</h2>
-
-      <a-table :columns="columns2" :data-source="modelData.data" bordered>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if='column.key==="name"'><div>{{ text }}</div></template>
-          <template v-if='column.key==="age"'><div>{{ text }}</div></template>
-          <template v-if='column.key==="address"'><div>{{ text }}</div></template>
-
-        </template>
-      </a-table>
-
-      <template #footer>
-<!--        <a-button @click="closeModel">Cancel</a-button>-->
-      </template>
-
-      <h2>Model</h2>
-      <pre>{{ JSON.stringify(toRaw(modelData.model), null, 2) }}</pre>
-
-    </a-modal>
-
-
     <!-- ######################### -->
     <!-- List of dynamic templates -->
     <!-- ######################### -->
@@ -708,17 +493,7 @@ const prev=false;
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a :href="'/#/dynamicModeler/'+ record._id">{{text}}</a>
-<!--              <a-button type="primary" @click="previewModel(record._id)">-->
-<!--                <template #icon>-->
-<!--&lt;!&ndash;                  <EyeOutlined />&ndash;&gt;-->
-<!--                  <plus-outlined />-->
-<!--                </template>-->
-
-<!--              </a-button>-->
-<!--              <template #icon @click="previewModel(record._id)">-->
-<!--                -->
-<!--              </template>-->
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
             </template>
           </div>
         </template>
@@ -765,18 +540,19 @@ const prev=false;
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
-                <a>Cancel</a>
-              </a-popconfirm>
+              <a @click="clearModelState()">Cancel</a>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
+
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">
                 <a>Delete</a>
               </a-popconfirm>
+
+
             </span>
 
           </div>

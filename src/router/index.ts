@@ -58,16 +58,16 @@ export const routes: RouteRecordRaw[] = [
   },
   {
     path: '/awmodeler',
-    name: 'awmodeler',
+    name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
-    meta: { breadcrumb: false },
+    meta: { title: 'AWModeler',icon: ApiOutlined, keepAlive: true },
     children: [
       {
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
+        meta: { title: 'AWModeler', hidden:true }
       }
     ]
   }
@@ -78,13 +78,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { breadcrumb: false },
+    meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true},
     children: [
       {
         path: 'index',
         name: 'mbtstore',
         component: () => import('@/views/mbtstore.vue'),
-        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { hidden:true, title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
 
@@ -94,7 +94,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title:'Template Manager',icon:ExportOutlined,breadcrumb: false },
+    meta: { title:'Template Manager',icon:ExportOutlined },
     children: [
       {
         path: 'meta',
@@ -143,22 +143,23 @@ export const routes: RouteRecordRaw[] = [
   ,
   {
     path: '/mbtmodeler',
-    name: 'mbtmodeler',
+    name: 'Mbtmodeler',
     component: Layout,
-    redirect: { name: 'mbtmodeler' },    
+    redirect: { name: 'mbtmodeler' },  
+    meta: { hidden: true}, 
     children: [
       {
         path: ':_id/:name',
         name: 'mbtmodeler',
-        component: () => import('@/views/mbtmodeler.vue'),
-        meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
+        component: () => import('@/views/mbtmodeler.vue'),        
+        meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true}
       }
     ], 
     beforeEnter(to,form,next){
       let pathname =`${to.params.name}`;
       if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
           
-        to.meta.title=`MBTModel `+pathname
+        to.meta.title=pathname
        
         }
         next()
@@ -169,6 +170,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'MetaModeler',
     component: Layout,
     redirect: { name: 'metaModeler' },    
+    meta: { hidden: true}, 
     children: [
       {
         path: ':_id/:name',
@@ -189,20 +191,28 @@ export const routes: RouteRecordRaw[] = [
     name: 'DynamicModeler',
     component: Layout,
     redirect: { name: 'dynamicModeler' },
+    meta: { hidden: true},
     children: [
       {
-        path: ':_id',
+        path: ':_id/:name',
         name: 'dynamicModeler',
         component: () => import('@/views/dynamicModel.vue'),
         meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
       }
-    ]
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
   },
   {
     path: '/staticModeler',
     name: 'staticmodeler',
     component: Layout,
-    redirect: { name: 'staticmodeler' },    
+    redirect: { name: 'staticmodeler' },  
+    meta: { hidden: true},  
     children: [
       {
         path: ':_id/:name',
