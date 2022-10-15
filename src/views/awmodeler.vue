@@ -37,12 +37,61 @@ async function query(data?: any) {
   }
   return rst.data
 }
-onMounted(async() => {
-  await query()
-  await queryTree()
+let treeData:any = ref([])
+// 获取后台的树形数据
+const queryTree=async ()=>{
+  let rst=await request.get('/api/hlfs/_tree')
+  //声明一个空数组，将后台的对象push
+  treeData.value=objToArr(rst)  
+  treeData.value=delNode(treeData.value) 
+  treeData.value = addKey(treeData.value)
+  rightClick()
+}
+// 若树节点无数据增加点击事件
+// 获取左侧区域的dom
+const leftRef=ref()
+const rightNode=ref(false)
+function rightClick(){
+let leftNode=leftRef.value.children[0].children[0].children[0]
+let treeNode=leftNode.children[1]
+let menuNode=leftNode.children[0]
+  // 计算元素距离视图的总宽高
+  let leftNodeWidth=leftNode.getBoundingClientRect().right
+  let leftNodeHight=leftNode.getBoundingClientRect().bottom
+    // 计算树节点距离视图的总宽高
+    let treeNodeWidth=treeNode.getBoundingClientRect().right
+  let treeNodeHight=treeNode.getBoundingClientRect().bottom
+console.log(treeNodeHight,leftNodeHight);
+window.addEventListener('click',function(){rightNode.value=false})
+if(treeData.value.length==0){
+  leftNode.addEventListener('contextmenu',function(e:any){
+    console.log(e);
+    
+    e.preventDefault()    
+    if(treeNodeHight<e.clientY && e.clientY<leftNodeHight){
+      const {x,y}=e
+      // leftNode.style.position='relative'
+      rightNode.value=true
+      // menuNode.style.backgroundColor='antiquewhite'
+      menuNode.style.position='fixed'
+      menuNode.style.top=e.clientY+'px'
+      menuNode.style.left=e.clientX+'px'
+    }
+  })
+}
+}
+let aaa=ref()
+console.log(aaa.value);
+
+onMounted(() => {
+   query()
+   queryTree()
   // if(tableData.value.length>0){
   //   rightNode()
   // }
+  // rightClick()
+  aaa.value=leftRef.value.children[0].children[0].children[0]
+  console.log(aaa.value);
   
 }) 
 // 切换查询方式
@@ -232,11 +281,11 @@ const onFinishFailedForm = (errorInfo: any) => {
 };
 // 添加的表单tags
 let inputRef = ref();
-    let states = reactive<statesTs>({
-      tags: [],
-      inputVisible: false,
-      inputValue: '',
-    });
+let states = reactive<statesTs>({
+  tags: [],
+  inputVisible: false,
+  inputValue: '',
+});
 
 const handleClose = (removedTag: string) => {
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
@@ -371,15 +420,7 @@ const expend = (isExpand:any,rected:any) => {
   console.log(isExpand,rected);
 }
 const wrapperCol={span:24,offset:12}
-let treeData:any = ref([])
-// 获取后台的树形数据
-const queryTree=async ()=>{
-  let rst=await request.get('/api/hlfs/_tree')
-  //声明一个空数组，将后台的对象push
-  treeData.value=objToArr(rst)  
-  treeData.value=delNode(treeData.value) 
-  treeData.value = addKey(treeData.value)
-}
+
 // 定义删除空节点的函数
 function delNode(array:any){
   let arr=[]
@@ -720,6 +761,20 @@ const addSib=async(key:any)=>{
   treeData.value = [...treeData.value]
   // queryTree()
 }
+
+// 添加顶级节点的数据
+const topTree=ref({
+  title:'TopNode',
+  key:uuid(),
+  children:[],
+  showEdit: false,
+  isLeaf:false
+})
+// 添加顶级节点
+const addTop=()=>{
+  treeData.value.push({...topTree.value})
+  rightNode.value=false
+}
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any) => {
@@ -740,8 +795,12 @@ const confirmtree =async (key:any) => {
 </script>
 <template>
   <main class="main"> 
+    <div ref="leftRef" style="height:100%">
       <SplitPanel>
         <template #left-content>
+          <a-menu mode="inline" v-show="rightNode" class="rightMenu">
+            <a-menu-item key="1" @click="addTop">Add Top Node</a-menu-item>
+          </a-menu>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
           v-if="treeData?.length"
@@ -1067,6 +1126,7 @@ const confirmtree =async (key:any) => {
         </template>
       </SplitPanel>
    <!-- </section> -->
+  </div>
    </main>
 </template>
 
@@ -1101,22 +1161,22 @@ const confirmtree =async (key:any) => {
  
    </style>
   <style lang="less">
-      // .rightMenu{
-      //   width: 5.8rem!important;
-      //   height: 2.15rem!important;
-      //   border: .0625rem solid antiquewhite;
-      //   border-right:.0625rem solid antiquewhite !important;
-      //   // background-color: antiquewhite !important;
-      //   font-size: .75rem;
-      //   box-shadow: -4px 4px 4px -5px rgba(0, 0, 0, 0.35), 2px 3px 4px -5px rgba(0, 0, 0, 0.35);
-      //   .ant-menu-item{
-      //     width: 96%;
-      //     text-align: center !important;;
-      //     padding:0 0!important;
-      //     height:1.575rem;
-      //     background-color: #fff;
-      //   }
-      // }
+      .rightMenu{
+        width: 5.8rem!important;
+        height: 2.15rem!important;
+        border: .0625rem solid antiquewhite;
+        border-right:.0625rem solid antiquewhite !important;
+        // background-color: antiquewhite !important;
+        font-size: .75rem;
+        box-shadow: -4px 4px 4px -5px rgba(0, 0, 0, 0.35), 2px 3px 4px -5px rgba(0, 0, 0, 0.35);
+        .ant-menu-item{
+          width: 96%;
+          text-align: center !important;;
+          padding:0 0!important;
+          height:1.575rem;
+          background-color: #fff;
+        }
+      }
     .found-kw{
     color: red!important;
     font-weight: 600;
