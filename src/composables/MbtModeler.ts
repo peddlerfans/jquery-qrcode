@@ -82,8 +82,16 @@ export class MbtModeler {
   elementToolsView = new joint.dia.ToolsView({
     tools: [this.boundaryTool, this.removeButton,this.connectButton],
   });
+
+  targetArrowheadTool = new joint.linkTools.TargetArrowhead({
+    focusOpacity: 0.5
+});
+sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
+  focusOpacity: 0.5
+});
+
   linkToolsView = new joint.dia.ToolsView({
-    tools: [this.removeButton],
+    tools: [this.removeButton,this.targetArrowheadTool,this.sourceArrowheadTool],
   });
   addElement(testClass: any, toolsView:dia.ToolsView,data?: any) {
     let rect: joint.shapes.basic.Generic = new testClass(data);
