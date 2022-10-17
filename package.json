@@ -3,7 +3,7 @@
   "author": {
     "name": "David",
     "email": "familydai7@gmail.com",
-    "url": ""
+    "url": "https://mbt.oppo.itealab.net/"
   },
   "version": "1.0.0",
   "scripts": {
@@ -25,7 +25,7 @@
     "@lljj/vue3-form-ant": "^1.14.0",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.1",
-    "ant-design-vue": "^3.2.11",
+    "ant-design-vue": "^3.2.13",
     "axios": "^0.27.2",
     "jointjs": "^3.5.5",
     "jquery": "^3.6.1",

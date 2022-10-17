@@ -66,7 +66,9 @@ const save =async (obj:any) => {
   
   recordobj.value.model=tableData.value  
   console.log(recordobj.value);
-  
+  if(recordobj.value.__v){
+    delete recordobj.value.__v
+  }
   await updMeta(recordobj.value)
   delete editableData[obj.key];
   

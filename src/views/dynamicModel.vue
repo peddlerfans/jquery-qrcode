@@ -18,10 +18,7 @@ import {
 } from '@/appConfig'
 import * as _ from 'lodash'
 import { cloneDeep } from 'lodash-es';
-import type {
-  FormProps,
-  SelectProps,
-} from 'ant-design-vue';
+import type {  FormProps,  SelectProps,} from 'ant-design-vue';
 import {
   SyncOutlined,
   PlusOutlined,
@@ -30,10 +27,7 @@ import {
   ExclamationCircleOutlined,
   SwapOutlined,
 } from '@ant-design/icons-vue';
-import {
-  message,
-  Table
-} from 'ant-design-vue/es'
+import {  message,  Table} from 'ant-design-vue/es'
 import { Rule } from 'ant-design-vue/es/form';
 import { Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
 import {
@@ -47,29 +41,16 @@ import {
   Constraint,
   valueStatesTs,
 } from "./componentTS/dynamictemplate";
-import { purple } from '@ant-design/colors';
-
+import condition from "@/components/Condition.vue"
+import CreateRule from '@/components/CreateRule.vue'
 
 // Specify the api for dynamic template data CRUD
 let url = templateUrl;
 let route = useRoute()
 let finalResult: any;
-let modelId: any;
 
-sessionStorage.setItem('dynamic_' + route.params._id, String(route.params._id))
+sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.params._id))
 // 获取当前数据并赋值
-
-onMounted(() => {
-  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
-
-  if (modelId === null){
-    message.error("Model cannot be found")
-  }else{
-    query(modelId)
-  }
-})
-
-
 let finalModel: Model = reactive({
   option: {},
   factor: [],
@@ -77,42 +58,47 @@ let finalModel: Model = reactive({
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
+
   finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
       ...e, editing: false, inputVisible: false, inputValue: ''
     }
   })
-  finalModel.constraint = finalResult.model!.constraint.map((e: any) => {
-    return {
-      ...e, editing: false
-    }
+  finalModel.constraint=finalResult.model.constraint
+  condata.value = finalResult.model!.constraint.map((e: any,index:string) => {
+    return {if:ifdata(e.if),then:{...e.then},keys:index}
   })
+  valueData.value=finalModel.factor
+  console.log('finalModel')
+  console.log(finalResult)
+  console.log(finalModel)
 }
+let modelId: any
+onMounted(() => {
+  modelId = sessionStorage.getItem('dynamic_' + route.params._id)
+  console.log('onMounted');
+  console.log(JSON.parse(modelId));
 
-
+  query(JSON.parse(modelId))
+})
 
 
 const saveModel = async () => {
-  if (showAddFactorBtn.value && showAddConstraintBtn.value){
+  console.log('saveModel');
+  if (showAddFactorBtn.value ){
     if (finalModel.factor.length<2){
       message.warning('It is requires at least TWO factors in a model')
-    }else {
-      try {
-        let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-        console.log(rst)
-
-        message.success('Model is saved successfully')
-      } catch (err) {
-        console.log(err)
-        message.error("Cannot save the model")
-      }
+    }else{
+      let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
+      console.log(rst);
+      message.success('Model is saved successfully')
     }
   }else{
     message.warning('Please save all the editing fields first')
   }
 
-  prev.value=true
+
 }
 
 
@@ -197,11 +183,15 @@ const addNewFactor = () => {
 }
 
 const editFactor = (record: Factor) => {
+  console.log('editFactor')
+  console.log(record)
 
   factorState.name = record.name
   factorState.type = record.type
   factorState.values = record.values
   showAddFactorBtn.value=false
+
+  console.log(factorState)
 
   record.editing = true
 
@@ -210,17 +200,17 @@ const editFactor = (record: Factor) => {
 
 const saveFactor = async (record: Factor) => {
   record.editing = false
+
   clearFactorState()
   showAddFactorBtn.value = true
-  prev.value=false
 }
 
 
 const deleteFactor = (record: Factor) => {
   const index= finalModel.factor.findIndex(e => e === record)
-
+  console.log('deleteFactorByName')
+  console.log(index)
   finalModel.factor.splice(index,1);
-  prev.value=false
   message.success('Delete Successfully!');
 }
 const cancelFactor = (record: Factor) => {
@@ -251,8 +241,12 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
+  console.log('close tags');
+  console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
+  console.log(record.values);
+
 };
 let inputRef = ref();
 
@@ -266,6 +260,7 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
+  console.log("handleModelTagConfirm")
 }
 
 const newFactorValueInput = (record: Factor) => {
@@ -276,13 +271,6 @@ const newFactorValueInput = (record: Factor) => {
     inputRef.value.toString();
   })
 };
-
-
-
-
-
-
-
 
 
 
@@ -389,10 +377,10 @@ const numberOptions = [
   }
 ]
 const ifOperatorOptions = computed(() => {
-  if (constraintState.ifname == '') {
+  if (thenObj.value.thenName == '') {
     return ref<SelectProps['options']>([]).value;
   } else {
-    if (finalModel.factor.filter(e => e.name == constraintState.ifname)[0].type == 'string') {
+    if (finalModel.factor.filter(e => e.name == thenObj.value.thenName)[0].type == 'string') {
       return ref<SelectProps['options']>(stringOptions).value
     } else {
       return ref<SelectProps['options']>(numberOptions).value
@@ -400,244 +388,231 @@ const ifOperatorOptions = computed(() => {
   }
 })
 
-const thenOperatorOptions = computed(() => {
-  if (constraintState.thenname == '') {
-    return ref<SelectProps['options']>([]).value;
-  } else {
-    if (finalModel.factor.filter(e => e.name == constraintState.thenname)[0].type == 'string') {
-      return ref<SelectProps['options']>(stringOptions).value
-    } else {
-      return ref<SelectProps['options']>(numberOptions).value
-    }
-  }
-})
+// const thenOperatorOptions = computed(() => {
+//   if (constraintState.thenname == '') {
+//     return ref<SelectProps['options']>([]).value;
+//   } else {
+//     if (finalModel.factor.filter(e => e.name == constraintState.thenname)[0].type == 'string') {
+//       return ref<SelectProps['options']>(stringOptions).value
+//     } else {
+//       return ref<SelectProps['options']>(numberOptions).value
+//     }
+//   }
+// })
 
 const ifNameOpetions = computed(() => {
   return ref<SelectProps['options']>(finalModel.factor.map(e => { return { value: e.name, label: e.name } })).value
 })
 
+// const ifValueOpetions = computed(() => {
+//   if (constraintState.ifname == '') {
+//     return ref<SelectProps['options']>([]).value
+//   } else {
+//     return ref<SelectProps['options']>(
+//         finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
+//             .map(e => { return { value: e, label: e } })).value
+//   }
+// })
 const ifValueOpetions = computed(() => {
-  if (constraintState.ifname == '') {
+  if (thenObj.value.thenName == '') {
     return ref<SelectProps['options']>([]).value
   } else {
     return ref<SelectProps['options']>(
-        finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
+        finalModel.factor.filter(e => e.name == thenObj.value.thenName)[0].values
             .map(e => { return { value: e, label: e } })).value
   }
 })
 
-const thenNameOpetions = computed(() => {
-  return ref<SelectProps['options']>(finalModel.factor.filter(e => e.name != constraintState.ifname).map(e => { return { value: e.name, label: e.name } })).value
-})
+// const thenNameOpetions = computed(() => {
+//   return ref<SelectProps['options']>(finalModel.factor.filter(e => e.name != constraintState.ifname).map(e => { return { value: e.name, label: e.name } })).value
+// })
 
 
-const thenValueOpetions = computed(() => {
-  if (constraintState.thenname == '') {
-    return ref<SelectProps['options']>([]).value
-  } else {
-    return ref<SelectProps['options']>(
-        finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
-            .map(e => { return { value: e, label: e } })).value
-  }
-})
+// const thenValueOpetions = computed(() => {
+//   if (constraintState.thenname == '') {
+//     return ref<SelectProps['options']>([]).value
+//   } else {
+//     return ref<SelectProps['options']>(
+//         finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
+//             .map(e => { return { value: e, label: e } })).value
+//   }
+// })
 
 let showAddConstraintBtn = ref(true)
 
-let constraintState = reactive<Constraint>({
-  ifname: '',
-  ifoperator: '',
-  ifvalues: [],
-  thenname: '',
-  thenoperator: '',
-  thenvalues: [],
-})
+// let constraintState = reactive<Constraint>({
+//   ifname: '',
+//   ifoperator: '',
+//   ifvalues: [],
+//   thenname: '',
+//   thenoperator: '',
+//   thenvalues: [],
+// })
 
 let currentFactorName = reactive([])
-
+let childComponent=ref(false)
+// 向子组件传递的参数
+let conditional=ref()
 const addNewConstraint = () => {
-  clearConstraintState()
+  childComponent.value=!childComponent.value
+  conditional.value=finalModel.factor
+  console.log('addNewConstraint')
+  // clearConstraintState()
+  showAddConstraintBtn.value = false;
 
-  if (finalModel.factor.length<2){
-    message.warning('Please add at least two factors first')
-  }else{
-    showAddConstraintBtn.value = false;
-
-    finalModel.constraint.push({
-      ifname: '',
-      ifoperator: '',
-      ifvalues: '',
-      thenname: '',
-      thenoperator: '',
-      thenvalues: '',
-      editing: true,
-    })
-  }
-
+  // finalModel.constraint.push({
+  //   ifname: '',
+  //   ifoperator: '',
+  //   ifvalues: '',
+  //   thenname: '',
+  //   thenoperator: '',
+  //   thenvalues: '',
+  //   editing: true,
+  // })
+  console.log(finalModel)
+  // console.log(constraintState)
 }
-const saveConstraint = (record: Constraint) => {
-  Object.assign(record, {
-    ifname: constraintState.ifname,
-    ifoperator: constraintState.ifoperator,
-    thenname: constraintState.thenname,
-    thenoperator: constraintState.thenoperator,
-    editing: false
-  });
+// const saveConstraint = (record: Constraint) => {
+//   console.log('saveConstraint')
+//   console.log(constraintState)
 
-  if (Array.isArray(constraintState.ifvalues)) {
-    Object.assign(record, {
-      ifvalues: []
-    });
-    constraintState.ifvalues.map((v) => { record.ifvalues.push(v) })
-  } else {
-    Object.assign(record, {
-      ifvalues: constraintState.ifvalues
-    });
-  }
+//   Object.assign(record, {
+//     ifname: constraintState.ifname,
+//     ifoperator: constraintState.ifoperator,
+//     thenname: constraintState.thenname,
+//     thenoperator: constraintState.thenoperator,
+//     editing: false
+//   });
 
-  if (Array.isArray(constraintState.thenvalues)) {
-    Object.assign(record, {
-      thenvalues: []
-    });
-    constraintState.thenvalues.map((v) => { record.thenvalues.push(v) })
-  } else {
-    Object.assign(record, {
-      thenvalues: constraintState.thenvalues
-    });
-  }
+//   if (Array.isArray(constraintState.ifvalues)) {
+//     Object.assign(record, {
+//       ifvalues: []
+//     });
+//     constraintState.ifvalues.map((v) => { record.ifvalues.push(v) })
+//   } else {
+//     Object.assign(record, {
+//       ifvalues: constraintState.ifvalues
+//     });
+//   }
 
-  record.editing = false
+//   if (Array.isArray(constraintState.thenvalues)) {
+//     Object.assign(record, {
+//       thenvalues: []
+//     });
+//     constraintState.thenvalues.map((v) => { record.thenvalues.push(v) })
+//   } else {
+//     Object.assign(record, {
+//       thenvalues: constraintState.thenvalues
+//     });
+//   }
 
-  showAddConstraintBtn.value = true
-  prev.value=false
-}
-const editConstraint = (record: Constraint) => {
+//   record.editing = false
 
-  constraintState.ifname = record.ifname
-  constraintState.ifoperator = record.ifoperator
-  constraintState.ifvalues = record.ifvalues
-  constraintState.thenname = record.thenname
-  constraintState.thenoperator = record.thenoperator
-  constraintState.thenvalues = record.thenvalues
+//   console.log(finalModel)
 
-  record.editing = true
-  showAddConstraintBtn.value = false
+//   showAddConstraintBtn.value = true
+// }
+// const editConstraint = (record: Constraint) => {
+//   console.log('editFactor')
+//   console.log(record);
+  
+//   console.log(finalModel.constraint)
 
-}
-
-const changeIfName = () => {
-  constraintState.ifoperator=''
-  constraintState.ifvalues=''
-  constraintState.thenoperator=''
-  constraintState.thenvalues=''
-}
-const changeIfOperator = () => {
-  if (constraintState.ifoperator==='IN'){
-    constraintState.ifvalues=[]
-  }else{
-    constraintState.ifvalues=''
-  }
-}
-
-const changeThenName = () => {
-  constraintState.thenoperator=''
-  constraintState.thenvalues=''
-}
-const changeThenOperator = () => {
-  if (constraintState.thenoperator==='IN'){
-    constraintState.thenvalues=[]
-  }else{
-    constraintState.thenvalues=''
-  }
-}
+//   constraintState.ifname = record.ifname
+//   constraintState.ifoperator = record.ifoperator
+//   constraintState.ifvalues = record.ifvalues
+//   constraintState.thenname = record.thenname
+//   constraintState.thenoperator = record.thenoperator
+//   constraintState.thenvalues = record.thenvalues
 
 
+//   console.log(constraintState)
 
+//   record.editing = true
+//   showAddConstraintBtn.value = false
 
+// }
 
+// const changeIfName = () => {
+//   constraintState.ifoperator=''
+//   constraintState.ifvalues=''
+//   constraintState.thenoperator=''
+//   constraintState.thenvalues=''
+// }
+// const changeIfOperator = () => {
+//   if (constraintState.ifoperator==='IN'){
+//     constraintState.ifvalues=[]
+//   }else{
+//     constraintState.ifvalues=''
+//   }
+// }
 
+// const changeThenName = () => {
+//   constraintState.thenoperator=''
+//   constraintState.thenvalues=''
+// }
+// const changeThenOperator = () => {
+//   if (constraintState.thenoperator==='IN'){
+//     constraintState.thenvalues=[]
+//   }else{
+//     constraintState.thenvalues=''
+//   }
+// }
 
-const updateConstraint = async (record: Constraint) => {
+// const updateConstraint = async (record: Constraint) => {
+//   console.log('updateConstraint')
+//   console.log(record)
 
-  record.editing = false
+//   record.editing = false
 
-  clearConstraintState()
-  showAddConstraintBtn.value = true
-}
+//   clearConstraintState()
+//   showAddConstraintBtn.value = true
+// }
 
-const deleteConstraint = (record: Constraint) => {
-  const index= finalModel.constraint.findIndex(e => e === record)
-  finalModel.constraint.splice(index,1);
-  prev.value=false
-  message.success('Delete Successfully!');
-}
-const cancelConstraint = (record: Constraint) => {
-  if (constraintState.ifname === ''){
-    const index= finalModel.constraint.findIndex(e => e === record)
-    finalModel.constraint.splice(index,1);
-  }else{
-    record.ifname=constraintState.ifname
-    record.ifoperator=constraintState.ifoperator
-    record.ifvalues=constraintState.ifvalues
-    record.thenname=constraintState.thenname
-    record.thenoperator=constraintState.thenoperator
-    record.thenvalues=constraintState.thenvalues
+// const deleteConstraint = (record: Constraint) => {
+//   const index= finalModel.constraint.findIndex(e => e === record)
+//   finalModel.constraint.splice(index,1);
+//   console.log(finalModel);
+//   saveModel()
+// }
+// const cancelConstraint = (record: Constraint) => {
+//   if (constraintState.ifname === ''){
+//     const index= finalModel.constraint.findIndex(e => e === record)
+//     finalModel.constraint.splice(index,1);
+//   }else{
+//     record.ifname=constraintState.ifname
+//     record.ifoperator=constraintState.ifoperator
+//     record.ifvalues=constraintState.ifvalues
+//     record.thenname=constraintState.thenname
+//     record.thenoperator=constraintState.thenoperator
+//     record.thenvalues=constraintState.thenvalues
 
-    record.editing = false
-  }
+//     record.editing = false
+//   }
 
-  clearConstraintState()
+//   console.log('cancelConstraint')
+//   console.log(record)
+//   console.log(constraintState)
+//   clearConstraintState()
+//   console.log(constraintState)
 
-  showAddConstraintBtn.value = true
+//   showAddConstraintBtn.value = true
 
-}
+// }
 
 
 const instance = getCurrentInstance()
 
+// const clearConstraintState = () => {
+//   constraintState.ifname = ''
+//   constraintState.ifoperator = ''
+//   constraintState.ifvalues = []
+//   constraintState.thenname = ''
+//   constraintState.thenoperator = ''
+//   constraintState.thenvalues = [];
 
-
-const clearConstraintState = () => {
-  constraintState.ifname = ''
-  constraintState.ifoperator = ''
-  constraintState.ifvalues = []
-  constraintState.thenname = ''
-  constraintState.thenoperator = ''
-  constraintState.thenvalues = [];
-
-  // (instance?.refs.refConstraintForm as any).resetFields();
-}
-
-
-// ###############################
-// ######## Preview modal ########
-// ###############################
-
-let columnPreview=ref<any>()
-let modelDataPreview=ref<any>()
-let prev=ref<boolean>(true);
-let visibleModal=ref<boolean>(false);
-
-const previewModel = async () => {
-  if (prev.value){
-    let rst = await request.post(url+`/${route.params._id}/preview`)
-    modelDataPreview.value=rst
-    columnPreview.value=rst.model?.parameters.map((e:any)=>{
-      return {
-        title: e.property,
-        dataIndex: e.property,
-        key: e.property,
-      }
-    })
-    visibleModal.value=true
-
-  }else{
-    message.warning("This model is changed, please save it first and then preview")
-  }
-
-
-
-}
-
+//   // (instance?.refs.refConstraintForm as any).resetFields();
+// }
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
@@ -647,7 +622,157 @@ const focus = () => {
   console.log('focus');
   // console.log(constraintState);
 };
-const activeKey = ref(['1']);
+
+// 子组件传递的值
+const ondata=(show:boolean,data?:any)=>{
+  console.log(show,data);
+  
+  childComponent.value=show
+  condata.value=[...data]
+  
+  finalModel.constraint=[...condata.value]
+  // saveModel()
+  showAddConstraintBtn.value=true
+}
+const columns=[
+{
+    title: 'IF',
+    dataIndex: 'if',
+    key: 'if',
+    width: 120
+  },
+  {
+    title: 'Then',
+    dataIndex: 'then',
+    key: 'then',
+    width: 120
+  },
+  {
+    title:'action',
+    dataIndex:'action',
+    key:'action',
+    width:60
+  }
+]
+
+// 将表格数据追加识别索引属性
+const conditionData=(arr:any)=>arr.map((item:any,index:string)=>({...item,keys:index}))
+
+// 递归改变if结构
+function ifdata(arr:any){
+  let finditem=null
+  for(let i=0;i<arr.length;i++){
+    let item=arr[i]
+    finditem=' '+'{'+' '+conditionstr(item.conditions)+' '+'}'+' '+item.relation+' '
+    if(item.children.length>0){
+      finditem+=ifdata(item.children)
+    }else{
+      break
+    }
+    
+  }
+  if(finditem!=null){
+    let numindex=finditem.lastIndexOf('}')
+    finditem= finditem.slice(0,numindex+1)
+    return finditem
+  }
+  
+}
+// 解决括号链接
+const conditionstr=(arr:any)=>{
+  let ifcondition=null
+  if(arr[arr.length-1].value){
+        delete arr[arr.length-1].selectvalue  
+  }
+  ifcondition=arr.map((item:any)=>{
+    if(item.selectvalue){
+      return ' '+'('+' '+item.name+' '+item.operate+' '+item.value+')'+' '+item.selectvalue+' '
+    }else{
+      return '('+item.name+item.operate+item.value+')'
+    }
+  })
+  return ifcondition.toString().replace(',','')
+}
+
+const thenObj=ref({
+  thenName:'',
+  thenOperator:'',
+  thenValue:''
+})
+const rulesChange=(datas: any,key:string)=>{
+  console.log(key);
+  
+    rulesData.value=datas//输出的条件对象
+    console.log(rulesData.value);
+    
+}
+// 定义实际数据结构的Constraint数据
+let truecondition=ref<Array<any>>([])
+// 定义Constraint (optional)的数据
+let condata=ref<Array<any>>([])
+// 点击保存时触发数据填充表格
+const  conditionsend=()=>{
+    if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
+      let ifvalue=ifdata(rulesData.value)
+      let conrow={if:ifvalue,then:thenObj.value}
+      let truerow={if:rulesData.value,then:thenObj.value}
+      if(keys.value){
+        condata.value[keys.value]={...conrow,keys:keys.value}
+        finalModel.constraint[keys.value]={...truerow}
+      }else{
+        condata.value=[...condata.value,{...conrow}]
+        finalModel.constraint=[...finalModel.constraint,{...truerow}]
+      }
+      cancelbulid()
+      saveModel()
+      condata.value=conditionData(condata.value)
+    }
+}
+// 点击取消时触发的函数
+const cancelbulid=()=>{
+  console.log(keys.value);
+  keys.value=''
+  rulesData.value= [//初始化条件对象或者，已保存的条件对象
+    {relation:"",
+                conditions:[],
+                children:[]}
+  ],
+  childComponent.value=false
+  showAddConstraintBtn.value = true;
+}
+// 点击修改的值
+const editCon=(obj:any)=>{
+  console.log(keys.value);
+  
+if(finalModel.constraint.length>0){  
+  keys.value=obj.keys
+  rulesData.value=finalModel.constraint[obj.keys].if
+  thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
+  thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
+  thenObj.value.thenValue=finalModel.constraint[obj.keys].then.thenValue
+}
+  childComponent.value=true
+}
+// 点击删除触发的函数
+const deleteconstraint=(obj:any)=>{
+  condata.value=condata.value.splice(obj.keys,1)
+  finalModel.constraint=finalModel.constraint.splice(obj.keys,1)
+  saveModel()
+}
+
+// 递归组件需要的数据
+// const enableDeleteChild=ref(false)
+const keys=ref<any>("")
+const formDatas=ifNameOpetions
+const valueData=ref()
+const rulesData=ref(
+  [//初始化条件对象或者，已保存的条件对象
+      {relation:"",
+      conditions:[],
+      children:[]}
+  ]
+)
+
 </script>
 
 
@@ -655,40 +780,6 @@ const activeKey = ref(['1']);
 <template>
 
   <main style="height:100%;overflow-x: hidden!important;">
-
-    <!-- ############ -->
-    <!-- Preview info -->
-    <!-- ############ -->
-
-
-
-    <a-modal v-model:visible="visibleModal" title="Preview" :width="900">
-
-      <!-- Model meta info -->
-
-
-      <template #footer>
-        <!--        <a-button @click="closeModel">Cancel</a-button>-->
-      </template>
-
-
-      <a-collapse v-model:activeKey="activeKey">
-        <a-collapse-panel key="1" header="Data">
-          <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-            <template #bodyCell="{ column, text, record }">
-              {{ text }}
-            </template>
-          </a-table>
-        </a-collapse-panel>
-        <a-collapse-panel key="2" header="Model">
-          <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-        </a-collapse-panel>
-      </a-collapse>
-<!--      <h2>Model</h2>-->
-
-
-    </a-modal>
-
 
     <!-- ############ -->
     <!-- Options info -->
@@ -783,7 +874,9 @@ const activeKey = ref(['1']);
             <span v-if="record.editing">
               <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a @click="cancelFactor(record)">Cancel</a>
+              <a-popconfirm title="Sure to cancel?" @confirm="cancelFactor(record)">
+                <a>Cancel</a>
+              </a-popconfirm>
             </span>
 
             <span v-else>
@@ -812,12 +905,12 @@ const activeKey = ref(['1']);
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
                 style="margin-left: 12px;">Add a New Constraint</a-button>
     </div>
-    <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
+
+    <!-- <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
       <template #bodyCell="{ column, text, record }">
 
         <template v-if='column.key==="ifname"'>
           <div>
-            <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
             <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifname"
                       :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus" @change="changeIfName()">
             </a-select>
@@ -830,11 +923,7 @@ const activeKey = ref(['1']);
 
         <template v-if='column.key==="ifoperator"'>
           <div>
-            <!-- <a-form-item label="Type" name="type">
-                  <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
-                </a-form-item>
-                <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator" :disabled="constraintState.ifname===''"
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator"
                       :options="ifOperatorOptions" @focus="focus" @change="changeIfOperator()">
             </a-select>
 
@@ -854,7 +943,7 @@ const activeKey = ref(['1']);
             <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
                      style="margin: -5px 0" @focus="focus" />
             <a-select v-else ref="select" v-model:value="constraintState.ifvalues" :options="ifValueOpetions"
-                      :disabled="constraintState.ifoperator == ''" @focus="focus">
+                      :disabled="false" @focus="focus">
             </a-select>
           </template>
 
@@ -881,7 +970,6 @@ const activeKey = ref(['1']);
 
         <template v-if='column.key==="thenname"'>
           <div>
-            <!-- <a-input v-if="record.editing" v-model:value="record.ifname" style="margin: -5px 0" /> -->
             <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenname"
                       :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus"  @change="changeThenName()">>
             </a-select>
@@ -894,11 +982,7 @@ const activeKey = ref(['1']);
 
         <template v-if='column.key==="thenoperator"'>
           <div>
-            <!-- <a-form-item label="Type" name="type">
-                  <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
-                </a-form-item>
-                <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator" :disabled="constraintState.thenname === ''"
+            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator"
                       :options="thenOperatorOptions" @focus="focus"  @change="changeThenOperator()">
             </a-select>
 
@@ -916,7 +1000,7 @@ const activeKey = ref(['1']);
             <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
                      style="margin: -5px 0" @focus="focus" />
             <a-select v-else ref="select2" v-model:value="constraintState.thenvalues" :options="thenValueOpetions"
-                      :disabled="constraintState.thenoperator === ''" @focus="focus">
+                      :disabled="false" @focus="focus">
             </a-select>
           </template>
 
@@ -938,14 +1022,13 @@ const activeKey = ref(['1']);
           </span>
         </template>
 
-
-
-
         <template v-if='column.key === "action"'>
           <span v-if="record.editing">
             <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
             <a-divider type="vertical" />
-            <a @click="cancelConstraint(record)">Cancel</a>
+            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
+              <a>Cancel</a>
+            </a-popconfirm>
           </span>
 
           <span v-else>
@@ -958,18 +1041,200 @@ const activeKey = ref(['1']);
           </span>
         </template>
       </template>
+    </a-table> -->
+    <a-table :columns="columns" :data-source="condata" bordered>
+      <template  #bodyCell="{ column, text, record }">
+        <template v-if="column.key==='then'">
+          <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+        </template>
+        <template v-if="column.key=='action'">
+          <span>
+            <a @click="editCon(record)">Edit</a>
+              <a-divider type="vertical" />
+              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+                            @confirm="deleteconstraint(record)" @cancel="cancel">
+                <a>Delete</a>
+              </a-popconfirm>
+          </span>
+        </template>
+      </template>
     </a-table>
-
     <a-divider/>
-
+    <div v-if="childComponent">
+      <!-- <condition :factorsconditional="conditional" @parentdata="ondata"></condition> -->
+    <a-row>
+      <a-col :span="12">
+        <h2>IF</h2>
+        <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+      </a-col>
+      <a-col :span="12">
+        <h2>Then</h2>
+        <a-card >
+          
+                <a-form layout="inline" style="margin-top:20px">
+                <a-form-item label="Name">
+                    <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
+                </a-form-item>
+                <a-form-item label="Operator">
+                    <a-select :options="ifOperatorOptions" v-model:value="thenObj.thenOperator"></a-select>
+                </a-form-item>
+                <a-form-item label="Value">
+                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue"></a-select>
+                </a-form-item>
+                
+            </a-form>
+                <div style="margin:2.5rem 0 0.5rem 32.5rem;display: flex;">
+                    <a-button type="primary" @click='conditionsend'>保存</a-button>
+                    <a-button @click="cancelbulid">取消</a-button>
+                </div>
+        </a-card>
+      </a-col>
+    </a-row>
+      
+    </div>
     <div style="margin-top: 30px">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
-      <a-button :disabled="finalModel.factor.length<2" @click="previewModel()" style="margin-left:30px">Preview</a-button>
-
     </div>
 
 
+    <!-- <header class="block shadow">
+      <a-row>
+        <a-col :span="20">
+          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
+            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
+            <a-col :span="20">
+
+              <a-mentions v-model:value="formState.search"
+                placeholder="input @ to search tags, input name to search Dynamic Templates">
+                <a-mentions-option value="tags:">
+                  tags:
+                </a-mentions-option>
+              </a-mentions>
+            </a-col>
+
+            <a-col :span="4">
+              <a-button type="primary" html-type="submit">search</a-button>
+            </a-col>
+
+          </AForm>
+        </a-col>
+        <a-col :span="4">
+          <a-button type="primary" @click="showModal">
+            <template #icon>
+              <plus-outlined />
+            </template>
+          </a-button>
+        </a-col>
+      </a-row>
+    </header> -->
+
+
+    <!-- 模态窗 -->
+
+    <!-- <div>
+      <a-modal v-model:visible="visibleModel"
+        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
+        @ok="handleOk" :width="900">
+
+
+        <h2>Model</h2>
+
+        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
+          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+          <a-form-item label="Name" name="name">
+            <a-input v-model:value="modelState.name" />
+          </a-form-item>
+
+          <a-form-item label="Description" name="description">
+            <a-input v-model:value="modelState.description" />
+          </a-form-item>
+
+          <a-form-item label="Tag" name="tags">
+            <template v-for="(tag) in modelState.tags" :key="tag">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" @close="handleCloseTag(tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
+              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
+              @keyup.enter="handleModelTagConfirm" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
+              <plus-outlined />
+              Add a New Tag
+            </a-tag>
+          </a-form-item>
+        </a-form>
+
+        <template #footer>
+          <a-button @click="closeModel">Cancel</a-button>
+          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
+        </template>
+
+
+      </a-modal>
+    </div> -->
+
+
+
+
+    <!-- ######################### -->
+    <!-- List of dynamic templates -->
+    <!-- ######################### -->
+
+    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
+      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
+      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'name'">
+          <span>
+            <edit-outlined />
+            Name
+          </span>
+        </template>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'name'">
+
+          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
+        </template>
+
+        <template v-else-if="column.key === 'description'">
+
+          {{ record.description }}
+
+        </template>
+        <template v-else-if="column.key === 'tags'">
+          <span>
+            <a-tag v-for="tag in record.tags" :key="tag"
+              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
+              {{ tag.toUpperCase() }}
+            </a-tag>
+          </span>
+        </template>
+
+        <template v-else-if="column.key === 'action'">
+          <span>
+            <a @click="editModel(record)">Edit</a>
+            <a-divider type="vertical" />
+            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+              @confirm="deleteModel(record._id)" @cancel="cancel">
+              <a>Delete</a>
+            </a-popconfirm>
+          </span>
+        </template>
+      </template>
+
+
+    </ATable> -->
+    <!-- </section> -->
   </main>
 </template>
 
@@ -997,6 +1262,8 @@ footer {
   border-radius: 0.7rem;
 }
 </style>
-<style>
-
+<style lang="less">
+.ant-card-body{
+  padding:0 1rem;
+}
 </style>

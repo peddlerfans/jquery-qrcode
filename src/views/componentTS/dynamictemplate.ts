@@ -32,15 +32,15 @@ export interface Factor {
 }
 
 export interface Constraint {
-    ifname: string
-    ifoperator: string
-    ifvalues: any
-    thenname: string
-    thenoperator: string
-    thenvalues: any
-    editing?: Boolean
+    if:Array<any>
+    then:thenobj
+    key?:string
 }
-
+export interface thenobj{
+    thenName:string
+    thenOperator:string
+    thenValue:string
+}
 export interface Model{
     option: any,
     factor: Array<Factor>,
