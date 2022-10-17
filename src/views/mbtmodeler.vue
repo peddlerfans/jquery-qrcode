@@ -182,10 +182,10 @@ async function metatemplatequery(data?: any) {
       metatemplaterecordobj.value.model = rst1.model;
       metatemplatedetailtableData.value = arr(rst1.model);
       console.log("rst1:", rst1);
-      let temparr = rst1.model as [];
+      let temparr = rst1.model ;
       console.log("temparr:", temparr);
-
-      temparr.forEach((mod: any) => {
+      if(_.isArray(temparr)){
+        temparr.forEach((mod: any) => {
         // let keyname = mod.name;
         let typeinschema = "";
         let enumVal: any[] = [];
@@ -263,6 +263,9 @@ async function metatemplatequery(data?: any) {
       // if (rst && typeof rst.model != "undefined")
       //   metatemplatetableData.value = arr(rst?.model);
     }
+
+      }
+      
   } else {
     let meta_id = "";
     let strsql = `/api/templates?q=category:meta&search=`;
