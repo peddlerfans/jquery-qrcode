@@ -356,8 +356,8 @@ let checkDesc = async (_rule: Rule, value: string) => {
 }
 
 let modelRules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+  name: [{ required: true, validator: checkName }],
+  description: [{ required: true, validator: checkDesc }],
 };
 
 

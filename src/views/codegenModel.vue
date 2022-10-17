@@ -25,6 +25,7 @@ import type {
 import {
   EditFilled,
   CodeFilled,
+  DoubleRightOutlined
 } from '@ant-design/icons-vue';
 import {
   message,
@@ -38,10 +39,14 @@ import {
 import { purple } from '@ant-design/colors';
 
 import { VAceEditor } from 'vue3-ace-editor';
+import ace from 'ace-builds'
 import "./componentTS/ace-config";
 import 'ace-builds/src-noconflict/mode-ejs'
 import 'ace-builds/src-noconflict/mode-html'
 import 'ace-builds/src-noconflict/mode-python'
+import 'ace-builds/src-noconflict/mode-javascript'
+import 'ace-builds/src-noconflict/mode-json'
+import 'ace-builds/src-noconflict/mode-ftl'
 
 
 
@@ -55,6 +60,30 @@ let modelId: any;
 sessionStorage.setItem('codegen_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
 
+
+// 表单验证
+let checkInputType = async (_rule: Rule, value: string) => {
+  if (!value) {
+    return Promise.reject("Please select the Template Engine")
+  } else {
+    return Promise.resolve();
+  }
+}
+
+let checkOuputType = async (_rule: Rule, value: string) => {
+  if (!value) {
+    return Promise.reject("Please select the Output Language")
+  } else {
+    return Promise.resolve();
+  }
+}
+
+let modelRules: Record<string, Rule[]> = {
+  inputtype: [{ required: true, validator: checkInputType }],
+  outputtype: [{ required: true, validator: checkOuputType }],
+};
+
+
 const templateOptions = ref<SelectProps['options']>([
   {
     value: 'ejs',
@@ -63,7 +92,7 @@ const templateOptions = ref<SelectProps['options']>([
   {
     value: 'freemarker',
     label: 'FreeMarker',
-  },
+  }
 ]);
 const langOptions = ref<SelectProps['options']>([
   {
@@ -81,8 +110,8 @@ const themeOptions = ref<SelectProps['options']>([
     label: 'Github',
   },
   {
-    value: 'chrome',
-    label: 'Chrome',
+    value: 'xcode',
+    label: 'XCode',
   },
   {
     value: 'monokai',
@@ -91,10 +120,7 @@ const themeOptions = ref<SelectProps['options']>([
 ]);
 
 const states = reactive({
-  // template: 'ejs',
-  lang: 'python',
-  theme: 'github',
-  // content: '',
+  theme: 'monokai',
   result: '',
 });
 
@@ -290,15 +316,14 @@ const sampledata={
 
 const previewModel = async () => {
   console.log('previewModel')
-  console.log(toRaw(modelState))
 
   if (modelState.templateText){
     try {
       let res = await request.post(url+`/${route.params._id}/preview`, sampledata)
       console.log(res)
       states.result=res.data
-    }catch (err){
-      console.log(err)
+    }catch (err:any){
+      console.log(err.response.data.message)
       states.result=''
     }
 
@@ -326,22 +351,26 @@ const saveModel = async () => {
     <!-- Preview info -->
     <!-- ############ -->
       <header>
-        <a-form name="basic"
-                :label-col="{ span: 8 }"
-                :wrapper-col="{ span: 6 }"
-                autocomplete="off">
-          <a-form-item label="Template Engine">
-            <a-select v-model:value="modelState.model.templateEngine" :options="templateOptions"></a-select>
-          </a-form-item>
 
-          <a-form-item label="Output Language">
-            <a-select v-model:value="modelState.model.outputLanguage" :options="langOptions"></a-select>
-          </a-form-item>
+        <a-form name="basic"  :rules="modelRules" autocomplete="off">
 
-          <a-form-item label="Theme">
-            <a-select v-model:value="states.theme" :options="themeOptions"></a-select>
-          </a-form-item>
-
+          <a-row  type="flex" justify="center" :gutter="24">
+            <a-col :span="6">
+              <a-form-item label="Template Engine">
+                <a-select v-model:value="modelState.model.templateEngine" :options="templateOptions"></a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item label="Output Language">
+                <a-select v-model:value="modelState.model.outputLanguage" :options="langOptions"></a-select>
+              </a-form-item>
+            </a-col>
+            <a-col :span="6">
+              <a-form-item label="Theme">
+                <a-select v-model:value="states.theme" :options="themeOptions"></a-select>
+              </a-form-item>
+            </a-col>
+          </a-row>
         </a-form>
       </header>
 
@@ -357,12 +386,12 @@ const saveModel = async () => {
             :options="{ useWorker: true }"
         />
       </a-col>
-      <a-col :span="2">
-        <a-layout-content><a-button type="primary" @click="previewModel">Preview >></a-button></a-layout-content>
+      <a-col :span="1">
+        <a-layout-content><a-button type="primary" @click="previewModel"><double-right-outlined /></a-button></a-layout-content>
 
       </a-col>
       <a-col :span="11">
-        <a-typography-title :level="5"><code-filled /> Result (Readonly)</a-typography-title>
+        <a-typography-title :level="5"><code-filled /> Result (Read-only)</a-typography-title>
         <VAceEditor
             v-model:value="states.result"
             class="vue-ace-editor"
@@ -404,7 +433,7 @@ footer {
   margin-top: 15px;
   font-size: 16px;
   border: 1px solid;
-  height: 500px;
+  height: 70vh;
 }
 </style>
 <style>
