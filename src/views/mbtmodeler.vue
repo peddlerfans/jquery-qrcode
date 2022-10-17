@@ -156,37 +156,139 @@ const showDrawer = (
   }
 };
 
+const isMetaTemplateEmpty = ref(true);
 // 获取当前数据并赋值
 let metatemplaterecordobj = ref();
 // 根据传来的name值获取到数据
+// showMetaDetail
+
+let tempschema = ref({
+  description: "Config",
+  type: "object",
+  properties: {},
+});
 async function metatemplatequery(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
-  let meta_id = "";
-  let strsql = `/api/templates?search=&q=category:meta`;
-  let rst: any = {};
-  rst = await request
-    .get(strsql)
-    .then((record: any) => {
-      if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
-        meta_id = record.data[0]._id;
-    })
-    .finally(() => {
-      // console.log("rst:", rst);
-      if (rst.length > 0) {
-        hasmultipleMetaTemplates.value = true;
-      }
-      return rst;
+
+  if (data) {
+    isVisible.value = !isVisible.value;
+    console.log("+++++++ ", data);
+    let rst1 = await request.get(`/api/templates/${data}`, {
+      params: { q: "category:meta", search: "" },
     });
-  let rst1 = await request.get(`/api/templates/${meta_id}`, {
-    params: { q: "category:meta", search: "" },
-  });
-  metatemplaterecordobj.value = rst1;
-  if (rst1.model) {
-    metatemplaterecordobj.value.model = rst1.model;
-    metatemplatedetailtableData.value = arr(rst1.model);
-    console.log("rst:", rst);
-    if (rst && typeof rst.model != "undefined")
-      metatemplatetableData.value = arr(rst?.model);
+    console.log("rst1:", rst1);
+    metatemplaterecordobj.value = rst1;
+    if (rst1.model) {
+      metatemplaterecordobj.value.model = rst1.model;
+      metatemplatedetailtableData.value = arr(rst1.model);
+      console.log("rst1:", rst1);
+      let temparr = rst1.model as [];
+      console.log("temparr:", temparr);
+
+      temparr.forEach((mod: any) => {
+        // let keyname = mod.name;
+        let typeinschema = "";
+        let enumVal: any[] = [];
+        switch (mod.type) {
+          case "int":
+            typeinschema = "number";
+            break;
+          case "str":
+            typeinschema = "string";
+            break;
+          case "float":
+            typeinschema = "number";
+            break;
+          case "number":
+            typeinschema = "number";
+            break;
+          case "boolean":
+            typeinschema = "boolean";
+            break;
+          case "SUT":
+            typeinschema = "string";
+            break;
+          default:
+            break;
+        }
+        let tempobj;
+        if (
+          mod.hasOwnProperty("enum") &&
+          mod.enum.length > 0 &&
+          typeinschema == "string"
+        ) {
+          enumVal = _.split(mod.enum, ",");
+          tempobj = {
+            [mod.name]: {
+              type: `${typeinschema}`,
+              description: mod.description,
+              // "title":mod.name,
+              enum: enumVal,
+              enumNames: enumVal,
+            },
+          };
+        } else if (
+          mod.hasOwnProperty("enum") &&
+          mod.enum.length > 0 &&
+          typeinschema == "number"
+        ) {
+          let tempenumVal = _.split(mod.enum, ",");
+          let len = tempenumVal.length;
+          for (let i = 0; i < len; i++) {
+            enumVal.push(parseInt(tempenumVal[i]));
+          }
+
+          tempobj = {
+            [mod.name]: {
+              type: `${typeinschema}`,
+              description: mod.description,
+              // "title":mod.name,
+              enum: enumVal,
+              enumNames: enumVal,
+            },
+          };
+        } else {
+          tempobj = {
+            [mod.name]: {
+              type: `${typeinschema}`,
+              description: mod.description,
+              // "title":mod.name,
+            },
+          };
+        }
+
+        Object.assign(tempschema.value.properties, tempobj);
+      });
+      console.log("tempschema:    ", tempschema);
+      // if (rst && typeof rst.model != "undefined")
+      //   metatemplatetableData.value = arr(rst?.model);
+    }
+  } else {
+    let meta_id = "";
+    let strsql = `/api/templates?q=category:meta&search=`;
+    let rst: [] = [];
+
+    await request
+      .get(strsql)
+      .then((record: any) => {
+        console.log(record);
+        rst = record.data;
+        if (rst.length > 0) {
+          isMetaTemplateEmpty.value = false;
+        }
+
+        metatemplatetableData.value = arr(rst);
+
+        // if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
+        //   meta_id = record.data[0]._id;
+      })
+      .finally(() => {
+        console.log("rst:", rst);
+        if (rst.length > 0) {
+          hasmultipleMetaTemplates.value = true;
+        }
+        return rst;
+      });
   }
 
   // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
@@ -464,27 +566,26 @@ let globalformData = ref<Stores.mbtView>({
 let linkData = ref({
   _id: "",
   label: "",
-  routerType:'rounded',
-  connectorType:'manhattan',
+  routerType: "manhattan",
+  connectorType: "rounded",
   loop: false,
   loopcount: 1,
 });
 interface LinkFormData {
-  _id: string,
-  label: string,
-  loop?: boolean,
-  loopcount?: number,
-  connectorType?:string,
-  routerType?:string
-
+  _id: string;
+  label: string;
+  loop?: boolean;
+  loopcount?: number;
+  connectorType?: string;
+  routerType?: string;
 }
 let linkFormData: LinkFormData = {
   _id: "",
   label: "",
   loop: false,
   loopcount: 1,
-  connectorType:'rounded',  
-  routerType:'manhattan'
+  connectorType: "rounded",
+  routerType: "manhattan",
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
@@ -526,6 +627,7 @@ const globalschema = ref({
     },
   },
 });
+
 const awschema = ref({
   title: "AW",
   description: "Configuration for the AW",
@@ -575,7 +677,6 @@ const linkschema = ref({
       "ui:hidden": true,
       required: true,
     },
-
     routerType: {
       type: "string",
       title: "Style",
@@ -824,12 +925,12 @@ function linkhandlerSubmit() {
   linkFormData.label = linkData.value.label;
   linkFormData.loop = linkData.value.loop;
   linkFormData.loopcount = linkData.value.loopcount;
-  linkFormData.connectorType = linkData.value.connectorType
-  linkFormData.routerType =linkData.value.routerType;
+  linkFormData.connectorType = linkData.value.connectorType;
+  linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
   // console.log(linkData.value.routerType);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
-  modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);        
+  modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -1646,7 +1747,12 @@ const isVisible = ref(false);
 const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
-  console.log("import other meta template");
+  
+  metatemplatedetailtableData.value=[];
+  // tempschema.value.description='';
+  tempschema.value.properties ={};
+  // tempschema.value.type =''
+  // console.log("import other meta template");
 };
 
 const importfromstatic = () => {};
@@ -1971,7 +2077,17 @@ const onAfterChange = (value: any) => {
           <div class="infoPanel">
             <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
               <a-tab-pane key="1" tab="Meta">
+                <VueForm
+                  v-if="isVisible"
+                  v-model="metatemplatedetailtableData"
+                  :schema="tempschema"
+                  @submit="linkhandlerSubmit"
+                  @cancel="onCloseDrawer"
+                >
+                </VueForm>
+
                 <a-table
+                  v-if="isVisible"
                   :columns="metatemplatedetailcolumns"
                   :data-source="metatemplatedetailtableData"
                   bordered
@@ -1995,14 +2111,17 @@ const onAfterChange = (value: any) => {
                     </template>
                   </template>
                 </a-table>
-                <a-button
-                  v-if="hasmultipleMetaTemplates"
-                  type="primary"
-                  @click="onImportFromMetaTemplate"
-                  >Choose another one</a-button
-                >
+                <a-space :size="10">
+                  <a-button
+                    style="margin-right: 10px"
+                    v-if="isVisible"
+                    type="link"
+                    @click="onImportFromMetaTemplate"
+                    >Back</a-button
+                  >
+                </a-space>
                 <a-table
-                  v-if="isVisible"
+                  v-if="!isVisible"
                   :columns="metatemplatecolumns"
                   :data-source="metatemplatetableData"
                   bordered
@@ -2010,9 +2129,9 @@ const onAfterChange = (value: any) => {
                   <template #bodyCell="{ column, text, record }">
                     <template v-if="column.key === 'name'">
                       <div>
-                        <a :href="'/#/metaModeler/' + record._id + '/' + record.name">{{
+                        <a-button type="link" @click="metatemplatequery(record._id)">{{
                           text
-                        }}</a>
+                        }}</a-button>
                       </div>
                     </template>
                     <template v-if="column.key === 'description'">
@@ -2025,8 +2144,17 @@ const onAfterChange = (value: any) => {
                     </template>
                   </template>
                 </a-table>
-
-                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
+                <div class="awtable">
+                  <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
+                    Jump to Meta Template
+                  </a>
+                  <a-button
+                    v-if="!isMetaTemplateEmpty && isVisible"
+                    type="primary"
+                    @click="globalhandlerSubmit"
+                    >保存</a-button
+                  >
+                </div>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
@@ -2180,7 +2308,7 @@ header {
 
 .awtable {
   padding: 5px;
-  // display: flex!important;
+  display: flex !important;
   justify-content: flex-end;
   // flex-direction:column-reverse!important;
 }
