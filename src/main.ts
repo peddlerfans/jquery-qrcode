@@ -14,8 +14,8 @@ import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
 
-import {Form,Input,InputNumber,Button,Drawer,Switch,Slider} from 'ant-design-vue';
+import {Form,Input,InputNumber,Button,Drawer,Switch,Slider,Select,SelectOption,Space} from 'ant-design-vue';
  
 mockEnv.includes(import.meta.env.MODE as EnvType) && mock === 'on' && enableMock()
 
-createApp(App).use(Form).use(Input).use(InputNumber).use(Button).use(Switch).use(Slider).use(Drawer).use(createPinia()).use(router).mount('#app')
+createApp(App).use(Form).use(Input).use(InputNumber).use(Button).use(Switch).use(SelectOption).use(Select).use(Space).use(Slider).use(Drawer).use(createPinia()).use(router).mount('#app')
