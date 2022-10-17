@@ -10,7 +10,12 @@ import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
-import { SmileOutlined, SearchOutlined } from "@ant-design/icons-vue";
+import {
+  SmileOutlined,
+  SearchOutlined,
+  MinusCircleOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
 import {
@@ -158,16 +163,32 @@ async function metatemplatequery(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let meta_id = "";
   let strsql = `/api/templates?search=&q=category:meta`;
-  let rst = await request.get(strsql).then((record: any) => {
-    return (meta_id = record.data[0]._id);
-  });
+  let rst: any = {};
+  rst = await request
+    .get(strsql)
+    .then((record: any) => {
+      if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
+        meta_id = record.data[0]._id;
+    })
+    .finally(() => {
+      // console.log("rst:", rst);
+      if (rst.length > 0) {
+        hasmultipleMetaTemplates.value = true;
+      }
+      return rst;
+    });
   let rst1 = await request.get(`/api/templates/${meta_id}`, {
     params: { q: "category:meta", search: "" },
   });
   metatemplaterecordobj.value = rst1;
+  if (rst1.model) {
+    metatemplaterecordobj.value.model = rst1.model;
+    metatemplatedetailtableData.value = arr(rst1.model);
+    console.log("rst:", rst);
+    if (rst && typeof rst.model != "undefined")
+      metatemplatetableData.value = arr(rst?.model);
+  }
 
-  metatemplaterecordobj.value.model = rst1.model;
-  metatemplatetableData.value = arr(rst1.model);
   // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
   //  console.log(rst);
   //  route.params.name=rst.name
@@ -213,6 +234,7 @@ const formStateExpected = reactive<FormState>({
   search: "",
 });
 let metatemplatetableData = ref([]);
+let metatemplatedetailtableData = ref([]);
 let tableData = ref([]);
 let tableDataExpected = ref([]);
 let searchobj: tableSearch = reactive({
@@ -229,6 +251,26 @@ let searchobjExpected: tableSearch = reactive({
   perPage: 10,
 });
 const metatemplatecolumns = reactive<Object[]>([
+  {
+    title: "name",
+    dataIndex: "name",
+    key: "name",
+    width: 180,
+  },
+  {
+    title: "description",
+    dataIndex: "description",
+    key: "description",
+    width: 180,
+  },
+  {
+    title: "tag",
+    dataIndex: "tag",
+    key: "tag",
+  },
+]);
+
+const metatemplatedetailcolumns = reactive<Object[]>([
   {
     title: "name",
     dataIndex: "name",
@@ -422,20 +464,27 @@ let globalformData = ref<Stores.mbtView>({
 let linkData = ref({
   _id: "",
   label: "",
+  routerType:'rounded',
+  connectorType:'manhattan',
   loop: false,
   loopcount: 1,
 });
 interface LinkFormData {
-  _id: string;
-  label: string;
-  loop?: boolean;
-  loopcount?: number;
+  _id: string,
+  label: string,
+  loop?: boolean,
+  loopcount?: number,
+  connectorType?:string,
+  routerType?:string
+
 }
 let linkFormData: LinkFormData = {
   _id: "",
   label: "",
   loop: false,
   loopcount: 1,
+  connectorType:'rounded',  
+  routerType:'manhattan'
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
@@ -525,6 +574,19 @@ const linkschema = ref({
       type: "string",
       "ui:hidden": true,
       required: true,
+    },
+
+    routerType: {
+      type: "string",
+      title: "Style",
+      enum: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
+      enumNames: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
+    },
+    connectorType: {
+      type: "string",
+      title: "Type",
+      enum: ["jumpover", "normal", "rounded", "smooth", "curve"],
+      enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
     },
     label: {
       title: "Label",
@@ -762,6 +824,12 @@ function linkhandlerSubmit() {
   linkFormData.label = linkData.value.label;
   linkFormData.loop = linkData.value.loop;
   linkFormData.loopcount = linkData.value.loopcount;
+  linkFormData.connectorType = linkData.value.connectorType
+  linkFormData.routerType =linkData.value.routerType;
+  // console.log(linkData.value.connectorType)
+  // console.log(linkData.value.routerType);
+  modeler.graph.getCell(lv_id).router(linkData.value.routerType);
+  modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);        
   let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -1574,8 +1642,11 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
+const isVisible = ref(false);
+const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
-  console.log('import other meta template')
+  isVisible.value = !isVisible.value;
+  console.log("import other meta template");
 };
 
 const importfromstatic = () => {};
@@ -1593,7 +1664,7 @@ const onAfterChange = (value: any) => {
       style="padding: 0rem !important; margin-bottom: 0.2rem !important"
     >
       <a-row>
-        <a-col span="20">
+        <a-col span="18">
           <a-button-group>
             <a-button type="primary" @click="saveMBT(route)"> Save </a-button>
             <span style="margin-left: 5px">
@@ -1602,15 +1673,17 @@ const onAfterChange = (value: any) => {
           </a-button-group>
         </a-col>
         <a-col span="4">
-          <label>Zoom</label>
-
-          <a-slider
-            v-model:value="value1"
-            :min="0.2"
-            :max="3"
-            :step="0.2"
-            @afterChange="onAfterChange"
-          />
+          <div class="icon-wrapper">
+            <minus-circle-outlined />
+            <a-slider
+              v-model:value="value1"
+              :min="0.2"
+              :max="3"
+              :step="0.2"
+              @afterChange="onAfterChange"
+            />
+            <plus-circle-outlined />
+          </div>
         </a-col>
       </a-row>
     </header>
@@ -1898,89 +1971,62 @@ const onAfterChange = (value: any) => {
           <div class="infoPanel">
             <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
               <a-tab-pane key="1" tab="Meta">
-                <a-collapse v-model:activeKey="metaActiveKey">
-                  <a-collapse-panel key="1" header="Import from Meta Template">
-                    <a-table
-                      :columns="metatemplatecolumns"
-                      :data-source="metatemplatetableData"
-                      bordered
-                    >
-                      <template #headerCell="{ column }"> </template>
-                      <template #bodyCell="{ column, text, record }">
-                        <template v-if="column.key === 'name'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                        <template v-if="column.key === 'description'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                        <template v-if="column.key === 'type'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                      </template>
-                    </a-table>
-                    <a-button type="primary" @click="onImportFromMetaTemplate"
-                      >导入其他模版</a-button
-                    >
-                  </a-collapse-panel>
-                  <a-collapse-panel key="2" header="Input directly">
-                    <a-button
-                      class="editable-add-btn"
-                      style="margin-bottom: 8px"
-                      @click="metahandleAdd"
-                      >Add</a-button
-                    >
-                    <a-table
-                      bordered
-                      :data-source="metadataSource"
-                      :columns="metacolumns"
-                    >
-                      <template #bodyCell="{ column, text, record }">
-                        <template v-if="['title', 'content'].includes(column.dataIndex)">
-                          <div class="editable-cell">
-                            <div
-                              v-if="metaeditableData[record.key]"
-                              class="editable-cell-input-wrapper"
-                            >
-                              <a-input
-                                v-model:value="metaeditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
-                                @pressEnter="metasave(record.key)"
-                              />
-                              <check-outlined
-                                class="editable-cell-icon-check"
-                                @click="metasave(record.key)"
-                              />
-                            </div>
-                            <div v-else class="editable-cell-text-wrapper">
-                              {{ text || " " }}
-                              <edit-outlined
-                                class="editable-cell-icon"
-                                @click="metaedit(record.key)"
-                              />
-                            </div>
-                          </div>
-                        </template>
-                        <template
-                          v-else-if="column.dataIndex === 'operation' && record.key > 1"
-                        >
-                          <a-popconfirm
-                            v-if="metadataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onMetaDelete(record.key)"
-                          >
-                            <a>Delete</a>
-                          </a-popconfirm>
-                        </template>
-                      </template>
-                    </a-table>
-                    <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
-                  </a-collapse-panel>
-                </a-collapse>
+                <a-table
+                  :columns="metatemplatedetailcolumns"
+                  :data-source="metatemplatedetailtableData"
+                  bordered
+                >
+                  <template #headerCell="{ column }"> </template>
+                  <template #bodyCell="{ column, text, record }">
+                    <template v-if="column.key === 'name'">
+                      <div>
+                        {{ text }}
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'description'">
+                      <div>
+                        {{ text }}
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'type'">
+                      <div>
+                        {{ text }}
+                      </div>
+                    </template>
+                  </template>
+                </a-table>
+                <a-button
+                  v-if="hasmultipleMetaTemplates"
+                  type="primary"
+                  @click="onImportFromMetaTemplate"
+                  >Choose another one</a-button
+                >
+                <a-table
+                  v-if="isVisible"
+                  :columns="metatemplatecolumns"
+                  :data-source="metatemplatetableData"
+                  bordered
+                >
+                  <template #bodyCell="{ column, text, record }">
+                    <template v-if="column.key === 'name'">
+                      <div>
+                        <a :href="'/#/metaModeler/' + record._id + '/' + record.name">{{
+                          text
+                        }}</a>
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'description'">
+                      <div>
+                        {{ text }}
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'tags'">
+                      {{ text }}
+                    </template>
+                  </template>
+                </a-table>
+
+                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
@@ -2156,5 +2202,28 @@ header {
 
 .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
+}
+
+.icon-wrapper {
+  position: relative;
+  padding: 0px 30px;
+}
+
+.icon-wrapper .anticon {
+  position: absolute;
+  top: -2px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.icon-wrapper .anticon:first-child {
+  left: 0;
+}
+
+.icon-wrapper .anticon:last-child {
+  right: 0;
 }
 </style>
