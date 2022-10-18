@@ -172,100 +172,98 @@ async function metatemplatequery(data?: any) {
 
   if (data) {
     isVisible.value = !isVisible.value;
-    console.log("+++++++ ", data);
+    // console.log("+++++++ ", data);
     let rst1 = await request.get(`/api/templates/${data}`, {
       params: { q: "category:meta", search: "" },
     });
-    console.log("rst1:", rst1);
+    // console.log("rst1:", rst1);
     metatemplaterecordobj.value = rst1;
     if (rst1.model) {
       metatemplaterecordobj.value.model = rst1.model;
       metatemplatedetailtableData.value = arr(rst1.model);
-      console.log("rst1:", rst1);
-      let temparr = rst1.model ;
-      console.log("temparr:", temparr);
-      if(_.isArray(temparr)){
+      // console.log("rst1:", rst1);
+      let temparr = rst1.model;
+      // console.log("temparr:", temparr);
+      if (_.isArray(temparr)) {
         temparr.forEach((mod: any) => {
-        // let keyname = mod.name;
-        let typeinschema = "";
-        let enumVal: any[] = [];
-        switch (mod.type) {
-          case "int":
-            typeinschema = "number";
-            break;
-          case "str":
-            typeinschema = "string";
-            break;
-          case "float":
-            typeinschema = "number";
-            break;
-          case "number":
-            typeinschema = "number";
-            break;
-          case "boolean":
-            typeinschema = "boolean";
-            break;
-          case "SUT":
-            typeinschema = "string";
-            break;
-          default:
-            break;
-        }
-        let tempobj;
-        if (
-          mod.hasOwnProperty("enum") &&
-          mod.enum.length > 0 &&
-          typeinschema == "string"
-        ) {
-          enumVal = _.split(mod.enum, ",");
-          tempobj = {
-            [mod.name]: {
-              type: `${typeinschema}`,
-              description: mod.description,
-              // "title":mod.name,
-              enum: enumVal,
-              enumNames: enumVal,
-            },
-          };
-        } else if (
-          mod.hasOwnProperty("enum") &&
-          mod.enum.length > 0 &&
-          typeinschema == "number"
-        ) {
-          let tempenumVal = _.split(mod.enum, ",");
-          let len = tempenumVal.length;
-          for (let i = 0; i < len; i++) {
-            enumVal.push(parseInt(tempenumVal[i]));
+          // let keyname = mod.name;
+          let typeinschema = "";
+          let enumVal: any[] = [];
+          switch (mod.type) {
+            case "int":
+              typeinschema = "number";
+              break;
+            case "str":
+              typeinschema = "string";
+              break;
+            case "float":
+              typeinschema = "number";
+              break;
+            case "number":
+              typeinschema = "number";
+              break;
+            case "boolean":
+              typeinschema = "boolean";
+              break;
+            case "SUT":
+              typeinschema = "string";
+              break;
+            default:
+              break;
+          }
+          let tempobj;
+          if (
+            mod.hasOwnProperty("enum") &&
+            mod.enum.length > 0 &&
+            typeinschema == "string"
+          ) {
+            enumVal = _.split(mod.enum, ",");
+            tempobj = {
+              [mod.name]: {
+                type: `${typeinschema}`,
+                description: mod.description,
+                // "title":mod.name,
+                enum: enumVal,
+                enumNames: enumVal,
+              },
+            };
+          } else if (
+            mod.hasOwnProperty("enum") &&
+            mod.enum.length > 0 &&
+            typeinschema == "number"
+          ) {
+            let tempenumVal = _.split(mod.enum, ",");
+            let len = tempenumVal.length;
+            for (let i = 0; i < len; i++) {
+              enumVal.push(parseInt(tempenumVal[i]));
+            }
+
+            tempobj = {
+              [mod.name]: {
+                type: `${typeinschema}`,
+                description: mod.description,
+                // "title":mod.name,
+                enum: enumVal,
+                enumNames: enumVal,
+              },
+            };
+          } else {
+            tempobj = {
+              [mod.name]: {
+                type: `${typeinschema}`,
+                description: mod.description,
+                // "title":mod.name,
+              },
+            };
           }
 
-          tempobj = {
-            [mod.name]: {
-              type: `${typeinschema}`,
-              description: mod.description,
-              // "title":mod.name,
-              enum: enumVal,
-              enumNames: enumVal,
-            },
-          };
-        } else {
-          tempobj = {
-            [mod.name]: {
-              type: `${typeinschema}`,
-              description: mod.description,
-              // "title":mod.name,
-            },
-          };
-        }
-
-        Object.assign(tempschema.value.properties, tempobj);
-      });
-      console.log("tempschema:    ", tempschema);
-      // if (rst && typeof rst.model != "undefined")
-      //   metatemplatetableData.value = arr(rst?.model);
-    }
-
+          Object.assign(tempschema.value.properties, tempobj);
+        });
+        // console.log("tempschema:    ", tempschema);
+        // if (rst && typeof rst.model != "undefined")
+        //   metatemplatetableData.value = arr(rst?.model);
       }
-      
+    }
   } else {
     let meta_id = "";
     let strsql = `/api/templates?q=category:meta&search=`;
@@ -274,7 +272,7 @@ async function metatemplatequery(data?: any) {
     await request
       .get(strsql)
       .then((record: any) => {
-        console.log(record);
+        // console.log(record);
         rst = record.data;
         if (rst.length > 0) {
           isMetaTemplateEmpty.value = false;
@@ -286,7 +284,7 @@ async function metatemplatequery(data?: any) {
         //   meta_id = record.data[0]._id;
       })
       .finally(() => {
-        console.log("rst:", rst);
+        // console.log("rst:", rst);
         if (rst.length > 0) {
           hasmultipleMetaTemplates.value = true;
         }
@@ -965,6 +963,8 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { label: linkFormData.label });
   Object.assign(tempObj, { loop: linkFormData.loop });
   Object.assign(tempObj, { loopcount: linkFormData.loopcount });
+  Object.assign(tempObj, { connectorType: linkFormData.connectorType });
+  Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
   message.success("Save it Successfully");
@@ -1139,7 +1139,7 @@ function saveMBT(route?: any) {
   let obj = Object.fromEntries(cacheprops);
 
   Object.assign(tempdata, { props: obj });
-
+  Object.assign(tempdata, { paperscale: paperscale.value });
   mbtCache["modelDefinition"] = tempdata;
   mbtCache["dataDefinition"] = cacheDataDefinition;
 
@@ -1213,7 +1213,7 @@ function reloadMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  metatemplatequery();
+
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
@@ -1231,7 +1231,10 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
-          // console.log('onMounted.has modelDefinition.....cacheprops/', cacheprops)
+        }
+        if (value.modelDefinition.hasOwnProperty("paperscale")) {
+          
+          modeler.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
         if (value.dataDefinition.meta.length > 0) {
@@ -1254,7 +1257,6 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
-          // console.log('onMounted..doesnot have....cacheprops/', cacheprops)
         }
       }
     });
@@ -1335,10 +1337,14 @@ onMounted(() => {
     isLink.value = true;
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
-      currentLinkMap.set(lv_id, { props: cacheprops.get(linkView.model.id) });
-      linkData.value.label = cacheprops.get(linkView.model.id).props.label;
-      linkData.value.loop = cacheprops.get(linkView.model.id).props.loop;
-      linkData.value.loopcount = cacheprops.get(linkView.model.id).props.loopcount;
+      let templinkData = cacheprops.get(linkView.model.id);
+      linkData.value = templinkData.props;
+      currentLinkMap.set(lv_id, { props: templinkData });
+      // linkData.value.label = cacheprops.get(linkView.model.id).props.label;
+      // linkData.value.loop = cacheprops.get(linkView.model.id).props.loop;
+      // linkData.value.loopcount = cacheprops.get(linkView.model.id).props.loopcount;
+      // linkData.value.connectorType = cacheprops.get(linkView.model.id).props.connectorType;
+      // linkData.value.routerType = cacheprops.get(linkView.model.id).props.routerType;
       linkData.value._id = linkView.model.id;
     } else {
       // todo link props
@@ -1435,6 +1441,7 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    metatemplatequery();
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
@@ -1750,10 +1757,10 @@ const isVisible = ref(false);
 const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
-  
-  metatemplatedetailtableData.value=[];
+
+  metatemplatedetailtableData.value = [];
   // tempschema.value.description='';
-  tempschema.value.properties ={};
+  tempschema.value.properties = {};
   // tempschema.value.type =''
   // console.log("import other meta template");
 };
@@ -1761,8 +1768,10 @@ const onImportFromMetaTemplate = () => {
 const importfromstatic = () => {};
 const isDisabled = ref(true);
 const value1 = ref<number>(1);
+const paperscale = ref(1);
 const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
+  paperscale.value = value;
 };
 </script>
 
@@ -2066,13 +2075,15 @@ const onAfterChange = (value: any) => {
           <!-- link panel -->
 
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
-            <VueForm
-              v-model="linkData"
-              :schema="linkschema"
-              @submit="linkhandlerSubmit"
-              @cancel="onCloseDrawer"
-            >
-            </VueForm>
+            <div style="margin: 5px; padding: 5px">
+              <VueForm
+                v-model="linkData"
+                :schema="linkschema"
+                @submit="linkhandlerSubmit"
+                @cancel="onCloseDrawer"
+              >
+              </VueForm>
+            </div>
           </div>
 
           <!-- Global panel -->
