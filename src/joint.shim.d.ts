@@ -88,7 +88,7 @@ interface DynamicModel {
 declare module 'axios' {
     interface ResponseData<T> {
         // model(model: any): any;
-        model?: DynamicModel|any[],
+        model?: any|any[],
         code: number,
         msg: string,
         data: T | null
