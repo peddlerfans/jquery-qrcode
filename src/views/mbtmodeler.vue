@@ -10,6 +10,8 @@ import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
+import { RadioGroupProps } from "ant-design-vue";
+
 import {
   SmileOutlined,
   SearchOutlined,
@@ -80,6 +82,9 @@ const formExpectedFooter = {
 const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
+
+const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
+const templatevalue = ref<string>("Static Template");
 
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
@@ -691,7 +696,7 @@ const linkschema = ref({
       enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
     },
     label: {
-      title: "Label",
+      title: "Condition",
       type: "string",
       // "ui:hidden": "{{parentFormData.loop === true}}"
     },
@@ -770,9 +775,13 @@ function awhandlerSubmit() {
       currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops
     ) {
+      console.log(
+        "expected in handler:",
+        currentElementMap.get(ev_id).props.expectedprops
+      );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
     }
-    // console.log(' 2/1-1 : tempexpected', tempexpected);
+    console.log(" 2/1-1 : tempexpected", tempexpected);
     // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
 
     tempformdata._id = awformdata.value._id;
@@ -798,6 +807,7 @@ function awhandlerSubmit() {
       });
     } //未设置expected，只存primary
     else {
+      console.log("correct");
       currentElementMap.set(ev_id, { props: { primaryprops: tempformdata } });
       cacheprops.set(ev_id, { props: { primaryprops: tempformdata } });
     }
@@ -845,6 +855,7 @@ function awhandlerSubmit() {
     currentElementMap.get(ev_id).props &&
     currentElementMap.get(ev_id).props.expectedprops
   ) {
+    console.log("error expected ");
     isOneAW = false;
     for (const [key, value] of Object.entries(
       currentElementMap.get(ev_id).props.expectedprops
@@ -869,6 +880,10 @@ function awhandlerSubmit() {
         break;
       }
     }
+  } else {
+    console.log("last else");
+    isOneAW = true;
+    showbodytext = "";
   }
 
   /**
@@ -900,6 +915,8 @@ function awhandlerSubmit() {
   if (isOneAW) {
     cell.attr("header", { width: maxX, height: maxY * 0.5 });
     cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("bodyText/text", "");
+    cell.attr("body").transform = "matrix(0,0,0,0,0,0)";
     cell.resize(maxX, maxY * 0.5 - 20);
   } // For both primary and expected
   else {
@@ -973,6 +990,30 @@ function linkhandlerSubmit() {
 function handlerEditExpected() {
   awquery("", true);
   hasAWExpectedInfo.value = false;
+}
+
+function handlerClearExpected() {
+  // hasAWExpectedInfo.value = false;
+  console.log("clear expected,ev_id:", ev_id);
+
+  if (
+    cacheprops.get(ev_id) != null &&
+    cacheprops.get(ev_id).props.expectedprops &&
+    cacheprops.get(ev_id).props.expectedprops.name.length > 0
+  ) {
+    console.log("success 2   awformdataExpected", awformdataExpected);
+    cacheprops.set(ev_id, { props: { primaryprops: awformdata.value } });
+    console.log("succ3 ", cacheprops.get(ev_id).props);
+    // awformdataExpected.value._id=''
+
+    // awformdata.value = awformdataExpected;
+
+    currentElementMap.set(ev_id, {
+      props: { primaryprops: awformdata.value },
+    });
+  }
+  awActiveKey.value = "1";
+  isDisabled.value = true;
 }
 
 function handlerCancel() {
@@ -1152,7 +1193,7 @@ function reloadMBT(route: any) {
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
-
+  console.log("reloadMBT, mbtid", mbtId);
   if (mbtId.length > 0) {
     res = mbtquery(mbtId, true);
   } else {
@@ -1233,7 +1274,6 @@ onMounted(() => {
           cacheprops = map;
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
-          
           modeler.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
@@ -1340,17 +1380,13 @@ onMounted(() => {
       let templinkData = cacheprops.get(linkView.model.id);
       linkData.value = templinkData.props;
       currentLinkMap.set(lv_id, { props: templinkData });
-      // linkData.value.label = cacheprops.get(linkView.model.id).props.label;
-      // linkData.value.loop = cacheprops.get(linkView.model.id).props.loop;
-      // linkData.value.loopcount = cacheprops.get(linkView.model.id).props.loopcount;
-      // linkData.value.connectorType = cacheprops.get(linkView.model.id).props.connectorType;
-      // linkData.value.routerType = cacheprops.get(linkView.model.id).props.routerType;
+
       linkData.value._id = linkView.model.id;
     } else {
       // todo link props
 
       currentLinkMap.set(linkView.model.id, { props: {} });
-      // // console.log('cacheprops set link....1')
+
       // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
       cacheprops.set(linkView.model.id, { props: {} });
     }
@@ -1395,6 +1431,7 @@ onMounted(() => {
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
+          cacheprops.get(ev_id).props.primaryprops.name &&
           cacheprops.get(ev_id).props.primaryprops.name.length > 0
         ) {
           // console.log('success    ', cacheprops.get(ev_id).props.primaryprops)
@@ -1404,9 +1441,10 @@ onMounted(() => {
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
+            cacheprops.get(ev_id).props.expectedprops.name &&
             cacheprops.get(ev_id).props.expectedprops.name.length > 0
           ) {
-            // console.log('success 2   ', cacheprops.get(ev_id).props.expectedprops)
+            console.log("success 1437   ", cacheprops.get(ev_id).props.expectedprops);
             awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops;
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
@@ -1415,7 +1453,7 @@ onMounted(() => {
               props: { primaryprops: awformdata.value, expectedprops: awformdata.value },
             });
           } else {
-            // cacheprops.set(ev_id, { props: { 'primaryprops': awformdata.value, 'expectedprops': awformdataExpected } });
+            cacheprops.set(ev_id, { props: { primaryprops: awformdata.value } });
             currentElementMap.set(ev_id, { props: { primaryprops: awformdata.value } });
           }
           // console.log('final result cacheprops:    ', cacheprops)
@@ -1842,6 +1880,8 @@ const onAfterChange = (value: any) => {
           <div class="infoPanel" ref="infoPanel" v-if="isAW">
             <a-tabs v-model:activeKey="awActiveKey">
               <a-tab-pane key="1" tab="Primary">
+                <a-row>
+                <a-col span ="18">
                 <AForm
                   v-if="!hasAWInfo && isAW"
                   layout="inline"
@@ -1861,87 +1901,101 @@ const onAfterChange = (value: any) => {
                     <a-button type="primary" html-type="submit">search</a-button>
                   </a-form-item>
                 </AForm>
+              </a-col>
+              <a-col>
+                    <span style="margin-right: 5px">
+                      <a-button     
+                        v-if="!hasAWInfo"                  
+                        type="primary"
+                        @click="onCloseDrawer()"
+                        >Close</a-button
+                      >
+                    </span>
 
+                    <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
+                  </a-col>
+                  </a-row>
                 <div class="awtable" v-if="!hasAWInfo && isAW">
-                  <a-table
-                    bordered
-                    row-key="record=>record._id"
-                    :columns="columns"
-                    :data-source="tableData"
-                    class="components-table-demo-nested"
-                    :pagination="pagination"
-                  >
-                    <template #headerCell="{ column }">
-                      <template v-if="column.key === 'name'">
-                        <span>
-                          <smile-outlined />
-                          Name
-                        </span>
+                  <a-row>
+                    <a-table
+                      bordered
+                      row-key="record=>record._id"
+                      :columns="columns"
+                      :data-source="tableData"
+                      class="components-table-demo-nested"
+                      :pagination="pagination"
+                    >
+                      <template #headerCell="{ column }">
+                        <template v-if="column.key === 'name'">
+                          <span>
+                            <smile-outlined />
+                            Name
+                          </span>
+                        </template>
                       </template>
-                    </template>
-                    <template #bodyCell="{ column, text, record }">
-                      <template v-if="column.key === 'name'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.name">
-                            <a-button type="link" @click="showAWInfo(record)">
-                              <p v-for="item in record._highlight.name" v-html="item"></p>
-                            </a-button>
+                      <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.key === 'name'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.name">
+                              <a-button type="link" @click="showAWInfo(record)">
+                                <p
+                                  v-for="item in record._highlight.name"
+                                  v-html="item"
+                                ></p>
+                              </a-button>
+                            </div>
+                            <div v-else>
+                              <a-button type="link" @click="showAWInfo(record)">
+                                {{ record.name }}</a-button
+                              >
+                            </div>
                           </div>
                           <div v-else>
                             <a-button type="link" @click="showAWInfo(record)">
                               {{ record.name }}</a-button
                             >
                           </div>
-                        </div>
-                        <div v-else>
-                          <a-button type="link" @click="showAWInfo(record)">
-                            {{ record.name }}</a-button
-                          >
-                        </div>
-                      </template>
-                      <template v-if="column.key === 'description'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.description">
-                            <p
-                              v-for="item in record._highlight.description"
-                              v-html="item"
-                            ></p>
+                        </template>
+                        <template v-if="column.key === 'description'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.description">
+                              <p
+                                v-for="item in record._highlight.description"
+                                v-html="item"
+                              ></p>
+                            </div>
+                            <div v-else>{{ record.description }}</div>
                           </div>
                           <div v-else>{{ record.description }}</div>
-                        </div>
-                        <div v-else>{{ record.description }}</div>
-                      </template>
-                      <template v-if="column.key === 'template'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.template">
-                            <p
-                              v-for="item in record._highlight.template"
-                              v-html="item"
-                            ></p>
+                        </template>
+                        <template v-if="column.key === 'template'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.template">
+                              <p
+                                v-for="item in record._highlight.template"
+                                v-html="item"
+                              ></p>
+                            </div>
+                            <div v-else>{{ record.template }}</div>
                           </div>
                           <div v-else>{{ record.template }}</div>
-                        </div>
-                        <div v-else>{{ record.template }}</div>
-                      </template>
+                        </template>
 
-                      <template v-if="column.key === 'tags'">
-                        <span>
-                          <a-tag
-                            v-for="tag in record.tags"
-                            :key="tag"
-                            :color="tag === 'test' ? 'volcano' : 'red'"
-                          >
-                            {{ tag.toUpperCase() }}
-                          </a-tag>
-                        </span>
+                        <template v-if="column.key === 'tags'">
+                          <span>
+                            <a-tag
+                              v-for="tag in record.tags"
+                              :key="tag"
+                              :color="tag === 'test' ? 'volcano' : 'red'"
+                            >
+                              {{ tag.toUpperCase() }}
+                            </a-tag>
+                          </span>
+                        </template>
                       </template>
-                    </template>
-                  </a-table>
-                  <span style="margin-right: 5px">
-                    <a-button type="primary" @click="onCloseDrawer()">Close </a-button>
-                  </span>
-
-                  <a-button danger v-if="!hasAWInfo" @click="onBack()">Back </a-button>
+                    </a-table>
+                  </a-row>
+                  
                 </div>
                 <VueForm v-model="awformdata" :schema="awschema" v-if="isAW && hasAWInfo">
                   <div slot-scope="{ awformdata }">
@@ -2053,7 +2107,12 @@ const onAfterChange = (value: any) => {
                     </template>
                   </a-table>
 
-                  <a-button type="primary" @click="onAWExpectedBack()">Back </a-button>
+                  <a-button
+                    v-if="isAW && hasAWExpectedInfo"
+                    type="primary"
+                    @click="onAWExpectedBack()"
+                    >Back
+                  </a-button>
                 </div>
                 <VueForm
                   v-model="awformdataExpected"
@@ -2065,6 +2124,9 @@ const onAfterChange = (value: any) => {
                       <a-button type="primary" @click="handlerEditExpected()"
                         >Edit</a-button
                       >
+                    </span>
+                    <span style="margin-left: 5px">
+                      <a-button danger @click="handlerClearExpected()">Clear</a-button>
                     </span>
                   </div>
                 </VueForm>
@@ -2088,18 +2150,19 @@ const onAfterChange = (value: any) => {
 
           <!-- Global panel -->
 
-          <div class="infoPanel">
-            <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
+          <div class="infoPanel" v-if="isGlobal">
+            <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
-                <VueForm
-                  v-if="isVisible"
-                  v-model="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  @submit="linkhandlerSubmit"
-                  @cancel="onCloseDrawer"
-                >
-                </VueForm>
-
+                <div style="margin: 5px; padding: 5px">
+                  <VueForm
+                    v-if="isVisible"
+                    v-model="metatemplatedetailtableData"
+                    :schema="tempschema"
+                    @submit="linkhandlerSubmit"
+                    @cancel="onCloseDrawer"
+                  >
+                  </VueForm>
+                </div>
                 <a-table
                   v-if="isVisible"
                   :columns="metatemplatedetailcolumns"
@@ -2185,6 +2248,8 @@ const onAfterChange = (value: any) => {
                 </a-card>
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
+                <a-radio-group v-model:value="templatevalue" :options="templateOptions" />
+
                 <a-collapse v-model:activeKey="metaActiveKey">
                   <a-collapse-panel key="1" header="Input directly">
                     <dynamic-table></dynamic-table>
