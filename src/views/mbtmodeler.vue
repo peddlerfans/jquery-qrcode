@@ -85,7 +85,19 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 
 const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
 const templatevalue = ref<string>("Static Template");
-
+const metaformProps=  {
+    "layoutColumn": 1,
+    "labelPosition": "left",
+    labelWidth: '100px',
+    "labelSuffix": ":"
+  }
+  const awformProps= {
+    // inline: true,
+    layoutColumn: 1,
+    labelPosition: 'left',
+     labelWidth: '50px',
+     labelSuffix: ":"
+  }
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
   cellsInfo?: {
@@ -653,11 +665,12 @@ const awschema = ref({
       title: "Description",
       type: "string",
       readOnly: true,
+      'ui:widget': "TextAreaWidget"
     },
     template: {
       title: "Template",
       type: "string",
-      readOnly: true,
+      
     },
     tags: {
       title: "Tags",
@@ -667,7 +680,7 @@ const awschema = ref({
     params: {
       title: "Params",
       type: "string",
-      readOnly: true,
+      
     },
   },
 });
@@ -1997,7 +2010,9 @@ const onAfterChange = (value: any) => {
                   </a-row>
                   
                 </div>
-                <VueForm v-model="awformdata" :schema="awschema" v-if="isAW && hasAWInfo">
+                <div style="margin: 5px">
+                <VueForm v-model="awformdata" :formProps="awformProps"
+                :schema="awschema" v-if="isAW && hasAWInfo">
                   <div slot-scope="{ awformdata }">
                     <span style="margin-right: 5px">
                       <a-button type="primary" @click="awhandlerSubmit()"
@@ -2010,6 +2025,7 @@ const onAfterChange = (value: any) => {
                     <a-button danger @click="onExpectedAW()">Next</a-button>
                   </div>
                 </VueForm>
+              </div>
               </a-tab-pane>
 
               <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
@@ -2032,7 +2048,7 @@ const onAfterChange = (value: any) => {
                     <a-button type="primary" html-type="submit">search</a-button>
                   </a-form-item>
                 </AForm>
-                <div class="awtable" v-if="!hasAWExpectedInfo && isAW">
+                <div v-if="!hasAWExpectedInfo && isAW">
                   <a-table
                     bordered
                     row-key="record=>record._id"
@@ -2117,6 +2133,7 @@ const onAfterChange = (value: any) => {
                 <VueForm
                   v-model="awformdataExpected"
                   :schema="awschema"
+                  :formProps="awformProps"
                   v-if="isAW && hasAWExpectedInfo"
                 >
                   <div slot-scope="{ awformdataExpected }">
@@ -2148,46 +2165,23 @@ const onAfterChange = (value: any) => {
             </div>
           </div>
 
-          <!-- Global panel -->
+          <!-- Global panel :formProps="metaformProps" -->
 
           <div class="infoPanel" v-if="isGlobal">
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
                 <div style="margin: 5px; padding: 5px">
+                <!-- {{tempschema}} -->
                   <VueForm
                     v-if="isVisible"
                     v-model="metatemplatedetailtableData"
                     :schema="tempschema"
+                    
                     @submit="linkhandlerSubmit"
                     @cancel="onCloseDrawer"
                   >
                   </VueForm>
                 </div>
-                <a-table
-                  v-if="isVisible"
-                  :columns="metatemplatedetailcolumns"
-                  :data-source="metatemplatedetailtableData"
-                  bordered
-                >
-                  <template #headerCell="{ column }"> </template>
-                  <template #bodyCell="{ column, text, record }">
-                    <template v-if="column.key === 'name'">
-                      <div>
-                        {{ text }}
-                      </div>
-                    </template>
-                    <template v-if="column.key === 'description'">
-                      <div>
-                        {{ text }}
-                      </div>
-                    </template>
-                    <template v-if="column.key === 'type'">
-                      <div>
-                        {{ text }}
-                      </div>
-                    </template>
-                  </template>
-                </a-table>
                 <a-space :size="10">
                   <a-button
                     style="margin-right: 10px"
