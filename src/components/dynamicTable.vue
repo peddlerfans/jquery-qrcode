@@ -370,6 +370,7 @@ const emit = defineEmits<{
         </a-table>
   
       </div>
+      <a-button @click="emit('update',tableData)">Save</a-button>
     </main>
   </template>
   

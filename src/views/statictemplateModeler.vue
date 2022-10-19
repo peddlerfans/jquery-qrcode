@@ -256,6 +256,8 @@ const query = async (data?: any) => {
   if (rst.model ) {
     
     recordobj.value.model = rst.model
+    let tempobj = rst.model
+    
 
     tableData.value = rst.model.data;
     

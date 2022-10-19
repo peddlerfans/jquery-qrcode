@@ -28,7 +28,7 @@ export namespace Stores {
     description: string,  
     template?:string,  
     tags: string,
-    params: string 
+    params?: any 
     
   }
 
