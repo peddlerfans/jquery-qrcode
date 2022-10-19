@@ -60,35 +60,6 @@ const queryTree=async ()=>{
 // 获取左侧区域的dom
 const leftRef=ref()
 const rightNode=ref(false)
-// function rightClick(){
-// let leftNode=leftRef.value.children[0].children[0].children[0]
-// let treeNode=leftNode.children[1]
-// let menuNode=leftNode.children[0]
-//   // 计算元素距离视图的总宽高
-//   let leftNodeWidth=leftNode.getBoundingClientRect().right
-//   let leftNodeHight=leftNode.getBoundingClientRect().bottom
-//     // 计算树节点距离视图的总宽高
-//     let treeNodeWidth=treeNode.getBoundingClientRect().right
-//   let treeNodeHight=treeNode.getBoundingClientRect().bottom
-// console.log(treeNodeHight,leftNodeHight);
-// window.addEventListener('click',function(){rightNode.value=false})
-// if(treeData.value.length==0){
-//   leftNode.addEventListener('contextmenu',function(e:any){
-//     console.log(e);
-    
-//     e.preventDefault()    
-//     if(treeNodeHight<e.clientY && e.clientY<leftNodeHight){
-//       const {x,y}=e
-//       // leftNode.style.position='relative'
-//       rightNode.value=true
-//       // menuNode.style.backgroundColor='antiquewhite'
-//       menuNode.style.position='fixed'
-//       menuNode.style.top=e.clientY+'px'
-//       menuNode.style.left=e.clientX+'px'
-//     }
-//   })
-// }
-// }
 let aaa=ref()
 console.log(aaa.value);
 
