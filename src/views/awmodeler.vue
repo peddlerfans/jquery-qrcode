@@ -13,8 +13,6 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./compo
 // import VueContextMenu from 'vue-contextmenu'
 import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
-import { highlighters } from 'jointjs';
-import { f } from 'vitest/dist/index-60e2a8e1';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -1217,7 +1215,7 @@ const confirmtree =async (key:any) => {
           </template>
           
           <template v-else-if="column.key === 'action'">
-              <span >
+              <span>
                   <a @click="edit(record)">Edit</a>
                     <a-divider type="vertical" />
                         <a-popconfirm
@@ -1229,7 +1227,7 @@ const confirmtree =async (key:any) => {
                         >
                       <a >Delete</a>
                     </a-popconfirm>
-              </span>
+                  </span>
           </template>
     </template>
       </a-table>
