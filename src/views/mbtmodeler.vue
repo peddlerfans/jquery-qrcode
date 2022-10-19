@@ -85,19 +85,19 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 
 const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
 const templatevalue = ref<string>("Static Template");
-const metaformProps=  {
-    layoutColumn: 2,
-    labelPosition: 'left',
-    labelWidth: '75px',
-    labelSuffix: ":  "
-  }
-  const awformProps= {
-    // inline: true,
-    layoutColumn: 1,
-    labelPosition: 'left',
-     labelWidth: '75px',
-     labelSuffix: ":"
-  }
+const metaformProps = {
+  layoutColumn: 2,
+  labelPosition: "left",
+  labelWidth: "75px",
+  labelSuffix: ":  ",
+};
+const awformProps = {
+  // inline: true,
+  layoutColumn: 1,
+  labelPosition: "left",
+  labelWidth: "75px",
+  labelSuffix: ":",
+};
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
   cellsInfo?: {
@@ -122,7 +122,7 @@ let cacheprops = new Map();
 let cacheDataDefinition: DataDefinition = {
   data: {},
   meta: {},
-  resources: []
+  resources: [],
 };
 let ev_id = ""; //elememtview id
 
@@ -185,8 +185,8 @@ let tempschema = ref({
   properties: {},
 });
 let metaformFooter = ref({
-  show:false
-})
+  show: false,
+});
 async function metatemplatequery(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
 
@@ -242,7 +242,7 @@ async function metatemplatequery(data?: any) {
               [mod.description]: {
                 type: `${typeinschema}`,
                 // description: mod.description,
-                title:mod.description,
+                title: mod.description,
                 enum: enumVal,
                 enumNames: enumVal,
               },
@@ -262,7 +262,7 @@ async function metatemplatequery(data?: any) {
               [mod.name]: {
                 type: `${typeinschema}`,
                 // description: mod.description,
-                title:mod.description,
+                title: mod.description,
                 enum: enumVal,
                 enumNames: enumVal,
               },
@@ -272,7 +272,7 @@ async function metatemplatequery(data?: any) {
               [mod.name]: {
                 type: `${typeinschema}`,
                 // description: mod.description,
-                title:mod.description,
+                title: mod.description,
               },
             };
           }
@@ -668,12 +668,11 @@ const awschema = ref({
       title: "Description",
       type: "string",
       readOnly: true,
-      'ui:widget': "TextAreaWidget"
+      "ui:widget": "TextAreaWidget",
     },
     template: {
       title: "Template",
       type: "string",
-      
     },
     tags: {
       title: "Tags",
@@ -683,7 +682,6 @@ const awschema = ref({
     params: {
       title: "Params",
       type: "string",
-      
     },
   },
 });
@@ -954,8 +952,8 @@ function awhandlerSubmit() {
 function globalhandlerSubmit() {
   // console.log(tempschema,metatemplatedetailtableData);
   let metaObj = {};
-  Object.assign(metaObj,{"schema":tempschema.value})
-  Object.assign(metaObj,{"data":metatemplatedetailtableData.value})
+  Object.assign(metaObj, { schema: tempschema.value });
+  Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
   onCloseDrawer();
   message.success("Save config Successfully");
@@ -1207,7 +1205,7 @@ function saveMBT(route?: any) {
   Object.assign(tempdata, { paperscale: paperscale.value });
   mbtCache["modelDefinition"] = tempdata;
 
-  console.log('savembt meta and data:',cacheDataDefinition);
+  console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
 
   updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
@@ -1243,13 +1241,18 @@ function reloadMBT(route: any) {
       modeler.graph.getCells().forEach((item: any) => {
         if (item.attributes.type == "standard.HeaderedRectangle") {
           graphIds.push(item.id);
-          sqlstr += cacheprops.get(item.id).props._id + "|";
+          if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
+            sqlstr += cacheprops.get(item.id).props.primaryprops._id + "|";
+            if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
+              sqlstr += cacheprops.get(item.id).props.expectedprops._id + "|";
+            }
+          }
         }
       });
 
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
-      // console.log('...sqlstr:', sqlstr)
+      console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
       tempdata.then((aws) => {
         aws.forEach((aw: Stores.aw) => {
@@ -1263,7 +1266,18 @@ function reloadMBT(route: any) {
             //rendering using updated cellsinfo
             tempcellsinfo.cells.forEach((cell: any) => {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
-                cell.attrs.label.text = aw.template || aw.description;
+                // cell.attrs.label.text = aw.template || aw.description;
+                let showheadtext = aw.template || aw.description;
+                cell.attr(
+                  "headerText/text",
+                  joint.util.breakText(
+                    showheadtext,
+                    {
+                      width: 160,
+                    },
+                    { "font-size": 16 }
+                  )
+                );
               }
             });
           }
@@ -1303,11 +1317,11 @@ onMounted(() => {
           modeler.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
-        
+
         if (value.dataDefinition.meta) {
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
-          metatemplatedetailtableData.value = value.dataDefinition.meta.data
+          metatemplatedetailtableData.value = value.dataDefinition.meta.data;
           isVisible.value = true;
           /**
            * todo 10.19
@@ -1600,7 +1614,6 @@ interface ResourcesDataItem {
   resourcetype: string;
 }
 
-
 const dataPoolcolumns: columnDefinition[] = [
   {
     title: "id",
@@ -1664,10 +1677,6 @@ const resourcescolumns: columnDefinition[] = [
   },
 ];
 
-
-
-
-
 const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
   {
     key: "0",
@@ -1708,7 +1717,6 @@ function setFormData(awformData: Stores.aw) {
   }
   return tempformdata;
 }
-
 
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
 const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
@@ -1764,8 +1772,6 @@ const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
   paperscale.value = value;
 };
-
-
 </script>
 
 <template>
@@ -1836,40 +1842,37 @@ const onAfterChange = (value: any) => {
             <a-tabs v-model:activeKey="awActiveKey">
               <a-tab-pane key="1" tab="Primary">
                 <a-row>
-                <a-col span ="18">
-                <AForm
-                  v-if="!hasAWInfo && isAW"
-                  layout="inline"
-                  class="search_form"
-                  :model="formState"
-                  @finish="handleFinish"
-                  @finishFailed="handleFinishFailed"
-                >
-                  <a-form-item :wrapper-col="{ span: 24 }">
-                    <a-input v-model:value="formState.search" placeholder="aw">
-                      <template #prefix>
-                        <search-outlined />
-                      </template>
-                    </a-input>
-                  </a-form-item>
-                  <a-form-item :wrapper-col="{ span: 4 }">
-                    <a-button type="primary" html-type="submit">search</a-button>
-                  </a-form-item>
-                </AForm>
-              </a-col>
-              <a-col>
+                  <a-col span="18">
+                    <AForm
+                      v-if="!hasAWInfo && isAW"
+                      layout="inline"
+                      class="search_form"
+                      :model="formState"
+                      @finish="handleFinish"
+                      @finishFailed="handleFinishFailed"
+                    >
+                      <a-form-item :wrapper-col="{ span: 24 }">
+                        <a-input v-model:value="formState.search" placeholder="aw">
+                          <template #prefix>
+                            <search-outlined />
+                          </template>
+                        </a-input>
+                      </a-form-item>
+                      <a-form-item :wrapper-col="{ span: 4 }">
+                        <a-button type="primary" html-type="submit">search</a-button>
+                      </a-form-item>
+                    </AForm>
+                  </a-col>
+                  <a-col>
                     <span style="margin-right: 5px">
-                      <a-button     
-                        v-if="!hasAWInfo"                  
-                        type="primary"
-                        @click="onCloseDrawer()"
+                      <a-button v-if="!hasAWInfo" type="primary" @click="onCloseDrawer()"
                         >Close</a-button
                       >
                     </span>
 
                     <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
                   </a-col>
-                  </a-row>
+                </a-row>
                 <div class="awtable" v-if="!hasAWInfo && isAW">
                   <a-row>
                     <a-table
@@ -1950,24 +1953,27 @@ const onAfterChange = (value: any) => {
                       </template>
                     </a-table>
                   </a-row>
-                  
                 </div>
                 <div style="margin: 5px">
-                <VueForm v-model="awformdata" :formProps="awformProps"
-                :schema="awschema" v-if="isAW && hasAWInfo">
-                  <div slot-scope="{ awformdata }">
-                    <span style="margin-right: 5px">
-                      <a-button type="primary" @click="awhandlerSubmit()"
-                        >Submit</a-button
-                      >
-                    </span>
-                    <span style="margin-right: 5px">
-                      <a-button type="primary" @click="handlerCancel()">Edit</a-button>
-                    </span>
-                    <a-button danger @click="onExpectedAW()">Next</a-button>
-                  </div>
-                </VueForm>
-              </div>
+                  <VueForm
+                    v-model="awformdata"
+                    :formProps="awformProps"
+                    :schema="awschema"
+                    v-if="isAW && hasAWInfo"
+                  >
+                    <div slot-scope="{ awformdata }">
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="awhandlerSubmit()"
+                          >Submit</a-button
+                        >
+                      </span>
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="handlerCancel()">Edit</a-button>
+                      </span>
+                      <a-button danger @click="onExpectedAW()">Next</a-button>
+                    </div>
+                  </VueForm>
+                </div>
               </a-tab-pane>
 
               <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
@@ -2114,15 +2120,14 @@ const onAfterChange = (value: any) => {
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
                 <div style="margin: 5px; padding: 5px">
-                <!-- {{tempschema}} -->
-                <!-- {{metatemplatedetailtableData}} -->
+                  <!-- {{tempschema}} -->
+                  <!-- {{metatemplatedetailtableData}} -->
                   <VueForm
                     v-if="isVisible"
                     v-model="metatemplatedetailtableData"
                     :schema="tempschema"
                     :formProps="metaformProps"
                     :formFooter="metaformFooter"
-
                   >
                   </VueForm>
                 </div>
@@ -2132,7 +2137,7 @@ const onAfterChange = (value: any) => {
                     v-if="isVisible"
                     type="link"
                     @click="onImportFromMetaTemplate"
-                    >Back</a-button
+                    >Choose Another Template</a-button
                   >
                 </a-space>
                 <a-table
@@ -2370,5 +2375,10 @@ header {
 
 .icon-wrapper .anticon:last-child {
   right: 0;
+}
+
+
+.ant-form-horizontal .ant-form-item-label {
+width: 30% !important;
 }
 </style>
