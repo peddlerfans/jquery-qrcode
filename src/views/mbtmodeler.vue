@@ -88,14 +88,14 @@ const templatevalue = ref<string>("Static Template");
 const metaformProps=  {
     layoutColumn: 2,
     labelPosition: 'left',
-    labelWidth: '100px',
-    labelSuffix: ":"
+    labelWidth: '75px',
+    labelSuffix: ":  "
   }
   const awformProps= {
     // inline: true,
     layoutColumn: 1,
     labelPosition: 'left',
-     labelWidth: '50px',
+     labelWidth: '75px',
      labelSuffix: ":"
   }
 /// save data to localstorage, and send to backend as modelDefinition
@@ -114,15 +114,15 @@ interface FormState {
 }
 
 interface DataDefinition {
-  data: any[];
-  meta: any[];
-  resources: any[];
+  data: object;
+  meta: object;
+  resources: object;
 }
 let cacheprops = new Map();
 let cacheDataDefinition: DataDefinition = {
-  data: [],
-  meta: [],
-  resources: [],
+  data: {},
+  meta: {},
+  resources: []
 };
 let ev_id = ""; //elememtview id
 
@@ -196,11 +196,11 @@ async function metatemplatequery(data?: any) {
     let rst1 = await request.get(`/api/templates/${data}`, {
       params: { q: "category:meta", search: "" },
     });
-    // console.log("rst1:", rst1);
+    console.log("rst1:", rst1);
     metatemplaterecordobj.value = rst1;
     if (rst1.model) {
       metatemplaterecordobj.value.model = rst1.model;
-      metatemplatedetailtableData.value = arr(rst1.model);
+      // metatemplatedetailtableData.value = arr(rst1.model);
       // console.log("rst1:", rst1);
       let temparr = rst1.model;
       // console.log("temparr:", temparr);
@@ -357,7 +357,7 @@ const formStateExpected = reactive<FormState>({
   search: "",
 });
 let metatemplatetableData = ref([]);
-let metatemplatedetailtableData = ref([]);
+let metatemplatedetailtableData = ref({});
 let tableData = ref([]);
 let tableDataExpected = ref([]);
 let searchobj: tableSearch = reactive({
@@ -948,8 +948,16 @@ function awhandlerSubmit() {
   message.success("Save aw Successfully");
 }
 
+/**
+ * todo
+ */
 function globalhandlerSubmit() {
-  cacheDataDefinition.meta = metadataSource.value;
+  // console.log(tempschema,metatemplatedetailtableData);
+  let metaObj = {};
+  Object.assign(metaObj,{"schema":tempschema.value})
+  Object.assign(metaObj,{"data":metatemplatedetailtableData.value})
+  cacheDataDefinition.meta = metaObj;
+  onCloseDrawer();
   message.success("Save config Successfully");
 }
 
@@ -1198,6 +1206,8 @@ function saveMBT(route?: any) {
   Object.assign(tempdata, { props: obj });
   Object.assign(tempdata, { paperscale: paperscale.value });
   mbtCache["modelDefinition"] = tempdata;
+
+  console.log('savembt meta and data:',cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
 
   updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
@@ -1293,9 +1303,16 @@ onMounted(() => {
           modeler.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
-        if (value.dataDefinition.meta.length > 0) {
+        
+        if (value.dataDefinition.meta) {
           cacheDataDefinition.meta = value.dataDefinition.meta;
-          metadataSource.value = cacheDataDefinition.meta;
+          tempschema.value = value.dataDefinition.meta.schema;
+          metatemplatedetailtableData.value = value.dataDefinition.meta.data
+          isVisible.value = true;
+          /**
+           * todo 10.19
+           */
+          // cacheDataDefinition.meta;
         }
       }
     });
@@ -1575,40 +1592,15 @@ interface columnDefinition {
   dataIndex: string;
   width?: string;
 }
-interface MetaDataItem {
-  key: string;
-  title: string;
-  content: string;
-}
+
 interface ResourcesDataItem {
   key: string;
   alias: string;
   class: string;
   resourcetype: string;
 }
-interface MetaDataItem {
-  key: string;
-  title: string;
-  content: string;
-}
-// interface AttributesDataItem {
-//   key: string;
-//   description: string;
-//   requirements: string;
 
-// }
-// const attributescolumns: columnDefinition[] = [
-//   {
-//     title: 'description',
-//     dataIndex: 'description',
-//     width: '30%',
-//   },
-//   {
-//     title: 'requirements',
-//     dataIndex: 'requirements',
-//   }
 
-// ];
 const dataPoolcolumns: columnDefinition[] = [
   {
     title: "id",
@@ -1672,34 +1664,9 @@ const resourcescolumns: columnDefinition[] = [
   },
 ];
 
-const metacolumns: columnDefinition[] = [
-  {
-    title: "title",
-    dataIndex: "title",
-    width: "30%",
-  },
-  {
-    title: "content",
-    dataIndex: "content",
-  },
-  {
-    title: "operation",
-    dataIndex: "operation",
-  },
-];
 
-const metadataSource: Ref<MetaDataItem[]> = ref([
-  {
-    key: "0",
-    title: "ID",
-    content: "oppo.test",
-  },
-  {
-    key: "1",
-    title: "Description",
-    content: "测试触控力度",
-  },
-]);
+
+
 
 const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
   {
@@ -1741,35 +1708,7 @@ function setFormData(awformData: Stores.aw) {
   }
   return tempformdata;
 }
-const metacount = computed(() => metadataSource.value.length + 1);
-const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
 
-const metaedit = (key: string) => {
-  // console.log(metaeditableData)
-  // console.log(metaeditableData[key])
-  metaeditableData[key] = cloneDeep(
-    metadataSource.value.filter((item) => key === item.key)[0]
-  );
-};
-const metasave = (key: string) => {
-  Object.assign(
-    metadataSource.value.filter((item) => key === item.key)[0],
-    metaeditableData[key]
-  );
-  delete metaeditableData[key];
-};
-
-const onMetaDelete = (key: string) => {
-  metadataSource.value = metadataSource.value.filter((item) => item.key !== key);
-};
-const metahandleAdd = () => {
-  const newData = {
-    key: `${metacount.value}`,
-    title: `Objective${metacount.value}`,
-    content: `details${metacount.value}`,
-  };
-  metadataSource.value.push(newData);
-};
 
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
 const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
@@ -1789,9 +1728,7 @@ const resourcessave = (key: string) => {
 const resourcescancel = (key: string) => {
   delete resourceseditableData[key];
 };
-const metacancel = (key: string) => {
-  delete metaeditableData[key];
-};
+
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
     (item) => item.key !== key
@@ -1812,7 +1749,7 @@ const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
 
-  metatemplatedetailtableData.value = [];
+  metatemplatedetailtableData.value = {};
 
   tempschema.value.properties = {};
   // tempschema.value.type =''
@@ -1828,13 +1765,7 @@ const onAfterChange = (value: any) => {
   paperscale.value = value;
 };
 
-/**
- * todo
- */
-const metahandlerSubmit=()=>{
-  console.log('should save to cacheprops.dataDefinition')
 
-}
 </script>
 
 <template>
