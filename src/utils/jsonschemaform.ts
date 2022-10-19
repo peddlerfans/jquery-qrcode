@@ -1,4 +1,3 @@
-import { strHash } from './../../../mbt-backend/utils/hash_algorithm';
 // 输入array,生成jsonschemaform支持的样式
 //  [{
 //     "key": 0,
@@ -15,7 +14,7 @@ import { strHash } from './../../../mbt-backend/utils/hash_algorithm';
 //   "title": "用例编号"
 //    }]
 import * as _ from "lodash";
-import {ref,reactive} from 'vue';
+
 const generateSchema = (inputArr: Array<Object>) => {
   
   let outputArr: any[] = [];
