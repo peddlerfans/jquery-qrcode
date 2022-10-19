@@ -86,10 +86,10 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
 const templatevalue = ref<string>("Static Template");
 const metaformProps=  {
-    "layoutColumn": 1,
-    "labelPosition": "left",
+    layoutColumn: 2,
+    labelPosition: 'left',
     labelWidth: '100px',
-    "labelSuffix": ":"
+    labelSuffix: ":"
   }
   const awformProps= {
     // inline: true,
@@ -180,16 +180,19 @@ let metatemplaterecordobj = ref();
 // showMetaDetail
 
 let tempschema = ref({
-  description: "Config",
+  // description: "Config",
   type: "object",
   properties: {},
 });
+let metaformFooter = ref({
+  show:false
+})
 async function metatemplatequery(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
 
   if (data) {
     isVisible.value = !isVisible.value;
-    // console.log("+++++++ ", data);
+    console.log("+++++++ ", data);
     let rst1 = await request.get(`/api/templates/${data}`, {
       params: { q: "category:meta", search: "" },
     });
@@ -236,10 +239,10 @@ async function metatemplatequery(data?: any) {
           ) {
             enumVal = _.split(mod.enum, ",");
             tempobj = {
-              [mod.name]: {
+              [mod.description]: {
                 type: `${typeinschema}`,
-                description: mod.description,
-                // "title":mod.name,
+                // description: mod.description,
+                title:mod.description,
                 enum: enumVal,
                 enumNames: enumVal,
               },
@@ -258,8 +261,8 @@ async function metatemplatequery(data?: any) {
             tempobj = {
               [mod.name]: {
                 type: `${typeinschema}`,
-                description: mod.description,
-                // "title":mod.name,
+                // description: mod.description,
+                title:mod.description,
                 enum: enumVal,
                 enumNames: enumVal,
               },
@@ -268,15 +271,15 @@ async function metatemplatequery(data?: any) {
             tempobj = {
               [mod.name]: {
                 type: `${typeinschema}`,
-                description: mod.description,
-                // "title":mod.name,
+                // description: mod.description,
+                title:mod.description,
               },
             };
           }
 
           Object.assign(tempschema.value.properties, tempobj);
         });
-        // console.log("tempschema:    ", tempschema);
+        console.log("tempschema:    ", tempschema);
         // if (rst && typeof rst.model != "undefined")
         //   metatemplatetableData.value = arr(rst?.model);
       }
@@ -1810,7 +1813,7 @@ const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
 
   metatemplatedetailtableData.value = [];
-  // tempschema.value.description='';
+
   tempschema.value.properties = {};
   // tempschema.value.type =''
   // console.log("import other meta template");
@@ -1824,6 +1827,14 @@ const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
   paperscale.value = value;
 };
+
+/**
+ * todo
+ */
+const metahandlerSubmit=()=>{
+  console.log('should save to cacheprops.dataDefinition')
+
+}
 </script>
 
 <template>
@@ -2165,20 +2176,22 @@ const onAfterChange = (value: any) => {
             </div>
           </div>
 
-          <!-- Global panel :formProps="metaformProps" -->
+          <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
+                    @cancel="onCloseDrawer"-->
 
           <div class="infoPanel" v-if="isGlobal">
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
                 <div style="margin: 5px; padding: 5px">
                 <!-- {{tempschema}} -->
+                <!-- {{metatemplatedetailtableData}} -->
                   <VueForm
                     v-if="isVisible"
                     v-model="metatemplatedetailtableData"
                     :schema="tempschema"
-                    
-                    @submit="linkhandlerSubmit"
-                    @cancel="onCloseDrawer"
+                    :formProps="metaformProps"
+                    :formFooter="metaformFooter"
+
                   >
                   </VueForm>
                 </div>
