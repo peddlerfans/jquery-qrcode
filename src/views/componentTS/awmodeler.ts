@@ -11,9 +11,12 @@ export interface FormState {
 }
 // 模态窗表单
 export interface paramsobj {
+    inputVisible:boolean
     name: string,
     type: string;
-
+    enum:Array<any>
+    editing:boolean
+    inputValue:string
 }
 export interface ModelState {
     name: string;

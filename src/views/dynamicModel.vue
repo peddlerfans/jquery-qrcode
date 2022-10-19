@@ -17,11 +17,9 @@ import {
   templateUrl
 } from '@/appConfig'
 import * as _ from 'lodash'
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, isArray } from 'lodash-es';
 import type {  FormProps,  SelectProps,} from 'ant-design-vue';
-import {
-  SyncOutlined,
-  PlusOutlined,
+import {  SyncOutlined, PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   ExclamationCircleOutlined,
@@ -40,8 +38,7 @@ import {
   Factor,
   Constraint,
   valueStatesTs,
-} from "./componentTS/dynamictemplate";
-import condition from "@/components/Condition.vue"
+} from "./componentTS/dynamictemplate"; 
 import CreateRule from '@/components/CreateRule.vue'
 
 // Specify the api for dynamic template data CRUD
@@ -54,7 +51,8 @@ sessionStorage.setItem('dynamic_' + route.params._id, JSON.stringify(route.param
 let finalModel: Model = reactive({
   option: {},
   factor: [],
-  constraint: []
+  constraint: [],
+  constraintif:[]
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
@@ -66,7 +64,8 @@ async function query(id?: any) {
     }
   })
   finalModel.constraint=finalResult.model.constraint
-  condata.value = finalResult.model!.constraint.map((e: any,index:string) => {
+  finalModel.constraintif=conditionData(finalResult.model.constraintif)
+  condata.value = finalModel.constraint.map((e: any,index:number) => {
     return {if:ifdata(e.if),then:{...e.then},keys:index}
   })
   valueData.value=finalModel.factor
@@ -81,7 +80,7 @@ onMounted(() => {
   console.log(JSON.parse(modelId));
 
   query(JSON.parse(modelId))
-})
+}) 
 
 
 const saveModel = async () => {
@@ -92,6 +91,7 @@ const saveModel = async () => {
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
       console.log(rst);
+      // query(finalResult._id)
       message.success('Model is saved successfully')
     }
   }else{
@@ -260,19 +260,17 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log("handleModelTagConfirm")
+  console.log(JSON.stringify(record.values));
+  
 }
 
 const newFactorValueInput = (record: Factor) => {
   record.inputVisible = true;
-
   nextTick(() => {
     inputRef.value.focus();
     inputRef.value.toString();
   })
 };
-
-
 
 const constraintColumns = [ // Setup the header of columns
   {
@@ -376,6 +374,11 @@ const numberOptions = [
     label: 'IN',
   }
 ]
+const thenObj=ref({
+  thenName:'',
+  thenOperator:'',
+  thenValue:''
+})
 const ifOperatorOptions = computed(() => {
   if (thenObj.value.thenName == '') {
     return ref<SelectProps['options']>([]).value;
@@ -387,32 +390,10 @@ const ifOperatorOptions = computed(() => {
     }
   }
 })
-
-// const thenOperatorOptions = computed(() => {
-//   if (constraintState.thenname == '') {
-//     return ref<SelectProps['options']>([]).value;
-//   } else {
-//     if (finalModel.factor.filter(e => e.name == constraintState.thenname)[0].type == 'string') {
-//       return ref<SelectProps['options']>(stringOptions).value
-//     } else {
-//       return ref<SelectProps['options']>(numberOptions).value
-//     }
-//   }
-// })
-
 const ifNameOpetions = computed(() => {
   return ref<SelectProps['options']>(finalModel.factor.map(e => { return { value: e.name, label: e.name } })).value
 })
 
-// const ifValueOpetions = computed(() => {
-//   if (constraintState.ifname == '') {
-//     return ref<SelectProps['options']>([]).value
-//   } else {
-//     return ref<SelectProps['options']>(
-//         finalModel.factor.filter(e => e.name == constraintState.ifname)[0].values
-//             .map(e => { return { value: e, label: e } })).value
-//   }
-// })
 const ifValueOpetions = computed(() => {
   if (thenObj.value.thenName == '') {
     return ref<SelectProps['options']>([]).value
@@ -423,31 +404,7 @@ const ifValueOpetions = computed(() => {
   }
 })
 
-// const thenNameOpetions = computed(() => {
-//   return ref<SelectProps['options']>(finalModel.factor.filter(e => e.name != constraintState.ifname).map(e => { return { value: e.name, label: e.name } })).value
-// })
-
-
-// const thenValueOpetions = computed(() => {
-//   if (constraintState.thenname == '') {
-//     return ref<SelectProps['options']>([]).value
-//   } else {
-//     return ref<SelectProps['options']>(
-//         finalModel.factor.filter(e => e.name == constraintState.thenname)[0].values
-//             .map(e => { return { value: e, label: e } })).value
-//   }
-// })
-
 let showAddConstraintBtn = ref(true)
-
-// let constraintState = reactive<Constraint>({
-//   ifname: '',
-//   ifoperator: '',
-//   ifvalues: [],
-//   thenname: '',
-//   thenoperator: '',
-//   thenvalues: [],
-// })
 
 let currentFactorName = reactive([])
 let childComponent=ref(false)
@@ -460,159 +417,13 @@ const addNewConstraint = () => {
   // clearConstraintState()
   showAddConstraintBtn.value = false;
 
-  // finalModel.constraint.push({
-  //   ifname: '',
-  //   ifoperator: '',
-  //   ifvalues: '',
-  //   thenname: '',
-  //   thenoperator: '',
-  //   thenvalues: '',
-  //   editing: true,
-  // })
   console.log(finalModel)
   // console.log(constraintState)
 }
-// const saveConstraint = (record: Constraint) => {
-//   console.log('saveConstraint')
-//   console.log(constraintState)
 
-//   Object.assign(record, {
-//     ifname: constraintState.ifname,
-//     ifoperator: constraintState.ifoperator,
-//     thenname: constraintState.thenname,
-//     thenoperator: constraintState.thenoperator,
-//     editing: false
-//   });
-
-//   if (Array.isArray(constraintState.ifvalues)) {
-//     Object.assign(record, {
-//       ifvalues: []
-//     });
-//     constraintState.ifvalues.map((v) => { record.ifvalues.push(v) })
-//   } else {
-//     Object.assign(record, {
-//       ifvalues: constraintState.ifvalues
-//     });
-//   }
-
-//   if (Array.isArray(constraintState.thenvalues)) {
-//     Object.assign(record, {
-//       thenvalues: []
-//     });
-//     constraintState.thenvalues.map((v) => { record.thenvalues.push(v) })
-//   } else {
-//     Object.assign(record, {
-//       thenvalues: constraintState.thenvalues
-//     });
-//   }
-
-//   record.editing = false
-
-//   console.log(finalModel)
-
-//   showAddConstraintBtn.value = true
-// }
-// const editConstraint = (record: Constraint) => {
-//   console.log('editFactor')
-//   console.log(record);
-  
-//   console.log(finalModel.constraint)
-
-//   constraintState.ifname = record.ifname
-//   constraintState.ifoperator = record.ifoperator
-//   constraintState.ifvalues = record.ifvalues
-//   constraintState.thenname = record.thenname
-//   constraintState.thenoperator = record.thenoperator
-//   constraintState.thenvalues = record.thenvalues
-
-
-//   console.log(constraintState)
-
-//   record.editing = true
-//   showAddConstraintBtn.value = false
-
-// }
-
-// const changeIfName = () => {
-//   constraintState.ifoperator=''
-//   constraintState.ifvalues=''
-//   constraintState.thenoperator=''
-//   constraintState.thenvalues=''
-// }
-// const changeIfOperator = () => {
-//   if (constraintState.ifoperator==='IN'){
-//     constraintState.ifvalues=[]
-//   }else{
-//     constraintState.ifvalues=''
-//   }
-// }
-
-// const changeThenName = () => {
-//   constraintState.thenoperator=''
-//   constraintState.thenvalues=''
-// }
-// const changeThenOperator = () => {
-//   if (constraintState.thenoperator==='IN'){
-//     constraintState.thenvalues=[]
-//   }else{
-//     constraintState.thenvalues=''
-//   }
-// }
-
-// const updateConstraint = async (record: Constraint) => {
-//   console.log('updateConstraint')
-//   console.log(record)
-
-//   record.editing = false
-
-//   clearConstraintState()
-//   showAddConstraintBtn.value = true
-// }
-
-// const deleteConstraint = (record: Constraint) => {
-//   const index= finalModel.constraint.findIndex(e => e === record)
-//   finalModel.constraint.splice(index,1);
-//   console.log(finalModel);
-//   saveModel()
-// }
-// const cancelConstraint = (record: Constraint) => {
-//   if (constraintState.ifname === ''){
-//     const index= finalModel.constraint.findIndex(e => e === record)
-//     finalModel.constraint.splice(index,1);
-//   }else{
-//     record.ifname=constraintState.ifname
-//     record.ifoperator=constraintState.ifoperator
-//     record.ifvalues=constraintState.ifvalues
-//     record.thenname=constraintState.thenname
-//     record.thenoperator=constraintState.thenoperator
-//     record.thenvalues=constraintState.thenvalues
-
-//     record.editing = false
-//   }
-
-//   console.log('cancelConstraint')
-//   console.log(record)
-//   console.log(constraintState)
-//   clearConstraintState()
-//   console.log(constraintState)
-
-//   showAddConstraintBtn.value = true
-
-// }
 
 
 const instance = getCurrentInstance()
-
-// const clearConstraintState = () => {
-//   constraintState.ifname = ''
-//   constraintState.ifoperator = ''
-//   constraintState.ifvalues = []
-//   constraintState.thenname = ''
-//   constraintState.thenoperator = ''
-//   constraintState.thenvalues = [];
-
-//   // (instance?.refs.refConstraintForm as any).resetFields();
-// }
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
@@ -623,17 +434,6 @@ const focus = () => {
   // console.log(constraintState);
 };
 
-// 子组件传递的值
-const ondata=(show:boolean,data?:any)=>{
-  console.log(show,data);
-  
-  childComponent.value=show
-  condata.value=[...data]
-  
-  finalModel.constraint=[...condata.value]
-  // saveModel()
-  showAddConstraintBtn.value=true
-}
 const columns=[
 {
     title: 'IF',
@@ -655,15 +455,27 @@ const columns=[
   }
 ]
 
+
 // 将表格数据追加识别索引属性
 const conditionData=(arr:any)=>arr.map((item:any,index:string)=>({...item,keys:index}))
-
 // 递归改变if结构
 function ifdata(arr:any){
   let finditem=null
   for(let i=0;i<arr.length;i++){
     let item=arr[i]
-    finditem=' '+'{'+' '+conditionstr(item.conditions)+' '+'}'+' '+item.relation+' '
+    if(item.children.length==0){
+      item.relation=""
+    }
+    if(item.conditions.length>1){
+      // finditem='('+conditionstr(item.conditions)+')'+' '+item.relation+' '
+      finditem=`(${conditionstr(item.conditions)}) ${item.relation} `
+      
+    }else{
+      // finditem=conditionstr(item.conditions)+' '+item.relation
+      finditem=`${conditionstr(item.conditions)} ${item.relation} `
+    }
+    console.log(finditem);
+    
     if(item.children.length>0){
       finditem+=ifdata(item.children)
     }else{
@@ -672,60 +484,96 @@ function ifdata(arr:any){
     
   }
   if(finditem!=null){
-    let numindex=finditem.lastIndexOf('}')
-    finditem= finditem.slice(0,numindex+1)
+    
     return finditem
   }
   
 }
+function selectvalue(value:any){
+  let values=null
+    if(Array.isArray(value)){
+      if(value.length>1){
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+        let newvalue=value.map((strArr:any)=>[strArr])
+         values=`{${JSON.stringify(newvalue).substring(1,JSON.stringify(newvalue).length-1).replace(/"/g,"")}}`
+      }else{
+         values=`{${JSON.stringify(value).replace("[","").replace("]","")}}`
+      }
+      }else{
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+           values=JSON.stringify(value).replaceAll('"',"")
+        }else{
+           values=JSON.stringify(value).replace("[","").replace("]","")
+        }
+      }
+    }else{
+      if(JSON.stringify(ifNameOpetions.value).includes(value)){
+        values=`[${value}]`
+      }else{
+        values=JSON.stringify(value)
+      }
+    }
+    return values
+}
 // 解决括号链接
 const conditionstr=(arr:any)=>{
   let ifcondition=null
-  if(arr[arr.length-1].value){
+  // if(arr[arr.length-1].value){
         delete arr[arr.length-1].selectvalue  
-  }
+  // }
   ifcondition=arr.map((item:any)=>{
-    if(item.selectvalue){
-      return ' '+'('+' '+item.name+' '+item.operate+' '+item.value+')'+' '+item.selectvalue+' '
-    }else{
-      return '('+item.name+item.operate+item.value+')'
-    }
+      if(item.selectvalue){
+        return `[${item.name}] ${item.operate} ${selectvalue(item.value)} ${item.selectvalue} `
+        // return '['+item.name+']'+' '+item.operate+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      }else{
+        // return '['+item.name+']'+' '+item.operate+' '+'{'+item.value+'}'+' '
+        return `[${item.name}] ${item.operate} ${selectvalue(item.value)}`
+      }    
   })
-  return ifcondition.toString().replace(',','')
+  return ifcondition.join("")
 }
 
-const thenObj=ref({
-  thenName:'',
-  thenOperator:'',
-  thenValue:''
-})
+
 const rulesChange=(datas: any,key:string)=>{
   console.log(key);
   
     rulesData.value=datas//输出的条件对象
-    console.log(rulesData.value);
-    
+    console.log(rulesData.value[0].conditions);
+ 
 }
-// 定义实际数据结构的Constraint数据
-let truecondition=ref<Array<any>>([])
+
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
+  
 // 点击保存时触发数据填充表格
 const  conditionsend=()=>{
+  debugger
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
-      let ifvalue=ifdata(rulesData.value)
-      let conrow={if:ifvalue,then:thenObj.value}
-      let truerow={if:rulesData.value,then:thenObj.value}
-      if(keys.value){
-        condata.value[keys.value]={...conrow,keys:keys.value}
+      
+      let thencondition='['+thenObj.value.thenName+']'+' '+thenObj.value.thenOperator+' '+thenObj.value.thenValue
+      console.log(rulesData.value);
+      
+      let truerow={if:rulesData.value,then:{...thenObj.value}}
+      console.log(truerow);
+      
+      if(keys.value>=0){
         finalModel.constraint[keys.value]={...truerow}
+        finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
+        condata.value[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
+        console.log(finalModel.constraintif);
+  console.log(condata.value[keys.value]);
       }else{
-        condata.value=[...condata.value,{...conrow}]
-        finalModel.constraint=[...finalModel.constraint,{...truerow}]
+        condata.value.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
+        // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
+        finalModel.constraint.push({...truerow})
+        // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
+        finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
+        // console.log(finalModel.constraint);
+        
       }
-      cancelbulid()
+      cancelbulid() 
       saveModel()
-      condata.value=conditionData(condata.value)
+      // condata.value=conditionData(condata.value)
     }
 }
 // 点击取消时触发的函数
@@ -737,15 +585,21 @@ const cancelbulid=()=>{
                 conditions:[],
                 children:[]}
   ],
+  thenObj.value.thenName=''
+  thenObj.value.thenOperator=''
+  thenObj.value.thenValue=''
   childComponent.value=false
   showAddConstraintBtn.value = true;
 }
 // 点击修改的值
 const editCon=(obj:any)=>{
-  console.log(keys.value);
-  
-if(finalModel.constraint.length>0){  
   keys.value=obj.keys
+  console.log( obj,keys.value);
+  
+if(finalModel.constraint.length>0){
+  
+  console.log(finalModel.constraint[obj.keys].if);
+  
   rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
   thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
@@ -755,14 +609,17 @@ if(finalModel.constraint.length>0){
 }
 // 点击删除触发的函数
 const deleteconstraint=(obj:any)=>{
-  condata.value=condata.value.splice(obj.keys,1)
-  finalModel.constraint=finalModel.constraint.splice(obj.keys,1)
+  console.log(obj.keys);
+  
+  condata.value.splice(obj.keys,1)
+  finalModel.constraint.splice(obj.keys,1)
+  finalModel.constraintif.splice(obj.keys,1)
   saveModel()
 }
 
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
-const keys=ref<any>("")
+const keys=ref<any>()
 const formDatas=ifNameOpetions
 const valueData=ref()
 const rulesData=ref(
@@ -854,9 +711,12 @@ const rulesData=ref(
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="record.inputVisible" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
+            <a-input v-if="record.inputVisible && record.type=='string'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
                      @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
+            size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+            @keyup.enter="handleFactorValueConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
               <plus-outlined />
               Add a New Value
@@ -1045,7 +905,7 @@ const rulesData=ref(
     <a-table :columns="columns" :data-source="condata" bordered>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
-          <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+          <!-- <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span> -->
         </template>
         <template v-if="column.key=='action'">
           <span>

@@ -97,7 +97,9 @@ function addCondition(){
                     name: conditionName,
                     operate:"",
                     value:"" ,
-                    selectvalue:''
+                    selectvalue:'',
+                    selectcondition:"a",
+                    selectconditiones:"c"
                         }) 
             }else{
                 message.warning('请先选择条件链接关键字')
@@ -107,7 +109,9 @@ function addCondition(){
                     name: conditionName,
                     operate:"",
                     value:"",
-                    selectvalue:""
+                    selectvalue:"",
+                    selectcondition:"a",
+                    selectconditiones:"c"
                         })
             }
             
@@ -126,7 +130,7 @@ function addChild(){
     if(props.rulesData[0].relation){
     if(conditionName){
         props.rulesData[0].children.push({ 
-            relation: 'and',
+            relation: '',
             conditions:[],
             children:[]
         })
@@ -153,13 +157,12 @@ function childChange(childData: any){
     rulesChange(childData)
 }
 function rulesChange(rulesData:any){
-    console.log(rulesData);
     changeObserver()
     emit("rulesChange", props.rulesData,props.keys)
 }
-
-
-
+// 控制条件判断的属性
+const radiooption=[{label:'one',value:'a'},{label:'more',value:'b'}]
+const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
 </script>
 
 <template>
@@ -177,7 +180,7 @@ function rulesChange(rulesData:any){
                     </a-select>
                     <a-button
                         v-if="enableDeleteChild"
-                        class="daete-child"
+                        class="delete-child"
                         title="删除子条件"
                         @click="deleteChild(autoIndex)"
                     >删除子条件</a-button>
@@ -228,8 +231,21 @@ function rulesChange(rulesData:any){
                         </template>
                             </template>
                         </template>
-                        
-                        <div class="condition-value">
+                        <!-- 只有一个条件的参数比对 -->
+                        <div class="condition-value"  v-if="item.selectcondition=='a' && item.selectconditiones=='c'">
+                            <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
+                                <a-select 
+                                v-if="valueitem.name==item.name"
+                                class="condition-operate"
+                                :options="formDatas"
+                                size="small"
+                                v-model:value="item.value"
+                                @change="rulesChange"
+                                ></a-select>
+                            </template>
+                        </div>
+                        <!-- 只有一个条件的值比对 -->
+                        <div class="condition-value"  v-if="item.selectcondition=='a' && item.selectconditiones=='d'">
                             <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
                                 <a-select 
                                 v-if="valueitem.name==item.name"
@@ -240,6 +256,35 @@ function rulesChange(rulesData:any){
                                 @change="rulesChange"
                                 ></a-select>
                             </template>
+                        </div>
+                        <!-- 多个条件的参数比对 -->
+                        <div class="condition-value"  v-if="item.selectcondition=='b' && item.selectconditiones=='c'">
+                            <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
+                                <a-select 
+                                v-if="valueitem.name==item.name"
+                                class="condition-operate"
+                                mode="multiple"
+                                :options="formDatas"
+                                size="small"
+                                v-model:value="item.value"
+                                @change="rulesChange"
+                                ></a-select>
+                            </template>
+                        </div>
+                        <!-- 多个条件的值比对 -->
+                        <div class="condition-value"  v-if="item.selectcondition=='b' && item.selectconditiones=='d'">
+                            <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
+                                <a-select 
+                                v-if="valueitem.name==item.name"
+                                class="condition-operate"
+                                mode="multiple"
+                                :options="valueitem.values"
+                                size="small"
+                                v-model:value="item.value"
+                                @change="rulesChange"
+                                ></a-select>
+                            </template>
+                        </div>
                             <a-select
                             class="condition-operate"
                             :options="relations"
@@ -249,31 +294,16 @@ function rulesChange(rulesData:any){
                             placeholder="条件链接关键字"
                             >
                             </a-select>
-                            <!-- <span>{{item.selectvalue}}</span> -->
-                        </div>
+                        <a-radio-group class="radioclass" v-model:value="item.selectcondition" :options="radiooption"></a-radio-group>
+                        <a-radio-group class="radioclass" v-model:value="item.selectconditiones" :options="radiooptions"></a-radio-group>
+
                         <a-button
-                            class="daete-condition"
+                            class="delete-condition"
                             @click="daeteCondition(index)"
                             title="删除条件"
                         >删除</a-button>
                     </a-row>
                 </template>
-                <!-- <a-row
-                    v-if="rulesData[0].children.length > 0"
-                    v-for="(group, index) in rulesData[0].children"
-                    class="loop-child"
-                    :key="'row-'+autoIndex+'-'+index"
-                >
-                    <create-rule
-                        :valueData="valueData"
-                        :formDatas="formDatas" 
-                        :topDatas="rulesData"
-                        :rulesData="group"
-                        :enableDaeteChild="true"
-                        :autoIndex="index"
-                        @rulesChange="childChange"
-                    />
-                </a-row> -->
                 <a-row
                     v-if="rulesData[0].children.length > 0">
                     <create-rule
@@ -283,6 +313,7 @@ function rulesChange(rulesData:any){
                         :rulesData="rulesData[0].children"
                         :enableDeleteChild="true"
                         @rulesChange="childChange"
+                        @changeObserver="changeObserver"
                     />
                 </a-row>
         </a-row>
@@ -385,9 +416,14 @@ function rulesChange(rulesData:any){
             .condition-operate{
                 max-width:83px;
             }
-            .condition-value{
-                flex:1;
-                margin-left:1rem;
+            /deep/.radioclass{
+                .ant-radio-wrapper{
+                    span:nth-child(2) {
+                        padding-left: .125rem;
+                        padding-right: 0;
+                    }
+                }
+                
             }
         }
     }
