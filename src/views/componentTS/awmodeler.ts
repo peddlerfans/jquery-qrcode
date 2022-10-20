@@ -4,6 +4,7 @@ export interface tableSearch {
     search: string
     page: number
     perPage: number
+    q:string
 }
 // 查询表单的数据
 export interface FormState {
@@ -34,11 +35,7 @@ export interface statesTs {
     inputValue: string
 }
 
-
-
-
-interface DataItem {
-    key: string;
-    name: string;
-    description: string
+export interface clickobj {
+    path: string;
+    dataRef: any;
 }
