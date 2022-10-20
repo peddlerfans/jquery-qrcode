@@ -32,9 +32,14 @@ export interface Factor {
 }
 
 export interface Constraint {
-    if:Array<any>
+    if:any
     then:thenobj
-    key?:string
+    keys?:string
+}
+export interface Constraintif {
+    if:any
+    then:string
+    keys?:number
 }
 export interface thenobj{
     thenName:string
@@ -45,6 +50,7 @@ export interface Model{
     option: any,
     factor: Array<Factor>,
     constraint: Array<Constraint>
+    constraintif:Array<Constraintif>
 }
 
 // 添加的表单tags
