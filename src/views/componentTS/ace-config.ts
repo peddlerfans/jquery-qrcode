@@ -6,6 +6,15 @@ ace.config.setModuleUrl('ace/mode/json', modeJsonUrl);
 import modeJavascriptUrl from 'ace-builds/src-noconflict/mode-javascript?url';
 ace.config.setModuleUrl('ace/mode/javascript', modeJavascriptUrl);
 
+import modeEjsUrl from 'ace-builds/src-noconflict/mode-ejs?url';
+ace.config.setModuleUrl('ace/mode/ejs', modeEjsUrl);
+
+import modeFreemarkerUrl from 'ace-builds/src-noconflict/mode-ftl?url';
+ace.config.setModuleUrl('ace/mode/ftl', modeFreemarkerUrl);
+
+// import modePythonUrl from 'ace-builds/src-noconflict/mode-python?url';
+// ace.config.setModuleUrl('ace/mode/python', modePythonUrl);
+
 import modeHtmlUrl from 'ace-builds/src-noconflict/mode-html?url';
 ace.config.setModuleUrl('ace/mode/html', modeHtmlUrl);
 

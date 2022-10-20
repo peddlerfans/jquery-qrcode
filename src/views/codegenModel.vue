@@ -9,7 +9,7 @@ import {
   onMounted,
   nextTick,
   toRaw,
-  getCurrentInstance
+  watch
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import request from '@/utils/request';
@@ -34,12 +34,14 @@ import {
 import { Rule } from 'ant-design-vue/es/form';
 import { Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
 import {
+  AceEditor, AceState,
   Model, ModelState,
 } from "./componentTS/codegen";
 import { purple } from '@ant-design/colors';
 
 import { VAceEditor } from 'vue3-ace-editor';
-import ace from 'ace-builds'
+// import { VAceEditor } from '@/components/AceEditor';
+
 import "./componentTS/ace-config";
 import 'ace-builds/src-noconflict/mode-ejs'
 import 'ace-builds/src-noconflict/mode-html'
@@ -92,6 +94,10 @@ const templateOptions = ref<SelectProps['options']>([
   {
     value: 'freemarker',
     label: 'FreeMarker',
+  },
+  {
+    value: 'javascript',
+    label: 'JavaScript',
   }
 ]);
 const langOptions = ref<SelectProps['options']>([
@@ -110,62 +116,12 @@ const themeOptions = ref<SelectProps['options']>([
     label: 'Github',
   },
   {
-    value: 'xcode',
-    label: 'XCode',
-  },
-  {
     value: 'monokai',
     label: 'Monokai',
   },
 ]);
 
-const states = reactive({
-  theme: 'monokai',
-  result: '',
-});
-
-let modelState = reactive<Model>({
-  _id: '',
-  name: '',
-  category: 'codegen',
-  description: '',
-  tags: [],
-  model: {
-    templateEngine: "ejs",
-    outputLanguage: "python"
-  },
-  templateText: "",
-});
-
-onMounted(() => {
-  modelId = sessionStorage.getItem('codegen_' + route.params._id)
-
-  if (modelId === null){
-    message.error("Model cannot be found")
-  }else{
-    query(modelId)
-  }
-})
-
-async function query(id?: any) {
-  try {
-    let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
-
-    console.log(res)
-    modelState._id = res._id
-    modelState.name = res.name
-    modelState.tags = res.tags
-    modelState.description = res.description
-    modelState.model = res.model
-    modelState.templateText = res.templateText
-  } catch (e) {
-    message.error("Query failed!")
-    console.log(e)
-  }
-
-}
-
-const sampledata={
+let sample={
   "data": [
     {
       "data": "在线视频播放并录制",
@@ -314,30 +270,118 @@ const sampledata={
   "prefix": ""
 }
 
-const previewModel = async () => {
-  console.log('previewModel')
 
-  if (modelState.templateText){
-    try {
-      let res = await request.post(url+`/${route.params._id}/preview`, sampledata)
-      console.log(res)
-      states.result=res.data
-    }catch (err:any){
-      console.log(err.response.data.message)
-      states.result=''
-    }
 
+
+const states = reactive<AceState>({
+  theme: 'github',
+  lang: 'json',
+  input: sample,
+  result: '',
+});
+
+const inputData = ref<string>(JSON.stringify(states.input, null, 2))
+
+
+watch(inputData,(newValue,oldValue)=>{
+  states.input = JSON.parse(newValue)
+})
+
+let modelState = reactive<Model>({
+  _id: '',
+  name: '',
+  category: 'codegen',
+  description: '',
+  tags: [],
+  model: {
+    templateEngine: "ejs",
+    outputLanguage: "python"
+  },
+  templateText: "",
+});
+
+onMounted(() => {
+  modelId = sessionStorage.getItem('codegen_' + route.params._id)
+  if (modelId === null){
+    message.error("Model cannot be found")
   }else{
-    message.warning("No content!")
+    query(modelId)
+  }
+})
+
+async function query(id?: any) {
+  try {
+    let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
+
+    modelState._id = res._id
+    modelState.name = res.name
+    modelState.tags = res.tags
+    modelState.description = res.description
+    modelState.model = res.model
+    modelState.templateText = res.templateText
+  } catch (e) {
+    message.error("Query failed!")
+    console.log(e)
   }
 
 }
 
+const aceTemplate = ref<AceEditor>();
+
 const saveModel = async () => {
-  let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
-  console.log('saveModel')
-  message.success("Saved successfully!")
+  if (modelState.templateText){
+    const anno=aceTemplate.value?._editor.getSession()
+
+    try {
+      let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
+      states.result=res.data
+    }catch (e){
+      message.success("Save failed!")
+    }
+
+    // message.success("Saved successfully!")
+    anno.setAnnotations([])
+
+    try {
+      let res = await request.post(url+`/${route.params._id}/preview`, states.input)
+      states.result=res.data
+      message.success("Preview successful!")
+
+    }catch (err:any){
+      console.log("catch preview error: ")
+      console.log(err.response.data.message)
+
+      let allErr=anno.getAnnotations()
+      allErr.push({
+        row: parseInt(err.response.data.message.split("\n")[0].split(":")[1])-1,
+        column: 0,
+        text: err.response.data.message,
+        type: "error" // also warning and information
+      })
+      anno.setAnnotations(allErr)
+      states.result=''
+      message.error("Something wrong in the Template")
+    }
+  }else{
+    message.warning("Template engine cannot be null!")
+  }
+
+
 }
+
+
+const visible = ref<boolean>(false);
+
+const showModal = () => {
+  visible.value = true;
+};
+
+const handleOk = (e: MouseEvent) => {
+  console.log(e);
+  visible.value = false;
+};
+
+
 
 </script>
 
@@ -351,7 +395,6 @@ const saveModel = async () => {
     <!-- Preview info -->
     <!-- ############ -->
       <header>
-
         <a-form name="basic"  :rules="modelRules" autocomplete="off">
 
           <a-row  type="flex" justify="center" :gutter="24">
@@ -375,26 +418,27 @@ const saveModel = async () => {
       </header>
 
     <a-row type="flex" justify="space-around" align="middle">
-      <a-col :span="11">
+      <a-col :span="12">
 
-        <a-typography-title :level="5"><edit-filled /> Edit</a-typography-title>
+        <a-typography-title :level="5"><edit-filled /> Edit Template</a-typography-title>
         <VAceEditor
             v-model:value="modelState.templateText"
-            class="vue-ace-editor"
+            class="ace-template"
+            ref="aceTemplate"
             :lang="modelState.model.templateEngine"
             :theme="states.theme"
             :options="{ useWorker: true }"
         />
       </a-col>
-      <a-col :span="1">
-        <a-layout-content><a-button type="primary" @click="previewModel"><double-right-outlined /></a-button></a-layout-content>
+<!--      <a-col :span="1">-->
+<!--        <a-layout-content><a-button type="primary" @click="previewModel"><double-right-outlined /></a-button></a-layout-content>-->
 
-      </a-col>
-      <a-col :span="11">
-        <a-typography-title :level="5"><code-filled /> Result (Read-only)</a-typography-title>
+<!--      </a-col>-->
+      <a-col :span="12">
+        <a-typography-title :level="5"><code-filled /> Preview Result (Read-only)</a-typography-title>
         <VAceEditor
             v-model:value="states.result"
-            class="vue-ace-editor"
+            class="ace-result"
             :readonly="true"
             :lang="modelState.model.outputLanguage"
             :theme="states.theme"
@@ -406,7 +450,21 @@ const saveModel = async () => {
 
 
     <div style="margin-top: 30px">
-      <a-button type="primary" @click="saveModel">Save</a-button>
+      <a-button type="primary" @click="saveModel">Save & Preview</a-button>
+      <a-button type="link" @click="showModal" style="margin-left:50px;">Edit Data</a-button>
+      <a-modal v-model:visible="visible" width="1000px" title="Edit Data" @ok="handleOk">
+        <VAceEditor
+            v-model:value="inputData"
+            class="ace-data"
+            :lang="states.lang"
+            :theme="states.theme"
+            :options="{ useWorker: true }"
+        />
+
+        <template #footer>
+          <a-button key="submit" type="primary" :loading="loading" @click="handleOk">Ok</a-button>
+        </template>
+      </a-modal>
     </div>
 
   </main>
@@ -428,10 +486,10 @@ footer {
   margin-top: 1rem;
 }
 
-.vue-ace-editor {
+.ace-template, .ace-result, .ace-data {
   flex: 1;
   margin-top: 15px;
-  font-size: 16px;
+  font-size: 18px;
   border: 1px solid;
   height: 70vh;
 }

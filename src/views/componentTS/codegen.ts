@@ -20,3 +20,14 @@ export interface Model{
     };
     templateText: any;
 }
+
+export interface AceState{
+    theme: string;
+    lang: string;
+    input: any;
+    result: string;
+}
+
+export interface AceEditor{
+    _editor: any;
+}
