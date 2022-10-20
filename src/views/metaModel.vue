@@ -4,7 +4,8 @@ import { onBeforeRouteLeave, useRoute } from 'vue-router';
 import request from "@/utils/request"
 import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
-import { PlusSquareFilled,DeleteTwoTone,CheckCircleTwoTone} from '@ant-design/icons-vue'
+import { PlusSquareFilled,DeleteTwoTone,CheckCircleTwoTone,PlusOutlined} from '@ant-design/icons-vue'
+import { any } from 'vue-types';
 let route=useRoute()
 console.log(route);
 
@@ -22,7 +23,9 @@ async function query (data?:any){
    recordobj.value=rst   
           
           recordobj.value.model=rst.model
-          tableData.value=arr(rst.model)
+          if(rst.model){
+            tableData.value=arr(rst.model)
+          }
       ;
    
 }
@@ -48,7 +51,9 @@ const editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 
 // 修改meta的方法
 const updMeta=async (data:any)=>{
-  
+  if(data.__v){
+    delete data.__v
+  }
   let rst=await request.put(`/api/templates/${data._id}`,data)
   message.success('Modification succeeded')
 }
@@ -56,7 +61,8 @@ const updMeta=async (data:any)=>{
 const edit = (key: string) => {
   editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
   inputType.value=editableData[key].type
-  // state.tags=editableData[key].enum
+  state.tags=editableData[key].enum
+
 };
 // 点击save触发的函数
 const save =async (obj:any) => {
@@ -66,9 +72,7 @@ const save =async (obj:any) => {
   
   recordobj.value.model=tableData.value  
   console.log(recordobj.value);
-  if(recordobj.value.__v){
-    delete recordobj.value.__v
-  }
+  
   await updMeta(recordobj.value)
   delete editableData[obj.key];
   
@@ -79,6 +83,9 @@ const delmodel =async (obj: any) => {
   tableData.value=tableData.value.filter((item:any)=>item.key!==obj.key)
   console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
+  if(recordobj.value.__v){
+    delete recordobj.value.__v
+  }
 if(editableData[obj.key].delekey!==1){
   let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
   query()
@@ -95,8 +102,8 @@ const cancel=(key:any)=>{
 const saveModel=()=>{
   const newModel={
     key:tableData.value.length,
-    name:'new Model name',
-    type:'new Model type',
+    name:'ModelName',
+    type:'str',
     enum:"",
     delekey:1
   }
@@ -135,7 +142,7 @@ let inputRef = ref();
 let state = reactive<statesTs>({
   inputVisible: false,
   inputValue: '',
-  tags: null
+  tags: []
 });
 // 定义tag标签的输入类型
 interface statesTs {
@@ -151,21 +158,29 @@ const showInput = () => {
     })
 };
 // tag标签失去焦点之后添加的tags
-const handleInputConfirm = () => {
-  let tags = state.tags;
+const handleInputConfirm = (record:any) => {
+  console.log(123);
+  
+  let tags = record.enum;
   if (state.inputValue && tags.indexOf(state.inputValue) === -1) {
-    tags = [...tags, state.inputValue.toUpperCase()];
+    tags = [...tags, state.inputValue];
   }
-  Object.assign(state, {
-    tags,
-    inputVisible: false,
-    inputValue: '',
- });    
+  Object.assign(record, {
+    enum:tags,
+ });
+ editableData[record.key].enum=record.enum
+ console.log(record.enum);
+ 
+ state.inputVisible=false
+ state.inputValue=''
 }
 // 移除tags
-const handleClose = (removedTag: string) => {
-      const tags = state.tags.filter((tag: string) => tag !== removedTag);
-      state.tags = tags;
+const handleCloseTag = (record:any,removedTag: string) => {
+      const tags = record.enum.filter((tag: string) => tag !== removedTag);
+      record.enum = tags;
+      editableData[record.key].enum=tags
+      console.log(record.enum);
+      
 };
 // 表格的数据结构
 const columns=reactive<Object[]>(
@@ -281,77 +296,39 @@ const optiones = ref<SelectProps['options']>([
           </div>
           </template>
           <template v-if="column.key === 'enum'">
-              <div>
-            <a-input
-              v-if="editableData[record.key] && inputType=='str'"
-              v-model:value="editableData[record.key].enum"
-              style="margin: -5px 0"
-              placeholder="请输入字符类型"
-              @blur="changeType(editableData[record.key].enum)"
-            />       
-            <a-input
-              v-else-if="editableData[record.key] && inputType=='number'"
-              v-model:value="editableData[record.key].enum"
-              style="margin: -5px 0"
-              placeholder="请输入数字类型"
-              @blur="changeType(editableData[record.key].enum)"
-            />   
-            <a-input
-              v-else-if="editableData[record.key] && inputType=='boolean'"
-              v-model:value="editableData[record.key].enum"
-              style="margin: -5px 0"
-              placeholder="请输入布尔类型"
-            />       
-            <a-input
-              v-else-if="editableData[record.key] && inputType=='int'"
-              v-model:value="editableData[record.key].enum"
-              style="margin: -5px 0"
-              placeholder="请输入整数类型"
-            />  
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-              <!-- <template v-for="(tag, index) in state.tags" :key="tag">
-                <a-tooltip v-if="tag.length > 20" :title="tag">
-                  <a-tag :closable="true" @close="handleClose(tag)">
-                    {{ `${tag.slice(0, 20)}...` }}
-                  </a-tag>
-                </a-tooltip>
-                <a-tag v-else-if="tag.length==0"></a-tag>
-                <a-tag v-else :closable="true" @close="handleClose(tag)">
-                  {{tag}}
-                </a-tag>  
-              </template>
-                  <a-input
-                    v-if="state.inputVisible"
-                    ref="inputRef"
-                    v-model:value="state.inputValue"
-                    type="text"
-                    size="small"
-                    :style="{ width: '78px' }"
-                    @blur="handleInputConfirm"
-                    @keyup.enter="handleInputConfirm"
-                  />
-                <a-tag v-else style="background: #fff; border-style: dashed" 
-                  @click="showInput">
-                    <plus-outlined />
-                    New Tag
-                  </a-tag>
-            </template>
-        <template v-else>
-          <span>
-          <a-tag
-            v-for="tag in record.enum"
-            :key="tag"
-            :color="tag === 'TEST' ? 'volcano' : 'red'"
-          >
-            {{ tag.toUpperCase() }}
-          </a-tag>
-        </span> -->
-      </template>
 
-            <template v-else-if="column.dataIndex === 'action'">
+          <template v-if="editableData[record.key]">
+            <template v-for="(tag,index) in editableData[record.key].enum" :key="index">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="state.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="state.inputValue" type="text"
+                     size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
+                     @keyup.enter="handleInputConfirm(record)" />
+            <a-input-number v-else-if="state.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="state.inputValue" type="text"
+            size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
+            @keyup.enter="handleInputConfirm(record)" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput()">
+              <plus-outlined />
+              New Value
+            </a-tag>
+          </template>
+
+          <span v-else>
+            <a-tag v-for="tag in record.enum" :key="tag" color="cyan">
+              {{ tag }}
+            </a-tag>
+          </span>
+        
+    </template>
+            <template v-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
               <a-typography-link @click="save(record)" style="font-size:16px">

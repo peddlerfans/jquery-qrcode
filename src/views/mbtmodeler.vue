@@ -10,7 +10,14 @@ import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
-import { SmileOutlined, SearchOutlined } from "@ant-design/icons-vue";
+// import { RadioGroupProps } from "ant-design-vue";
+import { generateSchema, generateObj } from "@/utils/jsonschemaform";
+import {
+  SmileOutlined,
+  SearchOutlined,
+  MinusCircleOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
 import {
@@ -76,6 +83,21 @@ const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
+const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
+const templatevalue = ref<string>("Static Template");
+const metaformProps = {
+  layoutColumn: 2,
+  labelPosition: "left",
+  labelWidth: "75px",
+  labelSuffix: ":  ",
+};
+const awformProps = {
+  // inline: true,
+  layoutColumn: 1,
+  labelPosition: "left",
+  labelWidth: "75px",
+  labelSuffix: ":",
+};
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
   cellsInfo?: {
@@ -92,14 +114,14 @@ interface FormState {
 }
 
 interface DataDefinition {
-  data: any[];
-  meta: any[];
-  resources: any[];
+  data: object;
+  meta: object;
+  resources: object;
 }
 let cacheprops = new Map();
 let cacheDataDefinition: DataDefinition = {
-  data: [],
-  meta: [],
+  data: {},
+  meta: {},
   resources: [],
 };
 let ev_id = ""; //elememtview id
@@ -130,7 +152,7 @@ const showDrawer = (
 
     awformdata.value.description = "";
     awformdata.value.name = "";
-    awformdata.value.params = "";
+
     awformdata.value.tags = "";
     awformdata.value.template = "";
     // handlerCancel()
@@ -151,23 +173,78 @@ const showDrawer = (
   }
 };
 
+const isMetaTemplateEmpty = ref(true);
 // 获取当前数据并赋值
 let metatemplaterecordobj = ref();
 // 根据传来的name值获取到数据
+// showMetaDetail
+
+let tempschema = ref({
+  // description: "Config",
+  type: "object",
+  properties: {},
+});
+let metaformFooter = ref({
+  show: false,
+});
 async function metatemplatequery(data?: any) {
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
-  let meta_id = "";
-  let strsql = `/api/templates?search=&q=category:meta`;
-  let rst = await request.get(strsql).then((record: any) => {
-    return (meta_id = record.data[0]._id);
-  });
-  let rst1 = await request.get(`/api/templates/${meta_id}`, {
-    params: { q: "category:meta", search: "" },
-  });
-  metatemplaterecordobj.value = rst1;
+  let currentschema = {
+    type: "object",
+    properties: {},
+  };
+  
+  if (data) {
+    isVisible.value = !isVisible.value;
+  
+    let rst1 = await request.get(`/api/templates/${data}`, {
+      params: { q: "category:meta", search: "" },
+    });
+    // console.log("rst1:", rst1);
+    metatemplaterecordobj.value = rst1;
+    if (rst1.model) {
+      metatemplaterecordobj.value.model = rst1.model;
+  
+      let temparr = rst1.model;
+     
+      if (_.isArray(temparr)) {
+        let schemafileds = generateSchema(temparr);
+        schemafileds.forEach((schemafield: any) => {
+          Object.assign(currentschema.properties, schemafield);
+        });
+             
+        tempschema.value = currentschema;
+      
+      }
+    }
+  } else {
+    let meta_id = "";
+    let strsql = `/api/templates?q=category:meta&search=`;
+    let rst: [] = [];
 
-  metatemplaterecordobj.value.model = rst1.model;
-  metatemplatetableData.value = arr(rst1.model);
+    await request
+      .get(strsql)
+      .then((record: any) => {
+        // console.log(record);
+        rst = record.data;
+        if (rst.length > 0) {
+          isMetaTemplateEmpty.value = false;
+        }
+
+        metatemplatetableData.value = arr(rst);
+
+        // if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
+        //   meta_id = record.data[0]._id;
+      })
+      .finally(() => {
+        // console.log("rst:", rst);
+        if (rst.length > 0) {
+          hasmultipleMetaTemplates.value = true;
+        }
+        return rst;
+      });
+  }
+
   // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
   //  console.log(rst);
   //  route.params.name=rst.name
@@ -213,6 +290,7 @@ const formStateExpected = reactive<FormState>({
   search: "",
 });
 let metatemplatetableData = ref([]);
+let metatemplatedetailtableData = ref({});
 let tableData = ref([]);
 let tableDataExpected = ref([]);
 let searchobj: tableSearch = reactive({
@@ -229,6 +307,26 @@ let searchobjExpected: tableSearch = reactive({
   perPage: 10,
 });
 const metatemplatecolumns = reactive<Object[]>([
+  {
+    title: "name",
+    dataIndex: "name",
+    key: "name",
+    width: 180,
+  },
+  {
+    title: "description",
+    dataIndex: "description",
+    key: "description",
+    width: 180,
+  },
+  {
+    title: "tag",
+    dataIndex: "tag",
+    key: "tag",
+  },
+]);
+
+const metatemplatedetailcolumns = reactive<Object[]>([
   {
     title: "name",
     dataIndex: "name",
@@ -295,8 +393,7 @@ async function awquery(data?: any, isExpected?: boolean) {
     rst = await request.get("/api/hlfs", { params: data || searchobj });
   }
 
-  if (rst.data) {
-    // console.log('rst:', rst.data)
+  if (rst.data) {    
 
     // console.log('rst total:', rst.total, '  pagination page size:', pagination.value.pageSize)
     if (isExpected) {
@@ -308,7 +405,7 @@ async function awquery(data?: any, isExpected?: boolean) {
       tableData.value = rst.data;
     }
 
-    // console.log(tableData, tableData.value);
+    
     return rst.data;
   }
 }
@@ -422,6 +519,8 @@ let globalformData = ref<Stores.mbtView>({
 let linkData = ref({
   _id: "",
   label: "",
+  routerType: "manhattan",
+  connectorType: "rounded",
   loop: false,
   loopcount: 1,
 });
@@ -430,18 +529,21 @@ interface LinkFormData {
   label: string;
   loop?: boolean;
   loopcount?: number;
+  connectorType?: string;
+  routerType?: string;
 }
 let linkFormData: LinkFormData = {
   _id: "",
   label: "",
   loop: false,
   loopcount: 1,
+  connectorType: "rounded",
+  routerType: "manhattan",
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
   name: "",
   description: "",
-  params: "",
   tags: "",
   template: "",
 });
@@ -451,7 +553,7 @@ let awformdataExpected = ref<Stores.awView>({
   _id: "",
   name: "",
   description: "",
-  params: "",
+
   tags: "",
   template: "",
 });
@@ -477,6 +579,7 @@ const globalschema = ref({
     },
   },
 });
+
 const awschema = ref({
   title: "AW",
   description: "Configuration for the AW",
@@ -496,24 +599,24 @@ const awschema = ref({
       title: "Description",
       type: "string",
       readOnly: true,
+      "ui:widget": "TextAreaWidget",
     },
     template: {
       title: "Template",
       type: "string",
-      readOnly: true,
     },
     tags: {
       title: "Tags",
       type: "string",
       readOnly: true,
     },
-    params: {
-      title: "Params",
-      type: "string",
-      readOnly: true,
-    },
+    // params: {
+    //   title: "Params",
+    //   type: "string",
+    // },
   },
 });
+let awschemaExpected = _.cloneDeep(awschema);
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
 const linkschema = ref({
@@ -526,8 +629,20 @@ const linkschema = ref({
       "ui:hidden": true,
       required: true,
     },
+    routerType: {
+      type: "string",
+      title: "Style",
+      enum: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
+      enumNames: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
+    },
+    connectorType: {
+      type: "string",
+      title: "Type",
+      enum: ["jumpover", "normal", "rounded", "smooth", "curve"],
+      enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
+    },
     label: {
-      title: "Label",
+      title: "Condition",
       type: "string",
       // "ui:hidden": "{{parentFormData.loop === true}}"
     },
@@ -550,92 +665,112 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
-  // console.log('primary started.')
+  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-  let tempformdata: Stores.awView = {
-    _id: "",
-    name: "",
-    tags: "",
-    template: "",
-    description: "",
-    params: "",
-  };
+
+  let tempformdata2 = generateObj(awformdata);
+  let tempawschema = generateObj(awschema);
+
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    // console.log('cacheprops set.....1', cacheprops)
+
+
     if (
       cacheprops.get(ev_id) != null &&
-      cacheprops.get(ev_id).props.primaryprops.name.length > 0
+      cacheprops.get(ev_id).props &&
+      cacheprops.get(ev_id).props.primaryprops &&
+      cacheprops.get(ev_id).props.primaryprops.data &&
+      cacheprops.get(ev_id).props.primaryprops.data.name &&
+      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
     ) {
-      // console.log('cacheprops set.....1/1', cacheprops)
-      let awformData = cacheprops.get(ev_id).props.primaryprops;
+      // console.log("cacheprops set.....1/1", cacheprops);
+      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
       // awformdata.value = awformData.props;
       awformdata.value = awformData;
-      currentElementMap.set(ev_id, { props: { primaryprops: awformdata.value } });
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
       hasAWInfo.value = true;
     } //新的aw拖入modeler
     else {
-      currentElementMap.set(ev_id, { props: { primaryprops: awformdata.value } });
-
-      tempformdata._id = awformdata.value._id;
-      tempformdata.name = awformdata.value.name;
-      tempformdata.description = awformdata.value.description;
-      if (_.isArray(awformdata.value.tags)) {
-        _.forEach(awformdata.value.tags, function (value, key) {
-          tempformdata.tags += value + " ";
-        });
-      }
-      if (_.isArray(awformdata.value.params)) {
-        _.forEach(awformdata.value.params, function (value, key) {
-          tempformdata.params += value.name + " ";
-        });
-      }
-
-      cacheprops.set(ev_id, { props: { primaryprops: tempformdata } });
-
+      // console.log("cacheprops set.....2/2", cacheprops);
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      // console.log("cacheprops set.....2/3    .....", cacheprops);
       // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
     }
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   else {
     //获取epected的
+    // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
+
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
-      currentElementMap.get(ev_id).props.expectedprops
+      currentElementMap.get(ev_id).props.expectedprops &&
+      currentElementMap.get(ev_id).props.expectedprops.data
     ) {
+      // console.log(
+      //   "expected in handler:",
+      //   currentElementMap.get(ev_id).props.expectedprops
+      // );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
-    }
-    // console.log(' 2/1-1 : tempexpected', tempexpected);
-    // currentElementMap.set(ev_id, { 'props': { 'primaryprops': awformdata.value, 'expectedprops': awformdata.value } });
-
-    tempformdata._id = awformdata.value._id;
-    tempformdata.name = awformdata.value.name;
-    tempformdata.description = awformdata.value.description;
-    if (_.isArray(awformdata.value.tags)) {
-      _.forEach(awformdata.value.tags, function (value, key) {
-        tempformdata.tags += value + " ";
-      });
-    }
-    if (_.isArray(awformdata.value.params)) {
-      _.forEach(awformdata.value.params, function (value, key) {
-        tempformdata.params += value.name + " ";
-      });
-    }
-    // console.log('cacheprops set.....2/2', cacheprops)
-    if (typeof tempexpected != "undefined") {
+    } else {
+      let tempawformdata2Expected = generateObj(awformdataExpected);
+      let tempawschemaExpected = generateObj(awschemaExpected);
       currentElementMap.set(ev_id, {
-        props: { primaryprops: tempformdata, expectedprops: tempexpected },
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+        },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: tempformdata, expectedprops: tempexpected },
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+    }
+    // console.log(" 2/1-1 : tempexpected", tempexpected);
+    // console.log('cacheprops set.....2/2', cacheprops)
+    if (typeof tempexpected != "undefined") {
+      let tempawschemaExpected = tempexpected.schema;
+      let tempformdata2Expected = tempexpected.data;
+      // console.log(
+      //   "awschemaexpected:",
+      //   awschemaExpected,
+      //   "tempformdata2Expected ",
+      //   tempformdata2Expected
+      // );
+
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+        },
       });
     } //未设置expected，只存primary
     else {
-      currentElementMap.set(ev_id, { props: { primaryprops: tempformdata } });
-      cacheprops.set(ev_id, { props: { primaryprops: tempformdata } });
+      // console.log("correct");
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
     }
   }
 
@@ -649,15 +784,16 @@ function awhandlerSubmit() {
   let showbodytext = "";
   let cell = modeler.graph.getCell(ev_id);
   let isOneAW = true;
+  // console.log("before launch...", currentElementMap.get(ev_id).props);
   for (const [key, value] of Object.entries(
-    currentElementMap.get(ev_id).props.primaryprops
+    currentElementMap.get(ev_id).props.primaryprops.data
   )) {
     let obj = JSON.parse(`{"${key}":"${value}"}`);
     Object.assign(tempaw, obj);
     if (key == "template" || key == "description") {
       showheadtext =
-        cacheprops.get(ev_id).props.primaryprops.template ||
-        cacheprops.get(ev_id).props.primaryprops.description;
+        cacheprops.get(ev_id).props.primaryprops.data.template ||
+        cacheprops.get(ev_id).props.primaryprops.data.description;
 
       if (showheadtext.length > 45) {
         showheadtext = showheadtext.slice(0, 42) + " ...";
@@ -665,7 +801,7 @@ function awhandlerSubmit() {
       let sizeX = showheadtext.length * 2.5;
 
       if (sizeX < 100 || sizeX > 150) sizeX = 160;
-      let sizeY = cacheprops.get(ev_id).props.primaryprops.description.length * 2.5;
+      let sizeY = cacheprops.get(ev_id).props.primaryprops.data.description.length * 2.5;
       // breaklineHeight = sizeY;
       if (sizeY < 45) sizeY = 45;
       if (sizeY > 135) sizeY = 150;
@@ -681,22 +817,24 @@ function awhandlerSubmit() {
     currentElementMap.get(ev_id).props &&
     currentElementMap.get(ev_id).props.expectedprops
   ) {
+    // console.log(" expected ");
     isOneAW = false;
     for (const [key, value] of Object.entries(
-      currentElementMap.get(ev_id).props.expectedprops
+      currentElementMap.get(ev_id).props.expectedprops.data
     )) {
       let obj = JSON.parse(`{"${key}":"${value}"}`);
       Object.assign(tempaw, obj);
       if (key == "template" || key == "description") {
         showbodytext =
-          cacheprops.get(ev_id).props.expectedprops.template ||
-          cacheprops.get(ev_id).props.expectedprops.description;
+          cacheprops.get(ev_id).props.expectedprops.data.template ||
+          cacheprops.get(ev_id).props.expectedprops.data.description;
         let sizeX = showbodytext.length * 2.5;
         if (showbodytext.length > 45) {
           showbodytext = showbodytext.slice(0, 42) + " ...";
         }
         if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY = cacheprops.get(ev_id).props.expectedprops.description.length * 2.5;
+        let sizeY =
+          cacheprops.get(ev_id).props.expectedprops.data.description.length * 2.5;
         if (sizeY < 45) sizeY = 45;
         if (sizeY > 135) sizeY = 150;
         // breaklineHeightExpected = sizeY;
@@ -705,6 +843,10 @@ function awhandlerSubmit() {
         break;
       }
     }
+  } else {
+    // console.log("last else");
+    isOneAW = true;
+    showbodytext = "";
   }
 
   /**
@@ -736,6 +878,8 @@ function awhandlerSubmit() {
   if (isOneAW) {
     cell.attr("header", { width: maxX, height: maxY * 0.5 });
     cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("bodyText/text", "");
+    cell.attr("body").transform = "matrix(0,0,0,0,0,0)";
     cell.resize(maxX, maxY * 0.5 - 20);
   } // For both primary and expected
   else {
@@ -751,8 +895,16 @@ function awhandlerSubmit() {
   message.success("Save aw Successfully");
 }
 
+/**
+ * todo
+ */
 function globalhandlerSubmit() {
-  cacheDataDefinition.meta = metadataSource.value;
+  // console.log(tempschema,metatemplatedetailtableData);
+  let metaObj = {};
+  Object.assign(metaObj, { schema: tempschema.value });
+  Object.assign(metaObj, { data: metatemplatedetailtableData.value });
+  cacheDataDefinition.meta = metaObj;
+  onCloseDrawer();
   message.success("Save config Successfully");
 }
 
@@ -762,6 +914,12 @@ function linkhandlerSubmit() {
   linkFormData.label = linkData.value.label;
   linkFormData.loop = linkData.value.loop;
   linkFormData.loopcount = linkData.value.loopcount;
+  linkFormData.connectorType = linkData.value.connectorType;
+  linkFormData.routerType = linkData.value.routerType;
+  // console.log(linkData.value.connectorType)
+  // console.log(linkData.value.routerType);
+  modeler.graph.getCell(lv_id).router(linkData.value.routerType);
+  modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -793,6 +951,8 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { label: linkFormData.label });
   Object.assign(tempObj, { loop: linkFormData.loop });
   Object.assign(tempObj, { loopcount: linkFormData.loopcount });
+  Object.assign(tempObj, { connectorType: linkFormData.connectorType });
+  Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
   message.success("Save it Successfully");
@@ -801,6 +961,32 @@ function linkhandlerSubmit() {
 function handlerEditExpected() {
   awquery("", true);
   hasAWExpectedInfo.value = false;
+}
+
+function handlerClearExpected() {
+  // hasAWExpectedInfo.value = false;
+  // console.log("clear expected,ev_id:", ev_id);
+  let tempformdata2 = generateObj(awformdata);
+  let tempawschema = generateObj(awschema);
+  if (
+    cacheprops.get(ev_id) != null &&
+    cacheprops.get(ev_id).props.expectedprops &&
+    cacheprops.get(ev_id).props.expectedprops.data &&
+    cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
+  ) {
+    // console.log("success 2   awformdataExpected", awformdataExpected);
+
+    cacheprops.set(ev_id, {
+      props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+    });
+    // console.log("succ3 ", cacheprops.get(ev_id).props);
+
+    currentElementMap.set(ev_id, {
+      props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+    });
+  }
+  awActiveKey.value = "1";
+  isDisabled.value = true;
 }
 
 function handlerCancel() {
@@ -967,8 +1153,10 @@ function saveMBT(route?: any) {
   let obj = Object.fromEntries(cacheprops);
 
   Object.assign(tempdata, { props: obj });
-
+  Object.assign(tempdata, { paperscale: paperscale.value });
   mbtCache["modelDefinition"] = tempdata;
+
+  // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
 
   updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
@@ -980,7 +1168,7 @@ function reloadMBT(route: any) {
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
-
+  // console.log("reloadMBT, mbtid", mbtId);
   if (mbtId.length > 0) {
     res = mbtquery(mbtId, true);
   } else {
@@ -1004,13 +1192,18 @@ function reloadMBT(route: any) {
       modeler.graph.getCells().forEach((item: any) => {
         if (item.attributes.type == "standard.HeaderedRectangle") {
           graphIds.push(item.id);
-          sqlstr += cacheprops.get(item.id).props._id + "|";
+          if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
+            sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
+            if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
+              sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
+            }
+          }
         }
       });
 
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
-      // console.log('...sqlstr:', sqlstr)
+      // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
       tempdata.then((aws) => {
         aws.forEach((aw: Stores.aw) => {
@@ -1024,7 +1217,18 @@ function reloadMBT(route: any) {
             //rendering using updated cellsinfo
             tempcellsinfo.cells.forEach((cell: any) => {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
-                cell.attrs.label.text = aw.template || aw.description;
+                // cell.attrs.label.text = aw.template || aw.description;
+                let showheadtext = aw.template || aw.description;
+                cell.attr(
+                  "headerText/text",
+                  joint.util.breakText(
+                    showheadtext,
+                    {
+                      width: 160,
+                    },
+                    { "font-size": 16 }
+                  )
+                );
               }
             });
           }
@@ -1041,7 +1245,7 @@ function reloadMBT(route: any) {
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  metatemplatequery();
+
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
@@ -1059,12 +1263,21 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
-          // console.log('onMounted.has modelDefinition.....cacheprops/', cacheprops)
+        }
+        if (value.modelDefinition.hasOwnProperty("paperscale")) {
+          modeler.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
-        if (value.dataDefinition.meta.length > 0) {
+
+        if (value.dataDefinition.meta) {
           cacheDataDefinition.meta = value.dataDefinition.meta;
-          metadataSource.value = cacheDataDefinition.meta;
+          tempschema.value = value.dataDefinition.meta.schema;
+          metatemplatedetailtableData.value = value.dataDefinition.meta.data;
+          isVisible.value = true;
+          /**
+           * todo 10.19
+           */
+          // cacheDataDefinition.meta;
         }
       }
     });
@@ -1082,7 +1295,6 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
-          // console.log('onMounted..doesnot have....cacheprops/', cacheprops)
         }
       }
     });
@@ -1163,16 +1375,16 @@ onMounted(() => {
     isLink.value = true;
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
-      currentLinkMap.set(lv_id, { props: cacheprops.get(linkView.model.id) });
-      linkData.value.label = cacheprops.get(linkView.model.id).props.label;
-      linkData.value.loop = cacheprops.get(linkView.model.id).props.loop;
-      linkData.value.loopcount = cacheprops.get(linkView.model.id).props.loopcount;
+      let templinkData = cacheprops.get(linkView.model.id);
+      linkData.value = templinkData.props;
+      currentLinkMap.set(lv_id, { props: templinkData });
+
       linkData.value._id = linkView.model.id;
     } else {
       // todo link props
 
       currentLinkMap.set(linkView.model.id, { props: {} });
-      // // console.log('cacheprops set link....1')
+
       // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
       cacheprops.set(linkView.model.id, { props: {} });
     }
@@ -1217,28 +1429,48 @@ onMounted(() => {
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
-          cacheprops.get(ev_id).props.primaryprops.name.length > 0
+          cacheprops.get(ev_id).props.primaryprops.data.name &&
+          cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
-          // console.log('success    ', cacheprops.get(ev_id).props.primaryprops)
-          let awformData = cacheprops.get(ev_id).props.primaryprops;
+          // console.log("success    ", cacheprops.get(ev_id).props.primaryprops);
+          let awformData = cacheprops.get(ev_id).props.primaryprops.data;
+          let awformSchema = cacheprops.get(ev_id).props.primaryprops.schema;
           awformdata.value = awformData;
-
+          awschema.value = awformSchema;
+          let tempformdata2 = generateObj(awformdata);
+          let tempawschema = generateObj(awschema);
+          // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
-            cacheprops.get(ev_id).props.expectedprops.name.length > 0
+            cacheprops.get(ev_id).props.expectedprops.data &&
+            cacheprops.get(ev_id).props.expectedprops.data.name &&
+            cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
           ) {
-            // console.log('success 2   ', cacheprops.get(ev_id).props.expectedprops)
-            awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops;
+            
+            awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
+            awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
+            let tempawschemaExpected = generateObj(awschemaExpected);
+            let tempformdata2Expected = generateObj(awformdataExpected);
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
             hasAWExpectedInfo.value = true;
             currentElementMap.set(ev_id, {
-              props: { primaryprops: awformdata.value, expectedprops: awformdata.value },
+              props: {
+                primaryprops: { data: tempformdata2, schema: tempawschema },
+                expectedprops: {
+                  data: tempformdata2Expected,
+                  schema: tempawschemaExpected,
+                },
+              },
             });
           } else {
-            // cacheprops.set(ev_id, { props: { 'primaryprops': awformdata.value, 'expectedprops': awformdataExpected } });
-            currentElementMap.set(ev_id, { props: { primaryprops: awformdata.value } });
+            cacheprops.set(ev_id, {
+              props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+            });
+            currentElementMap.set(ev_id, {
+              props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+            });
           }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
@@ -1263,6 +1495,7 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    metatemplatequery();
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
@@ -1285,12 +1518,12 @@ function showGlobalInfo() {
 }
 
 function showAWInfo(rowobj: any) {
-  // console.log('showAWInfo')
+  
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
   awformdata.value.tags = "";
-  awformdata.value.params = "";
+  // awformdata.value.params = "";
   awformdata.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1300,21 +1533,45 @@ function showAWInfo(rowobj: any) {
   }
 
   if (_.isArray(rowobj.params)) {
-    _.forEach(rowobj.params, function (value, key) {
-      awformdata.value.params += value.name + " ";
+    let appendedschema = generateSchema(rowobj.params);
+    appendedschema.forEach((field: any) => {
+      Object.assign(awschema.value.properties, field);
     });
+    
+    // _.forEach(rowobj.params, function (value, key) {
+    //   // awformdata.value.params += value.name + " ";
+    //   Object.assign(awschema.value.properties,{value.name:});
+    // });
   }
 }
+function handlerConfirmExpected() {
+  
+  let tempawschemaExpected = generateObj(awschemaExpected);
+  let tempformdata2Expected = generateObj(awformdataExpected);
 
+  let tempawschema = generateObj(awschema);
+  let tempformdata2 = generateObj(awformdata);
+  currentElementMap.set(ev_id, {
+    props: {
+      primaryprops: { data: tempformdata2, schema: tempawschema },
+      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+    },
+  });
+  cacheprops.set(ev_id, {
+    props: {
+      primaryprops: { data: tempformdata2, schema: tempawschema },
+      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+    },
+  });
+  
+}
 function showAWExpectedInfo(rowobj: any) {
-  // console.log('showAWExpectedInfo， currentelement：', currentElementMap)
-  // console.log('showAWExpectedInfo， cacheprops：', cacheprops)
-  // currentElementMap.set(ev_id, { props: { 'primaryprops': awformdataExpected.value, 'expectedprops': awformdataExpected.value } });
+  
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
   awformdataExpected.value.tags = "";
-  awformdataExpected.value.params = "";
+  // awformdataExpected.value.params = "";
   awformdataExpected.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1322,15 +1579,13 @@ function showAWExpectedInfo(rowobj: any) {
       awformdataExpected.value.tags += value + " ";
     });
   }
-
   if (_.isArray(rowobj.params)) {
-    _.forEach(rowobj.params, function (value, key) {
-      awformdataExpected.value.params += value.name + " ";
+    let appendedschema = generateSchema(rowobj.params);
+    appendedschema.forEach((field: any) => {
+      Object.assign(awschemaExpected.value.properties, field);
     });
+
   }
-  currentElementMap.set(ev_id, { props: { expectedprops: awformdataExpected.value } });
-  cacheprops.set(ev_id, { props: { expectedprops: awformdataExpected.value } });
-  awActiveKey.value = "1";
 }
 
 const activeKey = ref("2");
@@ -1342,40 +1597,14 @@ interface columnDefinition {
   dataIndex: string;
   width?: string;
 }
-interface MetaDataItem {
-  key: string;
-  title: string;
-  content: string;
-}
+
 interface ResourcesDataItem {
   key: string;
   alias: string;
   class: string;
   resourcetype: string;
 }
-interface MetaDataItem {
-  key: string;
-  title: string;
-  content: string;
-}
-// interface AttributesDataItem {
-//   key: string;
-//   description: string;
-//   requirements: string;
 
-// }
-// const attributescolumns: columnDefinition[] = [
-//   {
-//     title: 'description',
-//     dataIndex: 'description',
-//     width: '30%',
-//   },
-//   {
-//     title: 'requirements',
-//     dataIndex: 'requirements',
-//   }
-
-// ];
 const dataPoolcolumns: columnDefinition[] = [
   {
     title: "id",
@@ -1439,35 +1668,6 @@ const resourcescolumns: columnDefinition[] = [
   },
 ];
 
-const metacolumns: columnDefinition[] = [
-  {
-    title: "title",
-    dataIndex: "title",
-    width: "30%",
-  },
-  {
-    title: "content",
-    dataIndex: "content",
-  },
-  {
-    title: "operation",
-    dataIndex: "operation",
-  },
-];
-
-const metadataSource: Ref<MetaDataItem[]> = ref([
-  {
-    key: "0",
-    title: "ID",
-    content: "oppo.test",
-  },
-  {
-    key: "1",
-    title: "Description",
-    content: "测试触控力度",
-  },
-]);
-
 const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
   {
     key: "0",
@@ -1482,61 +1682,6 @@ const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
     resourcetype: "phone",
   },
 ]);
-
-function setFormData(awformData: Stores.aw) {
-  let tempformdata: Stores.awView = {
-    _id: "",
-    name: "",
-    tags: "",
-    template: "",
-    description: "",
-    params: "",
-  };
-  tempformdata._id = awformdata.value._id;
-  tempformdata.name = awformdata.value.name;
-  tempformdata.description = awformdata.value.description;
-  if (_.isArray(awformdata.value.tags)) {
-    _.forEach(awformdata.value.tags, function (value, key) {
-      tempformdata.tags += value + " ";
-    });
-  }
-
-  if (_.isArray(awformdata.value.params)) {
-    _.forEach(awformdata.value.params, function (value, key) {
-      tempformdata.params += value.name + " ";
-    });
-  }
-  return tempformdata;
-}
-const metacount = computed(() => metadataSource.value.length + 1);
-const metaeditableData: UnwrapRef<Record<string, MetaDataItem>> = reactive({});
-
-const metaedit = (key: string) => {
-  // console.log(metaeditableData)
-  // console.log(metaeditableData[key])
-  metaeditableData[key] = cloneDeep(
-    metadataSource.value.filter((item) => key === item.key)[0]
-  );
-};
-const metasave = (key: string) => {
-  Object.assign(
-    metadataSource.value.filter((item) => key === item.key)[0],
-    metaeditableData[key]
-  );
-  delete metaeditableData[key];
-};
-
-const onMetaDelete = (key: string) => {
-  metadataSource.value = metadataSource.value.filter((item) => item.key !== key);
-};
-const metahandleAdd = () => {
-  const newData = {
-    key: `${metacount.value}`,
-    title: `Objective${metacount.value}`,
-    content: `details${metacount.value}`,
-  };
-  metadataSource.value.push(newData);
-};
 
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
 const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
@@ -1556,9 +1701,7 @@ const resourcessave = (key: string) => {
 const resourcescancel = (key: string) => {
   delete resourceseditableData[key];
 };
-const metacancel = (key: string) => {
-  delete metaeditableData[key];
-};
+
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
     (item) => item.key !== key
@@ -1574,15 +1717,29 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
+const isVisible = ref(false);
+const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
-  console.log('import other meta template')
+  isVisible.value = !isVisible.value;
+
+  metatemplatedetailtableData.value = {};
+
+  if (tempschema && tempschema.value) tempschema.value.properties = {};
+  // tempschema.value.type =''
+  // console.log("import other meta template");
 };
 
 const importfromstatic = () => {};
 const isDisabled = ref(true);
 const value1 = ref<number>(1);
+const paperscale = ref(1);
 const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
+  paperscale.value = value;
+};
+
+const cancel = (e: MouseEvent) => {
+  console.log(e);
 };
 </script>
 
@@ -1593,7 +1750,7 @@ const onAfterChange = (value: any) => {
       style="padding: 0rem !important; margin-bottom: 0.2rem !important"
     >
       <a-row>
-        <a-col span="20">
+        <a-col span="18">
           <a-button-group>
             <a-button type="primary" @click="saveMBT(route)"> Save </a-button>
             <span style="margin-left: 5px">
@@ -1602,15 +1759,17 @@ const onAfterChange = (value: any) => {
           </a-button-group>
         </a-col>
         <a-col span="4">
-          <label>Zoom</label>
-
-          <a-slider
-            v-model:value="value1"
-            :min="0.2"
-            :max="3"
-            :step="0.2"
-            @afterChange="onAfterChange"
-          />
+          <div class="icon-wrapper">
+            <minus-circle-outlined />
+            <a-slider
+              v-model:value="value1"
+              :min="0.2"
+              :max="3"
+              :step="0.2"
+              @afterChange="onAfterChange"
+            />
+            <plus-circle-outlined />
+          </div>
         </a-col>
       </a-row>
     </header>
@@ -1651,120 +1810,139 @@ const onAfterChange = (value: any) => {
           <div class="infoPanel" ref="infoPanel" v-if="isAW">
             <a-tabs v-model:activeKey="awActiveKey">
               <a-tab-pane key="1" tab="Primary">
-                <AForm
-                  v-if="!hasAWInfo && isAW"
-                  layout="inline"
-                  class="search_form"
-                  :model="formState"
-                  @finish="handleFinish"
-                  @finishFailed="handleFinishFailed"
-                >
-                  <a-form-item :wrapper-col="{ span: 24 }">
-                    <a-input v-model:value="formState.search" placeholder="aw">
-                      <template #prefix>
-                        <search-outlined />
-                      </template>
-                    </a-input>
-                  </a-form-item>
-                  <a-form-item :wrapper-col="{ span: 4 }">
-                    <a-button type="primary" html-type="submit">search</a-button>
-                  </a-form-item>
-                </AForm>
+                <a-row>
+                  <a-col span="18">
+                    <AForm
+                      v-if="!hasAWInfo && isAW"
+                      layout="inline"
+                      class="search_form"
+                      :model="formState"
+                      @finish="handleFinish"
+                      @finishFailed="handleFinishFailed"
+                    >
+                      <a-form-item :wrapper-col="{ span: 24 }">
+                        <a-input v-model:value="formState.search" placeholder="aw">
+                          <template #prefix>
+                            <search-outlined />
+                          </template>
+                        </a-input>
+                      </a-form-item>
+                      <a-form-item :wrapper-col="{ span: 4 }">
+                        <a-button type="primary" html-type="submit">search</a-button>
+                      </a-form-item>
+                    </AForm>
+                  </a-col>
+                  <a-col>
+                    <span style="margin-right: 5px">
+                      <a-button v-if="!hasAWInfo" type="primary" @click="onCloseDrawer()"
+                        >Close</a-button
+                      >
+                    </span>
 
+                    <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
+                  </a-col>
+                </a-row>
                 <div class="awtable" v-if="!hasAWInfo && isAW">
-                  <a-table
-                    bordered
-                    row-key="record=>record._id"
-                    :columns="columns"
-                    :data-source="tableData"
-                    class="components-table-demo-nested"
-                    :pagination="pagination"
-                  >
-                    <template #headerCell="{ column }">
-                      <template v-if="column.key === 'name'">
-                        <span>
-                          <smile-outlined />
-                          Name
-                        </span>
+                  <a-row>
+                    <a-table
+                      bordered
+                      row-key="record=>record._id"
+                      :columns="columns"
+                      :data-source="tableData"
+                      class="components-table-demo-nested"
+                      :pagination="pagination"
+                    >
+                      <template #headerCell="{ column }">
+                        <template v-if="column.key === 'name'">
+                          <span>
+                            <smile-outlined />
+                            Name
+                          </span>
+                        </template>
                       </template>
-                    </template>
-                    <template #bodyCell="{ column, text, record }">
-                      <template v-if="column.key === 'name'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.name">
-                            <a-button type="link" @click="showAWInfo(record)">
-                              <p v-for="item in record._highlight.name" v-html="item"></p>
-                            </a-button>
+                      <template #bodyCell="{ column, text, record }">
+                        <template v-if="column.key === 'name'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.name">
+                              <a-button type="link" @click="showAWInfo(record)">
+                                <p
+                                  v-for="item in record._highlight.name"
+                                  v-html="item"
+                                ></p>
+                              </a-button>
+                            </div>
+                            <div v-else>
+                              <a-button type="link" @click="showAWInfo(record)">
+                                {{ record.name }}</a-button
+                              >
+                            </div>
                           </div>
                           <div v-else>
                             <a-button type="link" @click="showAWInfo(record)">
                               {{ record.name }}</a-button
                             >
                           </div>
-                        </div>
-                        <div v-else>
-                          <a-button type="link" @click="showAWInfo(record)">
-                            {{ record.name }}</a-button
-                          >
-                        </div>
-                      </template>
-                      <template v-if="column.key === 'description'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.description">
-                            <p
-                              v-for="item in record._highlight.description"
-                              v-html="item"
-                            ></p>
+                        </template>
+                        <template v-if="column.key === 'description'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.description">
+                              <p
+                                v-for="item in record._highlight.description"
+                                v-html="item"
+                              ></p>
+                            </div>
+                            <div v-else>{{ record.description }}</div>
                           </div>
                           <div v-else>{{ record.description }}</div>
-                        </div>
-                        <div v-else>{{ record.description }}</div>
-                      </template>
-                      <template v-if="column.key === 'template'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.template">
-                            <p
-                              v-for="item in record._highlight.template"
-                              v-html="item"
-                            ></p>
+                        </template>
+                        <template v-if="column.key === 'template'">
+                          <div v-if="record._highlight">
+                            <div v-if="record._highlight.template">
+                              <p
+                                v-for="item in record._highlight.template"
+                                v-html="item"
+                              ></p>
+                            </div>
+                            <div v-else>{{ record.template }}</div>
                           </div>
                           <div v-else>{{ record.template }}</div>
-                        </div>
-                        <div v-else>{{ record.template }}</div>
-                      </template>
+                        </template>
 
-                      <template v-if="column.key === 'tags'">
-                        <span>
-                          <a-tag
-                            v-for="tag in record.tags"
-                            :key="tag"
-                            :color="tag === 'test' ? 'volcano' : 'red'"
-                          >
-                            {{ tag.toUpperCase() }}
-                          </a-tag>
-                        </span>
+                        <template v-if="column.key === 'tags'">
+                          <span>
+                            <a-tag
+                              v-for="tag in record.tags"
+                              :key="tag"
+                              :color="tag === 'test' ? 'volcano' : 'red'"
+                            >
+                              {{ tag.toUpperCase() }}
+                            </a-tag>
+                          </span>
+                        </template>
                       </template>
-                    </template>
-                  </a-table>
-                  <span style="margin-right: 5px">
-                    <a-button type="primary" @click="onCloseDrawer()">Close </a-button>
-                  </span>
-
-                  <a-button danger v-if="!hasAWInfo" @click="onBack()">Back </a-button>
+                    </a-table>
+                  </a-row>
                 </div>
-                <VueForm v-model="awformdata" :schema="awschema" v-if="isAW && hasAWInfo">
-                  <div slot-scope="{ awformdata }">
-                    <span style="margin-right: 5px">
-                      <a-button type="primary" @click="awhandlerSubmit()"
-                        >Submit</a-button
-                      >
-                    </span>
-                    <span style="margin-right: 5px">
-                      <a-button type="primary" @click="handlerCancel()">Edit</a-button>
-                    </span>
-                    <a-button danger @click="onExpectedAW()">Next</a-button>
-                  </div>
-                </VueForm>
+                <div style="margin: 5px; width: 80%">
+                  <VueForm
+                    v-model="awformdata"
+                    :formProps="awformProps"
+                    :schema="awschema"
+                    v-if="isAW && hasAWInfo"
+                  >
+                    <div slot-scope="{ awformdata }">
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="awhandlerSubmit()"
+                          >Submit</a-button
+                        >
+                      </span>
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="handlerCancel()">Edit</a-button>
+                      </span>
+                      <a-button danger @click="onExpectedAW()">Next</a-button>
+                    </div>
+                  </VueForm>
+                </div>
               </a-tab-pane>
 
               <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
@@ -1787,7 +1965,8 @@ const onAfterChange = (value: any) => {
                     <a-button type="primary" html-type="submit">search</a-button>
                   </a-form-item>
                 </AForm>
-                <div class="awtable" v-if="!hasAWExpectedInfo && isAW">
+
+                <div v-if="!hasAWExpectedInfo && isAW">
                   <a-table
                     bordered
                     row-key="record=>record._id"
@@ -1862,21 +2041,46 @@ const onAfterChange = (value: any) => {
                     </template>
                   </a-table>
 
-                  <a-button type="primary" @click="onAWExpectedBack()">Back </a-button>
+                  <a-button
+                    v-if="isAW && hasAWExpectedInfo"
+                    type="primary"
+                    @click="onAWExpectedBack()"
+                    >Back
+                  </a-button>
                 </div>
-                <VueForm
-                  v-model="awformdataExpected"
-                  :schema="awschema"
-                  v-if="isAW && hasAWExpectedInfo"
-                >
-                  <div slot-scope="{ awformdataExpected }">
-                    <span style="margin-right: 5px">
-                      <a-button type="primary" @click="handlerEditExpected()"
-                        >Edit</a-button
-                      >
-                    </span>
-                  </div>
-                </VueForm>
+                <div style="margin: 5px; width: 80%">
+                  <VueForm
+                    v-model="awformdataExpected"
+                    :schema="awschemaExpected"
+                    :formProps="awformProps"
+                    v-if="isAW && hasAWExpectedInfo"
+                  >
+                    <div slot-scope="{ awformdataExpected }">
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="handlerEditExpected()"
+                          >Edit</a-button
+                        >
+                      </span>
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="handlerConfirmExpected()"
+                          >Confirm</a-button
+                        >
+                      </span>
+                      <span style="margin-left: 5px">
+                        <a-popconfirm
+                          title="Are you sure clear this form?"
+                          ok-text="Yes"
+                          cancel-text="No"
+                          @confirm="handlerClearExpected()"
+                          @cancel="cancel"
+                        >
+                          <a-button danger>Clear</a-button>
+                        </a-popconfirm>
+                        <!-- <a-button danger @click="handlerClearExpected()">Clear</a-button> -->
+                      </span>
+                    </div>
+                  </VueForm>
+                </div>
               </a-tab-pane>
             </a-tabs>
           </div>
@@ -1884,103 +2088,79 @@ const onAfterChange = (value: any) => {
           <!-- link panel -->
 
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
-            <VueForm
-              v-model="linkData"
-              :schema="linkschema"
-              @submit="linkhandlerSubmit"
-              @cancel="onCloseDrawer"
-            >
-            </VueForm>
+            <div style="margin: 5px; padding: 5px">
+              <VueForm
+                v-model="linkData"
+                :schema="linkschema"
+                @submit="linkhandlerSubmit"
+                @cancel="onCloseDrawer"
+              >
+              </VueForm>
+            </div>
           </div>
 
-          <!-- Global panel -->
+          <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
+                    @cancel="onCloseDrawer"-->
 
-          <div class="infoPanel">
-            <a-tabs v-model:activeKey="activeKey" v-if="isGlobal">
+          <div class="infoPanel" v-if="isGlobal">
+            <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
-                <a-collapse v-model:activeKey="metaActiveKey">
-                  <a-collapse-panel key="1" header="Import from Meta Template">
-                    <a-table
-                      :columns="metatemplatecolumns"
-                      :data-source="metatemplatetableData"
-                      bordered
-                    >
-                      <template #headerCell="{ column }"> </template>
-                      <template #bodyCell="{ column, text, record }">
-                        <template v-if="column.key === 'name'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                        <template v-if="column.key === 'description'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                        <template v-if="column.key === 'type'">
-                          <div>
-                            {{ text }}
-                          </div>
-                        </template>
-                      </template>
-                    </a-table>
-                    <a-button type="primary" @click="onImportFromMetaTemplate"
-                      >导入其他模版</a-button
-                    >
-                  </a-collapse-panel>
-                  <a-collapse-panel key="2" header="Input directly">
-                    <a-button
-                      class="editable-add-btn"
-                      style="margin-bottom: 8px"
-                      @click="metahandleAdd"
-                      >Add</a-button
-                    >
-                    <a-table
-                      bordered
-                      :data-source="metadataSource"
-                      :columns="metacolumns"
-                    >
-                      <template #bodyCell="{ column, text, record }">
-                        <template v-if="['title', 'content'].includes(column.dataIndex)">
-                          <div class="editable-cell">
-                            <div
-                              v-if="metaeditableData[record.key]"
-                              class="editable-cell-input-wrapper"
-                            >
-                              <a-input
-                                v-model:value="metaeditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
-                                @pressEnter="metasave(record.key)"
-                              />
-                              <check-outlined
-                                class="editable-cell-icon-check"
-                                @click="metasave(record.key)"
-                              />
-                            </div>
-                            <div v-else class="editable-cell-text-wrapper">
-                              {{ text || " " }}
-                              <edit-outlined
-                                class="editable-cell-icon"
-                                @click="metaedit(record.key)"
-                              />
-                            </div>
-                          </div>
-                        </template>
-                        <template
-                          v-else-if="column.dataIndex === 'operation' && record.key > 1"
-                        >
-                          <a-popconfirm
-                            v-if="metadataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onMetaDelete(record.key)"
-                          >
-                            <a>Delete</a>
-                          </a-popconfirm>
-                        </template>
-                      </template>
-                    </a-table>
-                    <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
-                  </a-collapse-panel>
-                </a-collapse>
+                <div style="margin: 5px; padding: 5px">
+                  <!-- {{tempschema}} -->
+                  <!-- {{metatemplatedetailtableData}} -->
+                  <VueForm
+                    v-if="isVisible"
+                    v-model="metatemplatedetailtableData"
+                    :schema="tempschema"
+                    :formProps="metaformProps"
+                    :formFooter="metaformFooter"
+                  >
+                  </VueForm>
+                </div>
+                <a-space :size="10">
+                  <a-button
+                    style="margin-right: 10px"
+                    v-if="isVisible"
+                    type="link"
+                    @click="onImportFromMetaTemplate"
+                    >Choose A Template</a-button
+                  >
+                </a-space>
+                <a-table
+                  v-if="!isVisible"
+                  :columns="metatemplatecolumns"
+                  :data-source="metatemplatetableData"
+                  bordered
+                >
+                  <template #bodyCell="{ column, text, record }">
+                    <template v-if="column.key === 'name'">
+                      <div>
+                        <a-button type="link" @click="metatemplatequery(record._id)">{{
+                          text
+                        }}</a-button>
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'description'">
+                      <div>
+                        {{ text }}
+                      </div>
+                    </template>
+                    <template v-if="column.key === 'tags'">
+                      {{ text }}
+                    </template>
+                  </template>
+                </a-table>
+                <div class="awtable">
+                  <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
+                    Jump to Meta Template
+                  </a>
+                  <a-button
+                    v-if="!isMetaTemplateEmpty && isVisible"
+                    type="primary"
+                    @click="globalhandlerSubmit"
+                    >保存</a-button
+                  >
+                </div>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
@@ -1997,6 +2177,8 @@ const onAfterChange = (value: any) => {
                 </a-card>
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
+                <a-radio-group v-model:value="templatevalue" :options="templateOptions" />
+
                 <a-collapse v-model:activeKey="metaActiveKey">
                   <a-collapse-panel key="1" header="Input directly">
                     <dynamic-table></dynamic-table>
@@ -2134,7 +2316,7 @@ header {
 
 .awtable {
   padding: 5px;
-  // display: flex!important;
+  display: flex !important;
   justify-content: flex-end;
   // flex-direction:column-reverse!important;
 }
@@ -2156,5 +2338,32 @@ header {
 
 .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
+}
+
+.icon-wrapper {
+  position: relative;
+  padding: 0px 30px;
+}
+
+.icon-wrapper .anticon {
+  position: absolute;
+  top: -2px;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.icon-wrapper .anticon:first-child {
+  left: 0;
+}
+
+.icon-wrapper .anticon:last-child {
+  right: 0;
+}
+
+.ant-form-horizontal .ant-form-item-label {
+  width: 30% !important;
 }
 </style>
