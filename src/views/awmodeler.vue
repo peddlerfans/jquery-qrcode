@@ -879,7 +879,6 @@ const addSib=async(key:any)=>{
   // queryTree()
 }
 
-
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any,title:string) => {

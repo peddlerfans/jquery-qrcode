@@ -96,10 +96,10 @@ declare module 'axios' {
         name?:any
         _id?:string,
         description?:string,
+        templateText?:any,
         tags?:[],
         modelDefinition?:ModelDefinition,
         dataDefinition?:DataDefinition
-        // model:any
     }
 }
 
