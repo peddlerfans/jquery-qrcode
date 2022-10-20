@@ -230,6 +230,48 @@ export const routes: RouteRecordRaw[] = [
         }
         next()
       }
+  },
+  {
+    path: '/codegenModeler',
+    name: 'CodegenModeler',
+    component: Layout,
+    redirect: { name: 'codegenModeler' },
+    meta: { hidden: true},
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'codegenModeler',
+        component: () => import('@/views/codegenModel.vue'),
+        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/codegenModeler',
+    name: 'CodegenModeler',
+    component: Layout,
+    redirect: { name: 'codegenModeler' },
+    meta: { hidden: true},
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'codegenModeler',
+        component: () => import('@/views/codegenModel.vue'),
+        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
   }
 ]
 

@@ -11,6 +11,7 @@ declare module '@vue/runtime-core' {
     ABreadcrumbItem: typeof import('ant-design-vue/es')['BreadcrumbItem']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
+    AceEditor: typeof import('@/components/AceEditor.js')['default']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
     ACol: typeof import('ant-design-vue/es')['Col']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
@@ -32,9 +33,13 @@ declare module '@vue/runtime-core' {
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
     AModal: typeof import('ant-design-vue/es')['Modal']
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
+<<<<<<< HEAD
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioButton: typeof import('ant-design-vue/es')['RadioButton']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
+=======
+    AResult: typeof import('ant-design-vue/es')['Result']
+>>>>>>> b3282af21cf7e10ed094e4062c1a5d040238c723
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ATable: typeof import('ant-design-vue/es')['Table']
@@ -42,6 +47,7 @@ declare module '@vue/runtime-core' {
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyLink: typeof import('ant-design-vue/es')['TypographyLink']
+    ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     DynamicTable: typeof import('./src/components/dynamicTable.vue')['default']

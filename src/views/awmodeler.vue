@@ -4,7 +4,7 @@ export default { name: 'AWModeler'}
 <script setup lang="ts">
 import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
 import type { FormProps, SelectProps, TreeProps, } from 'ant-design-vue';
-import { CarryOutOutlined,  SmileTwoTone, SmileOutlined,EditOutlined, DownOutlined,PlusOutlined,SearchOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
+import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
@@ -42,56 +42,29 @@ let treeData:any = ref([])
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
   //声明一个空数组，将后台的对象push
-  treeData.value=objToArr(rst)  
-  treeData.value=delNode(treeData.value) 
-  treeData.value = addKey(treeData.value)
-  rightClick()
+  let topTreedata=[{title:'/',keys:0,children:<any>[],isLeaf:false}]
+  let treedatas=objToArr(rst)
+  let treedatass=delNode(treedatas)
+  let treedatasss=addKey(treedatass)
+  topTreedata[0].children=[...treedatasss];
+  // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
+  treeData.value=[...topTreedata]
+  console.log(treeData.value);
+  
+  // rightClick()
+  
 }
 // 若树节点无数据增加点击事件
 // 获取左侧区域的dom
 const leftRef=ref()
 const rightNode=ref(false)
-function rightClick(){
-let leftNode=leftRef.value.children[0].children[0].children[0]
-let treeNode=leftNode.children[1]
-let menuNode=leftNode.children[0]
-  // 计算元素距离视图的总宽高
-  let leftNodeWidth=leftNode.getBoundingClientRect().right
-  let leftNodeHight=leftNode.getBoundingClientRect().bottom
-    // 计算树节点距离视图的总宽高
-    let treeNodeWidth=treeNode.getBoundingClientRect().right
-  let treeNodeHight=treeNode.getBoundingClientRect().bottom
-console.log(treeNodeHight,leftNodeHight);
-window.addEventListener('click',function(){rightNode.value=false})
-if(treeData.value.length==0){
-  leftNode.addEventListener('contextmenu',function(e:any){
-    console.log(e);
-    
-    e.preventDefault()    
-    if(treeNodeHight<e.clientY && e.clientY<leftNodeHight){
-      const {x,y}=e
-      // leftNode.style.position='relative'
-      rightNode.value=true
-      // menuNode.style.backgroundColor='antiquewhite'
-      menuNode.style.position='fixed'
-      menuNode.style.top=e.clientY+'px'
-      menuNode.style.left=e.clientX+'px'
-    }
-  })
-}
-}
 let aaa=ref()
 console.log(aaa.value);
 
 onMounted(() => {
    query()
    queryTree()
-  // if(tableData.value.length>0){
-  //   rightNode()
-  // }
-  // rightClick()
-  aaa.value=leftRef.value.children[0].children[0].children[0]
-  console.log(aaa.value);
+   
   
 }) 
 // 切换查询方式
@@ -129,7 +102,6 @@ const closemodel = () => {
   visible.value = false;
 }
 // 模态窗表单
-let partype = ref('')
   const optiones = ref<SelectProps['options']>([
       {
         value: 'str',
@@ -157,7 +129,7 @@ let partype = ref('')
       }
     ]);
 // 点击添加params的函数
-let obj = ref<paramsobj>({ name: "", type: "" })
+let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputValue:'',editing:false})
 // 添加功能的函数
 async function saveAw(data: any) {
   visible.value = false;
@@ -181,10 +153,7 @@ let modelstates = ref<ModelState>({
   params:[],
   tags:[]
 });
-// 添加parmas的函数
-const handleChange = (value: any) => {      
-      obj.value.type = value
-    };
+
     // 清除模态窗数据
 const clear = () => {
   modelstates.value = {
@@ -198,23 +167,132 @@ const clear = () => {
   },
     obj.value = {
     name: '',
-    type:''
+    type:'',
+    enum:[],
+    inputVisible:false,
+    inputValue:'',
+    editing:false
   }
     states.tags = []; 
     
     (instance?.refs.refForm as any).resetFields()
 
 }
-// 添加和删除param
-function addparams() {
-  modelstates.value.params.push({...obj.value})
-  obj.value = { name: '',  type:'' }
-  partype.value=''
+// 清空赋值params单行的数据
+const clearFactorState = () => {
+  obj.value.name = ''
+  obj.value.type = ''
+  obj.value.enum = []
+  obj.value.editing = true
+  obj.value.inputVisible = false
+  obj.value.inputValue = '';
+
+  // (instance?.refs.refFactorForm as any).resetFields();
 }
-function closepar(item:any) {
-  const parry = modelstates.value.params.filter((paramsitem: { name: any; }) => paramsitem.name !== item.name)
-  modelstates.value.params=parry
+// 点击保存params的函数
+const saveparams = async (record: any) => {
+  record.editing = false
+  clearFactorState()
 }
+// 点击删除params的函数
+const delmodel = (record: any) => {
+  const index= modelstates.value.params.findIndex(e => e === record)
+  console.log('deleteFactorByName')
+  console.log(index)
+  modelstates.value.params.splice(index,1);
+  message.success('Delete Successfully!');
+}
+// 点击取消修改或添加params的函数
+const cancelparams = (record:any) => {
+  if (obj.value.name === ''){
+    const index= modelstates.value.params.findIndex(e => e === record)
+    modelstates.value.params.splice(index,1);
+  }else{
+    record.name = obj.value.name
+    record.type = obj.value.type
+    record.enum=obj.value.enum
+    record.editing = false
+  }
+  clearFactorState()
+}
+// 点击修改触发的函数
+const editparams = (record:any) => {
+  console.log('editFactor')
+  console.log(record)
+
+  obj.value.name = record.name
+  obj.value.type = record.type
+  obj.value.enum = record.values
+  record.editing = true
+
+}
+// 新添加一条params数据
+const addNewParams = () => {
+  modelstates.value.params.push({
+    name: '',
+    type: '',
+    enum: [],
+    editing: true,
+    inputVisible: true,
+    inputValue: ''
+  })  
+}
+// params的表格结构
+const paramsColum=[
+{
+    title: 'ParamsName',
+    dataIndex: 'name',
+    key: 'name',
+    width:100
+  },
+  {
+    title: 'type',
+    dataIndex: 'type',
+    key: 'type',
+    width:100
+  },
+  {
+    title: 'enum',
+    dataIndex: 'enum',
+    key: 'enum',
+    width:180
+  },
+  {
+    title: 'action',
+    dataIndex: 'action',
+    key: 'action',
+    width:120
+  }
+]
+// 添加params的enu
+const handleCloseTag = (record: any, removedTag: string) => {
+  console.log('close tags');
+  const tags = record.enum.filter((tag: string) => tag !== removedTag);
+  record.enum = tags;
+  console.log(record.values);
+
+};
+const handleFactorValueConfirm = (record: any) => {
+  let values = record.enum;
+  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+    values = [...values, record.inputValue];
+  }
+  Object.assign(record, {
+    enum: values,
+    inputVisible: false,
+    inputValue: '',
+  });
+  console.log("handleModelTagConfirm",record.enum)
+}
+let inputRefs=ref()
+const newFactorValueInput = (record: any) => {
+  record.inputVisible = true;
+
+  nextTick(() => {
+    inputRefs.value.focus();
+  })
+};
+
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
@@ -242,7 +320,8 @@ let checkDesc = async (_rule: Rule, value: string) => {
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
-      if(rst.data[0].description==modelstates.value.description){
+      
+      if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
         message.error("Duplicate description")
       }
     }
@@ -252,7 +331,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
 } 
 let checktem = async (_rule: Rule, value: string) => { 
   if (!value) {    
-    return Promise.reject("Template or templ is required")
+    return Promise.reject("Template or template_en is required")
   } else {
     return Promise.resolve();
   }
@@ -270,7 +349,9 @@ const onFinishForm =  (modelstates: any) => {
         message.success("Modified successfully")
     } else {
           delete modelstates.value._id
-         saveAw(modelstates.value)
+          if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
+            saveAw(modelstates.value)
+          }
     } 
     visible.value = false;
     clear()
@@ -288,9 +369,11 @@ let states = reactive<statesTs>({
 });
 
 const handleClose = (removedTag: string) => {
+  
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
   states.tags = tags;
 };
+
 const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
@@ -335,15 +418,18 @@ async function updateAw(url:string,data:any) {
   pagination.value.total = 1
       tableData.value = [rst]
     }
+    
 // 修改的函数
 const edit = (rowobj:any) => {
   showModal()
   modelstates.value.name=rowobj.name
   modelstates.value.description=rowobj.description
   modelstates.value.template=rowobj.template
+  modelstates.value.template_en=rowobj.template_en
   modelstates.value._id = rowobj._id
   states.tags = rowobj.tags
   modelstates.value.params = [...rowobj.params]
+  modelstates.value.params=modelstates.value.params.map((item:any, index:number)=>{return {...item ,editing:false, inputVisible: false, inputValue: ''}})
 }
 // 表格的结构
 const columns = reactive<Object[]>(
@@ -472,10 +558,14 @@ function getPath(key:any,treearr:any){
 let clickKey:any=ref()
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-  let str=getPath(info.node.dataRef.title,treeData.value)
+  if(info.node.dataRef.title=='/'){
+    await query()
+  }else{
+    let str=getPath(info.node.dataRef.title,treeData.value)
   clickKey.value=str
-  console.log(str);
   
+  str=str.substring(2,str.length)
+  console.log(str);
   console.log(selectedKeys);
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
@@ -485,6 +575,8 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   // 这里走前置匹配
   await query({q:`path:${str}`,search:''})
   }
+  }
+  
 };
 
 // 获取点击所在节点的整个路径
@@ -607,7 +699,7 @@ const onchangtitle =async (data: any) => {
   // 获取当前节点的整条路径
   let str=getPath(nowNode.title,treeData.value)
   console.log(str);
-  
+  str=str.substring(2,str.length)
   // 将新输入的值拼接到newPath
   let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
@@ -622,8 +714,12 @@ const onchangtitle =async (data: any) => {
    query({q:`path:${pathnew}`,search:''})
   }
   await queryTree()
+  console.log(123);
+  
   updTreedata.value=""
   nowNode.showEdit=false
+  expandedKeys.value=[nowNode.key]
+  autoExpandParent.value = true;
 }
 
 // 定义修改节点的变量
@@ -661,11 +757,12 @@ console.log(expandKey)
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
+  str=str.substring(2,str.length)
   let pushPath=str+'/'+'childNode'
   console.log(pushPath);
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
-  expandedKeys.value = [nowNode.title];
+  expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
   // queryTree()
 }
@@ -748,6 +845,7 @@ const addSib=async(key:any)=>{
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str=getPath(nowNode.title,treeData.value)
+  str=str.substring(2,str.length)
   if(str.indexOf('/')){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
@@ -771,9 +869,10 @@ const topTree=ref({
   isLeaf:false
 })
 // 添加顶级节点
-const addTop=()=>{
+const addTop=async ()=>{
   treeData.value.push({...topTree.value})
   rightNode.value=false
+  await request.post("/api/hlfs?isFolder=true",{path:'TopNode'})
 }
 // 删除树形控件数据
 const deltree = (key:string) => {}
@@ -782,6 +881,7 @@ const confirmtree =async (key:any) => {
   console.log(nowNode);
   
   let str=getPath(nowNode.title,treeData.value)
+  str=str.substring(2,str.length)
   console.log(str);
   
  let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
@@ -791,7 +891,6 @@ const confirmtree =async (key:any) => {
  const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
     };
-
 </script>
 <template>
   <main class="main"> 
@@ -811,43 +910,8 @@ const confirmtree =async (key:any) => {
             :auto-expand-parent="autoExpandParent"
             @expand="onExpand">
         <template #title="{key:treeKey,title,showEdit}">
-          <!-- <a-tooltip  placement="right" overlayClassName="bgc_tooltip"> -->
-            <!-- <a-dropdown :trigger="['contextmenu']">
-              
-              <template #overlay>
-                <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey, menuKey)">
-                  <a-menu-item  key="1" @click="pushSubtree(title)">
-                    Add Node
-                  </a-menu-item>
-                  <a-menu-item key="2" @click="updTree(title)">
-                    Modify node
-                  </a-menu-item>
-                  <a-popconfirm
-                  placement="right"
-                  title="Are you sure delete this task?"
-                  ok-text="Yes"
-                  cancel-text="No"
-                  @confirm="confirmtree(title)">
-                  <a-menu-item key="3" @click="deltree(title)">
-                      Delete Node
-                  </a-menu-item>
-                </a-popconfirm>
-              </a-menu>
-            </template>
-        <template v-if="searchValues &&  title.includes(searchValues)">
-          <div style="color: #f50;"> 
-            <span>{{title}}</span>
-          </div>
-        </template>
-            <template v-else-if="!showEdit">{{title}}</template>
-              <a-input v-else="showEdit"
-              type="text" 
-              ref="updDom" 
-              v-model:value="updTreedata"
-              @blur="onchangtitle(item)"/>
-        </a-dropdown> -->
-
-        <a-dropdown :trigger="['contextmenu']">
+        <template v-if="title.includes('/')">{{title}}</template>
+        <a-dropdown :trigger="['contextmenu']" v-else>
           <template v-if="searchValues &&  title.includes(searchValues)">
           <div style="color: #f50;"> 
             <span>{{title}}</span>
@@ -1007,36 +1071,80 @@ const confirmtree =async (key:any) => {
           New Tag
         </a-tag>
       </a-form-item>
-
-      <a-form-item 
-      label="params"
-      name="params"
-      >
-      <template v-for="item in modelstates.params" :key="item.name">
-        <a-tag color="blue" :closable="true" @close="closepar(item)">name:{{item.name}} type:{{item.type}}</a-tag>
-        </template>
+      <a-form-item  label="params"  name="params"  >
+        <a-button @click="addNewParams">Add Params</a-button>
       </a-form-item>
       </a-form>
-      <a-form layout="inline" :model="obj" class="formPar">
-          <a-form-item name="name">
-            <a-input v-model:value="obj.name" placeholder="Parameter name"/>
-          </a-form-item>
-          <a-form-item label="type" name="type">
-               <a-select
-                ref="select"
-                v-model:value="partype"
-                style="width: 120px"
-                @change="handleChange"
-                :options="optiones"
-                placeholder="Parameter Type"
-              >
-                <!-- <a-select-option v-for="item in partype" :key="item" :value="item">{{item}}</a-select-option> -->
-              </a-select>
-          </a-form-item>
-          <a-form-item>
-            <a-button @click="addparams" type="primary">+</a-button>
-          </a-form-item>
-        </a-form>
+
+        <a-table v-if="modelstates.params.length>0" :columns="paramsColum" :data-source="modelstates.params" bordered>
+          <template #bodyCell="{column,text,record}">
+            <template v-if='column.key==="name"'>
+              <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
+            <template v-else>
+              {{text}}
+            </template>
+            </template>
+              <template v-if='column.key==="type"'>
+               <div>
+                <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="optiones"
+                ></a-select>
+              <template v-else>
+                {{ text }}
+              </template>
+               </div>
+              </template>
+              <template v-if="column.key === 'enum'">
+                <div>
+          <template v-if="record.editing">
+            <template v-for="(tag) in record.enum" :key="tag">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="record.inputVisible || record.type=='string'" ref="inputRefs" v-model:value.trim="record.inputValue" type="text"
+                     size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+                     @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRefs" v-model:value.number="record.inputValue" type="text"
+            size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+            @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
+              <plus-outlined />
+              Add a New Value
+            </a-tag>
+          </template>
+
+          <span v-else>
+            <a-tag v-for="tag in record.enum" :key="tag" color="cyan">
+              {{ tag }}
+            </a-tag>
+          </span>
+        </div>
+        </template>
+        <template v-if="column.key === 'action'">
+          <div class="editable-row-operations">
+            <span v-if="record.editing">
+              <a-typography-link @click="saveparams(record)" style="font-size:16px">
+              <check-circle-two-tone two-tone-color="#52c41a"/>
+            </a-typography-link>
+            <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
+                <delete-two-tone two-tone-color="#EB6420"/></a>
+            </a-popconfirm>
+            <a-typography-link @click="cancelparams(record)" >cancel</a-typography-link>
+            </span>
+            <span v-else>
+              <a @click="editparams(record)">Edit</a>
+            </span>
+          </div>
+        </template>
+            </template>
+        </a-table>
     </a-modal>
   </div>
           <!-- 表格的结构 -->
@@ -1107,7 +1215,7 @@ const confirmtree =async (key:any) => {
           </template>
           
           <template v-else-if="column.key === 'action'">
-              <span >
+              <span>
                   <a @click="edit(record)">Edit</a>
                     <a-divider type="vertical" />
                         <a-popconfirm
@@ -1119,7 +1227,7 @@ const confirmtree =async (key:any) => {
                         >
                       <a >Delete</a>
                     </a-popconfirm>
-              </span>
+                  </span>
           </template>
     </template>
       </a-table>
@@ -1153,7 +1261,7 @@ const confirmtree =async (key:any) => {
     display: flex;
     justify-content: center;
   margin-top: -1.25rem;
-      margin-left: 6.25rem;
+      
   }
   .searchForm{
     margin-right: 0.75rem;
@@ -1181,53 +1289,12 @@ const confirmtree =async (key:any) => {
     color: red!important;
     font-weight: 600;
   }
-// .bgc_tooltip{
-//   .ant-tooltip-arrow::before {
-//       // 这里是小三角形
-//       background-color: #fff!important;
-//     }
-//   .ant-tooltip-inner{
-    
-//     background-color: white!important;
-//     width: 6.125rem;
-//     padding: 0;
-//     display: flex;
-//     align-items: center;
-//     .ant-menu{
-//       font-size: .75rem;
-//       width: 6.125rem;
-//       .ant-menu-item-only-child{
-//         padding: 0!important;
-//         width: 100%;
-//         height: 1.75rem;
-//         line-height: 1.75rem;
-//         text-align: center;
-//         margin:0;
-//         // display: flex;
-//         // justify-content: center!important;
-//       }
-//     }
-//     .ant-menu-horizontal{
-//       border: 0;
-//       .ant-menu-item{
-//         padding: 0 .3125rem;
-//       }
-      
-      
-//     }
-//     .ant-menu-overflow{
-//         display: flex;
-//         justify-content: space-around;
-//       }
-//     }
-//   }
-//   .topTree{
-//     display: flex;
-//     margin-bottom: .625rem;
-//     .ant-btn{
-//       width: 2.5rem;
-//       font-size: .55rem;
-//       padding: 0px 0.25rem;
-//     }
-//   }
+  .iconsave{
+  margin-left: 1rem;
+  width:3.125rem!important;
+  font-size: 1.25rem!important;
+}
+  // .exampleEnum{
+  //   // width:400px
+  // }
   </style>
