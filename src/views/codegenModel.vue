@@ -462,7 +462,7 @@ const handleOk = (e: MouseEvent) => {
         />
 
         <template #footer>
-          <a-button key="submit" type="primary" :loading="loading" @click="handleOk">Ok</a-button>
+          <a-button key="submit" type="primary" @click="handleOk">Ok</a-button>
         </template>
       </a-modal>
     </div>
