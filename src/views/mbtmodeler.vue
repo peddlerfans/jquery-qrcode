@@ -298,6 +298,7 @@ let searchobj: tableSearch = reactive({
   size: 20,
   page: 1,
   perPage: 10,
+  q:""
 });
 
 let searchobjExpected: tableSearch = reactive({
@@ -305,6 +306,7 @@ let searchobjExpected: tableSearch = reactive({
   size: 20,
   page: 1,
   perPage: 10,
+  q:""
 });
 const metatemplatecolumns = reactive<Object[]>([
   {

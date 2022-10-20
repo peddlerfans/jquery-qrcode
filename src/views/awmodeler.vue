@@ -9,24 +9,19 @@ import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
 import { Rule } from 'ant-design-vue/es/form';
-import { tableSearch, FormState, paramsobj, ModelState, statesTs } from "./componentTS/awmodeler";
+import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
 import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
+import { any } from 'vue-types';
+import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
   page: 1,
-  perPage:10
+  perPage:10,
+  q:""
 })
-// 定义查询输入值时的空格
-// function find(str: string | any[],cha: any,num: number){
-//     var x=str.indexOf(cha);
-//     for(var i=0;i<num;i++){
-//         x=str.indexOf(cha,x+1);
-//     }
-//     return x;
-// }
 async function query(data?: any) {  
   let rst;
     rst = await request.get("/api/hlfs", { params: data || searchobj })
@@ -134,7 +129,7 @@ let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputV
 async function saveAw(data: any) {
   visible.value = false;
   if(clickKey){
-    data={...data,path:clickKey.value}
+    data={...data,path:clickKey.path}
   }
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
@@ -412,7 +407,7 @@ const cancel = (e: MouseEvent) => {
 // 修改函数
 async function updateAw(url:string,data:any) {
   if(clickKey){
-    data={...data,path:clickKey.value}
+    data={...data,path:clickKey.path}
   }
   let rst = await request.put(url, data)
   pagination.value.total = 1
@@ -488,6 +483,13 @@ const onPageChange = async(page: number, pageSize: any) => {
   } else {
     searchobj.search=''
   }
+  if(clickKey.path && clickKey.dataRef){
+    if(clickKey.dataRef.children.length==0){
+      searchobj.q=`path:/.*${clickKey.path}/`
+    }else{
+      searchobj.q=`path:${clickKey.path}`
+    }
+  }
        await query()
    }
 const onSizeChange =async (current: any, pageSize: number) => {
@@ -499,6 +501,13 @@ const onSizeChange =async (current: any, pageSize: number) => {
     searchobj.search=formState.search
       } else {
     searchobj.search=''
+  }
+  if(clickKey.path && clickKey.dataRef){
+    if(clickKey.dataRef.children.length==0){
+      searchobj.q=`path:/.*${clickKey.path}/`
+    }else{
+      searchobj.q=`path:${clickKey.path}`
+    }
   }
      await query()
    }
@@ -555,16 +564,17 @@ function getPath(key:any,treearr:any){
 }
 
 // 当点击时给其赋值，用其值判断调用查询的函数
-let clickKey:any=ref()
+let clickKey=<clickobj>{}
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
     let str=getPath(info.node.dataRef.title,treeData.value)
-  clickKey.value=str
   
   str=str.substring(2,str.length)
+  clickKey.path=str
+  clickKey.dataRef=info.node.dataRef
   console.log(str);
   console.log(selectedKeys);
   if(info.node.dataRef.children.length==0){
@@ -694,11 +704,16 @@ const onExpand = (keys: any) => {
 const onchangtitle =async (data: any) => {
   console.log(updTreedata.value);
   let nowNode=getTreeDataByItem(treeData.value,data)
-  console.log(nowNode);
   
-  // 获取当前节点的整条路径
-  let str=getPath(nowNode.title,treeData.value)
-  console.log(str);
+  let parentchild=getTreeParentChilds(treeData.value,data)
+  let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
+  console.log(searchobj);
+  if(searchobj.length>0){
+    message.warning(`This node already contains a node of ${updTreedata.value}`)
+    return
+  }else{
+    
+    let str=getPath(nowNode.title,treeData.value)
   str=str.substring(2,str.length)
   // 将新输入的值拼接到newPath
   let newStrIndex=str.lastIndexOf('/')
@@ -706,16 +721,15 @@ const onchangtitle =async (data: any) => {
   let pathnew=newStr+updTreedata.value
   console.log(pathnew);
   await request.post("/api/hlfs/_rename?force=true",{path:str,newPath:pathnew})
-  if(nowNode.children.length==0){
-    // 这里走精准匹配
-     query({q:`path:${pathnew}`,search:''})
-    }else{
-  // 这里走前置匹配
-   query({q:`path:${pathnew}`,search:''})
-  }
-  await queryTree()
-  console.log(123);
-  
+  nowNode.title=updTreedata.value
+  // if(nowNode.children.length==0){
+  //   // 这里走精准匹配
+  //    query({q:`path:${pathnew}`,search:''})
+  //   }else{
+  // // 这里走前置匹配
+  //  query({q:`path:${pathnew}`,search:''})
+  // }
+  }  
   updTreedata.value=""
   nowNode.showEdit=false
   expandedKeys.value=[nowNode.key]
@@ -792,7 +806,7 @@ const getloop=(arr:Array<any>, key:string)=> {
             key: key + '/' + s,
             children:[],
             showEdit: false,
-            isLeaf:false,
+            isLeaf:true,
           };
           if (arr[s].children == undefined) {
             arr[s].children = [];
@@ -815,7 +829,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'NewNode',
+            title: `NewNode`,
             key: uuid(),
             children:[],
             showEdit: false,
@@ -842,6 +856,8 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
   let nowNode=getTreeDataByItem(treeData.value,key)
+  console.log(getTreeParentChilds(treeData.value,key));
+  
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str=getPath(nowNode.title,treeData.value)
@@ -855,37 +871,33 @@ const addSib=async(key:any)=>{
     await request.post("/api/hlfs?isFolder=true",{path:'NewNode'})
   }
   pushSib(treeData.value,key)
-  expandedKeys.value = [key];
-  treeData.value = [...treeData.value]
+  // treeData.value = [...treeData.value]
+  expandedKeys.value = [nowNode.key];
+  autoExpandParent.value=true
+  console.log(expandedKeys.value);
+  
   // queryTree()
 }
 
-// 添加顶级节点的数据
-const topTree=ref({
-  title:'TopNode',
-  key:uuid(),
-  children:[],
-  showEdit: false,
-  isLeaf:false
-})
-// 添加顶级节点
-const addTop=async ()=>{
-  treeData.value.push({...topTree.value})
-  rightNode.value=false
-  await request.post("/api/hlfs?isFolder=true",{path:'TopNode'})
-}
 // 删除树形控件数据
 const deltree = (key:string) => {}
-const confirmtree =async (key:any) => {
+const confirmtree =async (key:any,title:string) => {
   let nowNode=getTreeDataByItem(treeData.value,key)
-  console.log(nowNode);
+  
   
   let str=getPath(nowNode.title,treeData.value)
   str=str.substring(2,str.length)
   console.log(str);
-  
+  let delNode=getTreeParentChilds(treeData.value,key);
+  delNode.forEach((e:any,index:number,array:any)=>{
+    console.log(e,title,array);
+    if(e.title==title){
+      delete array[index]
+    }
+  })
  let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
-  queryTree()
+
+  // queryTree()
 }
 // 右键展开菜单项
  const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
@@ -897,9 +909,9 @@ const confirmtree =async (key:any) => {
     <div ref="leftRef" style="height:100%">
       <SplitPanel>
         <template #left-content>
-          <a-menu mode="inline" v-show="rightNode" class="rightMenu">
+          <!-- <a-menu mode="inline" v-show="rightNode" class="rightMenu">
             <a-menu-item key="1" @click="addTop">Add Top Node</a-menu-item>
-          </a-menu>
+          </a-menu> -->
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
           v-if="treeData?.length"
@@ -933,7 +945,7 @@ const confirmtree =async (key:any) => {
                   title="Are you sure delete this task?"
                   ok-text="Yes"
                   cancel-text="No"
-                  @confirm="confirmtree(treeKey)">
+                  @confirm="confirmtree(treeKey,title)">
             <a-menu-item key="4" @click="deltree(title)"> Delete Node</a-menu-item>
           </a-popconfirm>
           </a-menu>
@@ -949,7 +961,6 @@ const confirmtree =async (key:any) => {
       </template>
       </a-tree>
     </template>
- 
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
