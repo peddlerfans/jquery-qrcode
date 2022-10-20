@@ -42,7 +42,7 @@ import { purple } from '@ant-design/colors';
 import { VAceEditor } from 'vue3-ace-editor';
 // import { VAceEditor } from '@/components/AceEditor';
 
-import "./componentTS/ace-config";
+import "./componentTS/";
 import 'ace-builds/src-noconflict/mode-ejs'
 import 'ace-builds/src-noconflict/mode-html'
 import 'ace-builds/src-noconflict/mode-python'
