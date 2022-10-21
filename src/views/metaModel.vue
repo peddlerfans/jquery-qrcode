@@ -334,9 +334,7 @@ const optiones = ref<SelectProps['options']>([
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
               <a style="color:red" @click="save(record)">save </a>
-            <a-popconfirm title="Sure to cancel?" @confirm="cancel(record.key)">
-            <a style="margin-left:0.625rem;" >cancel</a>
-          </a-popconfirm>  
+            <a style="margin-left:0.625rem;" @click="cancel(record.key)">cancel</a>
           </span>
             <span v-else>
               <a @click="edit(record.key)">Edit</a>
