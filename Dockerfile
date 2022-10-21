@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY ./ .
-RUN npm run build
+RUN npm run prod
 # server environment
 FROM nginx:alpine
 COPY nginx.conf /etc/nginx/conf.d/configfile.template
