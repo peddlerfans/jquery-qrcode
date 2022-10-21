@@ -57,10 +57,10 @@ window.joint = joint;
 
 const formFooter = {
   show: true, // 是否显示默认底部
-  okBtn: "保存", // 确认按钮文字
+  okBtn: "Save", // 确认按钮文字
   okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
-  cancelBtn: "编辑", // 取消按钮文字
-  nextBtn: "选择下一个",
+  cancelBtn: "Edit", // 取消按钮文字
+  nextBtn: "Next",
   // 透传给formFooter 中的formItem组件的参数
   // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
   formItemAttrs: {},
@@ -68,9 +68,9 @@ const formFooter = {
 
 const formExpectedFooter = {
   show: true, // 是否显示默认底部
-  okBtn: "确定", // 确认按钮文字
+  okBtn: "Confirm", // 确认按钮文字
   okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
-  cancelBtn: "编辑", // 取消按钮文字
+  cancelBtn: "Edit", // 取消按钮文字
 
   // 透传给formFooter 中的formItem组件的参数
   // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
@@ -423,7 +423,7 @@ let pagination = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+  showTotal: (total: any) => `Total ${total} `, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize), //点击页码事件
   total: 0, //总条数
@@ -461,7 +461,7 @@ let paginationExpected = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+  showTotal: (total: any) => `Total ${total} `, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) =>
     onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize), //点击页码事件
@@ -776,7 +776,7 @@ function awhandlerSubmit() {
     }
   }
 
-  //画图
+  //Draw 
   let tempaw = {};
   let maxX = 180;
   let maxY = 150;
@@ -1140,7 +1140,7 @@ function saveMBT(route?: any) {
     }
   });
 
-  /*删除找不到的*/
+  /*Delete unused or not found*/
   // console.log('graphids:', graphIds)
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
   for (let key of cacheprops.keys()) {
@@ -1431,6 +1431,7 @@ onMounted(() => {
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
+          cacheprops.get(ev_id).props.primaryprops.data &&
           cacheprops.get(ev_id).props.primaryprops.data.name &&
           cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
@@ -1638,18 +1639,7 @@ const dataPoolcolumns: columnDefinition[] = [
     dataIndex: "videotype",
   },
 ];
-// const dataPooldataSource: Ref<DataPoolDataItem[]> = ref([
-//   {
-//     key: '0',
-//     title: 'ID',
-//     content: 'oppo.test',
-//   },
-//   {
-//     key: '1',
-//     title: 'Description',
-//     content: '测试触控力度',
-//   },
-// ]);
+
 const resourcescolumns: columnDefinition[] = [
   {
     title: "alias",
@@ -2160,7 +2150,7 @@ const cancel = (e: MouseEvent) => {
                     v-if="!isMetaTemplateEmpty && isVisible"
                     type="primary"
                     @click="globalhandlerSubmit"
-                    >保存</a-button
+                    >Save</a-button
                   >
                 </div>
               </a-tab-pane>
@@ -2258,7 +2248,7 @@ const cancel = (e: MouseEvent) => {
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
+                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
               </a-tab-pane>
             </a-tabs>
           </div>

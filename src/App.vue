@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import zhCN from 'ant-design-vue/es/locale/zh_CN'
+import enUS from 'ant-design-vue/es/locale/en_US'
 import dayjs from 'dayjs'
-import 'dayjs/locale/zh-cn'
-dayjs.locale('zh-cn')
+import 'dayjs/locale/en'
+dayjs.locale('en')
 
-const locale = zhCN
+const locale = enUS
 </script>
 <template>
   <AConfigProvider :locale="locale">
