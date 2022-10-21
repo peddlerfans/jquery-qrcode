@@ -90,8 +90,10 @@ const saveModel = async () => {
       message.warning('It is requires at least TWO factors in a model')
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-      console.log(rst);
-      // query(finalResult._id)
+      if(rst){
+         query(finalResult._id)
+      }
+      
       message.success('Model is saved successfully')
     }
   }else{
@@ -100,7 +102,6 @@ const saveModel = async () => {
 
 
 }
-
 
 // Types of factor
 const orderOptions = ref<SelectProps['options']>([
@@ -271,59 +272,6 @@ const newFactorValueInput = (record: Factor) => {
     inputRef.value.toString();
   })
 };
-
-const constraintColumns = [ // Setup the header of columns
-  {
-    title: 'IF',
-    children: [
-      {
-        title: 'Name',
-        dataIndex: 'ifname',
-        key: 'ifname',
-        // width: 40
-      },
-      {
-        title: 'Operator',
-        dataIndex: 'ifoperator',
-        key: 'ifoperator',
-        // width: 120
-      },
-      {
-        title: 'Value',
-        dataIndex: 'ifvalues',
-        key: 'ifvalues',
-      }
-    ]
-  },
-  {
-    title: 'THEN',
-    children: [
-      {
-        title: 'Name',
-        dataIndex: 'thenname',
-        key: 'thenname',
-        // width: 40
-      },
-      {
-        title: 'Operator',
-        dataIndex: 'thenoperator',
-        key: 'thenoperator',
-        // width: 120
-      },
-      {
-        title: 'Value',
-        dataIndex: 'thenvalues',
-        key: 'thenvalues',
-      }
-    ]
-  },
-  {
-    title: 'Action',
-    dataIndex: 'action',
-    key: 'action',
-  }
-]
-
 // Operators
 
 const stringOptions = [
@@ -533,7 +481,6 @@ const conditionstr=(arr:any)=>{
   return ifcondition.join("")
 }
 
-
 const rulesChange=(datas: any,key:string)=>{
   console.log(key);
   
@@ -550,7 +497,7 @@ const  conditionsend=()=>{
   debugger
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
       
-      let thencondition='['+thenObj.value.thenName+']'+' '+thenObj.value.thenOperator+' '+thenObj.value.thenValue
+      let thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
       console.log(rulesData.value);
       
       let truerow={if:rulesData.value,then:{...thenObj.value}}
@@ -559,11 +506,11 @@ const  conditionsend=()=>{
       if(keys.value>=0){
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
-        condata.value[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
+        condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
         console.log(finalModel.constraintif);
   console.log(condata.value[keys.value]);
       }else{
-        condata.value.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
+        condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
@@ -578,7 +525,7 @@ const  conditionsend=()=>{
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  console.log(keys.value);
+  console.log(condata.value);
   keys.value=''
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"",
@@ -765,147 +712,11 @@ const rulesData=ref(
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
                 style="margin-left: 12px;">Add a New Constraint</a-button>
     </div>
-
-    <!-- <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
-      <template #bodyCell="{ column, text, record }">
-
-        <template v-if='column.key==="ifname"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifname"
-                      :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus" @change="changeIfName()">
-            </a-select>
-            <template v-else>
-              {{text}}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if='column.key==="ifoperator"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator"
-                      :options="ifOperatorOptions" @focus="focus" @change="changeIfOperator()">
-            </a-select>
-
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if="column.key === 'ifvalues'">
-          <template v-if="record.editing">
-
-            <a-select v-if="constraintState.ifoperator == 'IN'" mode="multiple" ref="select"
-                      v-model:value="constraintState.ifvalues" :options="ifValueOpetions" :disabled="false" @focus="focus">
-            </a-select>
-            <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
-                     style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select" v-model:value="constraintState.ifvalues" :options="ifValueOpetions"
-                      :disabled="false" @focus="focus">
-            </a-select>
-          </template>
-
-          <span v-else>
-            <template v-if="Array.isArray(record.ifvalues)">
-              <a-tag v-for="tag in record.ifvalues" :key="tag" color="cyan">
-                {{ tag }}
-              </a-tag>
-            </template>
-            <template v-else>
-
-              <a-tag v-if="record.ifoperator !== 'LIKE'" color="cyan">
-                {{ text }}
-              </a-tag>
-              <span v-else>
-                {{ text }}
-              </span>
-
-            </template>
-
-          </span>
-        </template>
-
-
-        <template v-if='column.key==="thenname"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenname"
-                      :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus"  @change="changeThenName()">>
-            </a-select>
-            <template v-else>
-              {{text}}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if='column.key==="thenoperator"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator"
-                      :options="thenOperatorOptions" @focus="focus"  @change="changeThenOperator()">
-            </a-select>
-
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-
-        <template v-if='column.key === "thenvalues"'>
-          <template v-if="record.editing">
-            <a-select v-if="constraintState.thenoperator === 'IN'" mode="multiple" ref="select1"
-                      v-model:value="constraintState.thenvalues" :options="thenValueOpetions" :disabled="false" @focus="focus">
-            </a-select>
-            <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
-                     style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select2" v-model:value="constraintState.thenvalues" :options="thenValueOpetions"
-                      :disabled="false" @focus="focus">
-            </a-select>
-          </template>
-
-          <span v-else>
-            <template v-if="Array.isArray(record.thenvalues)">
-              <a-tag v-for="tag in record.thenvalues" :key="tag" color="cyan">
-                {{ tag }}
-              </a-tag>
-            </template>
-            <span v-else>
-              <a-tag v-if="record.thenoperator !== 'LIKE'" color="cyan">
-                {{ text }}
-              </a-tag>
-              <span v-else>
-                {{ text }}
-              </span>
-            </span>
-
-          </span>
-        </template>
-
-        <template v-if='column.key === "action"'>
-          <span v-if="record.editing">
-            <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
-              <a>Cancel</a>
-            </a-popconfirm>
-          </span>
-
-          <span v-else>
-            <a @click="editConstraint(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                          @confirm="deleteConstraint(record.name)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-    </a-table> -->
     <a-table :columns="columns" :data-source="condata" bordered>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
-          <!-- <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span> -->
+          <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+        
         </template>
         <template v-if="column.key=='action'">
           <span>
