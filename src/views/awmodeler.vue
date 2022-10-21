@@ -15,7 +15,6 @@ import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
-import { tableDataSource } from '@/composables/getTable';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
