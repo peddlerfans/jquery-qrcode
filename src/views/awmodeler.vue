@@ -15,6 +15,7 @@ import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
+import { tableDataSource } from '@/composables/getTable';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -126,6 +127,7 @@ const closemodel = () => {
 // 点击添加params的函数
 let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputValue:'',editing:false})
 // 添加功能的函数
+let deleteId=""
 async function saveAw(data: any) {
   visible.value = false;
   if(clickKey){
@@ -133,10 +135,9 @@ async function saveAw(data: any) {
   }
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
-      let res=await request.get(`/api/hlfs/${rst._id}`)
-      console.log(res);
-      pagination.value.total = 1
-      tableData.value = [res]
+      deleteId=rst._id
+      tableData.value.push(data)
+      message.success("Successfully added")
     }
     }
 let modelstates = ref<ModelState>({
@@ -299,7 +300,9 @@ let checkName = async (_rule: Rule, value: string) => {
       }else{
        let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
       if(rst.data.length>0){
-        message.error("Duplicate name")
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        return Promise.reject("Duplicate name")
       }
       return Promise.resolve();
       }
@@ -337,15 +340,18 @@ let rules: Record<string, Rule[]> = {
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
 let refForm=ref(null)
-const onFinishForm =  (modelstates: any) => {  
+const onFinishForm = async (modelstates: any) => {  
   modelstates.value.tags = states.tags
     if (modelstates.value._id) {
-        updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
         message.success("Modified successfully")
     } else {
           delete modelstates.value._id
           if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
-            saveAw(modelstates.value)
+            await saveAw(modelstates.value)
+          }else{
+            message.error("Please enter required items")
+            visible.value=true
           }
     } 
     visible.value = false;
@@ -389,16 +395,20 @@ const handleInputConfirm = () => {
 }
 
     // 删除功能
-async function delaw(key:any) {
-  let rst = await request.delete(`/api/hlfs/${key._id}`)
-  formState.search=""
-      query()
-      pagination.value.pageNo=1
-}
-const confirm = (e: MouseEvent) => {
-      delaw(e)
-      query()
-      pagination.value.pageNo=1
+const confirm =async (obj:any) => {
+  if(obj._id){
+    let rst = await request.delete(`/api/hlfs/${obj._id}`)
+  }else{
+     await request.delete(`/api/hlfs/${deleteId}`)
+  }
+  
+  tableData.value.forEach((e:any,index:number,array:any)=>{
+    // console.log(e,key._id,array);
+    if(e.name==obj.name){
+      delete array[index]
+    }
+  })
+      // pagination.value.pageNo=1
       message.success('Delete on Successed');
 };
 const cancel = (e: MouseEvent) => {
@@ -1140,17 +1150,17 @@ const confirmtree =async (key:any,title:string) => {
         <template v-if="column.key === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a-typography-link @click="saveparams(record)" style="font-size:16px">
-              <check-circle-two-tone two-tone-color="#52c41a"/>
-            </a-typography-link>
-            <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
-                <delete-two-tone two-tone-color="#EB6420"/></a>
-            </a-popconfirm>
-            <a-typography-link @click="cancelparams(record)" >cancel</a-typography-link>
+              <a-typography-link type="danger" @click="saveparams(record)" style="font-size:16px">Save</a-typography-link>
+              <a-divider type="vertical" />
+            <a @click="cancelparams(record)" >cancel</a>
             </span>
             <span v-else>
               <a @click="editparams(record)">Edit</a>
+              <a-divider type="vertical" />
+              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
+                delete</a>
+            </a-popconfirm>
             </span>
           </div>
         </template>
@@ -1230,7 +1240,7 @@ const confirmtree =async (key:any,title:string) => {
                   <a @click="edit(record)">Edit</a>
                     <a-divider type="vertical" />
                         <a-popconfirm
-                          title="Are you sure delete this task?"
+                          title="Are you sure delete this AW?"
                           ok-text="Yes"
                           cancel-text="No"
                           @confirm="confirm(record)"

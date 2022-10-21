@@ -7,13 +7,18 @@ export default {
     <script lang="ts" setup>
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { grey } from '@ant-design/colors';
+
+onMounted(()=>{
+    // changecolor()
+})
 
     let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
     let emit=defineEmits(['changeObserver','rulesChange'])
     console.log(props.enableDeleteChild);
 
-    let selectvalue=ref('')
+    let selectvalue=ref('AND')
     const  relations=[{
                 label: "AND",
                 value:"AND"
@@ -76,42 +81,65 @@ const valueDatas=computed(()=>{
     return {name:item.name,type:item.type,values:item.values.map((e: any) => { return { value: e, label: e } })}
 })
 })
-console.log(valueDatas);
 
-const valuechange=(data: any)=>{
-    selectvalue.value=data
+// const valuechange=(data: any)=>{
+//     selectvalue.value=data
     
-}
+// }
+const styleobj=computed(()=>{
+    if(props.rulesData[0].id%2==0){
+        if(props.rulesData[0].conditions.length==1 && props.rulesData[0].children.length==0){
+            return {backgroundColor:'#DCDCDC',border:'none'}
+        }else{
+            return {backgroundColor:'#DCDCDC'}
+        }
+        
+    }else{
+        if(props.rulesData[0].conditions.length==1 && props.rulesData[0].children.length==0){
+            return {backgroundColor:'white',border:'none'}
+        }else{
+            return {backgroundColor:"white"}
+        }
+        
+    }
+})
+// const leftstyle=computed(()=>{
+//     if(props.rulesData[0].conditions.length==1){
+//         return {display:'none'}
+//     }
+// })
+
 
             
 const changeObserver=()=>{
     emit("changeObserver", props.rulesData)
 }
+
 function addCondition(){
     let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
         
         if(conditionName){
             if(props.rulesData[0].conditions.length>0){
                 let length= props.rulesData[0].conditions.length
-                let str=props.rulesData[0].conditions[length-1].selectvalue
-                if(str){
+                let str=props.rulesData[0].conditions[length-1]
+                if(str.name && str.operator && str.value){
                 props.rulesData[0].conditions.push({
-                    name: undefined,
-                    operate:undefined,
-                    value:undefined ,
-                    selectvalue:undefined,
+                    name: conditionName,
+                    operator:"=",
+                    value:"value" ,
+                    selectvalues:selectvalue.value,
                     // selectcondition:"a",
                     // selectconditiones:"c"
                         }) 
             }else{
-                message.warning('Please select the conditional link keyword first')
+                message.warning('Please complete condition editing first')
             }
             }else{
                 props.rulesData[0].conditions.push({
-                    name: undefined,
-                    operate:undefined,
+                    name: conditionName,
+                    operator:undefined,
                     value:undefined,
-                    selectvalue:undefined,
+                    selectvalues:selectvalue.value,
                     // selectcondition:"a",
                     // selectconditiones:"c"
                         })
@@ -127,13 +155,27 @@ function addCondition(){
     
     
 }
+
 function addChild(){
     let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
     if(props.rulesData[0].relation){
     if(conditionName){
+        let childrelation="AND"
+        let childselectvalue=childrelation
         props.rulesData[0].children.push({ 
-            relation: '',
-            conditions:[],
+            relation: childrelation,
+            id:props.rulesData[0].id+1,
+            conditions:[
+            {
+                    
+                    name: conditionName,
+                    operator:undefined,
+                    value:undefined,
+                    selectvalues:selectvalue.value,
+                    // selectcondition:"a",
+                    // selectconditiones:"c"
+                        }
+            ],
             children:[]
         })
         changeObserver()//监测组件是否改变的方法,组件改变不等于条件改变的ruleChange方法
@@ -153,6 +195,9 @@ function deleteChild (index: any){
 }
 function daeteCondition(index: any){
     props.rulesData[0].conditions.splice(index, 1)
+    if(props.rulesData[0].conditions.length==0){
+        deleteChild(index)
+    }
     rulesChange(props.rulesData)
 }
 function childChange(childData: any){
@@ -165,15 +210,28 @@ function rulesChange(rulesData:any){
 // 控制条件判断的属性
 const radiooption=[{label:'one',value:'a'},{label:'more',value:'b'}]
 const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
+const checkrelation=(obj:any)=>{
+    if(obj=="AND"){
+        props.rulesData[0].relation="OR"
+        selectvalue.value="OR"
+        props.rulesData[0].conditions[0].selectvalues="OR"
+        // childrelation=props.rulesData[0].relation
+    }else if(obj=="OR"){
+        props.rulesData[0].relation="AND"
+        selectvalue.value="AND"
+        props.rulesData[0].conditions[0].selectvalues="AND"
+    }
+    
+}
 </script>
 
 <template>
-    <div class="box">
-    <div class="rules-box" :title=rulesData[0].relation>
+    <!-- <div class="box"> -->
+    <div class="rules-box" :style="styleobj">
+        <span  class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</span>
     <div class="ant-card-body" >
-        <a-row class="loop-child " >
-            <a-select 
-                
+        <!-- <a-row class="loop-child " > -->
+            <!-- <a-select 
                 class="button-select"
                 size="small"
                 :options="relations"
@@ -181,9 +239,9 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                 @change="rulesChange"
                 placeholder="name"
             >
-            </a-select>
+            </a-select> -->
             
-        </a-row>
+        <!-- </a-row> -->
         <template v-for="(item, index) in rulesData[0].conditions" :key="'condition'+index">
             <a-row  class=" loop-child">
                 <a-select
@@ -200,21 +258,21 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                         <template v-if="operaitem.type=='string'">
                     <a-select
                     class="condition"
-                    v-model:value="item.operate"
+                    v-model:value="item.operator"
                     @change="rulesChange"
                     :options="stringOptions"
                     size="small"
-                    placeholder="operate">
+                    placeholder="operator">
                 </a-select>
                 </template>
                 <template v-else>
                     <a-select
                     class="condition"
-                    v-model:value="item.operate"
+                    v-model:value="item.operator"
                     @change="rulesChange"
                     :options="numberOptions"
                     size="small"
-                    placeholder="operate"
+                    placeholder="operator"
                 >
                 </a-select>
                 </template>
@@ -225,7 +283,7 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                     <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
                         <template v-if="valueitem.name==item.name">
                         <a-select 
-                        v-if="item.operate=='IN' && item.value"
+                        v-if="item.operator=='IN' && item.value && valueitem.name==item.name"
                         :options="valueitem.values"
                         mode="multiple"
                         size="small"
@@ -245,13 +303,12 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                     </template>
                     </template>
                 </div>
-                <div></div>
                 <!-- 只有一个条件的值比对 -->
                 <!-- <div class="condition-value"  v-if="item.selectcondition=='a' && item.selectconditiones=='d'">
                     <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
                         <a-select 
                         v-if="valueitem.name==item.name"
-                        class="condition-operate"
+                        class="condition-operator"
                         :options="valueitem.values"
                         size="small"
                         v-model:value="item.value"
@@ -264,7 +321,7 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                     <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
                         <a-select 
                         v-if="valueitem.name==item.name"
-                        class="condition-operate"
+                        class="condition-operator"
                         mode="multiple"
                         :options="formDatas"
                         size="small"
@@ -278,7 +335,7 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                     <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">
                         <a-select 
                         v-if="valueitem.name==item.name"
-                        class="condition-operate"
+                        class="condition-operator"
                         mode="multiple"
                         :options="valueitem.values"
                         size="small"
@@ -287,7 +344,8 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                         ></a-select>
                     </template>
                 </div> -->
-                    <a-select
+                <!-- 条件链接关键字 -->
+                <!-- <a-select
                     class="condition"
                     :options="relations"
                     size="small"
@@ -295,7 +353,7 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                     @change="valuechange"
                     placeholder="Connection Keyword"
                     >
-                    </a-select>
+                    </a-select> -->
                 <!-- <a-radio-group class="radioclass" v-model:value="item.selectcondition" :options="radiooption"></a-radio-group>
                 <a-radio-group class="radioclass" v-model:value="item.selectconditiones" :options="radiooptions"></a-radio-group> -->
 
@@ -309,9 +367,9 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
         </template>
         
     </div>
-    <a-row style="padding-left:10px"  v-if="rulesData[0].children.length > 0">
+    <!-- <a-row > -->
             <create-rule
-                
+            style="padding-left:10px"  v-if="rulesData[0].children.length > 0"
                 :valueData="valueData"
                 :formDatas="formDatas" 
                 :topDatas="rulesData"
@@ -320,14 +378,12 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                 @rulesChange="childChange"
                 @changeObserver="changeObserver"
             />
-        </a-row>
-        
-    </div>
-    <a-row class=" loop-childs" >
+        <!-- </a-row> -->
+        <a-row class=" loop-childs" >
             <a-button
                 v-if="enableDeleteChild"
-                class="button-select"
-                title="删除子条件"
+                class="button-select button-loop"
+                title="delete filter"
                 size="small"
                 @click="deleteChild(autoIndex)"
             >delete</a-button>
@@ -344,45 +400,48 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                 @click="addCondition"
             >Add filter</a-button>
         </a-row>
-</div>
+    </div>
+    
+<!-- </div> -->
 </template>
 
 <style lang="less" scoped>
+// @import '~antd/es/style/themes/default.less';
 .box{
     width: 100%;
-    background-color: white;
+    // background-color: white;
 }
     .rules-box{
-        margin-left: .625rem;
-        background-color: white;
+        margin-left: 1.25rem;
+        // background-color: white;
         border-left: 1px solid red;
         border-top-left-radius: 5px; 
         border-bottom-left-radius: 5px; 
         position: relative;
-            &::before{
-                content:attr(title);
-                position:absolute;
-                top:50%;
-                transform:translateY(-50%);
-                -webkit-transform:translate(-50%,-50%);
-                padding:10px 0;
-                background-color: white;
-            }
+    // & :nth-child(3){
+    //     background-color: gray;
+    // }
+        .title{
+            position:absolute;
+            top:50%;
+            transform:translateY(-50%);
+            -webkit-transform:translate(-50%,-50%);
+            background-color: rgb(209, 169, 169);
+        }
 
         .loop-child{
             width:100%;
-            position:relative;
+            // position:relative;
             padding:10px 0 10px 12px;
             line-height:1;
             
-            // &::before{
-            //     display:block;
-            //     content:attr(title);
-            //     position:absolute;
-            //     top:50%;
-            //     transform:translateY(-50%);
-            //     -webkit-transform:translate(-50%,-50%);
-            // }
+            &:hover :nth-child(4){
+                visibility: visible;
+            }
+            
+            & :nth-child(4){
+                visibility: hidden;
+            }
             .button-select{
                 cursor:pointer;
                 // padding:0.28em;
@@ -392,15 +451,6 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
             .condition{
                 margin-right: 0.5rem;
             }
-            // /deep/.radioclass{
-            //     .ant-radio-wrapper{
-            //         span:nth-child(2) {
-            //             padding-left: .125rem;
-            //             padding-right: 0;
-            //         }
-            //     }
-                
-            // }
         }
     }
     .loop-childs{
@@ -412,7 +462,11 @@ const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
                 cursor:pointer;
                 // padding:0.28em;
                 margin-right:0.5em;
+                visibility: hidden;
             }
 
+            &:hover button{
+                visibility: visible;
+            }
     }
 </style>

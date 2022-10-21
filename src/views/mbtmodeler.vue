@@ -52,6 +52,7 @@ import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
 import { array } from "vue-types";
+import CreateRule from "@/components/CreateRule.vue"
 
 window.joint = joint;
 
@@ -896,6 +897,9 @@ function awhandlerSubmit() {
   onCloseDrawer();
   message.success("Save aw Successfully");
 }
+
+
+const formDatas: any[]=[]
 
 /**
  * todo
@@ -2098,6 +2102,8 @@ const cancel = (e: MouseEvent) => {
                 @cancel="onCloseDrawer"
               >
               </VueForm>
+              <a-table></a-table>
+              <create-rule :formDatas="formDatas"></create-rule>
             </div>
           </div>
 
