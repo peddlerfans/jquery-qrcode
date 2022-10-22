@@ -13,6 +13,7 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-v
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
+import {getMetatemplate,getAllMetatemplates} from '@/api/mbt/index'
 import {
   SmileOutlined,
   SearchOutlined,
@@ -58,14 +59,14 @@ import CreateRule from "@/components/CreateRule.vue"
 window.joint = joint;
 
 const formFooter = {
-  show: true, // 是否显示默认底部
-  okBtn: "Save", // 确认按钮文字
-  okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
-  cancelBtn: "Edit", // 取消按钮文字
-  nextBtn: "Next",
-  // 透传给formFooter 中的formItem组件的参数
-  // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
-  formItemAttrs: {},
+  show: false, // 是否显示默认底部
+  // okBtn: "Save", // 确认按钮文字
+  // okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
+  // cancelBtn: "Edit", // 取消按钮文字
+  // nextBtn: "Next",
+  // // 透传给formFooter 中的formItem组件的参数
+  // // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
+  // formItemAttrs: {},
 };
 
 const formExpectedFooter = {
@@ -189,70 +190,9 @@ let tempschema = ref({
   type: "object",
   properties: {},
 });
-let metaformFooter = ref({
-  show: false,
-});
-async function metatemplatequery(data?: any) {
-  //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
-  let currentschema = {
-    type: "object",
-    properties: {},
-  };
 
-  if (data) {
-    isVisible.value = !isVisible.value;
 
-    let rst1 = await request.get(`/api/templates/${data}`, {
-      params: { q: "category:meta", search: "" },
-    });
-    // console.log("rst1:", rst1);
-    metatemplaterecordobj.value = rst1;
-    if (rst1.model) {
-      metatemplaterecordobj.value.model = rst1.model;
 
-      let temparr = rst1.model;
-
-      if (_.isArray(temparr)) {
-        let schemafileds = generateSchema(temparr);
-        schemafileds.forEach((schemafield: any) => {
-          Object.assign(currentschema.properties, schemafield);
-        });
-
-        tempschema.value = currentschema;
-      }
-    }
-  } else {
-    let meta_id = "";
-    let strsql = `/api/templates?q=category:meta&search=`;
-    let rst: [] = [];
-
-    await request
-      .get(strsql)
-      .then((record: any) => {
-        // console.log(record);
-        rst = record.data;
-        if (rst.length > 0) {
-          isMetaTemplateEmpty.value = false;
-        }
-
-        metatemplatetableData.value = arr(rst);
-
-        // if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
-        //   meta_id = record.data[0]._id;
-      })
-      .finally(() => {
-        // console.log("rst:", rst);
-        if (rst.length > 0) {
-          hasmultipleMetaTemplates.value = true;
-        }
-        return rst;
-      });
-  }
-
-  // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
-  //  console.log(rst);
-  //  route.params.name=rst.name
-}
 // 给每条数据添加条属性
 const arr = (dataArr: any) =>
   dataArr.map((item: any, index: string) => ({ ...item, key: index }));
@@ -293,7 +233,7 @@ const formStateExpected = reactive<FormState>({
   remember: true,
   search: "",
 });
-let metatemplatetableData = ref();
+
 let metatemplatedetailtableData = ref({});
 let tableData = ref([]);
 let tableDataExpected = ref([]);
@@ -332,26 +272,7 @@ const metatemplatecolumns = reactive<Object[]>([
   },
 ]);
 
-const metatemplatedetailcolumns = reactive<Object[]>([
-  {
-    title: "name",
-    dataIndex: "name",
-    key: "name",
-    width: 180,
-  },
-  {
-    title: "description",
-    dataIndex: "description",
-    key: "description",
-    width: 180,
-  },
-  {
-    title: "type",
-    dataIndex: "type",
-    key: "type",
-    width: 180,
-  },
-]);
+
 const columns = reactive<Object[]>([
   {
     name: "Name",
@@ -1274,10 +1195,11 @@ onMounted(() => {
         //dataDefinition includes meta, datapool and resources
 
         if (value.dataDefinition.meta) {
+          console.log('has meta info ')
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-          isVisible.value = true;
+          isFormVisible.value = true;
           /**
            * todo 10.19
            */
@@ -1499,7 +1421,6 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
-    metatemplatequery();
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
@@ -1705,8 +1626,9 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
+const isFormVisible = ref(false);
 const isVisible = ref(false);
-const hasmultipleMetaTemplates = ref(false);
+// const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
 
@@ -1731,6 +1653,19 @@ const cancel = (e: MouseEvent) => {
 };
 
 const handleDynamicTable = () => {};
+
+
+const submitTemplate= (data:any)=>{
+  console.log('emit value:',data)
+  
+  let metaObj = {};
+  Object.assign(metaObj, { schema: data.schema });
+  Object.assign(metaObj, { data: data.data });
+  cacheDataDefinition.meta = metaObj;
+  console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+}
 </script>
 
 <template>
@@ -2092,19 +2027,19 @@ const handleDynamicTable = () => {};
           </div>
 
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
-                    @cancel="onCloseDrawer"-->
-
+                    @cancel="onCloseDrawer" :schema="tempschema"-->
+                    <!--  :isVisible="isVisible"-->
           <div class="infoPanel" v-if="isGlobal">
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
+
                 <metainfo
-                  :isVisible="isVisible"
+                  :isFormVisible = "isFormVisible"
                   :metatemplatedetailtableData="metatemplatedetailtableData"
                   :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metaformFooter="metaformFooter"
-                  :metatemplatecolumns="metatemplatecolumns"
-                  :metatemplatetableData="metatemplatetableData"
+                  :metaformProps="metaformProps"             
+                  :metatemplatecolumns="metatemplatecolumns"                 
+                  @submit-template = "submitTemplate"
                 >
                 </metainfo>
               
