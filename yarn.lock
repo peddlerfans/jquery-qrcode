@@ -1978,6 +1978,14 @@
     "domelementtype" "^2.3.0"
     "domhandler" "^5.0.1"
 
+"echarts@^5.4.0":
+  "integrity" "sha512-uPsO9VRUIKAdFOoH3B0aNg7NRVdN7aM39/OjovjO9MwmWsAkfGyeXJhK+dbRi51iDrQWliXV60/XwLA7kg3z0w=="
+  "resolved" "https://registry.npmjs.org/echarts/-/echarts-5.4.0.tgz"
+  "version" "5.4.0"
+  dependencies:
+    "tslib" "2.3.0"
+    "zrender" "5.4.0"
+
 "ee-first@1.1.1":
   "integrity" "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="
   "resolved" "https://r2.cnpmjs.org/ee-first/-/ee-first-1.1.1.tgz"
@@ -2083,9 +2091,9 @@
     "is-date-object" "^1.0.1"
     "is-symbol" "^1.0.2"
 
-"esbuild-darwin-64@0.14.49":
-  "integrity" "sha512-3rvqnBCtX9ywso5fCHixt2GBCUsogNp9DjGmvbBohh31Ces34BVzFltMSxJpacNki96+WIcX5s/vum+ckXiLYg=="
-  "resolved" "https://r.cnpmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-0.14.49.tgz"
+"esbuild-windows-64@0.14.49":
+  "integrity" "sha512-+Cme7Ongv0UIUTniPqfTX6mJ8Deo7VXw9xN0yJEN1lQMHDppTNmKwAM3oGbD/Vqff+07K2gN0WfNkMohmG+dVw=="
+  "resolved" "https://r.cnpmjs.org/esbuild-windows-64/-/esbuild-windows-64-0.14.49.tgz"
   "version" "0.14.49"
 
 "esbuild@^0.14.47", "esbuild@>=0.13":
@@ -2358,11 +2366,6 @@
     "graceful-fs" "^4.2.0"
     "jsonfile" "^6.0.1"
     "universalify" "^2.0.0"
-
-"fsevents@~2.3.2":
-  "integrity" "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA=="
-  "resolved" "https://r2.cnpmjs.org/fsevents/-/fsevents-2.3.2.tgz"
-  "version" "2.3.2"
 
 "function-bind@^1.1.1":
   "integrity" "sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A=="
@@ -4363,6 +4366,11 @@
   "resolved" "https://r.cnpmjs.org/tslib/-/tslib-2.4.0.tgz"
   "version" "2.4.0"
 
+"tslib@2.3.0":
+  "integrity" "sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg=="
+  "resolved" "https://registry.npmjs.org/tslib/-/tslib-2.3.0.tgz"
+  "version" "2.3.0"
+
 "type-check@~0.3.2":
   "integrity" "sha512-ZCmOJdvOWDBYJlzAoFkC+Q0+bUyEOS1ltgp1MGU03fqHG+dbi9tBFU2Rd9QKiDZFAYrhPh2JUf7rZRIuHRKtOg=="
   "resolved" "https://r2.cnpmjs.org/type-check/-/type-check-0.3.2.tgz"
@@ -4809,3 +4817,10 @@
   "integrity" "sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw=="
   "resolved" "https://r2.cnpmjs.org/xmlchars/-/xmlchars-2.2.0.tgz"
   "version" "2.2.0"
+
+"zrender@5.4.0":
+  "integrity" "sha512-rOS09Z2HSVGFs2dn/TuYk5BlCaZcVe8UDLLjj1ySYF828LATKKdxuakSZMvrDz54yiKPDYVfjdKqcX8Jky3BIA=="
+  "resolved" "https://registry.npmjs.org/zrender/-/zrender-5.4.0.tgz"
+  "version" "5.4.0"
+  dependencies:
+    "tslib" "2.3.0"

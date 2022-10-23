@@ -2022,7 +2022,7 @@ const submitTemplate= (data:any)=>{
               >
               </VueForm>
               <a-table></a-table>
-              <create-rule :formDatas="formDatas"></create-rule>
+              <!-- <create-rule :formDatas="formDatas"></create-rule> -->
             </div>
           </div>
 
