@@ -7,12 +7,12 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    ABreadcrumb: typeof import('ant-design-vue/es')['Breadcrumb']
+    ABreadcrumbItem: typeof import('ant-design-vue/es')['BreadcrumbItem']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
     ACol: typeof import('ant-design-vue/es')['Col']
-    ACollapse: typeof import('ant-design-vue/es')['Collapse']
-    ACollapsePanel: typeof import('ant-design-vue/es')['CollapsePanel']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADivider: typeof import('ant-design-vue/es')['Divider']
     ADrawer: typeof import('ant-design-vue/es')['Drawer']
@@ -34,7 +34,7 @@ declare module '@vue/runtime-core' {
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
     AModal: typeof import('ant-design-vue/es')['Modal']
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
-
+    ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
     AResult: typeof import('ant-design-vue/es')['Result']
     ARow: typeof import('ant-design-vue/es')['Row']
@@ -55,6 +55,7 @@ declare module '@vue/runtime-core' {
     JsonSchemaForm: typeof import('./src/components/JsonSchemaForm.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']
+    Metainfo: typeof import('./src/components/metainfo.vue')['default']
     MovableArea: typeof import('./src/components/MovableArea.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

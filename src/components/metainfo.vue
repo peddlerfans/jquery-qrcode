@@ -1,0 +1,129 @@
+<script setup lang="ts">
+import VueForm from "@lljj/vue3-form-ant";
+import _ from "lodash";
+import { ref, onMounted, toRaw } from "vue";
+
+import { getMetatemplate, getAllMetatemplates } from "@/api/mbt/index";
+// const emit = defineEmits(['submitTemplate'])
+const emit = defineEmits<{
+  (e: "submitTemplate", value: object): void;
+}>();
+interface IJSONSchema {
+  type?: string;
+  properties?: object;
+}
+
+interface IColumn {
+  title?: string;
+  dataIndex?: string;
+  key?: string;
+  width?: number;
+}
+const props = defineProps<{
+  isFormVisible?: boolean;
+  metatemplatedetailtableData?: object;
+  schema?: IJSONSchema;
+  metaformProps?: object;
+
+  metatemplatecolumns?: IColumn[];
+  // metatemplatetableData?:[]
+}>();
+const formExpectedFooter = {
+  show: false, // 是否显示默认底部
+};
+
+let tempschema = ref(props.schema);
+let metaformProps = ref(props.metaformProps);
+const isFormVisible = ref(props.isFormVisible);
+let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
+let metatemplatecolumns = ref(props.metatemplatecolumns);
+let metatemplatetableData = ref([]);
+
+const isMetaTemplateEmpty = ref(false);
+
+onMounted(() => {
+  
+  getAllMetatemplates().then((rst: any[]) => {
+    //   console.log(rst)
+    if (rst.length > 0) {
+      isMetaTemplateEmpty.value = false;
+      let temparr = rst;
+
+      metatemplatetableData.value = temparr as never[];
+    }
+  });
+});
+
+function submitTemplate() {
+  let metaObj = {};
+  Object.assign(metaObj, { schema: toRaw(tempschema.value) });
+  Object.assign(metaObj, { data: toRaw(metatemplatedetailtableData.value) });
+  emit("submitTemplate", metaObj);
+}
+
+const showJSONSchemeForm = (templdateId: string) => {
+  isFormVisible.value = !isFormVisible.value;
+  getMetatemplate(templdateId).then((schema: any) => {
+    tempschema.value = schema;
+  });
+};
+
+const onImportFromMetaTemplate = () => {
+  isFormVisible.value = false;
+
+  metatemplatedetailtableData.value = {};
+
+  if (tempschema && tempschema.value) tempschema.value.properties = {};
+};
+</script>
+<template>
+  <div style="margin: 5px; padding: 5px">
+    <VueForm
+      v-if="isFormVisible"
+      v-model="metatemplatedetailtableData"
+      :schema="tempschema"
+      :formProps="metaformProps"
+      :formFooter="formExpectedFooter"
+    >
+    </VueForm>
+  </div>
+  <a-space :size="10">
+    <a-button
+      style="margin-right: 10px"
+      v-if="isFormVisible"
+      type="link"
+      @click="onImportFromMetaTemplate"
+      >Choose A Template</a-button
+    >
+  </a-space>
+  <a-table
+    v-if="!isFormVisible"
+    :columns="metatemplatecolumns"
+    :data-source="metatemplatetableData"
+    bordered
+  >
+    <template #bodyCell="{ column, text, record }">
+      <template v-if="column.key === 'name'">
+        <div>
+          <a-button type="link" @click="showJSONSchemeForm(record._id)">{{
+            text
+          }}</a-button>
+        </div>
+      </template>
+      <template v-if="column.key === 'description'">
+        <div>
+          {{ text }}
+        </div>
+      </template>
+      <template v-if="column.key === 'tags'">
+        {{ text }}
+      </template>
+    </template>
+  </a-table>
+  <div class="awtable">
+    <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
+      Jump to Meta Template
+    </a>
+    <a-button type="primary" @click="submitTemplate">Save</a-button>
+  </div>
+</template>
