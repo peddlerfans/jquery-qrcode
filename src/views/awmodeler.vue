@@ -910,7 +910,7 @@ const confirmtree =async (key:any,title:string) => {
 }
 // 右键展开菜单项
  const onContextMenuClick = (treeKey: string) => {
-      console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
+      console.log(`treeKey: ${treeKey}`);
     };
 </script>
 <template>
@@ -945,7 +945,7 @@ const confirmtree =async (key:any,title:string) => {
               v-model:value="updTreedata"
               @blur="onchangtitle(treeKey)"/>
         <template #overlay>
-          <a-menu @click="({ key: menuKey }) => onContextMenuClick(treeKey)">
+          <a-menu @click="() => onContextMenuClick(treeKey)">
             <a-menu-item key="1" @click="addSib(treeKey)">Add sibling node</a-menu-item>
             <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
             <a-menu-item key="3" @click="updTree(treeKey)"> Modify node</a-menu-item>
