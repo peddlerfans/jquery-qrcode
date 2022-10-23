@@ -117,7 +117,7 @@ function addCondition(){
                 props.rulesData[0].conditions.push({
                     name: conditionName,
                     operator:"=",
-                    value:"value" ,
+                    value:undefined ,
                     selectvalues:selectvalue.value,
                     // selectcondition:"a",
                     // selectconditiones:"c"

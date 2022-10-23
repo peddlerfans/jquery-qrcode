@@ -536,7 +536,14 @@ const cancelbulid=()=>{
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"",
     id:1,
-                conditions:[],
+                conditions:[
+                {
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }
+                ],
                 children:[]}
   ],
   thenObj.value.thenName=''
@@ -594,7 +601,7 @@ const rulesData=ref(
       conditions:[{
         name:'name',
         operator:"=",
-        value:'value',
+        value:undefined,
         selectvalues:childselectvalue
       }],
       children:[]}

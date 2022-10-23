@@ -26,6 +26,7 @@
     "@vueuse/core": "^9.1.1",
     "ant-design-vue": "^3.2.13",
     "axios": "^0.27.2",
+    "echarts": "^5.4.0",
     "jointjs": "^3.5.5",
     "jquery": "^3.6.1",
     "js-shortid": "^0.1.1",
