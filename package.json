@@ -21,7 +21,6 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false"
   },
   "dependencies": {
-    "@ant-design/colors": "^6.0.0",
     "@lljj/vue3-form-ant": "^1.14.0",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.1",

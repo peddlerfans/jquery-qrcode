@@ -8,12 +8,11 @@ export default {
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref } from 'vue';
-import { grey } from '@ant-design/colors';
 
 onMounted(()=>{
     // changecolor()
 })
-
+    
     let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
     let emit=defineEmits(['changeObserver','rulesChange'])
     console.log(props.enableDeleteChild);
@@ -88,26 +87,18 @@ const valueDatas=computed(()=>{
 // }
 const styleobj=computed(()=>{
     if(props.rulesData[0].id%2==0){
-        if(props.rulesData[0].conditions.length==1 && props.rulesData[0].children.length==0){
-            return {backgroundColor:'#DCDCDC',border:'none'}
-        }else{
-            return {backgroundColor:'#DCDCDC'}
-        }
-        
+            return {backgroundColor:'#f0f0f0'}
     }else{
-        if(props.rulesData[0].conditions.length==1 && props.rulesData[0].children.length==0){
-            return {backgroundColor:'white',border:'none'}
-        }else{
             return {backgroundColor:"white"}
-        }
-        
     }
 })
-// const leftstyle=computed(()=>{
-//     if(props.rulesData[0].conditions.length==1){
-//         return {display:'none'}
-//     }
-// })
+const titleStyle=computed(()=>{
+    if(props.rulesData[0].relation=="AND"){
+            return {backgroundColor:'#ffd591'}
+    }else{
+            return {backgroundColor:"#91d5ff"}
+    }
+})
 
 
             
@@ -147,7 +138,6 @@ function addCondition(){
             
         
         rulesChange(props.rulesData)
-        console.log(props.rulesData.conditions);
     }else{
         message.warning("Please get the condition data first!")
     }
@@ -228,7 +218,7 @@ const checkrelation=(obj:any)=>{
 <template>
     <!-- <div class="box"> -->
     <div class="rules-box" :style="styleobj">
-        <span  class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</span>
+        <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</div>
     <div class="ant-card-body" >
         <!-- <a-row class="loop-child " > -->
             <!-- <a-select 
@@ -369,7 +359,7 @@ const checkrelation=(obj:any)=>{
     </div>
     <!-- <a-row > -->
             <create-rule
-            style="padding-left:10px"  v-if="rulesData[0].children.length > 0"
+            style="margin-left:35px"  v-if="rulesData[0].children.length > 0"
                 :valueData="valueData"
                 :formDatas="formDatas" 
                 :topDatas="rulesData"
@@ -406,7 +396,7 @@ const checkrelation=(obj:any)=>{
 </template>
 
 <style lang="less" scoped>
-// @import '~antd/es/style/themes/default.less';
+@import 'ant-design-vue/es/style/themes/default.less';
 .box{
     width: 100%;
     // background-color: white;
@@ -414,7 +404,7 @@ const checkrelation=(obj:any)=>{
     .rules-box{
         margin-left: 1.25rem;
         // background-color: white;
-        border-left: 1px solid red;
+        border-left: 1px solid @blue-6;
         border-top-left-radius: 5px; 
         border-bottom-left-radius: 5px; 
         position: relative;
@@ -422,11 +412,15 @@ const checkrelation=(obj:any)=>{
     //     background-color: gray;
     // }
         .title{
+            text-align: center;
+            cursor: pointer;
+            width: 2rem;
             position:absolute;
             top:50%;
             transform:translateY(-50%);
             -webkit-transform:translate(-50%,-50%);
-            background-color: rgb(209, 169, 169);
+            background-color: @orange-3;
+            border-radius: .625rem;
         }
 
         .loop-child{

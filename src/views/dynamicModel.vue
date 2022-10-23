@@ -551,10 +551,7 @@ const editCon=(obj:any)=>{
   console.log( obj,keys.value);
   
 if(finalModel.constraint.length>0){
-  
-  console.log(finalModel.constraint[obj.keys].if);
-  
-  rulesData.value=finalModel.constraint[obj.keys].if
+    rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
   thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
   thenObj.value.thenValue=finalModel.constraint[obj.keys].then.thenValue
@@ -562,9 +559,7 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{
-  console.log(obj.keys);
-  
+const deleteconstraint=(obj:any)=>{  
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
