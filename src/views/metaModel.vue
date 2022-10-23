@@ -96,6 +96,8 @@ if(editableData[obj.key].delekey!==1){
 };
 // 点击取消的函数
 const cancel=(key:any)=>{
+  console.log(123);
+  
   delete editableData[key]
 }
 // 点击添加数据
@@ -331,17 +333,14 @@ const optiones = ref<SelectProps['options']>([
             <template v-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
-              <a-typography-link @click="save(record)" style="font-size:16px">
-              <check-circle-two-tone two-tone-color="#52c41a"/>
-            </a-typography-link>
-            <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
-                <delete-two-tone two-tone-color="#EB6420"/></a>
-            </a-popconfirm>
-            <a-typography-link @click="cancel(record.key)" >cancel</a-typography-link>
-            </span>
+              <a style="color:red" @click="save(record)">save </a>
+            <a style="margin-left:0.625rem;" @click="cancel(record.key)">cancel</a>
+          </span>
             <span v-else>
               <a @click="edit(record.key)">Edit</a>
+              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:0.625rem;">delete</a>
+            </a-popconfirm>
             </span>
           </div>
         </template>

@@ -90,8 +90,10 @@ const saveModel = async () => {
       message.warning('It is requires at least TWO factors in a model')
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-      console.log(rst);
-      // query(finalResult._id)
+      if(rst){
+         query(finalResult._id)
+      }
+      
       message.success('Model is saved successfully')
     }
   }else{
@@ -100,7 +102,6 @@ const saveModel = async () => {
 
 
 }
-
 
 // Types of factor
 const orderOptions = ref<SelectProps['options']>([
@@ -271,59 +272,6 @@ const newFactorValueInput = (record: Factor) => {
     inputRef.value.toString();
   })
 };
-
-const constraintColumns = [ // Setup the header of columns
-  {
-    title: 'IF',
-    children: [
-      {
-        title: 'Name',
-        dataIndex: 'ifname',
-        key: 'ifname',
-        // width: 40
-      },
-      {
-        title: 'Operator',
-        dataIndex: 'ifoperator',
-        key: 'ifoperator',
-        // width: 120
-      },
-      {
-        title: 'Value',
-        dataIndex: 'ifvalues',
-        key: 'ifvalues',
-      }
-    ]
-  },
-  {
-    title: 'THEN',
-    children: [
-      {
-        title: 'Name',
-        dataIndex: 'thenname',
-        key: 'thenname',
-        // width: 40
-      },
-      {
-        title: 'Operator',
-        dataIndex: 'thenoperator',
-        key: 'thenoperator',
-        // width: 120
-      },
-      {
-        title: 'Value',
-        dataIndex: 'thenvalues',
-        key: 'thenvalues',
-      }
-    ]
-  },
-  {
-    title: 'Action',
-    dataIndex: 'action',
-    key: 'action',
-  }
-]
-
 // Operators
 
 const stringOptions = [
@@ -463,13 +411,12 @@ function ifdata(arr:any){
   let finditem=null
   for(let i=0;i<arr.length;i++){
     let item=arr[i]
-    if(item.children.length==0){
-      item.relation=""
-    }
+    // if(item.children.length==0){
+    //   item.relation=""
+    // }
     if(item.conditions.length>1){
       // finditem='('+conditionstr(item.conditions)+')'+' '+item.relation+' '
       finditem=`(${conditionstr(item.conditions)}) ${item.relation} `
-      
     }else{
       // finditem=conditionstr(item.conditions)+' '+item.relation
       finditem=`${conditionstr(item.conditions)} ${item.relation} `
@@ -477,7 +424,13 @@ function ifdata(arr:any){
     console.log(finditem);
     
     if(item.children.length>0){
+      
       finditem+=ifdata(item.children)
+      let findlength=finditem.length
+      if(finditem.substring(findlength-4,findlength)=="AND " || finditem.substring(findlength-3,findlength)=="OR "){
+        finditem= finditem.substring(0,findlength-4)
+      }
+      // if
     }else{
       break
     }
@@ -518,21 +471,22 @@ function selectvalue(value:any){
 // 解决括号链接
 const conditionstr=(arr:any)=>{
   let ifcondition=null
-  // if(arr[arr.length-1].value){
-        delete arr[arr.length-1].selectvalue  
-  // }
+  if(arr[arr.length-1].value){
+        // delete arr[arr.length-1].selectvalues  
+  }
   ifcondition=arr.map((item:any)=>{
-      if(item.selectvalue){
-        return `[${item.name}] ${item.operate} ${selectvalue(item.value)} ${item.selectvalue} `
-        // return '['+item.name+']'+' '+item.operate+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      if(item.selectvalues){
+        return `[${item.name}] ${item.operator} ${selectvalue(item.value)} ${item.selectvalues} `
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
       }else{
-        // return '['+item.name+']'+' '+item.operate+' '+'{'+item.value+'}'+' '
-        return `[${item.name}] ${item.operate} ${selectvalue(item.value)}`
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
+        return `[${item.name}] ${item.operator} ${selectvalue(item.value)} `
       }    
   })
-  return ifcondition.join("")
+  console.log();
+  
+  return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
-
 
 const rulesChange=(datas: any,key:string)=>{
   console.log(key);
@@ -547,10 +501,9 @@ let condata=ref<Array<any>>([])
   
 // 点击保存时触发数据填充表格
 const  conditionsend=()=>{
-  debugger
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
       
-      let thencondition='['+thenObj.value.thenName+']'+' '+thenObj.value.thenOperator+' '+thenObj.value.thenValue
+      let thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
       console.log(rulesData.value);
       
       let truerow={if:rulesData.value,then:{...thenObj.value}}
@@ -559,11 +512,11 @@ const  conditionsend=()=>{
       if(keys.value>=0){
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
-        condata.value[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
+        condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
         console.log(finalModel.constraintif);
   console.log(condata.value[keys.value]);
       }else{
-        condata.value.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
+        condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
@@ -578,10 +531,11 @@ const  conditionsend=()=>{
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  console.log(keys.value);
+  console.log(condata.value);
   keys.value=''
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"",
+    id:1,
                 conditions:[],
                 children:[]}
   ],
@@ -616,16 +570,38 @@ const deleteconstraint=(obj:any)=>{
   finalModel.constraintif.splice(obj.keys,1)
   saveModel()
 }
-
+const conditionshow=computed(()=>{
+  if(rulesData.value[0].conditions.length>0){
+    return ifdata(rulesData.value)
+  }
+})
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
 const keys=ref<any>()
 const formDatas=ifNameOpetions
 const valueData=ref()
+let ConditionName=computed(()=>{
+  if(ifNameOpetions.value!.length>0){
+    return ifNameOpetions.value![0].value
+  }
+})
+let ConditionValue=computed(()=>{
+  if(finalModel.factor.length>0){
+    return finalModel.factor[0].values[0]
+  }
+})
+let childrelation="AND"
+let childselectvalue=childrelation
 const rulesData=ref(
   [//初始化条件对象或者，已保存的条件对象
-      {relation:"",
-      conditions:[],
+      {relation:childrelation,
+      id:1,
+      conditions:[{
+        name:'name',
+        operator:"=",
+        value:'value',
+        selectvalues:childselectvalue
+      }],
       children:[]}
   ]
 )
@@ -765,147 +741,11 @@ const rulesData=ref(
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
                 style="margin-left: 12px;">Add a New Constraint</a-button>
     </div>
-
-    <!-- <a-table v-if="finalModel.constraint.length>0" :columns="constraintColumns" :data-source="finalModel.constraint" bordered>
-      <template #bodyCell="{ column, text, record }">
-
-        <template v-if='column.key==="ifname"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifname"
-                      :disabled="finalModel.factor.length<2" :options="ifNameOpetions" @focus="focus" @change="changeIfName()">
-            </a-select>
-            <template v-else>
-              {{text}}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if='column.key==="ifoperator"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.ifoperator"
-                      :options="ifOperatorOptions" @focus="focus" @change="changeIfOperator()">
-            </a-select>
-
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if="column.key === 'ifvalues'">
-          <template v-if="record.editing">
-
-            <a-select v-if="constraintState.ifoperator == 'IN'" mode="multiple" ref="select"
-                      v-model:value="constraintState.ifvalues" :options="ifValueOpetions" :disabled="false" @focus="focus">
-            </a-select>
-            <a-input v-else-if="constraintState.ifoperator == 'LIKE'" v-model:value.trim="record.ifvalues"
-                     style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select" v-model:value="constraintState.ifvalues" :options="ifValueOpetions"
-                      :disabled="false" @focus="focus">
-            </a-select>
-          </template>
-
-          <span v-else>
-            <template v-if="Array.isArray(record.ifvalues)">
-              <a-tag v-for="tag in record.ifvalues" :key="tag" color="cyan">
-                {{ tag }}
-              </a-tag>
-            </template>
-            <template v-else>
-
-              <a-tag v-if="record.ifoperator !== 'LIKE'" color="cyan">
-                {{ text }}
-              </a-tag>
-              <span v-else>
-                {{ text }}
-              </span>
-
-            </template>
-
-          </span>
-        </template>
-
-
-        <template v-if='column.key==="thenname"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenname"
-                      :disabled="finalModel.factor.length<2" :options="thenNameOpetions" @focus="focus"  @change="changeThenName()">>
-            </a-select>
-            <template v-else>
-              {{text}}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if='column.key==="thenoperator"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value="constraintState.thenoperator"
-                      :options="thenOperatorOptions" @focus="focus"  @change="changeThenOperator()">
-            </a-select>
-
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-
-        <template v-if='column.key === "thenvalues"'>
-          <template v-if="record.editing">
-            <a-select v-if="constraintState.thenoperator === 'IN'" mode="multiple" ref="select1"
-                      v-model:value="constraintState.thenvalues" :options="thenValueOpetions" :disabled="false" @focus="focus">
-            </a-select>
-            <a-input v-else-if="constraintState.thenoperator === 'LIKE'" v-model:value.trim="constraintState.thenvalues"
-                     style="margin: -5px 0" @focus="focus" />
-            <a-select v-else ref="select2" v-model:value="constraintState.thenvalues" :options="thenValueOpetions"
-                      :disabled="false" @focus="focus">
-            </a-select>
-          </template>
-
-          <span v-else>
-            <template v-if="Array.isArray(record.thenvalues)">
-              <a-tag v-for="tag in record.thenvalues" :key="tag" color="cyan">
-                {{ tag }}
-              </a-tag>
-            </template>
-            <span v-else>
-              <a-tag v-if="record.thenoperator !== 'LIKE'" color="cyan">
-                {{ text }}
-              </a-tag>
-              <span v-else>
-                {{ text }}
-              </span>
-            </span>
-
-          </span>
-        </template>
-
-        <template v-if='column.key === "action"'>
-          <span v-if="record.editing">
-            <a-typography-link type="danger" @click="saveConstraint(record)">Save</a-typography-link>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Sure to cancel?" @confirm="cancelConstraint(record)">
-              <a>Cancel</a>
-            </a-popconfirm>
-          </span>
-
-          <span v-else>
-            <a @click="editConstraint(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                          @confirm="deleteConstraint(record.name)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-    </a-table> -->
     <a-table :columns="columns" :data-source="condata" bordered>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
-          <!-- <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span> -->
+          <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+        
         </template>
         <template v-if="column.key=='action'">
           <span>
@@ -922,16 +762,29 @@ const rulesData=ref(
     <a-divider/>
     <div v-if="childComponent">
       <!-- <condition :factorsconditional="conditional" @parentdata="ondata"></condition> -->
-    <a-row>
-      <a-col :span="12">
-        <h2>IF</h2>
+    <a-row style="backgroundColor:white">
+      <a-col :span="12" style="padding-top: 10px;">
+        <h2 style="display: flex; align-items: center;">IF
+          <div style="font-size: 14px; margin-left: .625rem;">{{conditionshow}}</div>
+        </h2>
+        <hr/>
+        <div style="margin-top: .625rem; ">
         <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+      </div>
       </a-col>
-      <a-col :span="12">
-        <h2>Then</h2>
-        <a-card >
+      <a-divider type="vertical" />
+      <a-col :span="11" style="margin-left: .625rem; padding-top: .625rem;">
+        <h2 style="display: flex; justify-content: space-between;">Then
+          <div style="display: flex;">
+                    <a-button type="primary" @click='conditionsend'>save</a-button>
+                    <a-button @click="cancelbulid">cancel</a-button>
+                </div>
+        </h2>
+        
+        <hr/>
+        <div style="margin-top: .625rem;">
           
-                <a-form layout="inline" style="margin-top:20px">
+                <a-form layout="inline" style="margin-top:1.25rem;">
                 <a-form-item label="Name">
                     <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
                 </a-form-item>
@@ -943,16 +796,13 @@ const rulesData=ref(
                 </a-form-item>
                 
             </a-form>
-                <div style="margin:2.5rem 0 0.5rem 32.5rem;display: flex;">
-                    <a-button type="primary" @click='conditionsend'>保存</a-button>
-                    <a-button @click="cancelbulid">取消</a-button>
-                </div>
-        </a-card>
+                
+        </div>
       </a-col>
     </a-row>
       
     </div>
-    <div style="margin-top: 30px">
+    <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
     </div>

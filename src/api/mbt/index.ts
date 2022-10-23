@@ -1,7 +1,61 @@
 // import type { BaseResponse } from '@/utils/request';
 // import  request  from '@/utils/request';
 import { requestGet } from '@/composables/useRequest'
+import request from "@/utils/request";
+import { generateSchema, generateObj } from "@/utils/jsonschemaform";
+import * as _ from 'lodash';
+// import {ref} from 'vue'
+export const arr = (dataArr: any) =>
+  dataArr.map((item: any, index: string) => ({ ...item, key: index }));
+export interface IJSONSchema {
+  type?:string,
+  properties?:object
+}
 
+/**
+ * If doing query for a specific meta templates, it will generate and return a schema for JSONSchema form
+ * If not specify which to query, it will fetch all meta template and return columns and records
+ * @param data 
+ */
+export async function getMetatemplate(metaId:any){
+  let currentschema = {
+    type: "object",
+    properties: {},
+  };
+  // let metatemplaterecordobj = ref();  
+    let rst1 = await request.get(`/api/templates/${metaId}`, {
+      params: { q: "category:meta", search: "" },
+    });
+    // metatemplaterecordobj.value = rst1;
+    if (rst1.model) {
+      // metatemplaterecordobj.value.model = rst1.model;  
+      let temparr = rst1.model;     
+      if (_.isArray(temparr)) {
+        let schemafileds = generateSchema(temparr);
+        schemafileds.forEach((schemafield: any) => {
+          Object.assign(currentschema.properties, schemafield);
+        });      
+      }
+    }
+    console.log('result of schema:',currentschema);
+    return currentschema; 
+}
+
+export async function getAllMetatemplates(){
+  let metatemplatetableData:any[] =[]   
+    let strsql = `/api/templates?q=category:meta&search=`;
+    let rst: [] = [];
+
+    await request
+      .get(strsql)
+      .then((record: any) => {
+        rst = record.data;
+        if (rst.length > 0) {
+        metatemplatetableData = arr(rst);
+        }
+      })
+    return metatemplatetableData;
+}
 
 export function getMBTList() {    
     
