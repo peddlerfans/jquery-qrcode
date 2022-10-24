@@ -615,6 +615,27 @@ const rulesData=ref(
   ]
 )
 
+let prev=ref<boolean>(false);
+let columnPreview=ref<any>()
+let modelDataPreview=ref<any>()
+let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
+
+const previewModel = async () => {
+  let rst = await request.post('/api/templates'+`/${ids}/preview`)
+
+  modelDataPreview.value=rst
+  columnPreview.value=rst.model?.parameters.map((e:any)=>{
+    return {
+      title: e.property,
+      dataIndex: e.property,
+      key: e.property,
+    }
+  })
+
+  prev.value=true
+
+}
+
 </script>
 
 
@@ -814,8 +835,31 @@ const rulesData=ref(
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
+                <a-button @click="previewModel()">preview</a-button>
     </div>
+    <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">
 
+<!-- Model meta info -->
+
+<h2>Data</h2>
+
+<a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+  <template #bodyCell="{ column, text, record }">
+<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+    {{ text }}
+  </template>
+</a-table>
+
+<template #footer>
+<!--        <a-button @click="closeModel">Cancel</a-button>-->
+</template>
+
+<h2>Model</h2>
+<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+
+</a-modal>
 
     <!-- <header class="block shadow">
       <a-row>
