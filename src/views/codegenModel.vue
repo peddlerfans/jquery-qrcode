@@ -94,10 +94,6 @@ const templateOptions = ref<SelectProps['options']>([
   {
     value: 'ftl',
     label: 'FreeMarker',
-  },
-  {
-    value: 'javascript',
-    label: 'JavaScript',
   }
 ]);
 const langOptions = ref<SelectProps['options']>([
@@ -113,6 +109,10 @@ const langOptions = ref<SelectProps['options']>([
     value: 'yaml',
     label: 'YAML',
   },
+  {
+    value: 'javascript',
+    label: 'JavaScript',
+  }
 ]);
 const themeOptions = ref<SelectProps['options']>([
   {
