@@ -97,7 +97,7 @@ const columns1 = [ // Setup the header of columns
 ]
 
 const {
-  dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
+  dataSource, columns, originColumns, tableLoading, pagination ,
   updateTable, onTableRowSelectChange, tableResize
 } = useTable({
   table: tableRef, // Predefined a null reference which might be an instance of component
@@ -163,9 +163,12 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
+  console.log('query')
+  console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
+    // console.log('rst:', rst.data)
     dataSource.value = rst.data
     tableData.value = rst.data
 
@@ -174,8 +177,14 @@ async function query(data?: any) {
 }
 
 const handleFinish: FormProps['onFinish'] = (values: any) => {
+  // console.log(' formstate to search :', formState);
 
   query(formState)
+  // highlight.value = dataSource.value.filter((item: any, index: any) => {
+
+  //   return item._highlight
+  // })
+  // console.log(highlight.value);
 
 };
 
@@ -232,11 +241,13 @@ const closeModel = () => {
   clearModelState()
 
   query()
+  // console.log(modelstates);
 }
 
 // Handel Tags in modal form
 const handleCloseTag = (removedTag: string) => {
   const tags = modelState.tags.filter((tag: string) => tag !== removedTag);
+  console.log(tags);
   modelState.tags = tags;
 
 };
@@ -332,6 +343,25 @@ const cancelModel = () => {
   modelState.inputValue = ''
 }
 
+let columnPreview=ref<any>()
+let modelDataPreview=ref<any>()
+let prev=ref<boolean>(false);
+
+const previewModel = async (id: string) => {
+  let rst = await request.post(url+`/${id}/preview`)
+
+  modelDataPreview.value=rst
+  columnPreview.value=rst.model?.parameters.map((e:any)=>{
+    return {
+      title: e.property,
+      dataIndex: e.property,
+      key: e.property,
+    }
+  })
+
+  prev.value=true
+
+}
 
 // ################################
 // ######## Model CRUD END ########
@@ -361,6 +391,60 @@ let modelRules: Record<string, Rule[]> = {
 };
 
 
+// const handleOk = () => {
+//   onFinishForm(modelState)
+//
+//   clearModelState()
+//   query()
+// };
+
+
+// const onFinishForm = async (modelState: any) => {
+//   // 输入验证
+//
+//   const model = {
+//     name: modelState.name,
+//     description: modelState.description,
+//     tags: toRaw(modelState.tags),
+//     category: "dynamic",
+//     templateText: '',
+//     model: {
+//       option: {},
+//       factor: [],
+//       constraint: []
+//     }
+//   }
+//
+//   visibleModel.value = false;
+//
+//   // 判断修改或添加
+//   if (modelState._id) {
+//     let rst = await request.put(url + `/${modelState.value._id}`, model)
+//     // message.success("Modified successfully")
+//   } else {
+//     // delete modelState.value._id
+//     let rst = await request.post(url, model)
+//     console.log(rst)
+//     message.success("Added successfully")
+//   }
+//
+//   // showAddConstraint.value = false
+//   // showAddFactor.value = false
+//   // if (modelState.value.name && modelState.value.description) {
+//
+//   //   // }
+//   //   visible.value = false;
+//   //   clear()
+//   //   query()
+//   // } else {
+//   //   return message.error("name and descript is required")
+//   // }
+// };
+
+// const onFinishFailedForm = (errorInfo: any) => {
+//   console.log('Failed:', errorInfo);
+// };
+
 
 // Antdv select
 const focus = () => {
@@ -376,10 +460,13 @@ const cancel = (e: MouseEvent) => {
 };
 
 onBeforeMount(() => {
-  console.log("")
+  console.log("xxxxxxxxxx")
 })
 
 onMounted(() => {
+  console.log("onMounted: dataSource")
+  console.log(dataSource)
+  console.log(tableData)
   query()
 })
 
@@ -482,6 +569,33 @@ onMounted(() => {
 
 
 
+
+
+    <a-modal v-model:visible="prev" :title="modelState._id? 'Model preview':'Model preview'" :width="900">
+
+      <!-- Model meta info -->
+
+      <h2>Data</h2>
+
+      <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        <template #bodyCell="{ column, text, record }">
+<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+          {{ text }}
+        </template>
+      </a-table>
+
+      <template #footer>
+<!--        <a-button @click="closeModel">Cancel</a-button>-->
+      </template>
+
+      <h2>Model</h2>
+      <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+
+    </a-modal>
+
+
     <!-- ######################### -->
     <!-- List of dynamic templates -->
     <!-- ######################### -->
@@ -493,7 +607,8 @@ onMounted(() => {
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
+              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a>
+              <span v-else>{{text}}</span>
             </template>
           </div>
         </template>
@@ -540,12 +655,15 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a @click="clearModelState()">Cancel</a>
+              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
+                <a>Cancel</a>
+              </a-popconfirm>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
-
+              <a-divider type="vertical" />
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">Config</a>
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">

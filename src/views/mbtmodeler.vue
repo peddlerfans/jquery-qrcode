@@ -2,6 +2,8 @@
 import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import dynamicTable from "@/components/dynamicTable.vue";
+import metainfo from "@/components/metainfo.vue";
+import templateTable from '@/components/templateTable.vue';
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
@@ -12,6 +14,7 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-v
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
+import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
 import {
   SmileOutlined,
   SearchOutlined,
@@ -56,21 +59,21 @@ import { array } from "vue-types";
 window.joint = joint;
 
 const formFooter = {
-  show: true, // 是否显示默认底部
-  okBtn: "保存", // 确认按钮文字
-  okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
-  cancelBtn: "编辑", // 取消按钮文字
-  nextBtn: "选择下一个",
-  // 透传给formFooter 中的formItem组件的参数
-  // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
-  formItemAttrs: {},
+  show: false, // 是否显示默认底部
+  // okBtn: "Save", // 确认按钮文字
+  // okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
+  // cancelBtn: "Edit", // 取消按钮文字
+  // nextBtn: "Next",
+  // // 透传给formFooter 中的formItem组件的参数
+  // // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
+  // formItemAttrs: {},
 };
 
 const formExpectedFooter = {
   show: true, // 是否显示默认底部
-  okBtn: "确定", // 确认按钮文字
+  okBtn: "Confirm", // 确认按钮文字
   okBtnProps: { type: "primary" }, // 传递确认按钮的 props，例如配置按钮 loading 状态 okBtnProps: { loading: true }
-  cancelBtn: "编辑", // 取消按钮文字
+  cancelBtn: "Edit", // 取消按钮文字
 
   // 透传给formFooter 中的formItem组件的参数
   // 例如 vue3-ant 配置wrapperCol  formItemAttrs = { wrapperCol: { span: 10, offset: 5 }}
@@ -83,8 +86,13 @@ const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
-const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
-const templatevalue = ref<string>("Static Template");
+// const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
+const templateCategory = ref(1)
+const templateRadiovalue = ref<number>(1);
+const handleRadioChange: any = (v: any) => {
+  console.log(",,,,,,", v);
+  templateCategory.value = v;
+};
 const metaformProps = {
   layoutColumn: 2,
   labelPosition: "left",
@@ -184,71 +192,9 @@ let tempschema = ref({
   type: "object",
   properties: {},
 });
-let metaformFooter = ref({
-  show: false,
-});
-async function metatemplatequery(data?: any) {
-  //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
-  let currentschema = {
-    type: "object",
-    properties: {},
-  };
-  
-  if (data) {
-    isVisible.value = !isVisible.value;
-  
-    let rst1 = await request.get(`/api/templates/${data}`, {
-      params: { q: "category:meta", search: "" },
-    });
-    // console.log("rst1:", rst1);
-    metatemplaterecordobj.value = rst1;
-    if (rst1.model) {
-      metatemplaterecordobj.value.model = rst1.model;
-  
-      let temparr = rst1.model;
-     
-      if (_.isArray(temparr)) {
-        let schemafileds = generateSchema(temparr);
-        schemafileds.forEach((schemafield: any) => {
-          Object.assign(currentschema.properties, schemafield);
-        });
-             
-        tempschema.value = currentschema;
-      
-      }
-    }
-  } else {
-    let meta_id = "";
-    let strsql = `/api/templates?q=category:meta&search=`;
-    let rst: [] = [];
 
-    await request
-      .get(strsql)
-      .then((record: any) => {
-        // console.log(record);
-        rst = record.data;
-        if (rst.length > 0) {
-          isMetaTemplateEmpty.value = false;
-        }
 
-        metatemplatetableData.value = arr(rst);
 
-        // if (record && record.data && record.data[0] && record.data[0].hasOwnProperty("_id"))
-        //   meta_id = record.data[0]._id;
-      })
-      .finally(() => {
-        // console.log("rst:", rst);
-        if (rst.length > 0) {
-          hasmultipleMetaTemplates.value = true;
-        }
-        return rst;
-      });
-  }
-
-  // let rst1=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
-  //  console.log(rst);
-  //  route.params.name=rst.name
-}
 // 给每条数据添加条属性
 const arr = (dataArr: any) =>
   dataArr.map((item: any, index: string) => ({ ...item, key: index }));
@@ -289,7 +235,7 @@ const formStateExpected = reactive<FormState>({
   remember: true,
   search: "",
 });
-let metatemplatetableData = ref([]);
+
 let metatemplatedetailtableData = ref({});
 let tableData = ref([]);
 let tableDataExpected = ref([]);
@@ -298,6 +244,7 @@ let searchobj: tableSearch = reactive({
   size: 20,
   page: 1,
   perPage: 10,
+  q: "",
 });
 
 let searchobjExpected: tableSearch = reactive({
@@ -305,6 +252,7 @@ let searchobjExpected: tableSearch = reactive({
   size: 20,
   page: 1,
   perPage: 10,
+  q: "",
 });
 const metatemplatecolumns = reactive<Object[]>([
   {
@@ -326,26 +274,7 @@ const metatemplatecolumns = reactive<Object[]>([
   },
 ]);
 
-const metatemplatedetailcolumns = reactive<Object[]>([
-  {
-    title: "name",
-    dataIndex: "name",
-    key: "name",
-    width: 180,
-  },
-  {
-    title: "description",
-    dataIndex: "description",
-    key: "description",
-    width: 180,
-  },
-  {
-    title: "type",
-    dataIndex: "type",
-    key: "type",
-    width: 180,
-  },
-]);
+
 const columns = reactive<Object[]>([
   {
     name: "Name",
@@ -393,8 +322,7 @@ async function awquery(data?: any, isExpected?: boolean) {
     rst = await request.get("/api/hlfs", { params: data || searchobj });
   }
 
-  if (rst.data) {    
-
+  if (rst.data) {
     // console.log('rst total:', rst.total, '  pagination page size:', pagination.value.pageSize)
     if (isExpected) {
       // console.log('awquery for pagechange or onSizeChangeExpected');
@@ -405,7 +333,6 @@ async function awquery(data?: any, isExpected?: boolean) {
       tableData.value = rst.data;
     }
 
-    
     return rst.data;
   }
 }
@@ -421,7 +348,7 @@ let pagination = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+  showTotal: (total: any) => `Total ${total} `, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize), //点击页码事件
   total: 0, //总条数
@@ -459,7 +386,7 @@ let paginationExpected = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+  showTotal: (total: any) => `Total ${total} `, // 显示总数
   onShowSizeChange: (current: any, pageSize: any) =>
     onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize), //点击页码事件
@@ -509,12 +436,15 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
 /**
  * Panel --Json schema forms
  */
-
+ let tableDataDirectInput = ref([]);
+ let tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
   description: "",
   tags: "",
+  codegen:""
+
 });
 let linkData = ref({
   _id: "",
@@ -557,6 +487,7 @@ let awformdataExpected = ref<Stores.awView>({
   tags: "",
   template: "",
 });
+let codegennames=ref([''])
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -577,6 +508,12 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
+    codegen:{
+      title:"Output Text/Script",
+      type:"string",
+      enum: codegennames.value
+
+    }
   },
 });
 
@@ -665,7 +602,6 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
-  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -675,8 +611,6 @@ function awhandlerSubmit() {
 
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-
-
     if (
       cacheprops.get(ev_id) != null &&
       cacheprops.get(ev_id).props &&
@@ -774,7 +708,7 @@ function awhandlerSubmit() {
     }
   }
 
-  //画图
+  //Draw
   let tempaw = {};
   let maxX = 180;
   let maxY = 150;
@@ -1138,7 +1072,7 @@ function saveMBT(route?: any) {
     }
   });
 
-  /*删除找不到的*/
+  /*Delete unused or not found*/
   // console.log('graphids:', graphIds)
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
   for (let key of cacheprops.keys()) {
@@ -1242,6 +1176,11 @@ function reloadMBT(route: any) {
   message.success("MBT model reloaded");
 }
 
+let dataFrom = ref('');
+let tableColumns = ref([])
+let tableDataDynamic = ref([]);
+let tableColumnsDynamic = ref();
+
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
@@ -1255,6 +1194,18 @@ onMounted(() => {
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo")
       ) {
+
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          // console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{
+              
+              globalschema.value.properties.codegen.enum.push(rec.name)
+            })
+
+          }
+
+        })
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -1270,15 +1221,41 @@ onMounted(() => {
         //dataDefinition includes meta, datapool and resources
 
         if (value.dataDefinition.meta) {
+          
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-          isVisible.value = true;
+          isFormVisible.value = true;
+          
+        }
+
+        if (value.dataDefinition.data) {
+          // console.log('has data info ',value.dataDefinition.data.tableData)
+          cacheDataDefinition.data = value.dataDefinition.data;
+          // tableData.value = value.dataDefinition.data.tableData;  
+                  
+          
+          dataFrom.value = value.dataDefinition.data.dataFrom;
+          if(dataFrom.value =='direct_input'){
+            templateRadiovalue.value = 3
+            tableDataDirectInput.value = value.dataDefinition.data.tableData; 
+            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
+          }else if(dataFrom.value =='dynamic_template'){
+            templateRadiovalue.value =1;
+            tableDataDynamic.value = value.dataDefinition.data.tableData;  
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
+          }else{
+            templateRadiovalue.value =2
+            tableData.value = value.dataDefinition.data.tableData;  
+            tableColumns.value = value.dataDefinition.data.tableColumns;
+          }
+          
           /**
            * todo 10.19
            */
           // cacheDataDefinition.meta;
         }
+
       }
     });
   } else {
@@ -1420,6 +1397,7 @@ onMounted(() => {
         elementView.model.attributes.type &&
         elementView.model.attributes.type == "standard.HeaderedRectangle"
       ) {
+        // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
         ev_id = elementView.model.id + "";
         isAW.value = true;
 
@@ -1429,10 +1407,11 @@ onMounted(() => {
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
+          cacheprops.get(ev_id).props.primaryprops.data &&
           cacheprops.get(ev_id).props.primaryprops.data.name &&
           cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
-          // console.log("success    ", cacheprops.get(ev_id).props.primaryprops);
+          // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           let awformData = cacheprops.get(ev_id).props.primaryprops.data;
           let awformSchema = cacheprops.get(ev_id).props.primaryprops.schema;
           awformdata.value = awformData;
@@ -1447,7 +1426,6 @@ onMounted(() => {
             cacheprops.get(ev_id).props.expectedprops.data.name &&
             cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
           ) {
-            
             awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
             let tempawschemaExpected = generateObj(awschemaExpected);
@@ -1495,7 +1473,6 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
-    metatemplatequery();
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
@@ -1518,7 +1495,6 @@ function showGlobalInfo() {
 }
 
 function showAWInfo(rowobj: any) {
-  
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
@@ -1537,7 +1513,7 @@ function showAWInfo(rowobj: any) {
     appendedschema.forEach((field: any) => {
       Object.assign(awschema.value.properties, field);
     });
-    
+
     // _.forEach(rowobj.params, function (value, key) {
     //   // awformdata.value.params += value.name + " ";
     //   Object.assign(awschema.value.properties,{value.name:});
@@ -1545,7 +1521,6 @@ function showAWInfo(rowobj: any) {
   }
 }
 function handlerConfirmExpected() {
-  
   let tempawschemaExpected = generateObj(awschemaExpected);
   let tempformdata2Expected = generateObj(awformdataExpected);
 
@@ -1563,10 +1538,8 @@ function handlerConfirmExpected() {
       expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
     },
   });
-  
 }
 function showAWExpectedInfo(rowobj: any) {
-  
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
@@ -1584,7 +1557,6 @@ function showAWExpectedInfo(rowobj: any) {
     appendedschema.forEach((field: any) => {
       Object.assign(awschemaExpected.value.properties, field);
     });
-
   }
 }
 
@@ -1636,18 +1608,7 @@ const dataPoolcolumns: columnDefinition[] = [
     dataIndex: "videotype",
   },
 ];
-// const dataPooldataSource: Ref<DataPoolDataItem[]> = ref([
-//   {
-//     key: '0',
-//     title: 'ID',
-//     content: 'oppo.test',
-//   },
-//   {
-//     key: '1',
-//     title: 'Description',
-//     content: '测试触控力度',
-//   },
-// ]);
+
 const resourcescolumns: columnDefinition[] = [
   {
     title: "alias",
@@ -1717,8 +1678,9 @@ const resourceshandleAdd = () => {
   resourcesdataSource.value.push(newData);
 };
 
+const isFormVisible = ref(false);
 const isVisible = ref(false);
-const hasmultipleMetaTemplates = ref(false);
+// const hasmultipleMetaTemplates = ref(false);
 const onImportFromMetaTemplate = () => {
   isVisible.value = !isVisible.value;
 
@@ -1741,6 +1703,62 @@ const onAfterChange = (value: any) => {
 const cancel = (e: MouseEvent) => {
   console.log(e);
 };
+
+const handleDynamicTable = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'dynamic_template'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
+
+
+const handleDynamicTableClear = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  cacheDataDefinition.data = tempObj;
+  tableDataDynamic.value =[];
+  tableColumnsDynamic.value =[];
+}
+
+const handleDirectInput = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'direct_input'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
+const handleStaticTable = (data:any) => {
+  // console.log('get data from static children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'static_template'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
+
+const submitTemplate= (data:any)=>{
+  // console.log('emit value:',data)
+  
+  let metaObj = {};
+  Object.assign(metaObj, { schema: data.schema });
+  Object.assign(metaObj, { data: data.data });
+  cacheDataDefinition.meta = metaObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+}
 </script>
 
 <template>
@@ -2100,67 +2118,22 @@ const cancel = (e: MouseEvent) => {
           </div>
 
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
-                    @cancel="onCloseDrawer"-->
-
+                    @cancel="onCloseDrawer" :schema="tempschema"-->
+                    <!--  :isVisible="isVisible"-->
           <div class="infoPanel" v-if="isGlobal">
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
-                <div style="margin: 5px; padding: 5px">
-                  <!-- {{tempschema}} -->
-                  <!-- {{metatemplatedetailtableData}} -->
-                  <VueForm
-                    v-if="isVisible"
-                    v-model="metatemplatedetailtableData"
-                    :schema="tempschema"
-                    :formProps="metaformProps"
-                    :formFooter="metaformFooter"
-                  >
-                  </VueForm>
-                </div>
-                <a-space :size="10">
-                  <a-button
-                    style="margin-right: 10px"
-                    v-if="isVisible"
-                    type="link"
-                    @click="onImportFromMetaTemplate"
-                    >Choose A Template</a-button
-                  >
-                </a-space>
-                <a-table
-                  v-if="!isVisible"
-                  :columns="metatemplatecolumns"
-                  :data-source="metatemplatetableData"
-                  bordered
+
+                <metainfo
+                  :isFormVisible = "isFormVisible"
+                  :metatemplatedetailtableData="metatemplatedetailtableData"
+                  :schema="tempschema"
+                  :metaformProps="metaformProps"             
+                  :metatemplatecolumns="metatemplatecolumns"                 
+                  @submit-template = "submitTemplate"
                 >
-                  <template #bodyCell="{ column, text, record }">
-                    <template v-if="column.key === 'name'">
-                      <div>
-                        <a-button type="link" @click="metatemplatequery(record._id)">{{
-                          text
-                        }}</a-button>
-                      </div>
-                    </template>
-                    <template v-if="column.key === 'description'">
-                      <div>
-                        {{ text }}
-                      </div>
-                    </template>
-                    <template v-if="column.key === 'tags'">
-                      {{ text }}
-                    </template>
-                  </template>
-                </a-table>
-                <div class="awtable">
-                  <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
-                    Jump to Meta Template
-                  </a>
-                  <a-button
-                    v-if="!isMetaTemplateEmpty && isVisible"
-                    type="primary"
-                    @click="globalhandlerSubmit"
-                    >保存</a-button
-                  >
-                </div>
+                </metainfo>
+              
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
@@ -2177,16 +2150,40 @@ const cancel = (e: MouseEvent) => {
                 </a-card>
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
-                <a-radio-group v-model:value="templatevalue" :options="templateOptions" />
+              
+                <a-radio-group
+                  v-model:value="templateRadiovalue"
+                  @change="handleRadioChange(templateRadiovalue)"
+                >
+                  <a-radio :value="1">Dynamic Template</a-radio>
+                  <a-radio :value="2">Static Template</a-radio>
+                  <a-radio :value="3">Input directly</a-radio>
+                
+                </a-radio-group>
+                <dynamic-table
+                  :tableColumns="tableColumnsDirectInput"
+                  :tableData ="tableDataDirectInput"   
+                    v-if="templateRadiovalue === 3"
+                    @update="handleDirectInput"
+                  ></dynamic-table>
 
-                <a-collapse v-model:activeKey="metaActiveKey">
-                  <a-collapse-panel key="1" header="Input directly">
-                    <dynamic-table></dynamic-table>
-                  </a-collapse-panel>
-                  <a-collapse-panel key="2" header="Import From Template">
-                    <a-button type="primary" @click="importfromstatic()">Import</a-button>
-                  </a-collapse-panel>
-                </a-collapse>
+                  <template-table    
+                  v-if="templateRadiovalue === 1 "  
+                  :tableColumns="tableColumnsDynamic"            
+                  :templateCategory = "templateCategory"
+                  :tableData = "tableDataDynamic"
+                  @update="handleDynamicTable"
+                  @clear="handleDynamicTableClear"
+                  ></template-table>
+                  <!-- --********---{{tableData}}**
+                  ++++{{tableColumns}}########                   -->
+                  <template-table    
+                  v-if="templateRadiovalue === 2 " 
+                  :tableColumns="tableColumns"             
+                  :templateCategory = "templateCategory"
+                  :tableData = "tableData"
+                  @update="handleStaticTable"
+                  ></template-table>
               </a-tab-pane>
               <a-tab-pane key="4" tab="Resources">
                 <a-button
@@ -2256,7 +2253,7 @@ const cancel = (e: MouseEvent) => {
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">保存</a-button>
+                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
               </a-tab-pane>
             </a-tabs>
           </div>
@@ -2266,7 +2263,7 @@ const cancel = (e: MouseEvent) => {
   </main>
 </template>
 
-<style lang="less">
+<style lang="less" >
 #content-window {
   overflow: hidden !important;
   padding: 0rem !important;

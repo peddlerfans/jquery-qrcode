@@ -43,12 +43,12 @@ import { VAceEditor } from 'vue3-ace-editor';
 // import { VAceEditor } from '@/components/AceEditor';
 
 import "./componentTS/ace-config";
-import 'ace-builds/src-noconflict/mode-ejs'
-import 'ace-builds/src-noconflict/mode-html'
-import 'ace-builds/src-noconflict/mode-python'
-import 'ace-builds/src-noconflict/mode-javascript'
-import 'ace-builds/src-noconflict/mode-json'
-import 'ace-builds/src-noconflict/mode-ftl'
+// import 'ace-builds/src-noconflict/mode-ejs'
+// import 'ace-builds/src-noconflict/mode-html'
+// import 'ace-builds/src-noconflict/mode-python'
+// import 'ace-builds/src-noconflict/mode-javascript'
+// import 'ace-builds/src-noconflict/mode-json'
+// import 'ace-builds/src-noconflict/mode-ftl'
 
 
 
@@ -92,12 +92,8 @@ const templateOptions = ref<SelectProps['options']>([
     label: 'EJS',
   },
   {
-    value: 'freemarker',
+    value: 'ftl',
     label: 'FreeMarker',
-  },
-  {
-    value: 'javascript',
-    label: 'JavaScript',
   }
 ]);
 const langOptions = ref<SelectProps['options']>([
@@ -109,15 +105,23 @@ const langOptions = ref<SelectProps['options']>([
     value: 'java',
     label: 'JAVA',
   },
+  {
+    value: 'yaml',
+    label: 'YAML',
+  },
+  {
+    value: 'javascript',
+    label: 'JavaScript',
+  }
 ]);
 const themeOptions = ref<SelectProps['options']>([
   {
-    value: 'github',
-    label: 'Github',
+    value: 'sqlserver',
+    label: 'Light',
   },
   {
     value: 'monokai',
-    label: 'Monokai',
+    label: 'Dark',
   },
 ]);
 
@@ -270,11 +274,114 @@ let sample={
   "prefix": ""
 }
 
-
+let sample2={
+  "data": [
+    {
+      "step": {
+        "input": {
+          "username": "{{username}}",
+          "passwd": "{{passwd}}"
+        },
+        "login_with_credential": {
+          "description": "用户登录",
+          "template": "用户登录输入{{username}}和{{password}}",
+          "params": [
+            {
+              "name": "username",
+              "type": "str"
+            },
+            {
+              "name": "passwd",
+              "type": "str"
+            }
+          ],
+          "name": "login_with_credential",
+          "path": "/login"
+        }
+      }
+    },
+    {
+      "step": {
+        "input": {
+          "isLoginSuccess": true
+        },
+        "login_redirect": {
+          "description": "用户登录成功后跳转",
+          "template": "用户登录成功后跳转{{redirctUrl}}",
+          "params": [
+            {
+              "name": "redirctUrl",
+              "type": "str"
+            }
+          ],
+          "name": "login_redirect",
+          "path": "/login/success"
+        }
+      },
+      "expection": {
+        "input": {
+          "routePath": "{{routePath}}"
+        },
+        "loading_page": {
+          "description": "加载页面",
+          "template": "加载页面{{routePath}}",
+          "params": [
+            {
+              "name": "routePath",
+              "type": "str"
+            }
+          ],
+          "name": "loading_page",
+          "path": "/login/success/routepath"
+        }
+      }
+    },
+    {
+      "step": {
+        "input": {
+          "isLoginSuccess": false
+        },
+        "login_failed": {
+          "description": "用户登录失败返回提示",
+          "template": "用户登录失败返回提示{{errorUrl}}",
+          "params": [
+            {
+              "name": "errorUrl",
+              "type": "str"
+            }
+          ],
+          "name": "login_failed",
+          "path": "/login/failed"
+        }
+      },
+      "expection": {
+        "input": {
+          "routePath": "{{routePath}}"
+        },
+        "loading_page": {
+          "description": "加载页面",
+          "template": "加载页面{{routePath}}",
+          "params": [
+            {
+              "name": "routePath",
+              "type": "str"
+            },
+            {
+              "name": "error_msg",
+              "type": "str"
+            }
+          ],
+          "name": "loading_page",
+          "path": "/login/failed/routepath"
+        }
+      }
+    }
+  ]
+}
 
 
 const states = reactive<AceState>({
-  theme: 'github',
+  theme: 'sqlserver',
   lang: 'json',
   input: sample,
   result: '',
@@ -319,6 +426,11 @@ async function query(id?: any) {
     modelState.description = res.description
     modelState.model = res.model
     modelState.templateText = res.templateText
+
+    if (modelState.model.templateEngine === 'freemarker'){
+      modelState.model.templateEngine =  'ftl'
+    }
+
   } catch (e) {
     message.error("Query failed!")
     console.log(e)
@@ -333,6 +445,10 @@ const saveModel = async () => {
     const anno=aceTemplate.value?._editor.getSession()
 
     try {
+      if (modelState.model.templateEngine === 'ftl'){
+        modelState.model.templateEngine =  'freemarker'
+      }
+
       let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
       states.result=res.data
     }catch (e){
@@ -349,11 +465,20 @@ const saveModel = async () => {
 
     }catch (err:any){
       console.log("catch preview error: ")
-      console.log(err.response.data.message)
 
       let allErr=anno.getAnnotations()
+
+      /**
+       * For the error message,
+       * (1.split by \n
+       * (2. remove all the empty element in the array
+       * (3. get the first element
+       * (4. split by :
+       * (5. get the second element
+       * (6. minus 1 and convert to int as the index in the editor
+       * **/
       allErr.push({
-        row: parseInt(err.response.data.message.split("\n")[0].split(":")[1])-1,
+        row: parseInt(err.response.data.message.split("\n").filter((n:string) => {return n})[0].split(":")[1])-1,
         column: 0,
         text: err.response.data.message,
         type: "error" // also warning and information

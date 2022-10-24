@@ -313,17 +313,17 @@ const handleClose = (removedTag: string) => {
           <div class="editable-row-operations">
             <span v-if="editableData[record.key]">
               <a-typography-link @click="save(record)" style="font-size:16px">
-                <check-circle-two-tone two-tone-color="#52c41a" />
+                <!-- <check-circle-two-tone two-tone-color="#52c41a" /> -->
+                Save
               </a-typography-link>
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-                <a style="margin-left:10px;margin-right:10px;font-size:16px;">
-                  <delete-two-tone two-tone-color="#EB6420" />
-                </a>
-              </a-popconfirm>
-              <a-typography-link @click="cancel(record.key)">cancel</a-typography-link>
+
+              <a-typography-link @click="cancel(record.key)">Cancel</a-typography-link>
             </span>
             <span v-else>
               <a @click="edit(record.key)">Edit</a>
+              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:0.625rem;">Delete         </a>
+            </a-popconfirm>
             </span>
           </div>
         </template>
