@@ -90,7 +90,7 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateCategory = ref(1)
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-  // console.log(",,,,,,", v);
+  console.log(",,,,,,", v);
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -1178,7 +1178,8 @@ function reloadMBT(route: any) {
 
 let dataFrom = ref('');
 let tableColumns = ref([])
-
+let tableDataDynamic = ref([]);
+let tableColumnsDynamic = ref();
 
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
@@ -1232,15 +1233,21 @@ onMounted(() => {
           // console.log('has data info ',value.dataDefinition.data.tableData)
           cacheDataDefinition.data = value.dataDefinition.data;
           // tableData.value = value.dataDefinition.data.tableData;  
-          tableDataDirectInput.value = value.dataDefinition.data.tableData;         
-          tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
+                  
+          
           dataFrom.value = value.dataDefinition.data.dataFrom;
           if(dataFrom.value =='direct_input'){
             templateRadiovalue.value = 3
+            tableDataDirectInput.value = value.dataDefinition.data.tableData; 
+            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
           }else if(dataFrom.value =='dynamic_template'){
-            templateRadiovalue.value =1
+            templateRadiovalue.value =1;
+            tableDataDynamic.value = value.dataDefinition.data.tableData;  
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
           }else{
             templateRadiovalue.value =2
+            tableData.value = value.dataDefinition.data.tableData;  
+            tableColumns.value = value.dataDefinition.data.tableColumns;
           }
           
           /**
@@ -1709,6 +1716,15 @@ const handleDynamicTable = (data:any) => {
   message.success("Save config Successfully");
 };
 
+
+const handleDynamicTableClear = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  cacheDataDefinition.data = tempObj;
+  tableDataDynamic.value =[];
+  tableColumnsDynamic.value =[];
+}
+
 const handleDirectInput = (data:any) => {
   // console.log('get data from children',data  )
   let tempObj = {};
@@ -2150,14 +2166,17 @@ const submitTemplate= (data:any)=>{
                     v-if="templateRadiovalue === 3"
                     @update="handleDirectInput"
                   ></dynamic-table>
+
                   <template-table    
                   v-if="templateRadiovalue === 1 "  
-                  :tableColumns="tableColumns"            
+                  :tableColumns="tableColumnsDynamic"            
                   :templateCategory = "templateCategory"
-                  :tableData = "tableData"
+                  :tableData = "tableDataDynamic"
                   @update="handleDynamicTable"
+                  @clear="handleDynamicTableClear"
                   ></template-table>
-                  
+                  <!-- --********---{{tableData}}**
+                  ++++{{tableColumns}}########                   -->
                   <template-table    
                   v-if="templateRadiovalue === 2 " 
                   :tableColumns="tableColumns"             

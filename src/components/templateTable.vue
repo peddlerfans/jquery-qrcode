@@ -14,7 +14,7 @@ import {
   toRaw,
   onMounted,
   onUpdated,
-  nextTick
+  nextTick,
 } from "vue";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import { tableSearch, FormState } from "@/views/componentTS/mbtmodeler";
@@ -27,39 +27,60 @@ import {
   IColumn,
   IJSONSchema,
   getTemplatePreview,
-  transfer2Table
+  transfer2Table,
 } from "@/api/mbt/index";
 import { tableDataSource } from "@/composables/getTable";
+import { ColumnsType } from "ant-design-vue/es/table";
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
-  (e:"update",value:object):void;
+  (e: "update", value: object): void;
+  (e: "clear", value: object): void;
 }>();
 const props = defineProps<{
   templatedetailtableData?: object;
+  tableData?: never[];
+  tableColumns?: any[];
   templateCategory?: number;
-  templatecolumns?: IColumn[];
   // metatemplatetableData?:[]
 }>();
 //Setting url for data fetching
 // const url=mockMBTUrl;
-let url: string = "";
-let columnsOrigin=ref([
-    { title: "name", dataIndex: "name", key: "name", width: 40 },
-    { title: "description", dataIndex: "description", key: "description", width: 120 },
-    {
-      title: "tags",
-      dataIndex: "tags",
-      key: "tags",
-      width: 100,
-      customRender: (opt:any) => {
-        if (_.isArray(opt.value)) {
-          return opt.value.toString();
-        } else return opt.value;
-      },
-    }   
-  ])
-
+let tableData = ref(props.tableData);
+let tableColumns = ref(props.tableColumns);
 let templateCategory = ref(props.templateCategory);
+let url: string = "";
+let hasData = ref(false);
+let columnsOrigin = ref();
+columnsOrigin.value = [
+  { title: "name", dataIndex: "name", key: "name", width: 40 },
+  { title: "description", dataIndex: "description", key: "description", width: 120 },
+  {
+    title: "tags",
+    dataIndex: "tags",
+    key: "tags",
+    width: 100,
+    customRender: (opt: any) => {
+      if (_.isArray(opt.value)) {
+        return opt.value.toString();
+      } else return opt.value;
+    },
+  },
+];
+let columnsOrigin2 = ref([
+  { title: "name", dataIndex: "name", key: "name", width: 40 },
+  { title: "description", dataIndex: "description", key: "description", width: 120 },
+  {
+    title: "tags",
+    dataIndex: "tags",
+    key: "tags",
+    width: 100,
+    customRender: (opt: any) => {
+      if (_.isArray(opt.value)) {
+        return opt.value.toString();
+      } else return opt.value;
+    },
+  },
+]);
 
 const tableRef = ref();
 let searchobj: tableSearch = reactive({
@@ -73,7 +94,7 @@ const formState: UnwrapRef<FormState> = reactive({
   search: "",
 });
 
-const {
+let {
   dataSource,
   columns,
   originColumns,
@@ -85,16 +106,29 @@ const {
   tableResize,
 } = useTable({
   table: tableRef,
-  columns:columnsOrigin.value,
+  columns: columnsOrigin.value,
   updateTableOptions: {
     fetchUrl: url,
   },
 });
 
 onBeforeMount(() => {
-  updateTable();
+  if (tableData && templateCategory.value == 1) {
+    hasData.value = true;
+    console.log("********tableData,", tableData);
+    debugger;
+    dataSource.value = tableData.value as never[];
+    let cust_columns = tableColumns.value;
+    columnsOrigin.value = cust_columns;
+    console.log("......columns:", columns);
+    console.log("......datasource:", dataSource);
+  } else {
+    debugger;
+    console.log("updatatable1111");
+    updateTable();
+    console.log("updatatable11112222");
+  }
 });
-
 
 async function query(data?: any) {
   let rst;
@@ -114,74 +148,53 @@ async function query(data?: any) {
   }
 }
 
-/**
- * Search the result
- */
-const handleFinish: FormProps["onFinish"] = (values: any) => {
-  let fetchUrl = "";
-  if (formState && formState.search.toString().substring(0, 6) == "@tags:") {
-    fetchUrl =
-      url +
-      `?q=tags:` +
-      formState.search.substring(6, formState.search.length).toUpperCase().trim();
-  } else {
-    fetchUrl = url + `?search=` + formState.search;
-  }
-
-  updateTable({ fetchUrl: fetchUrl });
-};
-const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
-  console.log(errors);
-};
-
-
 onMounted(() => {
   // console.log("datasource111:", dataSource);
   let category = templateCategory!.value;
   // console.log("category:", category);
   let searchParam: string = "";
-  if (category == 1) {
-    searchParam = "dynamic";
-    url = `/api/templates?q=category:dynamic&search=`;
-  } else if (category == 2) {
-    searchParam = "static";
-    url = `/api/templates?q=category:static&search=`;
-  }
-  getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-
-    if (rst.length > 0) {
-      let temparr = rst;
-
-      dataSource.value = temparr;
+  if (dataSource) {
+    console.log('Read data from backend')
+  } else {
+    if (category == 1) {
+      searchParam = "dynamic";
+      url = `/api/templates?q=category:dynamic&search=`;
+    } else if (category == 2) {
+      searchParam = "static";
+      url = `/api/templates?q=category:static&search=`;
     }
-    //   console.log('datasource:',dataSource)
-  });
-  //   query();
+    getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+      if (rst.length > 0) {
+        let temparr = rst;
+
+        dataSource.value = temparr;
+      }
+      //   console.log('datasource:',dataSource)
+    });
+  }
 });
 
-function showDetailInfo(data:any){
-    // console.log('......',data)
-    if(data && data._id && data.category=='dynamic'){
-        getTemplatePreview(data._id).then((dat:any)=>{
-            // console.log(',,,,,,,,',dat)
-            let cust_columns = transfer2Table(dat);
-            // console.log('data:,,,,,,,,',dat,'columns:',cust_columns);
-            columnsOrigin.value = cust_columns;
-            dataSource.value = dat;
-            // columnsOrigin.value = dat.model.schema;
-        })
-    }else if(data && data._id && data.category == 'static'){
-        // console.log(data.model)
-        if(data.model){
-            dataSource.value = data.model.data;
-            columnsOrigin.value = data.model.schema;
-        }else{
-            console.log('Pleaes define the params in static template.')
-        }
-        
+function showDetailInfo(data: any) {
+  // console.log('......',data)
+  if (data && data._id && data.category == "dynamic") {
+    hasData.value = true;
+    getTemplatePreview(data._id).then((dat: any) => {
+      // console.log(',,,,,,,,',dat)
+      let cust_columns = transfer2Table(dat);
+      // console.log('data:,,,,,,,,',dat,'columns:',cust_columns);
+      columnsOrigin.value = cust_columns;
+      dataSource.value = dat;
+      // columnsOrigin.value = dat.model.schema;
+    });
+  } else if (data && data._id && data.category == "static") {
+    // console.log(data.model)
+    if (data.model) {
+      dataSource.value = data.model.data;
+      columnsOrigin.value = data.model.schema;
+    } else {
+      console.log("Pleaes define the params in static template.");
     }
-    
-
+  }
 }
 // 修改功能4
 // 修改函数
@@ -207,15 +220,15 @@ function showDetailInfo(data:any){
 //   }
 // }
 interface statesTs {
-  enums: Array<string>
+  enums: Array<string>;
   inputVisible: Boolean;
-  inputValue: string
+  inputValue: string;
 }
 // 添加的表单tags
 let states = reactive<statesTs>({
   enums: [],
   inputVisible: false,
-  inputValue: '',
+  inputValue: "",
 });
 function HandleSubmit() {
   let obj = {};
@@ -224,12 +237,42 @@ function HandleSubmit() {
   emit("update", obj);
 }
 
+function HandleClear(){
+  let obj = {};
+  emit("clear", obj);
+  dataSource.value =[]
+  columnsOrigin.value =[]
+  chooseTemplate.value = true
+  hasData.value = false;
+
+}
+const chooseTemplate = ref(false)
+const chooseTemplateFunc = ()=>{
+  console.log('choose template')
+  let category = templateCategory!.value;
+  console.log("category:", category);
+  let searchParam: string = "";
+  if (category == 1) {
+      searchParam = "dynamic";
+      url = `/api/templates?q=category:dynamic&search=`;
+    } else if (category == 2) {
+      searchParam = "static";
+      url = `/api/templates?q=category:static&search=`;
+    }
+    getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+      if (rst.length > 0) {
+        let temparr = rst;
+        columnsOrigin.value=columnsOrigin2.value
+        dataSource.value = temparr;
+      }
+      //   console.log('datasource:',dataSource)
+    });
+  updateTable();
+};
 </script>
 
 <template>
   <main style="height: 100%; overflow-x: hidden !important">
-
-
     <ATable
       ref="tableRef"
       class="table"
@@ -240,23 +283,19 @@ function HandleSubmit() {
       :loading="tableLoading"
       bordered
       @resizeColumn="tableResize"
-      
     >
-    <!-- :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }" -->
+      <!-- :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }" -->
       <template #headerCell="{ column }">
         <template v-if="column.key === 'name'">
-          <span>            
-            Name
-          </span>
+          <span> Name </span>
         </template>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-         
           <a-button type="link" @click="showDetailInfo(record)">
             {{ record.name }}
-                              </a-button>
+          </a-button>
           <!-- <a :href="`/#/mbtmodeler/${record._id}/${record.name}`">{{ record.name }}</a> -->
         </template>
 
@@ -277,7 +316,13 @@ function HandleSubmit() {
       </template>
     </ATable>
     <div>
-    <a-button type="primary" @click="HandleSubmit()">Save</a-button>
+
+      <a-button style="margin-right: 5px;" type="primary" @click="HandleSubmit()">Save</a-button>
+      
+      <a-button v-if="chooseTemplate || !hasData" style="margin-right: 5px;" type="link" @click="chooseTemplateFunc()">Choose A Template</a-button>
+
+      <a-button  v-if="!chooseTemplate && hasData" danger @click="HandleClear()">Clear</a-button>
+      
     </div>
     <!-- </section> -->
   </main>
