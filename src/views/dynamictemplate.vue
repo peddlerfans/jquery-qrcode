@@ -97,7 +97,7 @@ const columns1 = [ // Setup the header of columns
 ]
 
 const {
-  dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
+  dataSource, columns, originColumns, tableLoading, pagination ,
   updateTable, onTableRowSelectChange, tableResize
 } = useTable({
   table: tableRef, // Predefined a null reference which might be an instance of component
@@ -487,7 +487,7 @@ onMounted(() => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"
+              <a-mentions v-model:value.trim="formState.search"
                 placeholder="input @ to search tags, input name to search Dynamic Templates">
                 <a-mentions-option value="tags:">
                   tags:
@@ -526,11 +526,11 @@ onMounted(() => {
         <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
           :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
           <a-form-item label="Name" name="name">
-            <a-input v-model:value="modelState.name" />
+            <a-input v-model:value.trim="modelState.name" />
           </a-form-item>
 
           <a-form-item label="Description" name="description">
-            <a-input v-model:value="modelState.description" />
+            <a-input v-model:value.trim="modelState.description" />
           </a-form-item>
 
           <!-- tags标签 -->
@@ -546,7 +546,7 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value="modelState.inputValue" type="text"
+            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value.trim="modelState.inputValue" type="text"
               size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
               @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(1)">
@@ -603,18 +603,18 @@ onMounted(() => {
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.name"
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.name"
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
-              <!-- <span v-else>}</span> -->
+              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a>
+              <span v-else>{{text}}</span>
             </template>
           </div>
         </template>
         <template v-if='column.key==="description"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.description"
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.description"
               style="margin: -5px 0" />
             <template v-else>
               {{ text }}
@@ -634,7 +634,7 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value="modelState.inputValue" type="text"
+            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value.trim="modelState.inputValue" type="text"
               size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
               @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(2)">
@@ -655,16 +655,15 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              
-                <a @click="clearModelState()">Cancel</a>
-              
+              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
+                <a>Cancel</a>
+              </a-popconfirm>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
               <a-divider type="vertical" />
-              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">Config</a>
-
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">Config</a>
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">

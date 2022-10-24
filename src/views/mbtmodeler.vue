@@ -3,6 +3,7 @@ import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import dynamicTable from "@/components/dynamicTable.vue";
 import metainfo from "@/components/metainfo.vue";
+import templateTable from '@/components/templateTable.vue';
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
@@ -13,7 +14,7 @@ import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-v
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
-import {getMetatemplate,getAllMetatemplates} from '@/api/mbt/index'
+import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
 import {
   SmileOutlined,
   SearchOutlined,
@@ -54,7 +55,6 @@ import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
 import { array } from "vue-types";
-import CreateRule from "@/components/CreateRule.vue"
 
 window.joint = joint;
 
@@ -86,10 +86,12 @@ const url = realMBTUrl;
 
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
-const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
-const templatevalue = ref<number>(1);
+// const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
+const templateCategory = ref(1)
+const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
   console.log(",,,,,,", v);
+  templateCategory.value = v;
 };
 const metaformProps = {
   layoutColumn: 2,
@@ -434,12 +436,15 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
 /**
  * Panel --Json schema forms
  */
-
+ let tableDataDirectInput = ref([]);
+ let tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
   description: "",
   tags: "",
+  codegen:""
+
 });
 let linkData = ref({
   _id: "",
@@ -482,6 +487,7 @@ let awformdataExpected = ref<Stores.awView>({
   tags: "",
   template: "",
 });
+let codegennames=ref([''])
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -502,6 +508,12 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
+    codegen:{
+      title:"Output Text/Script",
+      type:"string",
+      enum: codegennames.value
+
+    }
   },
 });
 
@@ -816,9 +828,6 @@ function awhandlerSubmit() {
   onCloseDrawer();
   message.success("Save aw Successfully");
 }
-
-
-const formDatas: any[]=[]
 
 /**
  * todo
@@ -1167,6 +1176,11 @@ function reloadMBT(route: any) {
   message.success("MBT model reloaded");
 }
 
+let dataFrom = ref('');
+let tableColumns = ref([])
+let tableDataDynamic = ref([]);
+let tableColumnsDynamic = ref();
+
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
@@ -1180,6 +1194,18 @@ onMounted(() => {
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo")
       ) {
+
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          // console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{
+              
+              globalschema.value.properties.codegen.enum.push(rec.name)
+            })
+
+          }
+
+        })
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -1195,16 +1221,41 @@ onMounted(() => {
         //dataDefinition includes meta, datapool and resources
 
         if (value.dataDefinition.meta) {
-          console.log('has meta info ')
+          
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
           isFormVisible.value = true;
+          
+        }
+
+        if (value.dataDefinition.data) {
+          // console.log('has data info ',value.dataDefinition.data.tableData)
+          cacheDataDefinition.data = value.dataDefinition.data;
+          // tableData.value = value.dataDefinition.data.tableData;  
+                  
+          
+          dataFrom.value = value.dataDefinition.data.dataFrom;
+          if(dataFrom.value =='direct_input'){
+            templateRadiovalue.value = 3
+            tableDataDirectInput.value = value.dataDefinition.data.tableData; 
+            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
+          }else if(dataFrom.value =='dynamic_template'){
+            templateRadiovalue.value =1;
+            tableDataDynamic.value = value.dataDefinition.data.tableData;  
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
+          }else{
+            templateRadiovalue.value =2
+            tableData.value = value.dataDefinition.data.tableData;  
+            tableColumns.value = value.dataDefinition.data.tableColumns;
+          }
+          
           /**
            * todo 10.19
            */
           // cacheDataDefinition.meta;
         }
+
       }
     });
   } else {
@@ -1346,6 +1397,7 @@ onMounted(() => {
         elementView.model.attributes.type &&
         elementView.model.attributes.type == "standard.HeaderedRectangle"
       ) {
+        // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
         ev_id = elementView.model.id + "";
         isAW.value = true;
 
@@ -1359,7 +1411,7 @@ onMounted(() => {
           cacheprops.get(ev_id).props.primaryprops.data.name &&
           cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
-          // console.log("success    ", cacheprops.get(ev_id).props.primaryprops);
+          // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           let awformData = cacheprops.get(ev_id).props.primaryprops.data;
           let awformSchema = cacheprops.get(ev_id).props.primaryprops.schema;
           awformdata.value = awformData;
@@ -1652,17 +1704,58 @@ const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-const handleDynamicTable = () => {};
+const handleDynamicTable = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'dynamic_template'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
 
+
+const handleDynamicTableClear = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  cacheDataDefinition.data = tempObj;
+  tableDataDynamic.value =[];
+  tableColumnsDynamic.value =[];
+}
+
+const handleDirectInput = (data:any) => {
+  // console.log('get data from children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'direct_input'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
+const handleStaticTable = (data:any) => {
+  // console.log('get data from static children',data  )
+  let tempObj = {};
+  Object.assign(tempObj, { tableData: data.tableData });
+  Object.assign(tempObj, { tableColumns: data.tableColumns });
+  Object.assign(tempObj,{dataFrom:'static_template'})
+  cacheDataDefinition.data = tempObj;
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
+  onCloseDrawer();
+  message.success("Save config Successfully");
+};
 
 const submitTemplate= (data:any)=>{
-  console.log('emit value:',data)
+  // console.log('emit value:',data)
   
   let metaObj = {};
   Object.assign(metaObj, { schema: data.schema });
   Object.assign(metaObj, { data: data.data });
   cacheDataDefinition.meta = metaObj;
-  console.log('cachedDatadifinition:',cacheDataDefinition)
+  // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
 }
@@ -2021,8 +2114,6 @@ const submitTemplate= (data:any)=>{
                 @cancel="onCloseDrawer"
               >
               </VueForm>
-              <a-table></a-table>
-              <!-- <create-rule :formDatas="formDatas"></create-rule> -->
             </div>
           </div>
 
@@ -2059,19 +2150,40 @@ const submitTemplate= (data:any)=>{
                 </a-card>
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
+              
                 <a-radio-group
-                  v-model:value="templatevalue"
-                  @change="handleRadioChange(templatevalue)"
+                  v-model:value="templateRadiovalue"
+                  @change="handleRadioChange(templateRadiovalue)"
                 >
                   <a-radio :value="1">Dynamic Template</a-radio>
                   <a-radio :value="2">Static Template</a-radio>
                   <a-radio :value="3">Input directly</a-radio>
-                  <dynamic-table
-                    v-if="templatevalue === 3"
-                    @update="handleDynamicTable()"
-                  ></dynamic-table>
-                  <div v-if="templatevalue === 3"><p>inputdirect</p></div>
+                
                 </a-radio-group>
+                <dynamic-table
+                  :tableColumns="tableColumnsDirectInput"
+                  :tableData ="tableDataDirectInput"   
+                    v-if="templateRadiovalue === 3"
+                    @update="handleDirectInput"
+                  ></dynamic-table>
+
+                  <template-table    
+                  v-if="templateRadiovalue === 1 "  
+                  :tableColumns="tableColumnsDynamic"            
+                  :templateCategory = "templateCategory"
+                  :tableData = "tableDataDynamic"
+                  @update="handleDynamicTable"
+                  @clear="handleDynamicTableClear"
+                  ></template-table>
+                  <!-- --********---{{tableData}}**
+                  ++++{{tableColumns}}########                   -->
+                  <template-table    
+                  v-if="templateRadiovalue === 2 " 
+                  :tableColumns="tableColumns"             
+                  :templateCategory = "templateCategory"
+                  :tableData = "tableData"
+                  @update="handleStaticTable"
+                  ></template-table>
               </a-tab-pane>
               <a-tab-pane key="4" tab="Resources">
                 <a-button
@@ -2151,7 +2263,7 @@ const submitTemplate= (data:any)=>{
   </main>
 </template>
 
-<style lang="less">
+<style lang="less" >
 #content-window {
   overflow: hidden !important;
   padding: 0rem !important;
