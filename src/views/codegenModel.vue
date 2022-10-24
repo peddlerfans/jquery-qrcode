@@ -43,12 +43,6 @@ import { VAceEditor } from 'vue3-ace-editor';
 // import { VAceEditor } from '@/components/AceEditor';
 
 import "./componentTS/ace-config";
-// import 'ace-builds/src-noconflict/mode-ejs'
-// import 'ace-builds/src-noconflict/mode-html'
-// import 'ace-builds/src-noconflict/mode-python'
-// import 'ace-builds/src-noconflict/mode-javascript'
-// import 'ace-builds/src-noconflict/mode-json'
-// import 'ace-builds/src-noconflict/mode-ftl'
 
 
 
@@ -379,9 +373,12 @@ let sample2={
   ]
 }
 
+const defTheme=sessionStorage.getItem('codegen_theme') || 'sqlserver'
+console.log("defTheme")
+console.log(defTheme)
 
 const states = reactive<AceState>({
-  theme: 'sqlserver',
+  theme: String(defTheme),
   lang: 'json',
   input: sample,
   result: '',
@@ -441,6 +438,9 @@ async function query(id?: any) {
 const aceTemplate = ref<AceEditor>();
 
 const saveModel = async () => {
+  sessionStorage.setItem('codegen_theme', String(states.theme))
+
+
   if (modelState.templateText){
     const anno=aceTemplate.value?._editor.getSession()
 
@@ -465,6 +465,7 @@ const saveModel = async () => {
 
     }catch (err:any){
       console.log("catch preview error: ")
+      console.log(err)
 
       let allErr=anno.getAnnotations()
 
