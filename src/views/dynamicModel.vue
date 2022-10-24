@@ -536,7 +536,14 @@ const cancelbulid=()=>{
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"",
     id:1,
-                conditions:[],
+                conditions:[
+                {
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }
+                ],
                 children:[]}
   ],
   thenObj.value.thenName=''
@@ -551,10 +558,7 @@ const editCon=(obj:any)=>{
   console.log( obj,keys.value);
   
 if(finalModel.constraint.length>0){
-  
-  console.log(finalModel.constraint[obj.keys].if);
-  
-  rulesData.value=finalModel.constraint[obj.keys].if
+    rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
   thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
   thenObj.value.thenValue=finalModel.constraint[obj.keys].then.thenValue
@@ -562,9 +566,7 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{
-  console.log(obj.keys);
-  
+const deleteconstraint=(obj:any)=>{  
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
@@ -599,7 +601,7 @@ const rulesData=ref(
       conditions:[{
         name:'name',
         operator:"=",
-        value:'value',
+        value:undefined,
         selectvalues:childselectvalue
       }],
       children:[]}
