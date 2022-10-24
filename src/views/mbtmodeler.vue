@@ -436,7 +436,8 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
 /**
  * Panel --Json schema forms
  */
-
+ let tableDataDirectInput = ref([]);
+ let tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
@@ -1230,8 +1231,9 @@ onMounted(() => {
         if (value.dataDefinition.data) {
           // console.log('has data info ',value.dataDefinition.data.tableData)
           cacheDataDefinition.data = value.dataDefinition.data;
-          tableData.value = value.dataDefinition.data.tableData;          
-          tableColumns.value = value.dataDefinition.data.tableColumns;
+          // tableData.value = value.dataDefinition.data.tableData;  
+          tableDataDirectInput.value = value.dataDefinition.data.tableData;         
+          tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
           dataFrom.value = value.dataDefinition.data.dataFrom;
           if(dataFrom.value =='direct_input'){
             templateRadiovalue.value = 3
@@ -2143,8 +2145,8 @@ const submitTemplate= (data:any)=>{
                 
                 </a-radio-group>
                 <dynamic-table
-                  :tableColumns="tableColumns"
-                  :tableData ="tableData"   
+                  :tableColumns="tableColumnsDirectInput"
+                  :tableData ="tableDataDirectInput"   
                     v-if="templateRadiovalue === 3"
                     @update="handleDirectInput"
                   ></dynamic-table>
