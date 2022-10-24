@@ -6,6 +6,9 @@ ace.config.setModuleUrl('ace/mode/json', modeJsonUrl);
 import modeJavascriptUrl from 'ace-builds/src-noconflict/mode-javascript?url';
 ace.config.setModuleUrl('ace/mode/javascript', modeJavascriptUrl);
 
+import modeJavaUrl from 'ace-builds/src-noconflict/mode-java?url';
+ace.config.setModuleUrl('ace/mode/java', modeJavaUrl);
+
 import modeEjsUrl from 'ace-builds/src-noconflict/mode-ejs?url';
 ace.config.setModuleUrl('ace/mode/ejs', modeEjsUrl);
 
