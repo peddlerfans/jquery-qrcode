@@ -3,22 +3,13 @@ import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 import { ref, onMounted, toRaw } from "vue";
 
-import { getMetatemplate, getAllMetatemplates } from "@/api/mbt/index";
+import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
 // const emit = defineEmits(['submitTemplate'])
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
 }>();
-interface IJSONSchema {
-  type?: string;
-  properties?: object;
-}
 
-interface IColumn {
-  title?: string;
-  dataIndex?: string;
-  key?: string;
-  width?: number;
-}
+
 const props = defineProps<{
   isFormVisible?: boolean;
   metatemplatedetailtableData?: object;
@@ -43,7 +34,7 @@ const isMetaTemplateEmpty = ref(false);
 
 onMounted(() => {
   
-  getAllMetatemplates().then((rst: any[]) => {
+  getAllTemplatesByCategory('meta').then((rst: any[]) => {
     //   console.log(rst)
     if (rst.length > 0) {
       isMetaTemplateEmpty.value = false;
@@ -63,7 +54,7 @@ function submitTemplate() {
 
 const showJSONSchemeForm = (templdateId: string) => {
   isFormVisible.value = !isFormVisible.value;
-  getMetatemplate(templdateId).then((schema: any) => {
+  getTemplate(templdateId,'meta').then((schema: any) => {
     tempschema.value = schema;
   });
 };

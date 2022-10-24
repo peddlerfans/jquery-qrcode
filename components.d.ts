@@ -65,6 +65,7 @@ declare module '@vue/runtime-core' {
     Shadow: typeof import('./src/components/Shadow.vue')['default']
     SplitPanel: typeof import('./src/components/basic/split-panel/index.vue')['default']
     SvgIcon: typeof import('./src/components/SvgIcon.vue')['default']
+    TemplateTable: typeof import('./src/components/templateTable.vue')['default']
     TitleI18n: typeof import('./src/components/basic/title-i18n/index.vue')['default']
   }
 }

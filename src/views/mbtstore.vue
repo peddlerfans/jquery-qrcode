@@ -32,7 +32,7 @@ const instance = getCurrentInstance()
 
 
 const {
-  dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
+  dataSource, columns, originColumns, tableLoading, pagination, 
   updateTable, onTableRowSelectChange, tableResize
 } = useTable({
   table: tableRef,
@@ -395,7 +395,8 @@ const handleInputConfirm = () => {
     </div>
     <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
       :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
+      
+      >
       <template #headerCell="{ column }">
         <template v-if="column.key === 'name'">
           <span>
