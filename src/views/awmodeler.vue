@@ -909,7 +909,7 @@ const confirmtree =async (key:any,title:string) => {
   // queryTree()
 }
 // 右键展开菜单项
- const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
+ const onContextMenuClick = (treeKey: string, menuKey: any) => {
       console.log(`treeKey: ${treeKey}, menuKey: ${menuKey}`);
     };
 </script>
