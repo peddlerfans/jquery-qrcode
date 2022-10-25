@@ -1238,14 +1238,17 @@ onMounted(() => {
           dataFrom.value = value.dataDefinition.data.dataFrom;
           if(dataFrom.value =='direct_input'){
             templateRadiovalue.value = 3
+            templateCategory.value = 3;
             tableDataDirectInput.value = value.dataDefinition.data.tableData; 
             tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
           }else if(dataFrom.value =='dynamic_template'){
             templateRadiovalue.value =1;
+            templateCategory.value =1;
             tableDataDynamic.value = value.dataDefinition.data.tableData;  
             tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
           }else{
             templateRadiovalue.value =2
+            templateCategory.value =2;
             tableData.value = value.dataDefinition.data.tableData;  
             tableColumns.value = value.dataDefinition.data.tableColumns;
           }
