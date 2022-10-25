@@ -17,6 +17,8 @@ export interface Model{
     model: {
         templateEngine: any;
         outputLanguage: any;
+        data: any;
+        history: Array<any>;
     };
     templateText: any;
 }
@@ -24,7 +26,6 @@ export interface Model{
 export interface AceState{
     theme: string;
     lang: string;
-    input: any;
     result: string;
 }
 

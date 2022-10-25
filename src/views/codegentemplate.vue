@@ -61,9 +61,10 @@ const url = templateUrl;
 const tableRef = ref()
 
 const initModelAttr={
-  option: {strategy:''},
-  factor: [],
-  constraint: []
+  outputLanguage: '',
+  templateEngine: '',
+  data: '',
+  history: []
 }
 // ##### Invoke table hook #####
 // Initialize  without pagination ??????
