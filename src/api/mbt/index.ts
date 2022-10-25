@@ -142,8 +142,8 @@ export async function getTemplate(metaId:string,category:string){
 
 export function getMBTList() {    
     
-    const data = requestGet<{ data: any[], total: number }>(`/api2/mbt-models`)
-    // 只监听一次，在取到值之后移除监听器
+    const data = requestGet<{ data: any[], total: number }>(`/api/test-models`)
+    
     return data;
    
   }

@@ -2266,7 +2266,7 @@ const submitTemplate= (data:any)=>{
   </main>
 </template>
 
-<style lang="less" >
+<style  >
 #content-window {
   overflow: hidden !important;
   padding: 0rem !important;
@@ -2287,7 +2287,7 @@ header {
 }
 
 .infoPanel {
-  // height: 100%;
+   /* height: 100%; */
   /* overflow: hidden; */
   position: relative;
   margin: 2px;
@@ -2318,7 +2318,7 @@ header {
   padding: 5px;
   display: flex !important;
   justify-content: flex-end;
-  // flex-direction:column-reverse!important;
+   /* flex-direction:column-reverse!important; */
 }
 
 .search_form {
@@ -2336,9 +2336,9 @@ header {
   font-weight: 600;
 }
 
-.ant-table-tbody > tr > td {
+/* .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
-}
+ } */
 
 .icon-wrapper {
   position: relative;
