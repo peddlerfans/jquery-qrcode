@@ -38,18 +38,12 @@ import {
   AceEditor, AceState,
   Model, ModelState,
 } from "./componentTS/codegen";
-import { purple } from '@ant-design/colors';
+import dayjs from 'dayjs'
 
 import { VAceEditor } from 'vue3-ace-editor';
 // import { VAceEditor } from '@/components/AceEditor';
 
 import "./componentTS/ace-config";
-// import 'ace-builds/src-noconflict/mode-ejs'
-// import 'ace-builds/src-noconflict/mode-html'
-// import 'ace-builds/src-noconflict/mode-python'
-// import 'ace-builds/src-noconflict/mode-javascript'
-// import 'ace-builds/src-noconflict/mode-json'
-// import 'ace-builds/src-noconflict/mode-ftl'
 
 
 
@@ -59,6 +53,21 @@ let url = templateUrl;
 let route = useRoute()
 let finalResult: any;
 let modelId: any;
+
+let modelState = reactive<Model>({
+  _id: '',
+  name: '',
+  category: 'codegen',
+  description: '',
+  tags: [],
+  model: {
+    templateEngine: "ejs",
+    outputLanguage: "python",
+    data: "",
+    history: []
+  },
+  templateText: "",
+});
 
 sessionStorage.setItem('codegen_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
@@ -128,141 +137,18 @@ const themeOptions = ref<SelectProps['options']>([
 
 
 
-let sample2={
-  "data": [
-    {
-      "step": {
-        "input": {
-          "username": "{{username}}",
-          "passwd": "{{passwd}}"
-        },
-        "login_with_credential": {
-          "description": "用户登录",
-          "template": "用户登录输入{{username}}和{{password}}",
-          "params": [
-            {
-              "name": "username",
-              "type": "str"
-            },
-            {
-              "name": "passwd",
-              "type": "str"
-            }
-          ],
-          "name": "login_with_credential",
-          "path": "/login"
-        }
-      }
-    },
-    {
-      "step": {
-        "input": {
-          "isLoginSuccess": true
-        },
-        "login_redirect": {
-          "description": "用户登录成功后跳转",
-          "template": "用户登录成功后跳转{{redirctUrl}}",
-          "params": [
-            {
-              "name": "redirctUrl",
-              "type": "str"
-            }
-          ],
-          "name": "login_redirect",
-          "path": "/login/success"
-        }
-      },
-      "expection": {
-        "input": {
-          "routePath": "{{routePath}}"
-        },
-        "loading_page": {
-          "description": "加载页面",
-          "template": "加载页面{{routePath}}",
-          "params": [
-            {
-              "name": "routePath",
-              "type": "str"
-            }
-          ],
-          "name": "loading_page",
-          "path": "/login/success/routepath"
-        }
-      }
-    },
-    {
-      "step": {
-        "input": {
-          "isLoginSuccess": false
-        },
-        "login_failed": {
-          "description": "用户登录失败返回提示",
-          "template": "用户登录失败返回提示{{errorUrl}}",
-          "params": [
-            {
-              "name": "errorUrl",
-              "type": "str"
-            }
-          ],
-          "name": "login_failed",
-          "path": "/login/failed"
-        }
-      },
-      "expection": {
-        "input": {
-          "routePath": "{{routePath}}"
-        },
-        "loading_page": {
-          "description": "加载页面",
-          "template": "加载页面{{routePath}}",
-          "params": [
-            {
-              "name": "routePath",
-              "type": "str"
-            },
-            {
-              "name": "error_msg",
-              "type": "str"
-            }
-          ],
-          "name": "loading_page",
-          "path": "/login/failed/routepath"
-        }
-      }
-    }
-  ]
-}
-
 
 const states = reactive<AceState>({
-  theme: 'sqlserver',
+  theme: String(sessionStorage.getItem('codegen_theme') || 'sqlserver'),
   lang: 'json',
-  input: sample,
   result: '',
 });
 
-const inputData = ref<string>(JSON.stringify(states.input, null, 2))
-
-
-watch(inputData,(newValue,oldValue)=>{
-  states.input = JSON.parse(newValue)
-})
-
-let modelState = reactive<Model>({
-  _id: '',
-  name: '',
-  category: 'codegen',
-  description: '',
-  tags: [],
-  model: {
-    templateEngine: "ejs",
-    outputLanguage: "python"
-  },
-  templateText: "",
-});
 
 onMounted(() => {
+
   modelId = sessionStorage.getItem('codegen_' + route.params._id)
+
   if (modelId === null){
     message.error("Model cannot be found")
   }else{
@@ -274,12 +160,19 @@ async function query(id?: any) {
   try {
     let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
 
+    console.log('query')
+    // console.log(res)
+
     modelState._id = res._id
     modelState.name = res.name
     modelState.tags = res.tags
     modelState.description = res.description
     modelState.model = res.model
     modelState.templateText = res.templateText
+
+    if (modelState.model.data === '') {
+      modelState.model.data=sample
+    }
 
     if (modelState.model.templateEngine === 'freemarker'){
       modelState.model.templateEngine =  'ftl'
@@ -295,6 +188,22 @@ async function query(id?: any) {
 const aceTemplate = ref<AceEditor>();
 
 const saveModel = async () => {
+  sessionStorage.setItem('codegen_theme', String(states.theme))
+
+  modelState.model.history.unshift(
+      {
+        templateEngine: modelState.model.templateEngine,
+        outputLanguage: modelState.model.outputLanguage,
+        templateText: modelState.templateText,
+        data: toRaw(modelState.model.data),
+        time: dayjs().format('YYYY-MM-DD HH:mm:ss')
+      }
+  )
+
+  console.log("saveModel")
+  console.log(modelState)
+  if (modelState.model.history.length>10) modelState.model.history.splice(-1)
+
   if (modelState.templateText){
     const anno=aceTemplate.value?._editor.getSession()
 
@@ -304,21 +213,25 @@ const saveModel = async () => {
       }
 
       let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
-      states.result=res.data
+
     }catch (e){
-      message.success("Save failed!")
+      message.error("Save failed!")
     }
 
-    // message.success("Saved successfully!")
     anno.setAnnotations([])
 
     try {
-      let res = await request.post(url+`/${route.params._id}/preview`, states.input)
+      console.log("Preview "+route.params._id)
+      console.log(toRaw(modelState.model.data))
+      let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
+
+
       states.result=res.data
       message.success("Preview successful!")
 
     }catch (err:any){
       console.log("catch preview error: ")
+      console.log(err)
 
       let allErr=anno.getAnnotations()
 
@@ -344,21 +257,65 @@ const saveModel = async () => {
   }else{
     message.warning("Template engine cannot be null!")
   }
-
-
 }
+
+let inputData = ref<string>('')
+
+watch(inputData,(newValue,oldValue)=>{
+  modelState.model.data = JSON.parse(newValue)
+  console.log("##")
+  console.log(toRaw(modelState.model.data))
+})
 
 
 const visible = ref<boolean>(false);
 
 const showModal = () => {
   visible.value = true;
+
+  inputData.value=JSON.stringify(toRaw(modelState.model.data), null, 2)
 };
 
 const handleOk = (e: MouseEvent) => {
   console.log(e);
   visible.value = false;
 };
+
+const columns = [ // Setup the header of columns
+  {
+    title: 'Time Stamp',
+    dataIndex: 'time',
+    key: 'time',
+    // width: 40
+  },
+  {
+    title: 'Template Engine',
+    dataIndex: 'template',
+    key: 'template',
+    // width: 120
+  },
+  {
+    title: 'Output Language',
+    dataIndex: 'output',
+    key: 'output',
+  },
+  {
+    title: 'Action',
+    dataIndex: 'action',
+    key: 'action',
+    // width: 100
+  },
+
+]
+
+const loadHistory = (e:any)=>{
+  modelState.templateText = e.templateText
+  modelState.model.templateEngine = e.templateEngine
+  modelState.model.outputLanguage = e.outputLanguage
+  modelState.model.data = e.data
+
+  message.success("Load successful")
+}
 
 
 
@@ -445,6 +402,34 @@ const handleOk = (e: MouseEvent) => {
         </template>
       </a-modal>
     </div>
+
+
+    <h2 style="margin-top:30px">History</h2>
+
+    <a-table :columns="columns" :data-source="modelState.model.history" bordered>
+      <template #bodyCell="{ column, text, record }">
+        <template v-if='column.key==="time"'>
+          <div>
+            {{ record.time}}
+          </div>
+        </template>
+        <template v-if='column.key==="template"'>
+          <div>
+            {{ record.templateEngine }}
+          </div>
+        </template>
+        <template v-if="column.key === 'output'">
+          <div>
+            {{ record.outputLanguage }}
+          </div>
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <div class="editable-row-operations">
+            <a @click="loadHistory(record)">Load</a>
+          </div>
+        </template>
+      </template>
+    </a-table>
 
   </main>
 </template>
