@@ -17,8 +17,6 @@ import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
-import Sortable from 'sortablejs';
-import { e } from 'vitest/dist/index-60e2a8e1';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
