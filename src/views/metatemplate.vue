@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onBeforeMount, UnwrapRef, onMounted, nextTick, getCurrentInstance } from 'vue';
-import { FormProps, message, SelectProps, TreeProps } from 'ant-design-vue';
-import {  SyncOutlined,  PlusOutlined,DeleteTwoTone,CheckCircleTwoTone} from '@ant-design/icons-vue';
+import { ref, reactive, UnwrapRef, onMounted, nextTick } from 'vue';
+import { FormProps, message  } from 'ant-design-vue';
+import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
-import { useRouter,onBeforeRouteLeave } from 'vue-router';
+import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -28,7 +28,7 @@ let searchobj: tableSearch = reactive({
   // perPage:10,
   q:'category:meta'
 })
-const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,key:index}))
+const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
  console.log(rst.data);
@@ -81,60 +81,79 @@ const onSizeChange =async (current: any, pageSize: number) => {
   
 }
 interface DataItem {
-  key?: string;
   name: string;
   category:string
   description: string;
   tags: Array<string>;
-}let editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
-// 点击修改meta的方法
+  editing:boolean,
+  inputVisible:boolean,
+  inputValue:string
+}
+let editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
+let editData=reactive<DataItem>({
+  name:'',
+  description:'',
+  category:'',
+  tags:[],
+  editing: true,
+  inputVisible: false,
+  inputValue: '',
+})
+  // 点击修改meta的方法
 const updMeta=async (data:any)=>{
   let rst=await request.put(`/api/templates/${data._id}`,data)
   console.log(rst);
 }
+let showAddFactorBtn = ref(true)
 // 点击Edit触发的函数
-const edit = (key: string) => {
-  console.log(editableData);
+const edit = (record:any) => {
   
-  editableData[key] = cloneDeep(tableData.value.filter((item: { key: string; }) => key === item.key)[0]);
-  console.log(editableData[key]);
-  
-  states.tags=editableData[key].tags
-  
+  editData.name = record.name,
+  editData.description = record.description,
+  editData.tags = record.tags
+  record.editing=true
+  showAddFactorBtn.value=false
 };
+const clearFactorState = () => {
+  editData.name = '',
+  editData.description = '',
+  editData.tags = []
+  editData.editing = true
+  editData.inputVisible = false
+  editData.inputValue = '';
+
+  // (instance?.refs.refFactorForm as any).resetFields();
+}
+
 // 点击save触发的函数
-const save =async (obj:any) => {
-  console.log(obj);
+const save =async (record:any) => {
+  record.editing=false
   
-  Object.assign(tableData.value.filter((item: { key: string; }) => obj.key === item.key)[0], editableData[obj.key]);
-  console.log(editableData[obj.key]);
-  
-  editableData[obj.key].tags=states.tags
-  editableData[obj.key].category="meta"
-  console.log(editableData[obj.key]);
-  
-  
-  if(obj._id){
-    await updMeta(editableData[obj.key])
+  if(record._id){
+    await updMeta(record)
   }else{
     
   console.log(tableData.value);
-    await request.post("/api/templates",editableData[obj.key])
+    await request.post("/api/templates",record)
   }
   await query()
-  delete editableData[obj.key];
-  
+  clearFactorState()
+  showAddFactorBtn.value=false
 }
+
+
 const createMeta=()=>{
-  const newMeta={
-    key:tableData.value.length,
-    name:'New template',
-    description:'New template',
+  
+  showAddFactorBtn.value=false
+  tableData.value.unshift({
+    name:'',
+    description:'',
     category:'meta',
-    tags:[]
-  }
-  tableData.value.push({...newMeta})
-  editableData[newMeta.key]=tableData.value[newMeta.key]
+    tags:[],
+    editing: true,
+    inputVisible: true,
+    inputValue: ''
+  })
 }
 // 点击删除的方法
 const delmodel =async (obj: any) => {
@@ -142,17 +161,25 @@ const delmodel =async (obj: any) => {
     let rst=await request.delete(`/api/templates/${obj._id}`)
     query()
   }else{
-    delete tableData.value[obj.key]
-  }
-  delete editableData[obj.key];
-  message.success('test template has been deleted successfully')
-  
-  
+    const index= tableData.value.findIndex(e => e === obj)
+  tableData.value.splice(index,1);
+  }  
 };
 
 // 点击取消的函数
-const cancel=(key:any)=>{
-  delete editableData[key]
+const cancel=(record:any)=>{
+  if(editData.name===''){
+   const index=tableData.value.findIndex(e=>e===record)
+   tableData.value.splice(index,1)
+  }else{
+    record.name = editData.name
+    record.description = editData.description
+    record.tags = editData.tags
+
+    record.editing = false
+  }
+  showAddFactorBtn.value=true
+
 }
 // 表格的结构
 const columns = reactive<Object[]>(
@@ -188,20 +215,20 @@ let states = reactive<statesTs>({
   inputValue: '',
 });
 // 点击添加标签的方法
-const showInput = () => {
-  states.inputVisible = true;
+const showInput = (record:any) => {
+  record.inputVisible = true;
   nextTick(() => {
     inputRef.value.focus();
     })
 };
 // tag标签失去焦点之后添加的tags
-const handleInputConfirm = () => {
-    let tags = states.tags;
-  if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
-    tags = [...tags, states.inputValue.toUpperCase()];
+const handleInputConfirm = (record:any) => {
+    let tags = record.tags;
+  if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
+    tags = [...tags, record.inputValue];
   }
   Object.assign(states, {
-    tags,
+    tags:tags,
     inputVisible: false,
     inputValue: '',
  });  
@@ -209,9 +236,9 @@ const handleInputConfirm = () => {
   
 }
 // 移除tags
-const handleClose = (removedTag: string) => {
-      const tags = states.tags.filter((tag: string) => tag !== removedTag);
-      states.tags = tags;
+const handleClose = (record:any,removedTag: string) => {
+      const tags = record.tags.filter((tag: string) => tag !== removedTag);
+      record.tags = tags;
 };
 // onBeforeRouteLeave(async (to,form)=>{
 // console.log("to", to , "form", form);
@@ -220,6 +247,24 @@ const handleClose = (removedTag: string) => {
 //   to.meta.title=`MetaModel ${rst.name}`
 // }
 // })
+let checkName=async (_rule:Rule,value:string)=>{
+  console.log(123);
+  
+  let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
+  if(!value){
+    return Promise.reject("place input your name")
+  }else if(reg.test(value)){
+    return Promise.reject("Please enter the correct name")
+  }else{
+    return Promise.resolve()
+  }
+}
+let rules:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}]
+}
+
+
+
 </script>
 
 <template>
@@ -245,7 +290,7 @@ const handleClose = (removedTag: string) => {
           </AForm>
         </a-col>
         <a-col :span="4">
-          <a-button type="primary" @click="createMeta">
+          <a-button type="primary" @click="createMeta" v-if="showAddFactorBtn">
             <template #icon>
               <plus-outlined />
             </template>
@@ -258,54 +303,63 @@ const handleClose = (removedTag: string) => {
       <template #bodyCell="{ column, text, record }">
       <template v-if='column.key==="name"'>
         <div>
-          <a-input
-            v-if="editableData[record.key]"
-            v-model:value="editableData[record.key].name"
-            style="margin: -5px 0"
-          />
+          <a-form :model="record" v-if="record.editing" :rules="rules">
+            <a-form-item name="name">
+              <a-input
+              placeholder="Meta Name"
+              v-model:value="record.name"
+              style="margin: -5px 0"
+              />
+            </a-form-item>
+          </a-form>
+          
           <template v-else>
             <a :href="'/#/metaModeler/'+record._id+'/'+record.name">{{text}}</a>
-            <!-- <router-link :to="{path:'/metaModeler',query:{record}}">{{ text }}</router-link> -->
           </template>
         </div>
         </template>
         <template v-if='column.key==="description"'>
         <div>
-          <a-input
-            v-if="editableData[record.key]"
-            v-model:value="editableData[record.key].description"
+          <a-form v-if="record.editing" :model="record" :rules="rules">
+            <a-form-item name="description">
+              <a-input
+            
+            v-model:value="record.description"
             style="margin: -5px 0"
           />
+            </a-form-item>
+          </a-form>
+          
           <template v-else>
             {{ text }}
           </template>
         </div>
         </template>
           <template v-if="column.key === 'tags'">
-            <template v-if="editableData[record.key]">
-                  <template v-for="(tag, index) in states.tags" :key="tag">
+            <template v-if="record.editing">
+                  <template v-for="(tag, index) in record.tags" :key="tag">
                   <a-tooltip v-if="tag.length > 20" :title="tag">
-                    <a-tag :closable="true" @close="handleClose(tag)">
+                    <a-tag :closable="true" @close="handleClose(record,tag)">
                       {{ `${tag.slice(0, 20)}...` }}
                     </a-tag>
                   </a-tooltip>
                   <a-tag v-else-if="tag.length==0"></a-tag>
-                  <a-tag v-else :closable="true" @close="handleClose(tag)">
+                  <a-tag v-else :closable="true" @close="handleClose(record,tag)">
                     {{tag}}
                   </a-tag>  
                 </template>
                 <a-input
-                  v-if="states.inputVisible"
+                  v-if="record.inputVisible"
                   ref="inputRef"
-                  v-model:value="states.inputValue"
+                  v-model:value="record.inputValue"
                   type="text"
                   size="small"
                   :style="{ width: '78px' }"
-                  @blur="handleInputConfirm"
-                  @keyup.enter="handleInputConfirm"
+                  @blur="handleInputConfirm(record)"
+                  @keyup.enter="handleInputConfirm(record)"
                 />
               <a-tag v-else style="background: #fff; border-style: dashed" 
-              @click="showInput">
+              @click="showInput(record)">
                 <plus-outlined />
                 New Tag
               </a-tag>
@@ -322,14 +376,14 @@ const handleClose = (removedTag: string) => {
           </template>
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
-          <span v-if="editableData[record.key] ">
+          <span v-if="record.editing">
             <a style="color:red" @click="save(record)">save </a>
 
-            <a style="margin-left:0.625rem;" @click="cancel(record.key)">cancel</a>
+            <a style="margin-left:0.625rem;" @click="cancel(record)">cancel</a>
 
           </span>
           <span v-else>
-            <a @click="edit(record.key)">Edit</a>
+            <a @click="edit(record)">Edit</a>
               <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
               <a style="margin-left:0.625rem;">delete         </a>
             </a-popconfirm>

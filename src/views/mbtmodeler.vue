@@ -19,6 +19,7 @@ import {
   SearchOutlined,
   MinusCircleOutlined,
   PlusCircleOutlined,
+  PlusSquareFilled
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
@@ -53,7 +54,7 @@ import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
-import { array } from "vue-types";
+import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue"
 
 window.joint = joint;
@@ -818,8 +819,6 @@ function awhandlerSubmit() {
 }
 
 
-const formDatas: any[]=[]
-
 /**
  * todo
  */
@@ -842,7 +841,7 @@ function linkhandlerSubmit() {
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
-  // console.log(linkData.value.routerType);
+  console.log(linkData.value.routerType);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   let loopcount1 = linkData.value.loopcount;
@@ -933,6 +932,28 @@ let toReload = ref(false);
  * Without id, the response is an array of object
  * If reload is true, it will fetch AW info from backend
  */
+ let condataName=ref([])
+ let conditionalValue=ref([])
+
+ function valueOption(arr:any){
+  let newarr=Object.keys(arr[0])
+  let setarr=newarr.map((item: any)=>({name:item,type:"",values:[]}))
+  arr.forEach((item: any,index: any)=>{
+  let keys=Object.keys(arr[0])
+  if(keys){
+    
+    setarr.forEach((tureitem: {type: string; name: string; values: any[];},i: any)=>{
+      // console.log(keys[i]);
+      if(tureitem.name==keys[i]){
+        tureitem.type=typeof item[keys[i]]
+        tureitem.values.push(item[keys[i]])
+      }
+      tureitem.values=[...new Set(tureitem.values)]
+    })
+  }
+})
+return setarr
+ }
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -986,8 +1007,16 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       })
       .catch((err) => console.log(err));
   } else if (id) {
+
+    // 后台请求数据地方
     rst = await request.get(url + "/" + id);
-    // console.log('id query:', id, rst)
+
+
+    if(rst.dataDefinition?.data.tableColumns){
+      condataName.value=rst.dataDefinition?.data.tableColumns
+      conditionalValue.value=rst.dataDefinition?.data.tableData
+    }
+    // condataName.value=rst.dataDefinition?.data.tableData
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
       mbtCache = rst;
@@ -1230,12 +1259,15 @@ onMounted(() => {
    * Drag & Drop stencil to modeler paper
    */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
+    
+    
     let aw = "";
     let cellid = ""; //element ID
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
     let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
+    
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1243,6 +1275,7 @@ onMounted(() => {
       cellViewNamespace: namespace,
     });
     let flyShape = cellView.model!.clone();
+    console.log("e",e);
     let pos = cellView.model!.position();
     let offset = {
       x: x - pos.x,
@@ -1294,15 +1327,18 @@ onMounted(() => {
    *  When click the element/link/blank, show the propsPanel
    */
 
-  modeler.paper.on("link:pointerdblclick", function (linkView: any) {
+  modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
+    
+    
     lv_id = linkView.model.id + "";
-
+    // await queryName()
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
       let templinkData = cacheprops.get(linkView.model.id);
       linkData.value = templinkData.props;
+      console.log(linkData.value);
       currentLinkMap.set(lv_id, { props: templinkData });
 
       linkData.value._id = linkView.model.id;
@@ -1666,6 +1702,144 @@ const submitTemplate= (data:any)=>{
   onCloseDrawer();
   message.success("Save config Successfully");
 }
+
+
+//Display Condition Edit Component
+let showAddConditional=ref(true)
+let ifNameOpetions=computed(()=>{
+  return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
+})
+let childvalue=computed(()=>{
+  return valueOption(conditionalValue.value)
+})
+// 表格的数据
+let conditionalDatasource=ref<any>([])
+
+// 传递子组件的数据
+const keys=ref<any>()
+let formDatas=ifNameOpetions
+const valueData=childvalue
+let childrelation="AND"
+let childselectvalue=childrelation
+const rulesData=ref(
+  [//初始化条件对象或者，已保存的条件对象
+      {relation:childrelation,
+      id:1,
+      conditions:[{
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }],
+      children:[]}
+  ]
+)
+const rulesChange=(datas: any,key:string)=>{
+  console.log(key);
+  
+    rulesData.value=datas//输出的条件对象 
+}
+// 递归改变if结构
+function ifdata(arr:any){
+  let finditem=null
+  for(let i=0;i<arr.length;i++){
+    let item=arr[i]
+    // if(item.children.length==0){
+    //   item.relation=""
+    // }
+    if(item.relation=="AND"){item.relation="&&"}
+    if(item.relation=="OR"){item.relation="||"}
+    if(item.conditions.length>1){
+      // finditem='('+conditionstr(item.conditions)+')'+' '+item.relation+' '
+      finditem=`(${conditionstr(item.conditions)}) ${item.relation} `
+    }else{
+      // finditem=conditionstr(item.conditions)+' '+item.relation
+      finditem=`${conditionstr(item.conditions)} ${item.relation} `
+    }
+    
+    
+    if(item.children.length>0){
+      
+      
+      finditem+=ifdata(item.children)
+      
+      
+      // if
+    }else{
+      break
+    }
+    
+  }
+  if(finditem!=null){
+    let findlength=finditem.length
+      if(finditem.substring(findlength-4,findlength)=="&& " || finditem.substring(findlength-3,findlength)=="|| "){
+        finditem= finditem.substring(0,findlength-4)
+      }
+
+    return finditem
+  }
+  
+}
+function selectvalue(value:any){
+  let values=null
+    if(Array.isArray(value)){
+      if(value.length>1){
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+        let newvalue=value.map((strArr:any)=>[strArr])
+         values=`{${JSON.stringify(newvalue).substring(1,JSON.stringify(newvalue).length-1).replace(/"/g,"")}}`
+      }else{
+         values=`{${JSON.stringify(value).replace("[","").replace("]","")}}`
+      }
+      }else{
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+           values=JSON.stringify(value).replaceAll('"',"")
+        }else{
+           values=JSON.stringify(value).replace("[","").replace("]","")
+        }
+      }
+    }else{
+      if(JSON.stringify(ifNameOpetions.value).includes(value)){
+        values=`[${value}]`
+      }else{
+        values=JSON.stringify(value)
+      }
+    }
+    return values
+}
+// 解决括号链接
+const conditionstr=(arr:any)=>{
+  let ifcondition=null
+  if(arr[arr.length-1].value){
+        // delete arr[arr.length-1].selectvalues  
+  }
+  ifcondition=arr.map((item:any)=>{
+    if(item.operator=='='){item.operator="=="}
+      if(item.selectvalues){
+        
+        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${item.selectvalues} `
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      }else{
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
+        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `
+      }    
+  })
+ 
+  
+  return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
+}
+
+// 点击保存把当前的条件编辑添加到表格
+const saveConditional=()=>{
+  if(rulesData.value[0].conditions.length>1){
+    console.log(ifdata(rulesData.value));
+    
+    linkData.value.label=ifdata(rulesData.value)!
+    console.log(linkData.value.label,linkFormData);
+    
+  }
+  showAddConditional.value=false
+}
+
 </script>
 
 <template>
@@ -2001,7 +2175,6 @@ const submitTemplate= (data:any)=>{
                         >
                           <a-button danger>Clear</a-button>
                         </a-popconfirm>
-                        <!-- <a-button danger @click="handlerClearExpected()">Clear</a-button> -->
                       </span>
                     </div>
                   </VueForm>
@@ -2020,9 +2193,18 @@ const submitTemplate= (data:any)=>{
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-              </VueForm>
-              <a-table></a-table>
-              <!-- <create-rule :formDatas="formDatas"></create-rule> -->
+            <div v-if="showAddConditional">
+              <create-rule  :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+            </div>
+              <a-button @click="saveConditional">Add conditional</a-button>
+              <a-button @click="linkhandlerSubmit" type="primary">save</a-button>
+              <a-button @click="onCloseDrawer">cancel</a-button>
+              
+            </VueForm>
+              <!-- <div v-if="showAddFactorBtn=false"> -->
+              
+            <!-- </div> -->
+
             </div>
           </div>
 

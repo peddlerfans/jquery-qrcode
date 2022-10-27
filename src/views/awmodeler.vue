@@ -2,8 +2,9 @@
 export default { name: 'AWModeler'}
 </script>
 <script setup lang="ts">
-import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance } from 'vue';
-import type { FormProps, SelectProps, TreeProps, } from 'ant-design-vue';
+
+import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance, computed, unref } from 'vue';
+import { FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
 import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
@@ -15,6 +16,9 @@ import _ from 'lodash';
 import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
+import { Key } from 'ant-design-vue/es/_util/type';
+import Sortable from 'sortablejs';
+import { e } from 'vitest/dist/index-60e2a8e1';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -37,15 +41,13 @@ let treeData:any = ref([])
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
   //声明一个空数组，将后台的对象push
-  let topTreedata=[{title:'/',keys:0,children:<any>[],isLeaf:false}]
+  let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
   let treedatass=delNode(treedatas)
   let treedatasss=addKey(treedatass)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
-  treeData.value=[...topTreedata]
-  console.log(treeData.value);
-  
+  treeData.value=[...topTreedata]  
   // rightClick()
   
 }
@@ -55,12 +57,45 @@ const leftRef=ref()
 const rightNode=ref(false)
 let aaa=ref()
 console.log(aaa.value);
+const tabledom=ref()
 
 onMounted(() => {
-   query()
+ 
+  // let tbody=tabledom.value.childNodes[0].childNodes[0].childNodes[1].childNodes[1].childNodes[1].childNodes[0].childNodes[0].childNodes[2]
+   query() 
    queryTree()
+  //  let toTree=leftRef.value.childNodes[0].childNodes[0].childNodes[0];
    
-  
+  //  let moveaw={
+  //     animation: 1000,
+  //     group:{name:"item",pull:'clone',put:false},
+  //     sort:false,
+  //     handle:".ant-table-row-selected",
+  //     forceFallback: false,  
+  //     onStart(evt:any){
+  //       console.log(evt.type);
+  //     },
+  //     onEnd(event:any){
+  //       console.log(123);
+  //       console.log(event);
+  //     },
+  //   }
+    // let moveaw1={
+    //   animation: 1000,
+    //   group:{name:"item",pull:false,put:false},
+    //   sort:false,
+    //   forceFallback: false,  
+    //   onStart(evt:any){
+    //     console.log(evt.type);
+    //   },
+    //   onEnd(event:any){
+    //     console.log(123);
+    //     console.log(event);
+    //   },
+    // }
+    // let sortable=Sortable.create(tbody,moveaw)
+    // let sortable1=Sortable.create(toTree,moveaw1)
+    
 }) 
 // 切换查询方式
 let checked=ref(false)
@@ -290,30 +325,36 @@ const newFactorValueInput = (record: any) => {
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject("Please input your name!")
-  }else {
+  }else if(!reg.test(value)){
+      return Promise.reject('The AW name is not standardized')
      // 判断是否为修改，如果修改则不用查询name
-      if(modelstates.value._id){
-        return Promise.resolve();
-      }else{
-       let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      if(rst.data.length>0){
-        // message.error("Duplicate name")
-        // modelstates.value.name=""
-        return Promise.reject("Duplicate name")
-      }
+      // if(modelstates.value._id){
+      //   return Promise.resolve();
+      // }else{
+      //  let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
+      // if(rst.data.length>0){
+      //   // message.error("Duplicate name")
+      //   // modelstates.value.name=""
+      //   return Promise.reject("Duplicate name")
+      // }
       return Promise.resolve();
-      }
+      // }
     }
     
   
 }
-let checkDesc = async (_rule: Rule, value: string) => { 
+let checkDesc = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject("Please input your description!")
   }else  {
-    if(modelstates.value._id){
+    if(!reg.test(value)){
+      return Promise.reject('The AW description is not standardized')
+    }else{
+      if(modelstates.value._id){
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
@@ -322,15 +363,17 @@ let checkDesc = async (_rule: Rule, value: string) => {
         message.error("Duplicate description")
       }
     }
+    }
     return Promise.resolve();
   }
   
 } 
 let checktem = async (_rule: Rule, value: string) => { 
+  let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {    
     return Promise.reject("Template or template_en is required")
-  } else {
-    return Promise.resolve();
+  } else if(!reg.test(value)){
+      return Promise.reject('The AW name is not standardized')
   }
 }
 let rules: Record<string, Rule[]> = {
@@ -415,12 +458,15 @@ const cancel = (e: MouseEvent) => {
 };
 // 修改函数
 async function updateAw(url:string,data:any) {
-  if(clickKey){
-    data={...data,path:clickKey.path}
-  }
+  console.log(data);
+  
+  // if(clickKey.path){
+  //   data={...data,path:clickKey.path}
+  // }
   let rst = await request.put(url, data)
-  pagination.value.total = 1
+  // pagination.value.total = 1
       tableData.value = [rst]
+      
     }
     
 // 修改的函数
@@ -576,6 +622,8 @@ function getPath(key:any,treearr:any){
 let clickKey=<clickobj>{}
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
+  console.log(info.node.dataRef.title);
+  
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
@@ -667,6 +715,7 @@ const getTreeDataByItem=(childs:any, findKey: any):any=> {
    let finditem = null;
    for (let i = 0, len = childs.length; i < len; i++) {
      let item = childs[i]
+    //  debugger
      if (item.key !== findKey && item.children && item.children.length > 0) {
        finditem = getTreeDataByItem(item.children, findKey)
      }
@@ -785,7 +834,7 @@ console.log(expandKey)
   console.log(pushPath);
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
-  expandedKeys.value = [nowNode.key];
+  expandedKeys.value = [key];
   autoExpandParent.value=true
   // queryTree()
 }
@@ -812,7 +861,7 @@ const getloop=(arr:Array<any>, key:string)=> {
         if (arr[s].key == key) {
           let obj = {
             title: 'childNode',
-            key: key + '/' + s,
+            key: uuid(),
             children:[],
             showEdit: false,
             isLeaf:true,
@@ -891,6 +940,8 @@ const addSib=async(key:any)=>{
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any,title:string) => {
+  console.log(key);
+  
   let nowNode=getTreeDataByItem(treeData.value,key)
   
   
@@ -898,29 +949,81 @@ const confirmtree =async (key:any,title:string) => {
   str=str.substring(2,str.length)
   console.log(str);
   let delNode=getTreeParentChilds(treeData.value,key);
-  delNode.forEach((e:any,index:number,array:any)=>{
-    console.log(e,title,array);
-    if(e.title==title){
-      delete array[index]
-    }
-  })
+  console.log(delNode);
+  const index= delNode.findIndex((e:any)=> e === obj)
+  delNode.splice(index,1);
+  // delNode.forEach((e:any,index:number,array:any)=>{
+  //   console.log(e,title,array);
+  //   if(e.title==title){
+  //     delete array[index]
+  //   }
+  // })
  let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
-
+  console.log(treeData.value);
+  
   // queryTree()
 }
 // 右键展开菜单项
  const onContextMenuClick = (treeKey: string) => {
       console.log(`treeKey: ${treeKey}`);
     }; 
+
+    const selectedRowKeys = ref<any>([]); // Check here to configure the default column
+
+const onSelectChange = (changableRowKeys: Key[]) => {
+  console.log(changableRowKeys);
+  
+  selectedRowKeys.value = changableRowKeys;
+};
+    // 表格复选框
+    const rowSelection = computed(() => {
+      return {
+        selectedRowKeys: unref(selectedRowKeys),
+        onChange: onSelectChange,
+        hideDefaultSelections: true,
+        selections: [
+          Table.SELECTION_ALL,
+          Table.SELECTION_INVERT,
+          Table.SELECTION_NONE,
+        ],
+      };
+    });
+    // const rowSelection: TableProps['rowSelection'] = {
+    //   onChange: (selectedRowKeys: string[], selectedRows: any[]) => {
+    //     console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+    //   },
+
+    // 获取拖拽的对象
+// 右键添加Aw的path
+const addAwmodel= (key:any,title:string)=>{
+  let str=getPath(title,treeData.value)
+  str=str.substring(2,str.length)
+  if(selectedRowKeys.value.length>0){
+    // let selectAw=selectedRowKeys.value.map((e:any)=>{return {...e , e.path:str}})
+    // for(let i=0;i<selectedRowKeys.value.length-1;i++){
+    //   selectedRowKeys.value[i].path=str
+      
+      
+    //   await updateAw(`/api/hlfs/${selectedRowKeys.value[i]._id}`, selectedRowKeys.value)
+    // }
+    selectedRowKeys.value.forEach( async (item:any)=>{
+      item.path=str
+      console.log(item);
+      await updateAw(`/api/hlfs/${item._id}`, item)
+    })
+    
+  }else{
+    message.warning("Please select the Aw to be added")
+  }
+}
+
+
 </script>
 <template>
   <main class="main"> 
-    <div ref="leftRef" style="height:100%">
+    <div ref="leftRef" style="height:100%" class="id">
       <SplitPanel>
         <template #left-content>
-          <!-- <a-menu mode="inline" v-show="rightNode" class="rightMenu">
-            <a-menu-item key="1" @click="addTop">Add Top Node</a-menu-item>
-          </a-menu> -->
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
           <a-tree
           v-if="treeData?.length"
@@ -931,7 +1034,27 @@ const confirmtree =async (key:any,title:string) => {
             :auto-expand-parent="autoExpandParent"
             @expand="onExpand">
         <template #title="{key:treeKey,title,showEdit}">
-        <template v-if="title.includes('/')">{{title}}</template>
+        <template v-if="title=='/'">
+          <a-dropdown :trigger="['contextmenu']">
+          <template v-if="searchValues &&  title.includes(searchValues)">
+          <div style="color: #f50;"> 
+            <span>{{title}}</span>
+          </div>
+        </template>
+        <span v-else-if="!showEdit">{{ title }}</span>
+        <a-input v-else="showEdit"
+              type="text" 
+              ref="updDom" 
+              v-model:value="updTreedata"
+              @blur="onchangtitle(treeKey)"/>
+        <template #overlay>
+          <a-menu @click="() => onContextMenuClick(treeKey)">
+            <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+
+        </template>
         <a-dropdown :trigger="['contextmenu']" v-else>
           <template v-if="searchValues &&  title.includes(searchValues)">
           <div style="color: #f50;"> 
@@ -948,6 +1071,7 @@ const confirmtree =async (key:any,title:string) => {
           <a-menu @click="() => onContextMenuClick(treeKey)">
             <a-menu-item key="1" @click="addSib(treeKey)">Add sibling node</a-menu-item>
             <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
+            <a-menu-item key="4" @click="addAwmodel(treeKey,title)">Move Selected</a-menu-item>
             <a-menu-item key="3" @click="updTree(treeKey)"> Modify node</a-menu-item>
             <a-popconfirm
                   placement="right"
@@ -1168,9 +1292,10 @@ const confirmtree =async (key:any,title:string) => {
     </a-modal>
   </div>
           <!-- 表格的结构 -->
-
+<div ref="tabledom">
     <a-table bordered
-    row-key="record=>record._id" 
+    :row-selection="rowSelection"
+    :row-key="record=>record" 
       :columns="columns" 
       :data-source="tableData" 
       class="components-table-demo-nested"
@@ -1251,6 +1376,7 @@ const confirmtree =async (key:any,title:string) => {
           </template>
     </template>
       </a-table>
+    </div>
         </template>
       </SplitPanel>
    <!-- </section> -->
