@@ -51,6 +51,7 @@ declare module '@vue/runtime-core' {
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     DynamicTable: typeof import('./src/components/dynamicTable.vue')['default']
+    EchartsModel: typeof import('./src/components/EchartsModel.vue')['default']
     JsonSchemaForm: typeof import('./src/components/JsonSchemaForm.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']
@@ -62,6 +63,7 @@ declare module '@vue/runtime-core' {
     Shadow: typeof import('./src/components/Shadow.vue')['default']
     SplitPanel: typeof import('./src/components/basic/split-panel/index.vue')['default']
     SvgIcon: typeof import('./src/components/SvgIcon.vue')['default']
+    TemplateTable: typeof import('./src/components/templateTable.vue')['default']
     TitleI18n: typeof import('./src/components/basic/title-i18n/index.vue')['default']
   }
 }

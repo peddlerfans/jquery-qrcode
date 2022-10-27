@@ -97,7 +97,7 @@ const columns1 = [ // Setup the header of columns
 ]
 
 const {
-  dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
+  dataSource, columns, originColumns, tableLoading, pagination ,
   updateTable, onTableRowSelectChange, tableResize
 } = useTable({
   table: tableRef, // Predefined a null reference which might be an instance of component
@@ -607,8 +607,8 @@ onMounted(() => {
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
-              <!-- <span v-else>}</span> -->
+              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a>
+              <span v-else>{{text}}</span>
             </template>
           </div>
         </template>
@@ -655,16 +655,15 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              
-                <a @click="clearModelState()">Cancel</a>
-              
+              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
+                <a>Cancel</a>
+              </a-popconfirm>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
               <a-divider type="vertical" />
-              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">Config</a>
-
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">Config</a>
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">

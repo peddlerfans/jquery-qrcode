@@ -425,11 +425,10 @@ function ifdata(arr:any){
     
     if(item.children.length>0){
       
+      
       finditem+=ifdata(item.children)
-      let findlength=finditem.length
-      if(finditem.substring(findlength-4,findlength)=="AND " || finditem.substring(findlength-3,findlength)=="OR "){
-        finditem= finditem.substring(0,findlength-4)
-      }
+      
+      
       // if
     }else{
       break
@@ -437,7 +436,11 @@ function ifdata(arr:any){
     
   }
   if(finditem!=null){
-    
+    let findlength=finditem.length
+      if(finditem.substring(findlength-4,findlength)=="AND " || finditem.substring(findlength-3,findlength)=="OR "){
+        finditem= finditem.substring(0,findlength-4)
+      }
+    console.log(finditem);
     return finditem
   }
   
@@ -483,7 +486,7 @@ const conditionstr=(arr:any)=>{
         return `[${item.name}] ${item.operator} ${selectvalue(item.value)} `
       }    
   })
-  console.log();
+  console.log(ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4));
   
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
@@ -491,9 +494,7 @@ const conditionstr=(arr:any)=>{
 const rulesChange=(datas: any,key:string)=>{
   console.log(key);
   
-    rulesData.value=datas//输出的条件对象
-    console.log(rulesData.value[0].conditions);
- 
+    rulesData.value=datas//输出的条件对象 
 }
 
 // 定义Constraint (optional)的数据
@@ -536,7 +537,14 @@ const cancelbulid=()=>{
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"",
     id:1,
-                conditions:[],
+                conditions:[
+                {
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }
+                ],
                 children:[]}
   ],
   thenObj.value.thenName=''
@@ -551,10 +559,7 @@ const editCon=(obj:any)=>{
   console.log( obj,keys.value);
   
 if(finalModel.constraint.length>0){
-  
-  console.log(finalModel.constraint[obj.keys].if);
-  
-  rulesData.value=finalModel.constraint[obj.keys].if
+    rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
   thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
   thenObj.value.thenValue=finalModel.constraint[obj.keys].then.thenValue
@@ -562,9 +567,7 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{
-  console.log(obj.keys);
-  
+const deleteconstraint=(obj:any)=>{  
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
@@ -572,7 +575,13 @@ const deleteconstraint=(obj:any)=>{
 }
 const conditionshow=computed(()=>{
   if(rulesData.value[0].conditions.length>0){
-    return ifdata(rulesData.value)
+    let strData=ifdata(rulesData.value)
+        if(strData!.includes('undefined')){
+          return ""
+    }else{
+      return ifdata(rulesData.value)
+    }
+    
   }
 })
 // 递归组件需要的数据
@@ -599,7 +608,7 @@ const rulesData=ref(
       conditions:[{
         name:'name',
         operator:"=",
-        value:'value',
+        value:undefined,
         selectvalues:childselectvalue
       }],
       children:[]}
@@ -744,7 +753,7 @@ const rulesData=ref(
     <a-table :columns="columns" :data-source="condata" bordered>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
-          <span>{{record.then.thenName+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+          <span>{{'['+record.then.thenName+']'+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
         
         </template>
         <template v-if="column.key=='action'">
