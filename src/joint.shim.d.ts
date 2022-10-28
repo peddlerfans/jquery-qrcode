@@ -74,7 +74,7 @@ interface ModelDefinition {
 }
 
 interface DataDefinition {
-    data:object,
+    data:any,
     meta:object,
     resources:object
 }

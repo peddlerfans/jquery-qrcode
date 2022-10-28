@@ -64,7 +64,10 @@ async function query(id?: any) {
     }
   })
   finalModel.constraint=finalResult.model.constraint
-  finalModel.constraintif=conditionData(finalResult.model.constraintif)
+  if(finalResult.model.constraintif){
+    finalModel.constraintif=conditionData(finalResult.model.constraintif)
+  }
+  
   condata.value = finalModel.constraint.map((e: any,index:number) => {
     return {if:ifdata(e.if),then:{...e.then},keys:index}
   })
@@ -173,7 +176,7 @@ let showAddFactorBtn = ref(true)
 
 const addNewFactor = () => {
   showAddFactorBtn.value = false;
-  finalModel.factor.push({
+  finalModel.factor.unshift({
     name: '',
     type: '',
     values: [],
@@ -215,6 +218,7 @@ const deleteFactor = (record: Factor) => {
   message.success('Delete Successfully!');
 }
 const cancelFactor = (record: Factor) => {
+  
   if (factorState.name === ''){
     const index= finalModel.factor.findIndex(e => e === record)
     finalModel.factor.splice(index,1);
@@ -406,6 +410,7 @@ const columns=[
 
 // 将表格数据追加识别索引属性
 const conditionData=(arr:any)=>arr.map((item:any,index:string)=>({...item,keys:index}))
+
 // 递归改变if结构
 function ifdata(arr:any){
   let finditem=null
@@ -535,7 +540,7 @@ const cancelbulid=()=>{
   console.log(condata.value);
   keys.value=''
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
-    {relation:"",
+    {relation:"AND",
     id:1,
                 conditions:[
                 {
@@ -589,16 +594,6 @@ const conditionshow=computed(()=>{
 const keys=ref<any>()
 const formDatas=ifNameOpetions
 const valueData=ref()
-let ConditionName=computed(()=>{
-  if(ifNameOpetions.value!.length>0){
-    return ifNameOpetions.value![0].value
-  }
-})
-let ConditionValue=computed(()=>{
-  if(finalModel.factor.length>0){
-    return finalModel.factor[0].values[0]
-  }
-})
 let childrelation="AND"
 let childselectvalue=childrelation
 const rulesData=ref(
@@ -614,6 +609,27 @@ const rulesData=ref(
       children:[]}
   ]
 )
+
+let prev=ref<boolean>(false);
+let columnPreview=ref<any>()
+let modelDataPreview=ref<any>()
+let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
+
+const previewModel = async () => {
+  let rst = await request.post('/api/templates'+`/${ids}/preview`)
+
+  modelDataPreview.value=rst
+  columnPreview.value=rst.model?.parameters.map((e:any)=>{
+    return {
+      title: e.property,
+      dataIndex: e.property,
+      key: e.property,
+    }
+  })
+
+  prev.value=true
+
+}
 
 </script>
 
@@ -719,9 +735,8 @@ const rulesData=ref(
             <span v-if="record.editing">
               <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="cancelFactor(record)">
-                <a>Cancel</a>
-              </a-popconfirm>
+
+                <a @click="cancelFactor(record)">Cancel</a>
             </span>
 
             <span v-else>
@@ -814,8 +829,31 @@ const rulesData=ref(
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">Save Model</a-button>
+                <a-button @click="previewModel()">preview</a-button>
     </div>
+    <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">
 
+<!-- Model meta info -->
+
+<h2>Data</h2>
+
+<a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+  <template #bodyCell="{ column, text, record }">
+<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+    {{ text }}
+  </template>
+</a-table>
+
+<template #footer>
+<!--        <a-button @click="closeModel">Cancel</a-button>-->
+</template>
+
+<h2>Model</h2>
+<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+
+</a-modal>
 
     <!-- <header class="block shadow">
       <a-row>
