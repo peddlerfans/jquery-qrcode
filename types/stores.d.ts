@@ -59,6 +59,7 @@ export namespace Stores {
     name: string,
     description: string,
     tags: string,
+    codegen?:any,
     dataDefinition?: {
       resources: resourceschema[],
       dataType?: string,

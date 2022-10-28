@@ -61,13 +61,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
-    meta: { title: 'AWModeler',icon: ApiOutlined, keepAlive: true },
+    meta: { title: 'AWModeler',icon: ApiOutlined },
     children: [
       {
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', hidden:true }
+        meta: { title: 'AWModeler',icon: ApiOutlined }
       }
     ]
   }
@@ -78,13 +78,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true},
+    meta: { title: 'MBTStore',icon: AppstoreAddOutlined},
     children: [
       {
         path: 'index',
         name: 'mbtstore',
         component: () => import('@/views/mbtstore.vue'),
-        meta: { hidden:true, title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
 

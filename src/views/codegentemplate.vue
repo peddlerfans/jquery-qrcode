@@ -61,9 +61,10 @@ const url = templateUrl;
 const tableRef = ref()
 
 const initModelAttr={
-  option: {strategy:''},
-  factor: [],
-  constraint: []
+  outputLanguage: '',
+  templateEngine: '',
+  data: '',
+  history: []
 }
 // ##### Invoke table hook #####
 // Initialize  without pagination ??????
@@ -400,7 +401,7 @@ onMounted(() => {
                  @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value.trim="formState.search"
+              <a-mentions v-model:value="formState.search"
                           placeholder="input @ to search tags, input name to search CodeGen Templates">
                 <a-mentions-option value="tags:">
                   tags:
@@ -439,11 +440,11 @@ onMounted(() => {
         <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
                 :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
           <a-form-item label="Name" name="name">
-            <a-input v-model:value.trim="modelState.name" />
+            <a-input v-model:value="modelState.name" />
           </a-form-item>
 
           <a-form-item label="Description" name="description">
-            <a-input v-model:value.trim="modelState.description" />
+            <a-input v-model:value="modelState.description" />
           </a-form-item>
 
           <!-- tags标签 -->
@@ -459,7 +460,7 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value.trim="modelState.inputValue" type="text"
+            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value="modelState.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
                      @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(1)">
@@ -489,7 +490,7 @@ onMounted(() => {
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.name"
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.name"
                      style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
@@ -499,7 +500,7 @@ onMounted(() => {
         </template>
         <template v-if='column.key==="description"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.description"
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.description"
                      style="margin: -5px 0" />
             <template v-else>
               {{ text }}
@@ -519,7 +520,7 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value.trim="modelState.inputValue" type="text"
+            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value="modelState.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
                      @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(2)">

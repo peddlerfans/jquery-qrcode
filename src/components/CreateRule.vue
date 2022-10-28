@@ -86,7 +86,7 @@ const valueDatas=computed(()=>{
 // }
 const styleobj=computed(()=>{
     if(props.rulesData[0].id%2==0){
-            return {backgroundColor:'@grey-5'}
+            return {backgroundColor:'#f0f0f0'}
     }else{
             return {backgroundColor:"white"}
     }
