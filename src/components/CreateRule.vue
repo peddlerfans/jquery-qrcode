@@ -401,7 +401,7 @@ const checkrelation=(obj:any)=>{
     // background-color: white;
 }
 .bgc-box{
-    background-color: @grey-2;
+    background-color: @cyan-2;
 }
 .bgc-box1{
     background-color: white;
