@@ -17,6 +17,7 @@ import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
+import { e } from 'vitest/dist/index-60e2a8e1';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -30,7 +31,7 @@ async function query(data?: any) {
   if (rst.data) {
     pagination.value.total = rst.total  
     pagination.value.pageNo=1  
-    tableData.value = rst.data
+    tableData.value = rst.data.map((e:any,index:number)=>({...e,key:index}))
   }
   return rst.data
 }
@@ -173,6 +174,7 @@ async function saveAw(data: any) {
     }
     }
 let modelstates = ref<ModelState>({
+  key:0,
   name: '',
   description: '',
   template: "",
@@ -384,6 +386,8 @@ let refForm=ref(null)
 const onFinishForm = async (modelstates: any) => {  
   modelstates.value.tags = states.tags
     if (modelstates.value._id) {
+      visible.value = false;
+        tableData.value[modelstates.value.key]={...modelstates.value}
         await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
         message.success("Modified successfully")
     } else {
@@ -395,7 +399,6 @@ const onFinishForm = async (modelstates: any) => {
             visible.value=true
           }
     } 
-    visible.value = false;
     clear()
     
   }
@@ -438,6 +441,7 @@ const handleInputConfirm = () => {
     // 删除功能
 const confirm =async (obj:any) => {
   if(obj._id){
+    delete obj.key
     let rst = await request.delete(`/api/hlfs/${obj._id}`)
   }else{
      await request.delete(`/api/hlfs/${deleteId}`)
@@ -465,12 +469,12 @@ async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
   // pagination.value.total = 1
       // tableData.value = [rst]
-    
+     
     }
-    
 // 修改的函数
 const edit = (rowobj:any) => {
   showModal()
+  modelstates.value.key=rowobj.key
   modelstates.value.name=rowobj.name
   modelstates.value.description=rowobj.description
   modelstates.value.template=rowobj.template
@@ -612,6 +616,7 @@ function getPath(key:any,treearr:any){
   let rst:any
   let res=getPathByKey(key,'title',treearr)
   rst=res?.map((obj:any)=>{
+    debugger
     return obj.title
   }).join('/')
   return rst
@@ -763,9 +768,10 @@ const onchangtitle =async (data: any) => {
   let nowNode=getTreeDataByItem(treeData.value,data)
   
   let parentchild=getTreeParentChilds(treeData.value,data)
+
   let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
   console.log(searchobj);
-  if(searchobj.length>0){
+  if(searchobj.length>0 && updTreedata.value!==nowNode.title){
     message.warning(`This node already contains a node of ${updTreedata.value}`)
     return
   }else{
@@ -792,7 +798,6 @@ const onchangtitle =async (data: any) => {
   expandedKeys.value=[nowNode.key]
   autoExpandParent.value = true;
 }
-
 // 定义修改节点的变量
 let updTreedata=ref('')
 // 获取修改节点的dom
@@ -829,7 +834,9 @@ console.log(expandKey)
     return item.title
   }).join("/")
   str=str.substring(2,str.length)
-  let pushPath=str+'/'+'childNode'
+  let pushPath
+  if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
+  
   console.log(pushPath);
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
@@ -933,7 +940,7 @@ const addSib=async(key:any)=>{
   autoExpandParent.value=true
   console.log(expandedKeys.value);
   
-  // queryTree()
+  // queryTree()7
 }
 
 // 删除树形控件数据
@@ -942,24 +949,30 @@ const confirmtree =async (key:any,title:string) => {
   console.log(key);
   
   let nowNode=getTreeDataByItem(treeData.value,key)
+  console.log(nowNode);
   
-  
-  let str=getPath(nowNode.title,treeData.value)
+  let str=getPath(nowNode.title,treeData.value) 
   str=str.substring(2,str.length)
   console.log(str);
   let delNode=getTreeParentChilds(treeData.value,key);
   console.log(delNode);
-  const index= delNode.findIndex((e:any)=> e === obj)
-  delNode.splice(index,1);
+  // const index= delNode.findIndex((e:any)=> e.title == nowNode.title)
+  // delete delNode[index]
   // delNode.forEach((e:any,index:number,array:any)=>{
   //   console.log(e,title,array);
   //   if(e.title==title){
   //     delete array[index]
   //   }
   // })
+  for (var i = delNode.length - 1; i >= 0; i--) {
+        if (delNode[i].title==nowNode.title) {
+          delNode.splice(i, 1);
+        }
+    }
  let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
   console.log(treeData.value);
-  
+  expandedKeys.value = [nowNode.key];
+  autoExpandParent.value=true
   // queryTree()
 }
 // 右键展开菜单项
