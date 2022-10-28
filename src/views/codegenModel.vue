@@ -26,7 +26,7 @@ import type {
 import {
   EditFilled,
   CodeFilled,
-  DoubleRightOutlined
+  UploadOutlined
 } from '@ant-design/icons-vue';
 import {
   message,
@@ -38,10 +38,9 @@ import {
   AceEditor, AceState,
   Model, ModelState,
 } from "./componentTS/codegen";
-import dayjs from 'dayjs'
-
+import dayjs from 'dayjs';
+import {SHA256} from 'crypto-js';
 import { VAceEditor } from 'vue3-ace-editor';
-// import { VAceEditor } from '@/components/AceEditor';
 
 import "./componentTS/ace-config";
 
@@ -106,6 +105,18 @@ const templateOptions = ref<SelectProps['options']>([
     label: 'FreeMarker',
   }
 ]);
+
+const templateName=<any>{
+  ejs: 'EJS',
+  ftl: 'FreeMarker'
+}
+const langName=<any>{
+  python: 'Python',
+  java: 'JAVA',
+  javascript: 'JavaScript',
+  yaml: 'YAML'
+}
+
 const langOptions = ref<SelectProps['options']>([
   {
     value: 'python',
@@ -146,7 +157,6 @@ const states = reactive<AceState>({
 
 
 onMounted(() => {
-
   modelId = sessionStorage.getItem('codegen_' + route.params._id)
 
   if (modelId === null){
@@ -174,6 +184,14 @@ async function query(id?: any) {
       modelState.model.data=sample
     }
 
+    if (modelState.model.templateEngine === '') {
+      modelState.model.templateEngine='ejs'
+    }
+
+    if (modelState.model.outputLanguage === '') {
+      modelState.model.outputLanguage='python'
+    }
+
     if (modelState.model.templateEngine === 'freemarker'){
       modelState.model.templateEngine =  'ftl'
     }
@@ -183,6 +201,9 @@ async function query(id?: any) {
     console.log(e)
   }
 
+  console.log("modelState.model.history")
+  console.log(modelState.model)
+
 }
 
 const aceTemplate = ref<AceEditor>();
@@ -190,8 +211,19 @@ const aceTemplate = ref<AceEditor>();
 const saveModel = async () => {
   sessionStorage.setItem('codegen_theme', String(states.theme))
 
+  if ( modelState.model.templateEngine.trim === ''){
+    message.warning("Please select a Template Engine")
+  }else if (modelState.model.outputLanguage.trim === ''){
+    message.warning("Please select a Output Language")
+  }
+
+  const currId=SHA256(String(modelState.templateText)).toString()
+
+  modelState.model.history = toRaw(modelState.model.history).filter(obj => obj.id!==currId)
+
   modelState.model.history.unshift(
       {
+        id:currId,
         templateEngine: modelState.model.templateEngine,
         outputLanguage: modelState.model.outputLanguage,
         templateText: modelState.templateText,
@@ -202,6 +234,7 @@ const saveModel = async () => {
 
   console.log("saveModel")
   console.log(modelState)
+
   if (modelState.model.history.length>10) modelState.model.history.splice(-1)
 
   if (modelState.templateText){
@@ -317,7 +350,7 @@ const loadHistory = (e:any)=>{
   message.success("Load successful")
 }
 
-
+const softwrap=true
 
 </script>
 
@@ -361,6 +394,7 @@ const loadHistory = (e:any)=>{
             v-model:value="modelState.templateText"
             class="ace-template"
             ref="aceTemplate"
+            :wrap="softwrap"
             :lang="modelState.model.templateEngine"
             :theme="states.theme"
             :options="{ useWorker: true }"
@@ -375,6 +409,7 @@ const loadHistory = (e:any)=>{
         <VAceEditor
             v-model:value="states.result"
             class="ace-result"
+            :wrap="softwrap"
             :readonly="true"
             :lang="modelState.model.outputLanguage"
             :theme="states.theme"
@@ -415,17 +450,17 @@ const loadHistory = (e:any)=>{
         </template>
         <template v-if='column.key==="template"'>
           <div>
-            {{ record.templateEngine }}
+            {{ templateName[record.templateEngine] }}
           </div>
         </template>
         <template v-if="column.key === 'output'">
           <div>
-            {{ record.outputLanguage }}
+            {{ langName[record.outputLanguage] }}
           </div>
         </template>
         <template v-else-if="column.key === 'action'">
           <div class="editable-row-operations">
-            <a @click="loadHistory(record)">Load</a>
+            <a-button @click="loadHistory(record)"><upload-outlined /> Load</a-button>
           </div>
         </template>
       </template>
