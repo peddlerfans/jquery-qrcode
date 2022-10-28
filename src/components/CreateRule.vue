@@ -8,14 +8,13 @@ export default {
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref } from 'vue';
-
 onMounted(()=>{
     // changecolor()
 })
     
     let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
     let emit=defineEmits(['changeObserver','rulesChange'])
-    console.log(props.enableDeleteChild);
+    console.log(props.valueData);
 
     let selectvalue=ref('AND')
     const  relations=[{
@@ -217,7 +216,7 @@ const checkrelation=(obj:any)=>{
 
 <template>
     <!-- <div class="box"> -->
-    <div class="rules-box" :style="styleobj">
+    <div class="rules-box" :class="[props.rulesData[0].id%2==0 ? 'bgc-box':'bgc-box1']">
         <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</div>
     <div class="ant-card-body" >
         <!-- <a-row class="loop-child " > -->
@@ -396,10 +395,16 @@ const checkrelation=(obj:any)=>{
 </template>
 
 <style lang="less" scoped>
-@import 'ant-design-vue/es/style/themes/default.less';
+@import 'ant-design-vue/es/style/color/colors.less';
 .box{
     width: 100%;
     // background-color: white;
+}
+.bgc-box{
+    background-color: @cyan-2;
+}
+.bgc-box1{
+    background-color: white;
 }
     .rules-box{
         margin-left: 1.25rem;
@@ -411,6 +416,10 @@ const checkrelation=(obj:any)=>{
     // & :nth-child(3){
     //     background-color: gray;
     // }
+
+
+
+
         .title{
             text-align: center;
             cursor: pointer;

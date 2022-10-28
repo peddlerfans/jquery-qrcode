@@ -662,8 +662,9 @@ onMounted(() => {
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
-              <a-divider type="vertical" />
-              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">Config</a>
+              <!-- <a-divider type="vertical" />
+              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">Config</a> -->
+
               <a-divider type="vertical" />
               <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
                 @confirm="deleteModel(record._id)" @cancel="cancel">
