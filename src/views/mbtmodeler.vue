@@ -934,7 +934,7 @@ let toReload = ref(false);
  */
  let condataName=ref([])
  let conditionalValue=ref([])
-
+ let showAddConditional=ref(false)
  function valueOption(arr:any){
   let newarr=Object.keys(arr[0])
   let setarr=newarr.map((item: any)=>({name:item,type:"",values:[]}))
@@ -1010,12 +1010,18 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
-
-
-    if(rst.dataDefinition?.data.tableColumns){
+    console.log(rst);
+    
+    if(rst && rst.dataDefinition && rst.dataDefinition.data){
+      if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData){
+        showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
+      console.log(condataName.value,conditionalValue.value);
+      
     }
+    }
+    
     // condataName.value=rst.dataDefinition?.data.tableData
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
@@ -1112,8 +1118,9 @@ function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
-
-  updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
+  console.log(mbtCache);
+  
+  // updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
   message.success("Save MBT model successfully");
 }
 
@@ -1275,7 +1282,7 @@ onMounted(() => {
       cellViewNamespace: namespace,
     });
     let flyShape = cellView.model!.clone();
-    console.log("e",e);
+    
     let pos = cellView.model!.position();
     let offset = {
       x: x - pos.x,
@@ -1316,6 +1323,7 @@ onMounted(() => {
           cellid = s.id + "";
         }
       }
+      console.log("e",flyShape);
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
@@ -1705,12 +1713,21 @@ const submitTemplate= (data:any)=>{
 
 
 //Display Condition Edit Component
-let showAddConditional=ref(true)
+
 let ifNameOpetions=computed(()=>{
   return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
 })
 let childvalue=computed(()=>{
-  return valueOption(conditionalValue.value)
+  console.log(conditionalValue.value);
+  
+  if(conditionalValue.value.length>0){
+    showAddConditional.value=true
+    return valueOption(conditionalValue.value)
+    
+  }else{
+    return showAddConditional.value=false
+  }
+  
 })
 // 表格的数据
 let conditionalDatasource=ref<any>([])
@@ -1815,7 +1832,8 @@ const conditionstr=(arr:any)=>{
   ifcondition=arr.map((item:any)=>{
     if(item.operator=='='){item.operator="=="}
       if(item.selectvalues){
-        
+        if(item.selectvalue=="AND"){item.selectvalue="&&"}
+        if(item.selectvalue=="OR"){item.selectvalue="||"}
         return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${item.selectvalues} `
         // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
       }else{
@@ -2193,8 +2211,8 @@ const saveConditional=()=>{
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-            <div v-if="showAddConditional">
-              <create-rule  :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+            <div >
+              <create-rule v-if="showAddConditional" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
             </div>
               <a-button @click="saveConditional">Add conditional</a-button>
               <a-button @click="linkhandlerSubmit" type="primary">save</a-button>

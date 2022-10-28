@@ -8,7 +8,6 @@ export default {
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
 import { computed, onMounted, ref } from 'vue';
-
 onMounted(()=>{
     // changecolor()
 })
@@ -87,7 +86,7 @@ const valueDatas=computed(()=>{
 // }
 const styleobj=computed(()=>{
     if(props.rulesData[0].id%2==0){
-            return {backgroundColor:'#f0f0f0'}
+            return {backgroundColor:'@grey-5'}
     }else{
             return {backgroundColor:"white"}
     }
@@ -217,7 +216,7 @@ const checkrelation=(obj:any)=>{
 
 <template>
     <!-- <div class="box"> -->
-    <div class="rules-box" :style="styleobj">
+    <div class="rules-box" :class="[props.rulesData[0].id%2==0 ? 'bgc-box':'bgc-box1']">
         <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</div>
     <div class="ant-card-body" >
         <!-- <a-row class="loop-child " > -->
@@ -396,21 +395,31 @@ const checkrelation=(obj:any)=>{
 </template>
 
 <style lang="less" scoped>
-@import 'ant-design-vue/es/style/themes/default.less';
+@import 'ant-design-vue/es/style/color/colors.less';
 .box{
     width: 100%;
     // background-color: white;
 }
+.bgc-box{
+    background-color: @cyan-2;
+}
+.bgc-box1{
+    background-color: white;
+}
     .rules-box{
         margin-left: 1.25rem;
         // background-color: white;
-        border-left: 1px solid @blue-6;
+        border-left: 1px solid @grey-6;
         border-top-left-radius: 5px; 
         border-bottom-left-radius: 5px; 
         position: relative;
     // & :nth-child(3){
     //     background-color: gray;
     // }
+
+
+
+
         .title{
             text-align: center;
             cursor: pointer;

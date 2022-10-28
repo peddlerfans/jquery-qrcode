@@ -345,13 +345,13 @@ let checkName = async (_rule: Rule, value: string) => {
   
 }
 let checkDesc = async (_rule: Rule, value: string) => {
-  let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
+  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject("Please input your description!")
   }else  {
-    if(!reg.test(value)){
-      return Promise.reject('The AW description is not standardized')
-    }else{
+    // if(!reg.test(value)){
+    //   return Promise.reject('The AW description is not standardized')
+    // }else{
       if(modelstates.value._id){
       return Promise.resolve()
     }else{
@@ -361,18 +361,19 @@ let checkDesc = async (_rule: Rule, value: string) => {
         message.error("Duplicate description")
       }
     }
-    }
+    // }
     return Promise.resolve();
   }
   
 } 
 let checktem = async (_rule: Rule, value: string) => { 
-  let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
+  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {    
     return Promise.reject("Template or template_en is required")
-  } else if(!reg.test(value)){
-      return Promise.reject('The AW name is not standardized')
-  }
+  } 
+  // else if(!reg.test(value)){
+  //     return Promise.reject('The AW name is not standardized')
+  // }
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
@@ -463,8 +464,8 @@ async function updateAw(url:string,data:any) {
   // }
   let rst = await request.put(url, data)
   // pagination.value.total = 1
-      tableData.value = [rst]
-      
+      // tableData.value = [rst]
+    
     }
     
 // 修改的函数
