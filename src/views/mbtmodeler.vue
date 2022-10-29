@@ -7,7 +7,7 @@ import templateTable from '@/components/templateTable.vue';
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
 import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
@@ -57,6 +57,7 @@ import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
 import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue"
+import { propsToAttrMap } from "@vue/shared";
 
 window.joint = joint;
 
@@ -108,6 +109,7 @@ const awformProps = {
   labelWidth: "75px",
   labelSuffix: ":",
 };
+
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
   cellsInfo?: {
@@ -453,24 +455,30 @@ let linkData = ref({
   label: "",
   routerType: "manhattan",
   connectorType: "rounded",
-  loop: false,
-  loopcount: 1,
+  editable:"false",
+  ruleData:[]
+  // loop: false,
+  // loopcount: 1,
 });
 interface LinkFormData {
+ruleData: any[];
   _id: string;
   label: string;
-  loop?: boolean;
-  loopcount?: number;
+  editable:boolean;
+  // loop?: boolean;
+  // loopcount?: number;
   connectorType?: string;
   routerType?: string;
 }
 let linkFormData: LinkFormData = {
-  _id: "",
-  label: "",
-  loop: false,
-  loopcount: 1,
-  connectorType: "rounded",
-  routerType: "manhattan",
+_id: "",
+label: "",
+editable: false,
+// loop: false,
+// loopcount: 1,
+connectorType: "rounded",
+routerType: "manhattan",
+ruleData: []
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
@@ -556,8 +564,29 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
+
+
+
+// 动态显示condition的值
+const condition=computed(()=>{
+  if(rulesData.value[0].conditions.length>0){
+    let strData=ifdata(rulesData.value)
+        if(strData!.includes('undefined')){
+          return ""
+    }else{
+      return ifdata(rulesData.value)
+    }
+    
+  }
+})
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
+const uischema={
+  label: {
+                  // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
+                  'ui:widget': CreateRule,
+              }
+}
 const linkschema = ref({
   title: "LINK",
   description: "Configuration for Link",
@@ -583,21 +612,15 @@ const linkschema = ref({
     label: {
       title: "Condition",
       type: "string",
+      // default:condition
+      readOnly: true,
       // "ui:hidden": "{{parentFormData.loop === true}}"
+      // "ui:widget": CreateRule,
     },
-    loop: {
-      type: "boolean",
-      title: "Loop",
-      default: false,
-    },
-    loopcount: {
-      title: "Loop count",
-      type: "integer",
-      minimum: 1,
-      "ui:hidden": "{{parentFormData.loop === false}}",
-    },
+    
   },
 });
+
 const onExpectedAW = () => {
   awActiveKey.value = "2";
   isDisabled.value = false;
@@ -848,50 +871,50 @@ function linkhandlerSubmit() {
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
   linkFormData.label = linkData.value.label;
-  linkFormData.loop = linkData.value.loop;
-  linkFormData.loopcount = linkData.value.loopcount;
+  linkFormData.ruleData = rulesData.value;
+  // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
   console.log(linkData.value.routerType);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
-  let loopcount1 = linkData.value.loopcount;
+  // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
     break;
   }
-  if (linkFormData.loop == true) {
-    modeler.graph.getCell(lv_id).appendLabel({
-      attrs: {
-        text: {
-          text: linkFormData.label + ` Loop : ${loopcount1}`,
-        },
-      },
-    });
-    modeler.graph.getCell(lv_id).attr("line/stroke", "red");
-    linkFormData.label += ` Loop : ${loopcount1}`;
-  } else {
-    if (typeof linkFormData.label == "undefined") linkFormData.label = "";
-    modeler.graph.getCell(lv_id).appendLabel({
-      attrs: {
-        text: {
-          text: linkFormData.label || "",
-        },
-      },
-    });
-    modeler.graph.getCell(lv_id).attr("line/stroke", "black");
-  }
+  // if (linkFormData.loop == true) {
+  //   modeler.graph.getCell(lv_id).appendLabel({
+  //     attrs: {
+  //       text: {
+  //         text: linkFormData.label + ` Loop : ${loopcount1}`,
+  //       },
+  //     },
+  //   });
+  //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
+  //   linkFormData.label += ` Loop : ${loopcount1}`;
+  // } else {
+  //   if (typeof linkFormData.label == "undefined") linkFormData.label = "";
+  //   modeler.graph.getCell(lv_id).appendLabel({
+  //     attrs: {
+  //       text: {
+  //         text: linkFormData.label || "",
+  //       },
+  //     },
+  //   });
+  //   modeler.graph.getCell(lv_id).attr("line/stroke", "black");
+  // }
   let tempObj = {};
   Object.assign(tempObj, { _id: linkFormData._id });
   Object.assign(tempObj, { label: linkFormData.label });
-  Object.assign(tempObj, { loop: linkFormData.loop });
-  Object.assign(tempObj, { loopcount: linkFormData.loopcount });
+  Object.assign(tempObj, { ruleData: linkFormData.ruleData });
+  // Object.assign(tempObj, { loopcount: linkFormData.loopcount });
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
-  message.success("Save it Successfully");
+  // message.success("Save it Successfully");
 }
 
 function handlerEditExpected() {
@@ -946,7 +969,7 @@ let toReload = ref(false);
  */
  let condataName=ref([])
  let conditionalValue=ref([])
- let showAddConditional=ref(false)
+//  let showAddConditional=ref(false)
  function valueOption(arr:any){
   let newarr=Object.keys(arr[0])
   let setarr=newarr.map((item: any)=>({name:item,type:"",values:[]}))
@@ -1026,7 +1049,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     
     if(rst && rst.dataDefinition && rst.dataDefinition.data){
       if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData){
-        showAddConditional.value=true
+        // showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
       console.log(condataName.value,conditionalValue.value);
@@ -1103,6 +1126,7 @@ async function saveMBT(route?: any) {
           attrs: {
             text: {
               text: cacheprops.get(item.id).props.label,
+              ruleData:cacheprops.get(item.id).props.ruleData,
             },
           },
         });
@@ -1404,8 +1428,17 @@ onMounted(() => {
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
       let templinkData = cacheprops.get(linkView.model.id);
+      console.log(templinkData);
       linkData.value = templinkData.props;
-      console.log(linkData.value);
+      if(templinkData.props.ruleData.length>0){
+        rulesData.value=templinkData.props.ruleData
+      }
+      
+      
+      if(linkData.value.editable){
+
+      }
+      // linkData.value.label=condition
       currentLinkMap.set(lv_id, { props: templinkData });
 
       linkData.value._id = linkView.model.id;
@@ -1822,11 +1855,11 @@ let childvalue=computed(()=>{
   console.log(conditionalValue.value);
   
   if(conditionalValue.value.length>0){
-    showAddConditional.value=true
+    // showAddConditional.value=true
     return valueOption(conditionalValue.value)
     
   }else{
-    return showAddConditional.value=false
+    // return showAddConditional.value=false
   }
   
 })
@@ -1853,8 +1886,6 @@ const rulesData=ref(
   ]
 )
 const rulesChange=(datas: any,key:string)=>{
-  console.log(key);
-  
     rulesData.value=datas//输出的条件对象 
 }
 // 递归改变if结构
@@ -1940,18 +1971,26 @@ const conditionstr=(arr:any)=>{
   
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
+watch(rulesData,(newvalue:any)=>{
+  
+  
+  if(rulesData.value.length>0){
+    console.log(123);
+    linkData.value.label=ifdata(newvalue)!
+  }
+},{deep:true,immediate: true})
 
 // 点击保存把当前的条件编辑添加到表格
-const saveConditional=()=>{
-  if(rulesData.value[0].conditions.length>1){
-    console.log(ifdata(rulesData.value));
+// const saveConditional=()=>{
+//   if(rulesData.value[0].conditions.length>1){
+//     console.log(ifdata(rulesData.value));
     
-    linkData.value.label=ifdata(rulesData.value)!
-    console.log(linkData.value.label,linkFormData);
+//     linkData.value.label=ifdata(rulesData.value)!
+//     console.log(linkData.value.label,linkFormData);
     
-  }
-  showAddConditional.value=false
-}
+//   }
+//   // showAddConditional.value=false
+// }
 
 </script>
 
@@ -2306,12 +2345,16 @@ const saveConditional=()=>{
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-            <div >
-              <create-rule v-if="showAddConditional" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
-            </div>
-              <a-button @click="saveConditional">Add conditional</a-button>
-              <a-button @click="linkhandlerSubmit" type="primary">save</a-button>
+              <div slot-scope="{linkData}">
+                <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+              <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
+              <div style="margin-top:1.625rem">
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
               <a-button @click="onCloseDrawer">cancel</a-button>
+              </div>
+              </div>
+             
+              
               
             </VueForm>
               <!-- <div v-if="showAddFactorBtn=false"> -->

@@ -116,6 +116,24 @@ const steps=[
 
       </a-col>
     </a-row>
+    <a-row>
+      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
+      <a-col :span="5" style="display:flex">
+        
+          <a-select 
+          :options="options"
+          v-model:value="choseData"
+          ></a-select>
+          <!-- <a-range-picker
+            v-model:value="formState['range-time-picker']"
+            show-time
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
+          /> -->
+          <a-button type="primary">search</a-button>
+
+      </a-col>
+    </a-row>
     <a-row style="height:38%;display: flex; justify-content: space-between;margin-top: 1.25rem;">
       <a-col :span="10" style="backgroundColor:origin ; border:1px solid red">
         <echarts-model></echarts-model>
