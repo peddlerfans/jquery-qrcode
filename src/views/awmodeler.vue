@@ -17,7 +17,6 @@ import {uuid} from '../utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
-import { e } from 'vitest/dist/index-60e2a8e1';
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -39,11 +38,15 @@ let treeData:any = ref([])
 // 获取后台的树形数据
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
+  
+  
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-  let treedatass=delNode(treedatas)
-  let treedatasss=addKey(treedatass)
+  
+  // let treedatass=delNode(treedatas)
+  // console.log(treedatass);
+  let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
   treeData.value=[...topTreedata]  
@@ -616,7 +619,6 @@ function getPath(key:any,treearr:any){
   let rst:any
   let res=getPathByKey(key,'title',treearr)
   rst=res?.map((obj:any)=>{
-    debugger
     return obj.title
   }).join('/')
   return rst
