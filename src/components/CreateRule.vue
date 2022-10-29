@@ -401,7 +401,7 @@ const checkrelation=(obj:any)=>{
     // background-color: white;
 }
 .bgc-box{
-    background-color: @grey-2;
+    background-color: @cyan-2;
 }
 .bgc-box1{
     background-color: white;
@@ -409,7 +409,7 @@ const checkrelation=(obj:any)=>{
     .rules-box{
         margin-left: 1.25rem;
         // background-color: white;
-        border-left: 1px solid @grey-6;
+        border-left: 1px solid @blue-6;
         border-top-left-radius: 5px; 
         border-bottom-left-radius: 5px; 
         position: relative;

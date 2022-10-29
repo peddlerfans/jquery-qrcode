@@ -619,6 +619,7 @@ function getPath(key:any,treearr:any){
   let rst:any
   let res=getPathByKey(key,'title',treearr)
   rst=res?.map((obj:any)=>{
+    debugger
     return obj.title
   }).join('/')
   return rst
