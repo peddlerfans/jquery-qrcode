@@ -37,6 +37,9 @@ ace.config.setModuleUrl('ace/mode/base', workerBaseUrl);
 import workerJsonUrl from 'ace-builds/src-noconflict/worker-json?url';
 ace.config.setModuleUrl('ace/mode/json_worker', workerJsonUrl);
 
+import workerYamlUrl from 'ace-builds/src-noconflict/worker-yaml?url';
+ace.config.setModuleUrl('ace/mode/yaml_worker', workerYamlUrl);
+
 import workerJavascriptUrl from 'ace-builds/src-noconflict/worker-javascript?url';
 ace.config.setModuleUrl('ace/mode/javascript_worker', workerJavascriptUrl);
 
