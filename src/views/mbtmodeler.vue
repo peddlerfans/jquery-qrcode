@@ -2349,7 +2349,7 @@ watch(rulesData,(newvalue:any)=>{
                 <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
               <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
               <div style="margin-top:1.625rem">
-                <a-button @click="linkhandlerSubmit" type="primary">close</a-button>
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
               <a-button @click="onCloseDrawer">cancel</a-button>
               </div>
               </div>
