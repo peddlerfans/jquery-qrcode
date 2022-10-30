@@ -1975,7 +1975,7 @@ watch(rulesData,(newvalue:any)=>{
   
   
   if(rulesData.value.length>0){
-    console.log(123);
+    
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
