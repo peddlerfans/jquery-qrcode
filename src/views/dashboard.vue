@@ -180,7 +180,7 @@ const steps=[
       </div>
     </a-row>
 
-      <a-row>
+      <a-row style="margin-top:2.25rem">
       <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
       <a-col :span="5" style="display:flex">
         
@@ -198,7 +198,7 @@ const steps=[
 
       </a-col>
     </a-row>
-    <a-row style="height:100%;display: flex; justify-content: space-between;margin-top: 1.25rem;">
+    <a-row style="height:32%;display: flex; justify-content: space-between;margin-top: 1.25rem;">
       <a-col :span="10" style="backgroundColor:origin ; border:1px solid red">
         <echarts-model :sendtime="search.start"></echarts-model>
       </a-col>
