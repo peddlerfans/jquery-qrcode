@@ -38,11 +38,15 @@ let treeData:any = ref([])
 // 获取后台的树形数据
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
+  
+  
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-  let treedatass=delNode(treedatas)
-  let treedatasss=addKey(treedatass)
+  
+  // let treedatass=delNode(treedatas)
+  // console.log(treedatass);
+  let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
   treeData.value=[...topTreedata]  
