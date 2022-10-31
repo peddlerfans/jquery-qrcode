@@ -441,7 +441,8 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
  * Panel --Json schema forms
  */
  let tableDataDirectInput = ref([]);
- let tableColumnsDirectInput = ref([])
+ let 
+ tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
@@ -564,21 +565,7 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-
-
-
-// 动态显示condition的值
-const condition=computed(()=>{
-  if(rulesData.value[0].conditions.length>0){
-    let strData=ifdata(rulesData.value)
-        if(strData!.includes('undefined')){
-          return ""
-    }else{
-      return ifdata(rulesData.value)
-    }
-    
-  }
-})
+  
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
 const uischema={
@@ -613,7 +600,7 @@ const linkschema = ref({
       title: "Condition",
       type: "string",
       // default:condition
-      readOnly: true,
+      // readOnly: true,
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
     },
@@ -876,7 +863,7 @@ function linkhandlerSubmit() {
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
-  console.log(linkData.value.routerType);
+  console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   // let loopcount1 = linkData.value.loopcount;
@@ -885,13 +872,13 @@ function linkhandlerSubmit() {
     break;
   }
   // if (linkFormData.loop == true) {
-  //   modeler.graph.getCell(lv_id).appendLabel({
-  //     attrs: {
-  //       text: {
-  //         text: linkFormData.label + ` Loop : ${loopcount1}`,
-  //       },
-  //     },
-  //   });
+    modeler.graph.getCell(lv_id).appendLabel({
+      attrs: {
+        text: {
+          text: linkFormData.label,
+        },
+      },
+    });
   //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
   //   linkFormData.label += ` Loop : ${loopcount1}`;
   // } else {
@@ -1048,7 +1035,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     console.log(rst);
     
     if(rst && rst.dataDefinition && rst.dataDefinition.data){
-      if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData){
+      if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
         // showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
@@ -1430,7 +1417,8 @@ onMounted(() => {
       let templinkData = cacheprops.get(linkView.model.id);
       console.log(templinkData);
       linkData.value = templinkData.props;
-      if(templinkData.props.ruleData.length>0){
+    
+      if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
         rulesData.value=templinkData.props.ruleData
       }
       
@@ -1796,6 +1784,10 @@ const handleDynamicTable = (data:any) => {
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'dynamic_template'})
   cacheDataDefinition.data = tempObj;
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
@@ -1817,6 +1809,10 @@ const handleDirectInput = (data:any) => {
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'direct_input'})
   cacheDataDefinition.data = tempObj;
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
@@ -1829,6 +1825,10 @@ const handleStaticTable = (data:any) => {
   Object.assign(tempObj,{dataFrom:'static_template'})
   cacheDataDefinition.data = tempObj;
   // console.log('cachedDatadifinition:',cacheDataDefinition)
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   onCloseDrawer();
   message.success("Save config Successfully");
 };
@@ -1972,10 +1972,7 @@ const conditionstr=(arr:any)=>{
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 watch(rulesData,(newvalue:any)=>{
-  
-  
   if(rulesData.value.length>0){
-    console.log(123);
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
@@ -2436,7 +2433,7 @@ watch(rulesData,(newvalue:any)=>{
                 <a-button
                   class="editable-add-btn"
                   style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
+                  @click=" "
                   >Add
                 </a-button>
                 <a-table

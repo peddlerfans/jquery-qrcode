@@ -44,9 +44,8 @@ const queryTree=async ()=>{
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
   
-  // let treedatass=delNode(treedatas)
-  // console.log(treedatass);
-  let treedatasss=addKey(treedatas)
+  let treedatass=delNode(treedatas)
+  let treedatasss=addKey(treedatass)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
   treeData.value=[...topTreedata]  
@@ -57,8 +56,6 @@ const queryTree=async ()=>{
 // 获取左侧区域的dom
 const leftRef=ref()
 const rightNode=ref(false)
-let aaa=ref()
-console.log(aaa.value);
 const tabledom=ref()
 
 onMounted(() => {
@@ -66,38 +63,6 @@ onMounted(() => {
   // let tbody=tabledom.value.childNodes[0].childNodes[0].childNodes[1].childNodes[1].childNodes[1].childNodes[0].childNodes[0].childNodes[2]
    query() 
    queryTree()
-  //  let toTree=leftRef.value.childNodes[0].childNodes[0].childNodes[0];
-   
-  //  let moveaw={
-  //     animation: 1000,
-  //     group:{name:"item",pull:'clone',put:false},
-  //     sort:false,
-  //     handle:".ant-table-row-selected",
-  //     forceFallback: false,  
-  //     onStart(evt:any){
-  //       console.log(evt.type);
-  //     },
-  //     onEnd(event:any){
-  //       console.log(123);
-  //       console.log(event);
-  //     },
-  //   }
-    // let moveaw1={
-    //   animation: 1000,
-    //   group:{name:"item",pull:false,put:false},
-    //   sort:false,
-    //   forceFallback: false,  
-    //   onStart(evt:any){
-    //     console.log(evt.type);
-    //   },
-    //   onEnd(event:any){
-    //     console.log(123);
-    //     console.log(event);
-    //   },
-    // }
-    // let sortable=Sortable.create(tbody,moveaw)
-    // let sortable1=Sortable.create(toTree,moveaw1)
-    
 }) 
 // 切换查询方式
 let checked=ref(false)
@@ -115,9 +80,7 @@ const handleFinish: FormProps['onFinish'] = async (values: any) => {
  pagination.value.pageNo=1
 };
 // 表单提交失败时的回调
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
-      console.log(errors);
-};
+const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {};
 // 模态窗数据
 const visible = ref<boolean>(false);
 const showModal = () => {
@@ -230,8 +193,6 @@ const saveparams = async (record: any) => {
 // 点击删除params的函数
 const delmodel = (record: any) => {
   const index= modelstates.value.params.findIndex(e => e === record)
-  console.log('deleteFactorByName')
-  console.log(index)
   modelstates.value.params.splice(index,1);
   message.success('Delete Successfully!');
 }
@@ -250,9 +211,6 @@ const cancelparams = (record:any) => {
 }
 // 点击修改触发的函数
 const editparams = (record:any) => {
-  console.log('editFactor')
-  console.log(record)
-
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -299,10 +257,8 @@ const paramsColum=[
 ]
 // 添加params的enu
 const handleCloseTag = (record: any, removedTag: string) => {
-  console.log('close tags');
   const tags = record.enum.filter((tag: string) => tag !== removedTag);
   record.enum = tags;
-  console.log(record.values);
 
 };
 const handleFactorValueConfirm = (record: any) => {
@@ -315,7 +271,6 @@ const handleFactorValueConfirm = (record: any) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log("handleModelTagConfirm",record.enum)
 }
 let inputRefs=ref()
 const newFactorValueInput = (record: any) => {
@@ -405,9 +360,7 @@ const onFinishForm = async (modelstates: any) => {
     clear()
     
   }
-const onFinishFailedForm = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
-};
+const onFinishFailedForm = (errorInfo: any) => {};
 // 添加的表单tags
 let inputRef = ref();
 let states = reactive<statesTs>({
@@ -451,7 +404,6 @@ const confirm =async (obj:any) => {
   }
   
   tableData.value.forEach((e:any,index:number,array:any)=>{
-    // console.log(e,key._id,array);
     if(e.name==obj.name){
       delete array[index]
     }
@@ -459,13 +411,9 @@ const confirm =async (obj:any) => {
       // pagination.value.pageNo=1
       message.success('Delete on Successed');
 };
-const cancel = (e: MouseEvent) => {
-  console.log(e);
-};
+const cancel = (e: MouseEvent) => {};
 // 修改函数
-async function updateAw(url:string,data:any) {
-  console.log(data);
-  
+async function updateAw(url:string,data:any) {  
   // if(clickKey.path){
   //   data={...data,path:clickKey.path}
   // }
@@ -572,9 +520,7 @@ const onSizeChange =async (current: any, pageSize: number) => {
   }
      await query()
    }
-const expend = (isExpand:any,rected:any) => {
-  console.log(isExpand,rected);
-}
+const expend = (isExpand:any,rected:any) => {}
 const wrapperCol={span:24,offset:12}
 
 // 定义删除空节点的函数
@@ -619,7 +565,6 @@ function getPath(key:any,treearr:any){
   let rst:any
   let res=getPathByKey(key,'title',treearr)
   rst=res?.map((obj:any)=>{
-    debugger
     return obj.title
   }).join('/')
   return rst
@@ -629,7 +574,6 @@ function getPath(key:any,treearr:any){
 let clickKey=<clickobj>{}
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-  console.log(info.node.dataRef.title);
   
   if(info.node.dataRef.title=='/'){
     await query()
@@ -639,8 +583,6 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   str=str.substring(2,str.length)
   clickKey.path=str
   clickKey.dataRef=info.node.dataRef
-  console.log(str);
-  console.log(selectedKeys);
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
     await query({q:`path:/.*${str}/`,search:''})
@@ -750,9 +692,7 @@ watch(searchValues, value => {
         }).filter((item: any, i: any, self: string | any[]) => item && self.indexOf(item) === i);
       expandedKeys.value = expanded as any;
       searchValues.value = value;
-        autoExpandParent.value = true;
-        console.log(expandedKeys.value);
-        
+        autoExpandParent.value = true;        
       }else{
         //折叠起来
         autoExpandParent.value =  false;
@@ -767,13 +707,11 @@ const onExpand = (keys: any) => {
 
 // 失去焦点，真正修改树节点的地方
 const onchangtitle =async (data: any) => {
-  console.log(updTreedata.value);
   let nowNode=getTreeDataByItem(treeData.value,data)
   
   let parentchild=getTreeParentChilds(treeData.value,data)
-
-  let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
-  console.log(searchobj);
+  if(updTreedata.value){
+    let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
   if(searchobj.length>0 && updTreedata.value!==nowNode.title){
     message.warning(`This node already contains a node of ${updTreedata.value}`)
     return
@@ -785,17 +723,13 @@ const onchangtitle =async (data: any) => {
   let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
   let pathnew=newStr+updTreedata.value
-  console.log(pathnew);
   await request.post("/api/hlfs/_rename?force=true",{path:str,newPath:pathnew})
   nowNode.title=updTreedata.value
-  // if(nowNode.children.length==0){
-  //   // 这里走精准匹配
-  //    query({q:`path:${pathnew}`,search:''})
-  //   }else{
-  // // 这里走前置匹配
-  //  query({q:`path:${pathnew}`,search:''})
-  // }
   }  
+  }else{
+    nowNode.title=nowNode.title
+  }
+  
   updTreedata.value=""
   nowNode.showEdit=false
   expandedKeys.value=[nowNode.key]
@@ -810,14 +744,12 @@ const updTree = (key: any) => {
   let updChild=getTreeDataByItem(treeData.value,key)
     // 判断展开修改的节点是否恢复
   if(updTreedata.value){
-  console.log(updTreedata.value);
   updChild.showEdit=false
   message.warning("Please complete the modification first")
   }else{
   updTreedata.value=updChild.title
   updChild.showEdit=true
   nextTick(()=>{
-    console.log(updDom.value);
     updDom.value.focus()
   })
   }
@@ -825,13 +757,11 @@ const updTree = (key: any) => {
 
 // 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
 const pushSubtree =async (key: any,title:any) => {
-  console.log(key,title);
   // 获取当前添加节点的对象
   let nowNode=getTreeDataByItem(treeData.value,key)
   getloop(treeData.value,key)
   treeData.value = [...treeData.value]
   let expandKey=queryKey(treeData.value,key)
-console.log(expandKey)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
   let str:any=res?.map((item:any)=>{
     return item.title
@@ -839,8 +769,6 @@ console.log(expandKey)
   str=str.substring(2,str.length)
   let pushPath
   if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
-  
-  console.log(pushPath);
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
   expandedKeys.value = [key];
@@ -922,9 +850,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
-  let nowNode=getTreeDataByItem(treeData.value,key)
-  console.log(getTreeParentChilds(treeData.value,key));
-  
+  let nowNode=getTreeDataByItem(treeData.value,key)  
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str=getPath(nowNode.title,treeData.value)
@@ -941,7 +867,6 @@ const addSib=async(key:any)=>{
   // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
-  console.log(expandedKeys.value);
   
   // queryTree()7
 }
@@ -949,16 +874,11 @@ const addSib=async(key:any)=>{
 // 删除树形控件数据
 const deltree = (key:string) => {}
 const confirmtree =async (key:any,title:string) => {
-  console.log(key);
-  
   let nowNode=getTreeDataByItem(treeData.value,key)
-  console.log(nowNode);
   
   let str=getPath(nowNode.title,treeData.value) 
   str=str.substring(2,str.length)
-  console.log(str);
   let delNode=getTreeParentChilds(treeData.value,key);
-  console.log(delNode);
   // const index= delNode.findIndex((e:any)=> e.title == nowNode.title)
   // delete delNode[index]
   // delNode.forEach((e:any,index:number,array:any)=>{
@@ -973,21 +893,16 @@ const confirmtree =async (key:any,title:string) => {
         }
     }
  let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
-  console.log(treeData.value);
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
   // queryTree()
 }
 // 右键展开菜单项
- const onContextMenuClick = (treeKey: string) => {
-      console.log(`treeKey: ${treeKey}`);
-    }; 
+ const onContextMenuClick = (treeKey: string) => { }; 
 
     const selectedRowKeys = ref<any>([]); // Check here to configure the default column
 
-const onSelectChange = (changableRowKeys: Key[]) => {
-  console.log(changableRowKeys);
-  
+const onSelectChange = (changableRowKeys: Key[]) => {  
   selectedRowKeys.value = changableRowKeys;
 };
     // 表格复选框
@@ -1023,7 +938,6 @@ const addAwmodel= (key:any,title:string)=>{
     // }
     selectedRowKeys.value.forEach( async (item:any)=>{
       item.path=str
-      console.log(item);
       await updateAw(`/api/hlfs/${item._id}`, item)
     })
     
@@ -1061,7 +975,9 @@ const addAwmodel= (key:any,title:string)=>{
               type="text" 
               ref="updDom" 
               v-model:value="updTreedata"
-              @blur="onchangtitle(treeKey)"/>
+              @blur="onchangtitle(treeKey)"
+              @keyup.enter="onchangtitle(treeKey)"
+              />
         <template #overlay>
           <a-menu @click="() => onContextMenuClick(treeKey)">
             <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
@@ -1081,7 +997,9 @@ const addAwmodel= (key:any,title:string)=>{
               type="text" 
               ref="updDom" 
               v-model:value="updTreedata"
-              @blur="onchangtitle(treeKey)"/>
+              @blur="onchangtitle(treeKey)"
+              @keyup.enter="onchangtitle(treeKey)"
+              />
         <template #overlay>
           <a-menu @click="() => onContextMenuClick(treeKey)">
             <a-menu-item key="1" @click="addSib(treeKey)">Add sibling node</a-menu-item>
