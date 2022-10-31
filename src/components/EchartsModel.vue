@@ -38,28 +38,27 @@ type EChartsOption = echarts.ComposeOption<
   | LineSeriesOption
 >;
 onMounted(()=>{
-  // () => {
-  //   init()    
-  // }  
   let myChart = echarts.init(main.value);
   myChart.setOption(option);
   window.onresize = function () {
     myChart.resize()
       }
 
-})
+}) 
+
+function timeFormat(hour: number |string |any) {
+  let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000),
+    date = new Date(state),
+	minutes = date.getMinutes()
+  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
+  //转换格式
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
+}
+console.log(timeFormat(1) );
+
 // 获取div的dom
 let main=ref()
 let option: EChartsOption;
-let base = +new Date(1988, 9, 3);
-let oneDay = 24 * 3600 * 1000;
-
-let data = [[base, Math.random() * 300]];
-
-for (let i = 1; i < 20000; i++) {
-  let now = new Date((base += oneDay));
-  data.push([+now, Math.round((Math.random() - 0.5) * 20 + data[i - 1][1])]);
-}
 const colors = ['#5470C6', '#EE6666'];
 
 option = {
