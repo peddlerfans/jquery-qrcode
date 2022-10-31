@@ -50,7 +50,7 @@ const {
   updateTable,
   onTableRowSelectChange,
   tableResize,
-  selectedRowKeys,
+  // selectedRowKeys,
 } = useTable({
   table: tableRef,
   columns: [
@@ -73,9 +73,6 @@ const {
     fetchUrl: url,
   },
 });
-function openMenuModal() {
-  alert("good");
-}
 
 onBeforeMount(() => {
   updateTable();
@@ -165,17 +162,20 @@ async function saveMBT(data: any) {
   return new Promise((resolve, reject) => {
     request
       .post(url, data)
-      .then((res) => {
+      .then((res: any) => {
         mbtId.value = res._id as string;
-
-        let fetchUrl = `${url}/${mbtId.value}`;
-
-        updateTable({ fetchUrl: fetchUrl });
+        // let fetchUrl = `${url}/${mbtId.value}`;
+        // updateTable({ fetchUrl: fetchUrl });
       })
       .catch(function (error) {
         if (error.response.status == 409) {
           message.error("Duplicate name or description");
         }
+      })
+      .finally(() => {
+        let routeparam = `/mbtmodeler/${mbtId.value}/${modelstates.value.name}`;
+        clear();
+        router.push({ path: routeparam });
       });
   });
 }
@@ -194,13 +194,14 @@ const onFinishForm = async (modelstates: any) => {
       });
       message.success("Modified successfully");
     } else {
-      delete modelstates.value._id;
-      message.success("Added successfully");
+      
+      delete modelstates.value._id
       saveMBT(modelstates.value);
+
+      message.success("Added successfully");
     }
     // }
     visible.value = false;
-    clear();
   } else {
     return message.error("name and descript is required");
   }
@@ -213,7 +214,6 @@ const handleOk = () => {
   visible.value = false;
 
   onFinishForm(modelstates);
-  clear();
 };
 // 关闭模态窗触发事件
 const closemodel = () => {
@@ -406,7 +406,6 @@ const handleInputConfirm = () => {
         :loading="tableLoading"
         bordered
         @resizeColumn="tableResize"
-        :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }"
       >
         >
         <template #headerCell="{ column }">

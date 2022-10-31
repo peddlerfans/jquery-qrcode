@@ -44,8 +44,9 @@ const queryTree=async ()=>{
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
   
-  let treedatass=delNode(treedatas)
-  let treedatasss=addKey(treedatass)
+  // let treedatass=delNode(treedatas)
+  // console.log(treedatass);
+  let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
   treeData.value=[...topTreedata]  

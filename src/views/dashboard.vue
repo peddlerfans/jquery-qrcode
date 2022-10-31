@@ -179,7 +179,7 @@ const steps=[
         </div>
       </div>
     </a-row>
-    <a-row style="flex:1">
+
       <a-row>
       <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
       <a-col :span="5" style="display:flex">
@@ -204,7 +204,7 @@ const steps=[
       </a-col>
       <a-col :span="10" style="backgroundColor:origin">Line Chart2</a-col>
     </a-row>
-    </a-row>
+
   </section>
 </template>
 
