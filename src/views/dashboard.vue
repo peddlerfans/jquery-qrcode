@@ -5,15 +5,16 @@ export default {name: 'Dashboard'}
 <script setup lang="ts">
 import { h, onMounted, reactive, ref } from 'vue';
 import EchartsModel from '@/components/EchartsModel.vue'
+import RequestData from '@/components/RequestData.vue'
 import { message } from 'ant-design-vue';
-import request from "@/utils/request";
+import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
 import { QuestionCircleFilled } from '@ant-design/icons-vue';
+import { stubString } from 'lodash';
 
 interface FormState {
   'range-time-picker': [string, string];
 }
-
 // 格式化时间的函数
 function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"minutes"|"weeks"|"month"="days") {
   const unitmapping:any={
@@ -24,8 +25,6 @@ function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"
     month:30*24* 60 * 60 * 1000
   }
   let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000)
-
-
   if(unit=="days"){
     state=new Date(new Date().getTime() - hour*unitmapping.days)
   }else if(unit=="hours"){
@@ -37,16 +36,143 @@ function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"
   }else if(unit=="month"){
     state=new Date(new Date().getTime() - hour*unitmapping.month)
   }
-  // minutes < 0 ? minutes = Number(`0${minutes}`) : minutes = minutes
-  //转换格式
-  // return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
   return state.toISOString()
 }
 let endDate=new Date()
 // console.log(timeFormat(endDate,7,"days"));
+const search={
+  start:timeFormat(endDate,24,"hours"),
+  end:endDate.toISOString(),
+  interval:'1h',
+  aggs: {
+        transaction_duration: {
+            avg: {
+                field: "transaction.duration.us",
+                missing: 0 //无数据时默认显示0
+            }
+        },
+        terms: {
+            terms: {
+                field: "transaction.name",
+                size: 10 //接收条数限制
+            }, 
+            aggs: {
+                duration: {
+                    avg: {
+                    field: "transaction.duration.us"
+                    }
+                }
+            }
+        },
+        transations: {
+
+            value_count: {
+            field: "transaction.id"
+            }
+        },
+        cpu:{
+          avg:{
+            field:"system.process.cpu.total.norm.pct",
+
+          }
+        },
+        memory_total:{
+          avg:{
+            field:"system.memory.total"
+          }
+        },
+        memory_free:{
+          avg:{
+            field:"system.memory.actual.free"
+          }
+        }
+        //Latency  Throughput   tpm
+
+        // 处理duration 纳秒转秒
+    }
+}
+// 发送子组件的数据
+// 识别展示的数据类型
+let cpuCharts:string="cpucharts" 
+let memorycharts:string="memorycharts"
+let sendXdata=ref([])
+let cpuData=ref([])
+let memory=ref([])
+// 需要的参数 start   end   interval（x轴时间间隔）
+async function query(){
+  let rst:any=await request.post(dashboradUrl,search)
+  console.log(rst);
+  
+  if(rst){
+    sendXdata.value=rst.map((item:any)=>{
+      return item.key_as_string
+    })
+    cpuData.value=rst.map((item:any)=>{
+      return item.cpu.value
+    })
+    memory.value=rst.map((item:any)=>{
+      if(item.memory_free.value){
+        let str=item.memory_free.value.toString().substring(0,2)
+      if(str>0 && str<20){
+        item.memory_free.value="2"
+      }else if(str>=20 && str<40){
+        item.memory_free.value="4"
+      }else if(str>=40 && str<60){
+        item.memory_free.value="6"
+      }else if(str>=60 && str<80){
+        item.memory_free.value="8"
+      }
+      return item.memory_free.value
+      }      
+      let requestData=rst.map((item:any)=>{
+        item.terms.buchets
+      })
+      
+    })
+  }
+}
+onMounted(()=>{
+  querys()
+  query()
+
+})
+const formState = reactive({} as FormState);
+const options=ref([
+  {label:"Last 30 minutes",value:"Last 30 minutes"  },
+  {label:"Last 1 hour",value:"Last 1 hours"},
+  {label:"Last 24 hour",value:"Last 24 hours"},
+  {label:"Last 7 day",value:"Last 7 days"},
+  {label:"Last 30 day",value:"Last 30 days"},
+])
+const choseData=ref("")
+const datachange=async (value:string)=>{  
+  choseData.value=value
+  if(value=="Last 30 minutes"){
+    search.start=timeFormat(endDate,30,"minutes")
+    search.interval='1m'
+    // search.interval=
+  }else if(value=="Last 1 hours"){
+    search.start=timeFormat(endDate,1,"hours")
+    search.interval="1m"
+  }else if(value=="Last 24 hours"){
+    search.start=timeFormat(endDate,24,"hours")
+    search.interval="1h"
+  }else if(value=="Last 7 days"){
+    search.start=timeFormat(endDate,7,"days")
+    search.interval="1d"
+  }else if(value=="Last 30 days"){
+    search.start=timeFormat(endDate,30,"days")
+    search.interval="1d"
+  }
+  await query()
+}
+
+
+
+// console.log(timeFormat(endDate,7,"days"));
 let 	minutes = endDate.getMinutes()
   minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
-const search={
+const searchs={
   start:timeFormat(endDate,7,"hours"),
   end:endDate.toISOString(),
   interval:'1h',
@@ -144,8 +270,8 @@ const prev = () => {
 };
 
 // 需要的参数 start   end   interval（x轴时间间隔）
-async function query(){
-  let rst=await request.post(dashboradUrl,search)
+async function querys(){
+  let rst=await request.post(dashboradUrl,searchs)
 
   try {
     // let res = await request.get(`/api/statistics`)
@@ -177,21 +303,6 @@ onMounted(()=>{
   query()
 })
 
-const options=ref([
-  {label:"Last 30 minutes",value:"Last 30 minutes"  },
-  {label:"Last 1 hour",value:"Last 1 hour"},
-  {label:"Last 24 hour",value:"Last 24 hour"},
-  {label:"Last 7 day",value:"Last 7 day"},
-  {label:"Last 30 day",value:"Last 30 day"},
-])
-const choseData=ref("")
-const datachange=(value:string)=>{
-  choseData.value=value
-  if(value=="today"){
-    // search.start=timeFormat(24)
-    // search.interval=
-  }
-}
 
 
 
@@ -200,7 +311,7 @@ const datachange=(value:string)=>{
 
 <template>
   <section class="block shadow flex-start" style="width: 100%; height: 100%; color: var(--gray); flex-direction: column;" >
-    <a-row style="width:100%; height:50%">
+    <a-row style="width:100%; height: 55%;">
       <div class="steps-div">
         <h2>使用向导</h2>
         <a-steps v-model:current="current">
@@ -255,11 +366,24 @@ const datachange=(value:string)=>{
 
       </a-col>
     </a-row>
-    <a-row style="height:32%;display: flex; justify-content: space-between;margin-top: 1.25rem;">
-      <a-col :span="10" style="backgroundColor:origin ; border:1px solid red">
-        <echarts-model :sendtime="search.start"></echarts-model>
+    <a-row style="height:32%;display: flex; justify-content: space-between;margin-top: 20px;">
+      <a-col :span="7" style=" ">
+        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+          :sendXdata="sendXdata"
+          :cpuData="cpuData"
+          :chartstype="cpuCharts"
+          ></echarts-model>
       </a-col>
-      <a-col :span="10" style="backgroundColor:origin">Line Chart2</a-col>
+      <a-col :span="7" >
+        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+          :sendXdata="sendXdata"
+          :cpuData="memory"
+          :chartstype="memorycharts"
+          ></echarts-model>
+      </a-col>
+      <a-col :span="7">
+          <request-data></request-data>
+      </a-col>
     </a-row>
 
   </section>
@@ -268,25 +392,25 @@ const datachange=(value:string)=>{
 <style>
 .steps-div{
   width:100%;
-  padding: 30px 20px 0px 20px;
+  padding: 1.875rem 1.25rem 0rem 1.25rem;
 }
 .steps-content {
-  margin-top: 16px;
-  border: 1px dashed #e9e9e9;
-  border-radius: 6px;
+  margin-top: 1rem;
+  border: .0625rem dashed #e9e9e9;
+  border-radius: .375rem;
   background-color: #fafafa;
   height: 300px;
   /*text-align: center;*/
-  padding: 20px 20px 20px 50px;
+  padding: 1.25rem 1.25rem 1.25rem 3.125rem;
 }
 
 .steps-action {
-  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 #left{float:left;}
 #right{float:right;}
 [data-theme='dark'] .steps-content {
   background-color: #2f2f2f;
-  border: 1px dashed #404040;
+  border: .0625rem dashed #404040;
 }
 </style>

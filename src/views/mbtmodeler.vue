@@ -284,21 +284,25 @@ const columns = reactive<Object[]>([
     name: "Name",
     dataIndex: "name",
     key: "name",
+    width:80
   },
   {
     title: "description",
     dataIndex: "description",
     key: "description",
+    width:80
   },
   {
     title: "template",
     dataIndex: "template",
     key: "template",
+    width:80
   },
   {
     title: "tags",
     dataIndex: "tags",
     key: "tags",
+    width:80
   },
 ]);
 
@@ -552,6 +556,7 @@ const awschema = ref({
     template: {
       title: "Template",
       type: "string",
+      readOnly: true,
     },
     tags: {
       title: "Tags",
@@ -587,12 +592,14 @@ const linkschema = ref({
     routerType: {
       type: "string",
       title: "Style",
+      default:"normal",
       enum: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
       enumNames: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
     },
     connectorType: {
       type: "string",
       title: "Type",
+      default:"curve",
       enum: ["jumpover", "normal", "rounded", "smooth", "curve"],
       enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
     },
@@ -857,7 +864,12 @@ function globalhandlerSubmit() {
 function linkhandlerSubmit() {
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
-  linkFormData.label = linkData.value.label;
+  if(linkData.value.label){
+    linkFormData.label = linkData.value.label;
+  }else{
+    linkFormData.label="undefined"
+  }
+  
   linkFormData.ruleData = rulesData.value;
   // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
@@ -1820,10 +1832,13 @@ const handleDirectInput = (data:any) => {
 const handleStaticTable = (data:any) => {
   // console.log('get data from static children',data  )
   let tempObj = {};
+  
+  
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'static_template'})
   cacheDataDefinition.data = tempObj;
+  console.log(tempObj);
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   if(data){
     condataName.value=data.tableColumns
@@ -1952,9 +1967,9 @@ function selectvalue(value:any){
 // 解决括号链接
 const conditionstr=(arr:any)=>{
   let ifcondition=null
-  if(arr[arr.length-1].value){
+  // if(arr[arr.length-1].value){
         // delete arr[arr.length-1].selectvalues  
-  }
+  // }
   ifcondition=arr.map((item:any)=>{
     if(item.operator=='='){item.operator="=="}
       if(item.selectvalues){
@@ -1976,18 +1991,6 @@ watch(rulesData,(newvalue:any)=>{
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
-
-// 点击保存把当前的条件编辑添加到表格
-// const saveConditional=()=>{
-//   if(rulesData.value[0].conditions.length>1){
-//     console.log(ifdata(rulesData.value));
-    
-//     linkData.value.label=ifdata(rulesData.value)!
-//     console.log(linkData.value.label,linkFormData);
-    
-//   }
-//   // showAddConditional.value=false
-// }
 
 </script>
 
@@ -2097,7 +2100,7 @@ watch(rulesData,(newvalue:any)=>{
                       row-key="record=>record._id"
                       :columns="columns"
                       :data-source="tableData"
-                      class="components-table-demo-nested"
+                      class="components-table-demo-nested "
                       :pagination="pagination"
                     >
                       <template #headerCell="{ column }">
@@ -2606,5 +2609,62 @@ header {
 
 .ant-form-horizontal .ant-form-item-label {
   width: 30% !important;
+}
+
+</style>
+<style lang="less">
+.__pathRoot_name{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+  .ant-form-item-control{
+    .ant-form-item-control-input{
+    .ant-form-item-control-input-content{
+      #form_item_description{
+        color: rgba(0, 0, 0, 0.25) !important;
+        background-color: #f5f5f5 !important;;
+        border-color: #d9d9d9 !important;;
+        box-shadow: none !important;;
+        cursor: not-allowed !important;;
+        opacity: 1 !important;;
+      }
+    }
+  }
+  }
+}
+.__pathRoot_description{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+}
+.__pathRoot_template{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+}
+.__pathRoot_tags{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
 }
 </style>
