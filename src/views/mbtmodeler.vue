@@ -7,7 +7,7 @@ import templateTable from '@/components/templateTable.vue';
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
 import type { Ref } from "vue";
 import { useRoute } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
@@ -20,6 +20,7 @@ import {
   SearchOutlined,
   MinusCircleOutlined,
   PlusCircleOutlined,
+  PlusSquareFilled
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
@@ -54,7 +55,9 @@ import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
-import { array } from "vue-types";
+import { array, func } from "vue-types";
+import CreateRule from "@/components/CreateRule.vue"
+import { propsToAttrMap } from "@vue/shared";
 
 window.joint = joint;
 
@@ -106,6 +109,7 @@ const awformProps = {
   labelWidth: "75px",
   labelSuffix: ":",
 };
+
 /// save data to localstorage, and send to backend as modelDefinition
 interface modelDefinition {
   cellsInfo?: {
@@ -280,21 +284,25 @@ const columns = reactive<Object[]>([
     name: "Name",
     dataIndex: "name",
     key: "name",
+    width:80
   },
   {
     title: "description",
     dataIndex: "description",
     key: "description",
+    width:80
   },
   {
     title: "template",
     dataIndex: "template",
     key: "template",
+    width:80
   },
   {
     title: "tags",
     dataIndex: "tags",
     key: "tags",
+    width:80
   },
 ]);
 
@@ -437,7 +445,8 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
  * Panel --Json schema forms
  */
  let tableDataDirectInput = ref([]);
- let tableColumnsDirectInput = ref([])
+ let 
+ tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
@@ -451,24 +460,30 @@ let linkData = ref({
   label: "",
   routerType: "manhattan",
   connectorType: "rounded",
-  loop: false,
-  loopcount: 1,
+  editable:"false",
+  ruleData:[]
+  // loop: false,
+  // loopcount: 1,
 });
 interface LinkFormData {
+ruleData: any[];
   _id: string;
   label: string;
-  loop?: boolean;
-  loopcount?: number;
+  editable:boolean;
+  // loop?: boolean;
+  // loopcount?: number;
   connectorType?: string;
   routerType?: string;
 }
 let linkFormData: LinkFormData = {
-  _id: "",
-  label: "",
-  loop: false,
-  loopcount: 1,
-  connectorType: "rounded",
-  routerType: "manhattan",
+_id: "",
+label: "",
+editable: false,
+// loop: false,
+// loopcount: 1,
+connectorType: "rounded",
+routerType: "manhattan",
+ruleData: []
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
@@ -541,6 +556,7 @@ const awschema = ref({
     template: {
       title: "Template",
       type: "string",
+      readOnly: true,
     },
     tags: {
       title: "Tags",
@@ -554,8 +570,15 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
+  
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
+const uischema={
+  label: {
+                  // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
+                  'ui:widget': CreateRule,
+              }
+}
 const linkschema = ref({
   title: "LINK",
   description: "Configuration for Link",
@@ -569,33 +592,29 @@ const linkschema = ref({
     routerType: {
       type: "string",
       title: "Style",
+      default:"normal",
       enum: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
       enumNames: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
     },
     connectorType: {
       type: "string",
       title: "Type",
+      default:"curve",
       enum: ["jumpover", "normal", "rounded", "smooth", "curve"],
       enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
     },
     label: {
       title: "Condition",
       type: "string",
+      // default:condition
+      // readOnly: true,
       // "ui:hidden": "{{parentFormData.loop === true}}"
+      // "ui:widget": CreateRule,
     },
-    loop: {
-      type: "boolean",
-      title: "Loop",
-      default: false,
-    },
-    loopcount: {
-      title: "Loop count",
-      type: "integer",
-      minimum: 1,
-      "ui:hidden": "{{parentFormData.loop === false}}",
-    },
+    
   },
 });
+
 const onExpectedAW = () => {
   awActiveKey.value = "2";
   isDisabled.value = false;
@@ -845,51 +864,56 @@ function globalhandlerSubmit() {
 function linkhandlerSubmit() {
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
-  linkFormData.label = linkData.value.label;
-  linkFormData.loop = linkData.value.loop;
-  linkFormData.loopcount = linkData.value.loopcount;
+  if(linkData.value.label){
+    linkFormData.label = linkData.value.label;
+  }else{
+    linkFormData.label="undefined"
+  }
+  
+  linkFormData.ruleData = rulesData.value;
+  // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
-  // console.log(linkData.value.routerType);
+  console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
-  let loopcount1 = linkData.value.loopcount;
+  // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
     break;
   }
-  if (linkFormData.loop == true) {
+  // if (linkFormData.loop == true) {
     modeler.graph.getCell(lv_id).appendLabel({
       attrs: {
         text: {
-          text: linkFormData.label + ` Loop : ${loopcount1}`,
+          text: linkFormData.label,
         },
       },
     });
-    modeler.graph.getCell(lv_id).attr("line/stroke", "red");
-    linkFormData.label += ` Loop : ${loopcount1}`;
-  } else {
-    if (typeof linkFormData.label == "undefined") linkFormData.label = "";
-    modeler.graph.getCell(lv_id).appendLabel({
-      attrs: {
-        text: {
-          text: linkFormData.label || "",
-        },
-      },
-    });
-    modeler.graph.getCell(lv_id).attr("line/stroke", "black");
-  }
+  //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
+  //   linkFormData.label += ` Loop : ${loopcount1}`;
+  // } else {
+  //   if (typeof linkFormData.label == "undefined") linkFormData.label = "";
+  //   modeler.graph.getCell(lv_id).appendLabel({
+  //     attrs: {
+  //       text: {
+  //         text: linkFormData.label || "",
+  //       },
+  //     },
+  //   });
+  //   modeler.graph.getCell(lv_id).attr("line/stroke", "black");
+  // }
   let tempObj = {};
   Object.assign(tempObj, { _id: linkFormData._id });
   Object.assign(tempObj, { label: linkFormData.label });
-  Object.assign(tempObj, { loop: linkFormData.loop });
-  Object.assign(tempObj, { loopcount: linkFormData.loopcount });
+  Object.assign(tempObj, { ruleData: linkFormData.ruleData });
+  // Object.assign(tempObj, { loopcount: linkFormData.loopcount });
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
-  message.success("Save it Successfully");
+  // message.success("Save it Successfully");
 }
 
 function handlerEditExpected() {
@@ -942,6 +966,28 @@ let toReload = ref(false);
  * Without id, the response is an array of object
  * If reload is true, it will fetch AW info from backend
  */
+ let condataName=ref([])
+ let conditionalValue=ref([])
+//  let showAddConditional=ref(false)
+ function valueOption(arr:any){
+  let newarr=Object.keys(arr[0])
+  let setarr=newarr.map((item: any)=>({name:item,type:"",values:[]}))
+  arr.forEach((item: any,index: any)=>{
+  let keys=Object.keys(arr[0])
+  if(keys){
+    
+    setarr.forEach((tureitem: {type: string; name: string; values: any[];},i: any)=>{
+      // console.log(keys[i]);
+      if(tureitem.name==keys[i]){
+        tureitem.type=typeof item[keys[i]]
+        tureitem.values.push(item[keys[i]])
+      }
+      tureitem.values=[...new Set(tureitem.values)]
+    })
+  }
+})
+return setarr
+ }
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -995,8 +1041,22 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       })
       .catch((err) => console.log(err));
   } else if (id) {
+
+    // 后台请求数据地方
     rst = await request.get(url + "/" + id);
-    // console.log('id query:', id, rst)
+    console.log(rst);
+    
+    if(rst && rst.dataDefinition && rst.dataDefinition.data){
+      if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
+        // showAddConditional.value=true
+      condataName.value=rst.dataDefinition?.data.tableColumns
+      conditionalValue.value=rst.dataDefinition?.data.tableData
+      console.log(condataName.value,conditionalValue.value);
+      
+    }
+    }
+    
+    // condataName.value=rst.dataDefinition?.data.tableData
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
       mbtCache = rst;
@@ -1046,7 +1106,7 @@ let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
 
-function saveMBT(route?: any) {
+async function saveMBT(route?: any) {
   let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
 
   let tempdata: modelDefinition = {};
@@ -1065,6 +1125,7 @@ function saveMBT(route?: any) {
           attrs: {
             text: {
               text: cacheprops.get(item.id).props.label,
+              ruleData:cacheprops.get(item.id).props.ruleData,
             },
           },
         });
@@ -1092,8 +1153,9 @@ function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
-
-  updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
+  console.log(mbtCache);
+  
+  await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
   message.success("Save MBT model successfully");
 }
 
@@ -1284,12 +1346,15 @@ onMounted(() => {
    * Drag & Drop stencil to modeler paper
    */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
+    
+    
     let aw = "";
     let cellid = ""; //element ID
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
     let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
+    
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1297,6 +1362,7 @@ onMounted(() => {
       cellViewNamespace: namespace,
     });
     let flyShape = cellView.model!.clone();
+    
     let pos = cellView.model!.position();
     let offset = {
       x: x - pos.x,
@@ -1337,6 +1403,7 @@ onMounted(() => {
           cellid = s.id + "";
         }
       }
+      console.log("e",flyShape);
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
@@ -1348,15 +1415,30 @@ onMounted(() => {
    *  When click the element/link/blank, show the propsPanel
    */
 
-  modeler.paper.on("link:pointerdblclick", function (linkView: any) {
+  modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
+    // 判断是否选择了模板，没选择则不打开link
+    console.log(stencil,modeler);
+    
+    
     lv_id = linkView.model.id + "";
-
+    // await queryName()
     isAW.value = false;
     isLink.value = true;
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
       let templinkData = cacheprops.get(linkView.model.id);
+      console.log(templinkData);
       linkData.value = templinkData.props;
+    
+      if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
+        rulesData.value=templinkData.props.ruleData
+      }
+      
+      
+      if(linkData.value.editable){
+
+      }
+      // linkData.value.label=condition
       currentLinkMap.set(lv_id, { props: templinkData });
 
       linkData.value._id = linkView.model.id;
@@ -1714,6 +1796,10 @@ const handleDynamicTable = (data:any) => {
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'dynamic_template'})
   cacheDataDefinition.data = tempObj;
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
@@ -1735,6 +1821,10 @@ const handleDirectInput = (data:any) => {
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'direct_input'})
   cacheDataDefinition.data = tempObj;
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
@@ -1742,11 +1832,18 @@ const handleDirectInput = (data:any) => {
 const handleStaticTable = (data:any) => {
   // console.log('get data from static children',data  )
   let tempObj = {};
+  
+  
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'static_template'})
   cacheDataDefinition.data = tempObj;
+  console.log(tempObj);
   // console.log('cachedDatadifinition:',cacheDataDefinition)
+  if(data){
+    condataName.value=data.tableColumns
+    conditionalValue.value=data.tableData
+  }
   onCloseDrawer();
   message.success("Save config Successfully");
 };
@@ -1762,6 +1859,139 @@ const submitTemplate= (data:any)=>{
   onCloseDrawer();
   message.success("Save config Successfully");
 }
+
+
+//Display Condition Edit Component
+
+let ifNameOpetions=computed(()=>{
+  return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
+})
+let childvalue=computed(()=>{
+  console.log(conditionalValue.value);
+  
+  if(conditionalValue.value.length>0){
+    // showAddConditional.value=true
+    return valueOption(conditionalValue.value)
+    
+  }else{
+    // return showAddConditional.value=false
+  }
+  
+})
+// 表格的数据
+let conditionalDatasource=ref<any>([])
+
+// 传递子组件的数据
+const keys=ref<any>()
+let formDatas=ifNameOpetions
+const valueData=childvalue
+let childrelation="AND"
+let childselectvalue=childrelation
+const rulesData=ref(
+  [//初始化条件对象或者，已保存的条件对象
+      {relation:childrelation,
+      id:1,
+      conditions:[{
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }],
+      children:[]}
+  ]
+)
+const rulesChange=(datas: any,key:string)=>{
+    rulesData.value=datas//输出的条件对象 
+}
+// 递归改变if结构
+function ifdata(arr:any){
+  let finditem=null
+  for(let i=0;i<arr.length;i++){
+    let item=arr[i]
+    // if(item.children.length==0){
+    //   item.relation=""
+    // }
+    if(item.relation=="AND"){item.relation="&&"}
+    if(item.relation=="OR"){item.relation="||"}
+    if(item.conditions.length>1){
+      // finditem='('+conditionstr(item.conditions)+')'+' '+item.relation+' '
+      finditem=`(${conditionstr(item.conditions)}) ${item.relation} `
+    }else{
+      // finditem=conditionstr(item.conditions)+' '+item.relation
+      finditem=`${conditionstr(item.conditions)} ${item.relation} `
+    }
+    if(item.children.length>0){      
+      finditem+=ifdata(item.children)
+      // if
+    }else{
+      break
+    }
+    
+  }
+  if(finditem!=null){
+    let findlength=finditem.length
+      if(finditem.substring(findlength-3,findlength)=="&& " || finditem.substring(findlength-3,findlength)=="|| "){
+        finditem= finditem.substring(0,findlength-3)
+      }
+
+    return finditem
+  }
+  
+}
+function selectvalue(value:any){
+  let values=null
+    if(Array.isArray(value)){
+      if(value.length>1){
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+        let newvalue=value.map((strArr:any)=>[strArr])
+         values=`{${JSON.stringify(newvalue).substring(1,JSON.stringify(newvalue).length-1).replace(/"/g,"")}}`
+      }else{
+         values=`{${JSON.stringify(value).replace("[","").replace("]","")}}`
+      }
+      }else{
+        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
+           values=JSON.stringify(value).replaceAll('"',"")
+        }else{
+           values=JSON.stringify(value).replace("[","").replace("]","")
+        }
+      }
+    }else{
+      if(JSON.stringify(ifNameOpetions.value).includes(value)){
+        values=`[${value}]`
+      }else{
+        values=JSON.stringify(value)
+      }
+    }
+    return values
+}
+// 解决括号链接
+const conditionstr=(arr:any)=>{
+  let ifcondition=null
+  // if(arr[arr.length-1].value){
+        // delete arr[arr.length-1].selectvalues  
+  // }
+  ifcondition=arr.map((item:any)=>{
+    if(item.operator=='='){item.operator="=="}
+      if(item.selectvalues){
+        if(item.selectvalues=="AND"){item.selectvalues="&&"}
+        if(item.selectvalues=="OR"){item.selectvalues="||"}
+        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${item.selectvalues} `
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      }else{
+        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
+        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `
+      }    
+  })
+ 
+  
+  return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
+}
+watch(rulesData,(newvalue:any)=>{
+  if(rulesData.value.length>0){
+    linkData.value.label=ifdata(newvalue)!
+  }
+},{deep:true,immediate: true})
+
 </script>
 
 <template>
@@ -1870,7 +2100,7 @@ const submitTemplate= (data:any)=>{
                       row-key="record=>record._id"
                       :columns="columns"
                       :data-source="tableData"
-                      class="components-table-demo-nested"
+                      class="components-table-demo-nested "
                       :pagination="pagination"
                     >
                       <template #headerCell="{ column }">
@@ -2097,7 +2327,6 @@ const submitTemplate= (data:any)=>{
                         >
                           <a-button danger>Clear</a-button>
                         </a-popconfirm>
-                        <!-- <a-button danger @click="handlerClearExpected()">Clear</a-button> -->
                       </span>
                     </div>
                   </VueForm>
@@ -2116,7 +2345,22 @@ const submitTemplate= (data:any)=>{
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-              </VueForm>
+              <div slot-scope="{linkData}">
+                <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+              <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
+              <div style="margin-top:1.625rem">
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
+              <a-button @click="onCloseDrawer">cancel</a-button>
+              </div>
+              </div>
+             
+              
+              
+            </VueForm>
+              <!-- <div v-if="showAddFactorBtn=false"> -->
+              
+            <!-- </div> -->
+
             </div>
           </div>
 
@@ -2192,7 +2436,7 @@ const submitTemplate= (data:any)=>{
                 <a-button
                   class="editable-add-btn"
                   style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
+                  @click=" "
                   >Add
                 </a-button>
                 <a-table
@@ -2365,5 +2609,62 @@ header {
 
 .ant-form-horizontal .ant-form-item-label {
   width: 30% !important;
+}
+
+</style>
+<style lang="less">
+.__pathRoot_name{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+  .ant-form-item-control{
+    .ant-form-item-control-input{
+    .ant-form-item-control-input-content{
+      #form_item_description{
+        color: rgba(0, 0, 0, 0.25) !important;
+        background-color: #f5f5f5 !important;;
+        border-color: #d9d9d9 !important;;
+        box-shadow: none !important;;
+        cursor: not-allowed !important;;
+        opacity: 1 !important;;
+      }
+    }
+  }
+  }
+}
+.__pathRoot_description{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+}
+.__pathRoot_template{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
+}
+.__pathRoot_tags{
+  .ant-form-item-label{
+    .ant-form-item-no-colon{
+      span{
+        color: red !important;
+      }
+    }
+    
+  }
 }
 </style>

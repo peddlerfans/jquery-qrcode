@@ -16,7 +16,9 @@ import {
 import { LineChart, LineSeriesOption } from 'echarts/charts';
 import { UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref,watch } from 'vue';
+import { computed } from '@vue/reactivity';
+import { any, string } from 'vue-types';
 
 echarts.use([
   TitleComponent,
@@ -38,47 +40,61 @@ type EChartsOption = echarts.ComposeOption<
   | LineSeriesOption
 >;
 onMounted(()=>{
-  // () => {
-  //   init()    
-  // }  
   let myChart = echarts.init(main.value);
-  myChart.setOption(option);
+  myChart.setOption(option,true);
   window.onresize = function () {
     myChart.resize()
       }
+}) 
+// const props=defineProps(["sendXdata","cpuData","memory"])
+// const titleData:any=computed(()=>{
+//   if(props.chartstype=="cpucharts"){
+//     return "cpu"
+//   }else{
+//     return "memory"
+//   }
+// })
+const props=defineProps({
+  sendXdata:{
+    type:Array<any>,
 
+  },
+  cpuData:{
+    type:Array<any>
+  },
+  chartstype:{
+    type:String
+  }
 })
+let Xdata:any=ref([])
+watch(() => props.sendXdata,(newval:any)=>{
+  Xdata.value=newval
+  
+  
+},{deep:true,immediate:true})
+console.log(Xdata.value);
+
+
 // 获取div的dom
 let main=ref()
 let option: EChartsOption;
-let base = +new Date(1988, 9, 3);
-let oneDay = 24 * 3600 * 1000;
-
-let data = [[base, Math.random() * 300]];
-
-for (let i = 1; i < 20000; i++) {
-  let now = new Date((base += oneDay));
-  data.push([+now, Math.round((Math.random() - 0.5) * 20 + data[i - 1][1])]);
-}
+const colors = ['#5470C6', '#EE6666'];
 
 option = {
-  tooltip: {
-    trigger: 'axis',
-    position: function (pt) {
-      return [pt[0], '10%'];
-    }
-  },
-  grid:{
-    top:50,
-    left:38,
-    right:2
-  },
+  color: colors,
   title: {
     left: 'left',
-    text: 'EChart',
-    textStyle: {
-      fontSize: 15
-    },
+    text: "titleData",
+    textStyle:{
+      fontWeight:500,
+      fontSize:14
+    }
+  },
+  tooltip: {
+    trigger: 'none',
+    axisPointer: {
+      type: 'cross'
+    }
   },
   toolbox: {
     feature: {
@@ -87,39 +103,79 @@ option = {
       },
       restore: {},
       saveAsImage: {}
-    },
-    itemSize: 13
-  },
-  xAxis: {
-    type: 'time',
-    boundaryGap: false
-  },
-  yAxis: {
-    type: 'value',
-    boundaryGap: [0, '100%']
+    }
   },
   dataZoom: [
     {
       type: 'inside',
       start: 0,
-      end: 20
+      end: 20,
+      top:100
     },
     {
       start: 0,
       end: 20
     }
   ],
+  // legend: {},
+  grid: {
+    top: 70,
+    bottom: 70
+  },
+  xAxis: [
+    {
+      type: 'category',
+      // axisTick: {
+      //   alignWithLabel: true
+      // },
+      axisLine: {
+        onZero: false,
+        lineStyle: {
+          color: colors[1]
+        }
+      },
+      axisPointer: {
+        label: {
+          formatter: function (params: any) {
+            if(props.chartstype=="cpucharts"){
+              return (
+              'cpu ' +
+              params.value +
+              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+            )
+            }else{
+              return (
+              'memory ' +
+              params.value +
+              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+            );
+            }
+            
+          }
+        }
+      },
+      // prettier-ignore
+      data: Xdata.value 
+    },
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
   series: [
     {
-      name: 'Fake Data',
+      name: 'cpu',
       type: 'line',
-      smooth: true,
-      symbol: 'none',
-      areaStyle: {},
-      data: data
+      // smooth: true,
+      emphasis: {
+        focus: 'series'
+      },
+      data: props.cpuData
     }
   ]
 };
+
 // function init(){
   // let myChart = echarts.init(main.value);
 
