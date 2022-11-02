@@ -13,6 +13,7 @@ import {
 } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import request from '@/utils/request';
+import {data as sample} from './componentTS/sampleData';
 import {
   templateUrl
 } from '@/appConfig'
@@ -25,7 +26,7 @@ import type {
 import {
   EditFilled,
   CodeFilled,
-  DoubleRightOutlined
+  UploadOutlined
 } from '@ant-design/icons-vue';
 import {
   message,
@@ -37,18 +38,11 @@ import {
   AceEditor, AceState,
   Model, ModelState,
 } from "./componentTS/codegen";
-import { purple } from '@ant-design/colors';
-
+import dayjs from 'dayjs';
+import {SHA256} from 'crypto-js';
 import { VAceEditor } from 'vue3-ace-editor';
-// import { VAceEditor } from '@/components/AceEditor';
 
 import "./componentTS/ace-config";
-// import 'ace-builds/src-noconflict/mode-ejs'
-// import 'ace-builds/src-noconflict/mode-html'
-// import 'ace-builds/src-noconflict/mode-python'
-// import 'ace-builds/src-noconflict/mode-javascript'
-// import 'ace-builds/src-noconflict/mode-json'
-// import 'ace-builds/src-noconflict/mode-ftl'
 
 
 
@@ -58,6 +52,21 @@ let url = templateUrl;
 let route = useRoute()
 let finalResult: any;
 let modelId: any;
+
+let modelState = reactive<Model>({
+  _id: '',
+  name: '',
+  category: 'codegen',
+  description: '',
+  tags: [],
+  model: {
+    templateEngine: "ejs",
+    outputLanguage: "python",
+    data: "",
+    history: []
+  },
+  templateText: "",
+});
 
 sessionStorage.setItem('codegen_' + route.params._id, String(route.params._id))
 // 获取当前数据并赋值
@@ -96,6 +105,18 @@ const templateOptions = ref<SelectProps['options']>([
     label: 'FreeMarker',
   }
 ]);
+
+const templateName=<any>{
+  ejs: 'EJS',
+  ftl: 'FreeMarker'
+}
+const langName=<any>{
+  python: 'Python',
+  java: 'JAVA',
+  javascript: 'JavaScript',
+  yaml: 'YAML'
+}
+
 const langOptions = ref<SelectProps['options']>([
   {
     value: 'python',
@@ -125,290 +146,19 @@ const themeOptions = ref<SelectProps['options']>([
   },
 ]);
 
-let sample={
-  "data": [
-    {
-      "data": "在线视频播放并录制",
-      "params": {
-        "data": "{{url}} "
-      },
-      "apiData": {
-        "doc": "在线视频播放并录制",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          },
-          {
-            "name": "data"
-          }
-        ],
-        "name": "OnlineVideoReplay",
-        "file": "videoTest"
-      }
-    },
-    {
-      "data": "检查视频播放流畅、不卡顿",
-      "params": null,
-      "apiData": {
-        "doc": "检查视频播放流畅、不卡顿",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          }
-        ],
-        "name": "checkVideoQuality",
-        "file": "videoTest"
-      }
-    },
-    {
-      "data": "视频不花屏",
-      "params": null,
-      "apiData": {
-        "doc": "视频不花屏",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          }
-        ],
-        "name": "VerifyVideoReplay",
-        "file": "demo_mm_video"
-      }
-    },
-    {
-      "data": "视频快进",
-      "params": null,
-      "apiData": {
-        "doc": "视频快进",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          },
-          {
-            "name": "progress",
-            "type": "float"
-          }
-        ],
-        "name": "VideoMoveForward",
-        "file": "demo_mm_video"
-      }
-    },
-    {
-      "data": "视频快退",
-      "params": null,
-      "apiData": {
-        "doc": "视频快退",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          }
-        ],
-        "name": "VideoMoveBack",
-        "file": "demo_mm_video"
-      }
-    },
-    {
-      "data": "视频不花屏",
-      "params": null,
-      "apiData": {
-        "doc": "视频不花屏",
-        "args": [
-          {
-            "name": "client",
-            "type": "Android"
-          }
-        ],
-        "name": "VerifyVideoReplay",
-        "file": "demo_mm_video"
-      }
-    }
-  ],
-  "currentData": {
-    "videotype": "在线视频",
-    "fps": "60",
-    "description": "video",
-    "typeformat": "3GP/3G2+H.263",
-    "id": "002",
-    "resolution": "480x854",
-    "url": "{{DS.MultiMedia.videos.video_2k}}"
-  },
-  "resources": [
-    {
-      "default": "true",
-      "alias": "client1",
-      "class": "Android",
-      "resourceType": "ITEADemo.android"
-    },
-    {
-      "default": "false",
-      "alias": "phone2",
-      "class": "Android",
-      "resourceType": "ITEADemo.android"
-    },
-    {
-      "default": "false",
-      "alias": "phone3",
-      "class": "Android",
-      "resourceType": "ITEADemo.android"
-    }
-  ],
-  "meta": [
-    {
-      "title": "id",
-      "content": "oppo.test.android.video_quality_{{id}}"
-    },
-    {
-      "title": "description",
-      "content": "测试视频质量，视频帧速率{{fps}},分辨率为{{resolution}}"
-    },
-    {
-      "title": "objective",
-      "content": "播放帧速率{{fps}},分辨率为{{resolution}}视频不卡顿不花屏"
-    }
-  ],
-  "errors": [],
-  "prefix": ""
-}
 
-let sample2={
-  "data": [
-    {
-      "step": {
-        "input": {
-          "username": "{{username}}",
-          "passwd": "{{passwd}}"
-        },
-        "login_with_credential": {
-          "description": "用户登录",
-          "template": "用户登录输入{{username}}和{{password}}",
-          "params": [
-            {
-              "name": "username",
-              "type": "str"
-            },
-            {
-              "name": "passwd",
-              "type": "str"
-            }
-          ],
-          "name": "login_with_credential",
-          "path": "/login"
-        }
-      }
-    },
-    {
-      "step": {
-        "input": {
-          "isLoginSuccess": true
-        },
-        "login_redirect": {
-          "description": "用户登录成功后跳转",
-          "template": "用户登录成功后跳转{{redirctUrl}}",
-          "params": [
-            {
-              "name": "redirctUrl",
-              "type": "str"
-            }
-          ],
-          "name": "login_redirect",
-          "path": "/login/success"
-        }
-      },
-      "expection": {
-        "input": {
-          "routePath": "{{routePath}}"
-        },
-        "loading_page": {
-          "description": "加载页面",
-          "template": "加载页面{{routePath}}",
-          "params": [
-            {
-              "name": "routePath",
-              "type": "str"
-            }
-          ],
-          "name": "loading_page",
-          "path": "/login/success/routepath"
-        }
-      }
-    },
-    {
-      "step": {
-        "input": {
-          "isLoginSuccess": false
-        },
-        "login_failed": {
-          "description": "用户登录失败返回提示",
-          "template": "用户登录失败返回提示{{errorUrl}}",
-          "params": [
-            {
-              "name": "errorUrl",
-              "type": "str"
-            }
-          ],
-          "name": "login_failed",
-          "path": "/login/failed"
-        }
-      },
-      "expection": {
-        "input": {
-          "routePath": "{{routePath}}"
-        },
-        "loading_page": {
-          "description": "加载页面",
-          "template": "加载页面{{routePath}}",
-          "params": [
-            {
-              "name": "routePath",
-              "type": "str"
-            },
-            {
-              "name": "error_msg",
-              "type": "str"
-            }
-          ],
-          "name": "loading_page",
-          "path": "/login/failed/routepath"
-        }
-      }
-    }
-  ]
-}
 
 
 const states = reactive<AceState>({
-  theme: 'sqlserver',
+  theme: String(sessionStorage.getItem('codegen_theme') || 'sqlserver'),
   lang: 'json',
-  input: sample,
   result: '',
 });
 
-const inputData = ref<string>(JSON.stringify(states.input, null, 2))
-
-
-watch(inputData,(newValue,oldValue)=>{
-  states.input = JSON.parse(newValue)
-})
-
-let modelState = reactive<Model>({
-  _id: '',
-  name: '',
-  category: 'codegen',
-  description: '',
-  tags: [],
-  model: {
-    templateEngine: "ejs",
-    outputLanguage: "python"
-  },
-  templateText: "",
-});
 
 onMounted(() => {
   modelId = sessionStorage.getItem('codegen_' + route.params._id)
+
   if (modelId === null){
     message.error("Model cannot be found")
   }else{
@@ -420,12 +170,27 @@ async function query(id?: any) {
   try {
     let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
 
+    console.log('query')
+    // console.log(res)
+
     modelState._id = res._id
     modelState.name = res.name
     modelState.tags = res.tags
     modelState.description = res.description
     modelState.model = res.model
     modelState.templateText = res.templateText
+
+    if (modelState.model.data === '') {
+      modelState.model.data=sample
+    }
+
+    if (modelState.model.templateEngine === '') {
+      modelState.model.templateEngine='ejs'
+    }
+
+    if (modelState.model.outputLanguage === '') {
+      modelState.model.outputLanguage='python'
+    }
 
     if (modelState.model.templateEngine === 'freemarker'){
       modelState.model.templateEngine =  'ftl'
@@ -436,11 +201,42 @@ async function query(id?: any) {
     console.log(e)
   }
 
+  console.log("modelState.model.history")
+  console.log(modelState.model)
+
 }
 
 const aceTemplate = ref<AceEditor>();
 
 const saveModel = async () => {
+  sessionStorage.setItem('codegen_theme', String(states.theme))
+
+  if ( modelState.model.templateEngine.trim === ''){
+    message.warning("Please select a Template Engine")
+  }else if (modelState.model.outputLanguage.trim === ''){
+    message.warning("Please select a Output Language")
+  }
+
+  const currId=SHA256(String(modelState.templateText)).toString()
+
+  modelState.model.history = toRaw(modelState.model.history).filter(obj => obj.id!==currId)
+
+  modelState.model.history.unshift(
+      {
+        id:currId,
+        templateEngine: modelState.model.templateEngine,
+        outputLanguage: modelState.model.outputLanguage,
+        templateText: modelState.templateText,
+        data: toRaw(modelState.model.data),
+        time: dayjs().format('YYYY-MM-DD HH:mm:ss')
+      }
+  )
+
+  console.log("saveModel")
+  console.log(modelState)
+
+  if (modelState.model.history.length>10) modelState.model.history.splice(-1)
+
   if (modelState.templateText){
     const anno=aceTemplate.value?._editor.getSession()
 
@@ -450,21 +246,25 @@ const saveModel = async () => {
       }
 
       let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
-      states.result=res.data
+
     }catch (e){
-      message.success("Save failed!")
+      message.error("Save failed!")
     }
 
-    // message.success("Saved successfully!")
     anno.setAnnotations([])
 
     try {
-      let res = await request.post(url+`/${route.params._id}/preview`, states.input)
+      console.log("Preview "+route.params._id)
+      console.log(toRaw(modelState.model.data))
+      let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
+
+
       states.result=res.data
       message.success("Preview successful!")
 
     }catch (err:any){
       console.log("catch preview error: ")
+      console.log(err)
 
       let allErr=anno.getAnnotations()
 
@@ -490,15 +290,23 @@ const saveModel = async () => {
   }else{
     message.warning("Template engine cannot be null!")
   }
-
-
 }
+
+let inputData = ref<string>('')
+
+watch(inputData,(newValue,oldValue)=>{
+  modelState.model.data = JSON.parse(newValue)
+  console.log("##")
+  console.log(toRaw(modelState.model.data))
+})
 
 
 const visible = ref<boolean>(false);
 
 const showModal = () => {
   visible.value = true;
+
+  inputData.value=JSON.stringify(toRaw(modelState.model.data), null, 2)
 };
 
 const handleOk = (e: MouseEvent) => {
@@ -506,7 +314,43 @@ const handleOk = (e: MouseEvent) => {
   visible.value = false;
 };
 
+const columns = [ // Setup the header of columns
+  {
+    title: 'Time Stamp',
+    dataIndex: 'time',
+    key: 'time',
+    // width: 40
+  },
+  {
+    title: 'Template Engine',
+    dataIndex: 'template',
+    key: 'template',
+    // width: 120
+  },
+  {
+    title: 'Output Language',
+    dataIndex: 'output',
+    key: 'output',
+  },
+  {
+    title: 'Action',
+    dataIndex: 'action',
+    key: 'action',
+    // width: 100
+  },
 
+]
+
+const loadHistory = (e:any)=>{
+  modelState.templateText = e.templateText
+  modelState.model.templateEngine = e.templateEngine
+  modelState.model.outputLanguage = e.outputLanguage
+  modelState.model.data = e.data
+
+  message.success("Load successful")
+}
+
+const softwrap=true
 
 </script>
 
@@ -550,6 +394,7 @@ const handleOk = (e: MouseEvent) => {
             v-model:value="modelState.templateText"
             class="ace-template"
             ref="aceTemplate"
+            :wrap="softwrap"
             :lang="modelState.model.templateEngine"
             :theme="states.theme"
             :options="{ useWorker: true }"
@@ -564,6 +409,7 @@ const handleOk = (e: MouseEvent) => {
         <VAceEditor
             v-model:value="states.result"
             class="ace-result"
+            :wrap="softwrap"
             :readonly="true"
             :lang="modelState.model.outputLanguage"
             :theme="states.theme"
@@ -591,6 +437,34 @@ const handleOk = (e: MouseEvent) => {
         </template>
       </a-modal>
     </div>
+
+
+    <h2 style="margin-top:30px">History</h2>
+
+    <a-table :columns="columns" :data-source="modelState.model.history" bordered>
+      <template #bodyCell="{ column, text, record }">
+        <template v-if='column.key==="time"'>
+          <div>
+            {{ record.time}}
+          </div>
+        </template>
+        <template v-if='column.key==="template"'>
+          <div>
+            {{ templateName[record.templateEngine] }}
+          </div>
+        </template>
+        <template v-if="column.key === 'output'">
+          <div>
+            {{ langName[record.outputLanguage] }}
+          </div>
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <div class="editable-row-operations">
+            <a-button @click="loadHistory(record)"><upload-outlined /> Load</a-button>
+          </div>
+        </template>
+      </template>
+    </a-table>
 
   </main>
 </template>

@@ -74,7 +74,7 @@ interface ModelDefinition {
 }
 
 interface DataDefinition {
-    data:object,
+    data:any,
     meta:object,
     resources:object
 }
@@ -88,6 +88,14 @@ interface DynamicModel {
 declare module 'axios' {
     interface ResponseData<T> {
         // model(model: any): any;
+        hlfs?:number,
+        template_codegen?:number,
+        template_dynamic?:number,
+        template_meta?:number,
+        template_static?:number,
+        test_model?:number,
+        web_hook?:number,
+
         model?: any|any[],
         code: number,
         msg: string,

@@ -72,13 +72,22 @@ export default function ({ table, columns, pagination, updateTableOptions }:
       }
     }).then(res => {
       //original data structure res.data.data
-      let tempdata = res.data
-      let temptotal = res.total      
-      Object.assign(res.data,{data:tempdata})
-      Object.assign(res.data,{total:temptotal})
-      
-      _dataSource.value = res.data?.data      
-      _pagination.total = res.total
+      if(res.hasOwnProperty('data') && res.hasOwnProperty('total')){
+        let tempdata = res.data
+        let temptotal = res.total      
+        Object.assign(res.data,{data:tempdata})
+        Object.assign(res.data,{total:temptotal})
+        _dataSource.value = res.data?.data      
+        _pagination.total = res.total
+      }else{
+        let tempresult =[]
+        tempresult.push(res);
+        _dataSource.value = tempresult;
+        _pagination.total = 1;
+
+      }
+     
+
       
     }).catch(e=>{
       console.log('err:',e)

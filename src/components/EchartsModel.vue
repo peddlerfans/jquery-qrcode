@@ -38,47 +38,44 @@ type EChartsOption = echarts.ComposeOption<
   | LineSeriesOption
 >;
 onMounted(()=>{
-  // () => {
-  //   init()    
-  // }  
   let myChart = echarts.init(main.value);
   myChart.setOption(option);
   window.onresize = function () {
     myChart.resize()
       }
 
-})
+}) 
+
+function timeFormat(hour: number |string |any) {
+  let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000),
+    date = new Date(state),
+	minutes = date.getMinutes()
+  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
+  //转换格式
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
+}
+console.log(timeFormat(1) );
+
 // 获取div的dom
 let main=ref()
 let option: EChartsOption;
-let base = +new Date(1988, 9, 3);
-let oneDay = 24 * 3600 * 1000;
-
-let data = [[base, Math.random() * 300]];
-
-for (let i = 1; i < 20000; i++) {
-  let now = new Date((base += oneDay));
-  data.push([+now, Math.round((Math.random() - 0.5) * 20 + data[i - 1][1])]);
-}
+const colors = ['#5470C6', '#EE6666'];
 
 option = {
-  tooltip: {
-    trigger: 'axis',
-    position: function (pt) {
-      return [pt[0], '10%'];
-    }
-  },
-  grid:{
-    top:50,
-    left:38,
-    right:2
-  },
+  color: colors,
   title: {
     left: 'left',
-    text: 'EChart',
-    textStyle: {
-      fontSize: 15
-    },
+    text: 'Performance monitoring',
+    textStyle:{
+      fontWeight:500,
+      fontSize:14
+    }
+  },
+  tooltip: {
+    trigger: 'none',
+    axisPointer: {
+      type: 'cross'
+    }
   },
   toolbox: {
     feature: {
@@ -87,16 +84,7 @@ option = {
       },
       restore: {},
       saveAsImage: {}
-    },
-    itemSize: 13
-  },
-  xAxis: {
-    type: 'time',
-    boundaryGap: false
-  },
-  yAxis: {
-    type: 'value',
-    boundaryGap: [0, '100%']
+    }
   },
   dataZoom: [
     {
@@ -109,17 +97,96 @@ option = {
       end: 20
     }
   ],
+  // legend: {},
+  grid: {
+    top: 70,
+    bottom: 50
+  },
+  xAxis: [
+    {
+      type: 'category',
+      axisTick: {
+        alignWithLabel: true
+      },
+      axisLine: {
+        onZero: false,
+        lineStyle: {
+          color: colors[1]
+        }
+      },
+      axisPointer: {
+        label: {
+          formatter: function (params: any) {
+            return (
+              'Precipitation  ' +
+              params.value +
+              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+            );
+          }
+        }
+      },
+
+      // prettier-ignore
+      data: ['2016-1', '2016-2', '2016-3', '2016-4', '2016-5', '2016-6', '2016-7', '2016-8', '2016-9', '2016-10', '2016-11', '2016-12']
+    },
+    {
+      type: 'category',
+      axisTick: {
+        alignWithLabel: true
+      },
+      axisLine: {
+        onZero: false,
+        lineStyle: {
+          color: colors[0]
+        }
+      },
+      axisPointer: {
+        label: {
+          formatter: function (params: any) {
+            return (
+              'Precipitation  ' +
+              params.value +
+              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+            );
+          }
+        }
+      },
+
+      // prettier-ignore
+      data: ['2015-1', '2015-2', '2015-3', '2015-4', '2015-5', '2015-6', '2015-7', '2015-8', '2015-9', '2015-10', '2015-11', '2015-12']
+    }
+  ],
+  yAxis: [
+    {
+      type: 'value'
+    }
+  ],
   series: [
     {
-      name: 'Fake Data',
+      name: 'Precipitation(2015)',
+      type: 'line',
+      xAxisIndex: 1,
+      smooth: true,
+      emphasis: {
+        focus: 'series'
+      },
+      data: [        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
+      ]
+    },
+    {
+      name: 'Precipitation(2016)',
       type: 'line',
       smooth: true,
-      symbol: 'none',
-      areaStyle: {},
-      data: data
+      emphasis: {
+        focus: 'series'
+      },
+      data: [
+        3.9, 5.9, 11.1, 18.7, 48.3, 69.2, 231.6, 46.6, 55.4, 18.4, 10.3, 0.7
+      ]
     }
   ]
 };
+
 // function init(){
   // let myChart = echarts.init(main.value);
 
