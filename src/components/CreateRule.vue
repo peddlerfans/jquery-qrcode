@@ -200,12 +200,12 @@ function rulesChange(rulesData:any){
 const radiooption=[{label:'one',value:'a'},{label:'more',value:'b'}]
 const radiooptions=[{label:'params',value:'c'},{label:'value',value:'d'}]
 const checkrelation=(obj:any)=>{
-    if(obj=="AND"){
+    if(obj=="AND" || obj=="&&"){
         props.rulesData[0].relation="OR"
         selectvalue.value="OR"
         props.rulesData[0].conditions[0].selectvalues="OR"
         // childrelation=props.rulesData[0].relation
-    }else if(obj=="OR"){
+    }else if(obj=="OR" || obj=="||"){
         props.rulesData[0].relation="AND"
         selectvalue.value="AND"
         props.rulesData[0].conditions[0].selectvalues="AND"

@@ -80,6 +80,8 @@ function HandleSubmit() {
  */
 //Row adding record
 const editableData1: UnwrapRef<Record<string, any>> = reactive({});
+console.log(tableData.value);
+
 const addRow = () => {
   let colnames: any[] = [];
   if (dynamiccolumns && dynamiccolumns.value && _.isArray(dynamiccolumns.value)) {
@@ -89,7 +91,7 @@ const addRow = () => {
   } else if (typeof dynamiccolumns.value == "undefined") {
     dynamiccolumns.value = dynamicschema.value;
   }
-  let newData = {};
+  let newData = {key :""};
   let tempkey = "key";
 
   // colnames = _.remove(colnames,col=>{col.title=='action'});
@@ -111,6 +113,10 @@ const addRow = () => {
     tableData.value = tableDataOrigin.value as [];
   if (typeof tableData != "undefined" && typeof tableData.value != "undefined") {
     tableData.value.push(newData);
+    if("key" in newData){
+      editableData1[newData.key]=newData
+    }
+    
   }
 };
 
@@ -122,7 +128,7 @@ const delRow = (key: string) => {
 // 点击save a row
 const saveRow = (key: string) => {
   Object.assign(
-    tableData.value!.filter((item) => key === item.key)[0],
+    tableData.value!.filter((item) => key === item.key)[0], 
     editableData1[key]
   );
 
@@ -166,6 +172,7 @@ const addCol = () => {
   });
   dynamiccolumns.value.push(newcolumn);
   dynamiccolumns.value.push(actionColumn);
+  editableHeaderData[newcolumn.title]={...newcolumn}
 };
 
 function delCol(key: string) {
@@ -276,7 +283,7 @@ const saveCol = (key: string) => {
         </template>
       </a-table>
     </div>
-    <a-button type="primary" @click="HandleSubmit()">Save</a-button>
+    <a-button type="primary" @click="HandleSubmit()">Save1</a-button>
   </main>
 </template>
 
