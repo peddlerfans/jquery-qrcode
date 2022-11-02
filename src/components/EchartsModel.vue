@@ -40,7 +40,11 @@ type EChartsOption = echarts.ComposeOption<
   | LineSeriesOption
 >;
 onMounted(()=>{
- 
+  let myChart = echarts.init(main.value);
+  myChart.setOption(option,true);
+  window.onresize = function () {
+    myChart.resize()
+      }
 }) 
 // const props=defineProps(["sendXdata","cpuData","memory"])
 // const titleData:any=computed(()=>{
