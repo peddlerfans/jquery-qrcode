@@ -13,6 +13,7 @@ import '@/styles/index.postcss' // 全局样式
 import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
+import {i18n} from '@/locales'
 
 import {Form,Input,InputNumber,Button,Drawer,Switch,Slider,Select,SelectOption,Space,Radio} from 'ant-design-vue';
  
@@ -29,4 +30,5 @@ createApp(App).use(Form)
 .use(Slider)
 .use(Drawer)
 .use(Radio)
+.use(i18n)
 .use(createPinia()).use(router).mount('#app')
