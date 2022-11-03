@@ -151,7 +151,7 @@ function showTabMenu(e: MouseEvent, tab: RouteLocationNormalizedLoaded) {
           <SvgIcon v-if="typeof tab.meta.icon === 'string'" :icon-name="(tab.meta.icon as string)"></SvgIcon>
           <component v-else :is="tab.meta.icon"></component>
         </template>
-        <span style="margin: 0 5px">{{ $t(tab.meta.title as string) || '无标题' }}</span>
+        <span style="margin: 0 5px">{{ tab.meta.title || '无标题' }}</span>
         <CloseOutlined class="icon-tab-close" @click.prevent="closeTab(tab)" />
       </RouterLink>
     </div>

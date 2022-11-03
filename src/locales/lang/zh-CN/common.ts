@@ -5,15 +5,9 @@ export default {
   loadingText: '加载中...',
   saveText: '保存',
   delText: '删除',
-  configText: '设置',
-  editText: '编辑',
   resetText: '重置',
   searchText: '搜索',
   queryText: '查询',
-  updateText: '更新',
-  yesText: '是',
-  noText: '否',
-  loadText: '加载',
 
   inputText: '请输入',
   chooseText: '请选择',
@@ -23,7 +17,4 @@ export default {
 
   light: '亮色主题',
   dark: '黑暗主题',
-
-  newTag: '添加标签',
-  newValue: '添加值'
 };

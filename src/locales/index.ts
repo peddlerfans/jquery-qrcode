@@ -1,4 +1,4 @@
-import { createI18n } from 'vue-i18n';
+// import { createI18n } from 'vue-i18n';
 import { localeMap } from './config';
 import { setHtmlPageLang, setLoadLocalePool } from './helper';
 import type { App } from 'vue';
@@ -26,13 +26,11 @@ async function createI18nOptions() {
     silentTranslationWarn: true, // true - warning off
     missingWarn: false,
     silentFallbackWarn: true,
-    // 修复组件引入i18n时vite脚手架报错的问题
-    legacy: false
   };
 }
 
 const options = await createI18nOptions();
-export const i18n = createI18n(options);
+// export const i18n = createI18n(options);
 
 // setup i18n instance with global
 export async function setupI18n(app: App) {
