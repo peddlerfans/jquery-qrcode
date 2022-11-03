@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { MenuFoldOutlined, LogoutOutlined, TranslationOutlined } from '@ant-design/icons-vue'
+import { MenuFoldOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import type { Layout } from 'types/layout'
 import { inject } from 'vue'
 import { useRouter } from 'vue-router'
-import { userStore } from '@/stores/user'
+import { userStore } from '../stores/user'
 import BreadCrumb from './BreadCrumb.vue'
-import { useLocale } from "@/locales/useLocale";
 
 const sidebarRelated = inject<Layout.SidebarRelated>('sidebarRelated')
 const loading = inject<Layout.Loading>('loading')
@@ -18,12 +17,6 @@ function logout() {
     router.replace('/login')
   })
 }
-
-const languageChange = (obj: any) => {
-  let changeLocale = useLocale()
-  changeLocale.changeLocale(obj.key)
-}
-
 </script>
 
 <template>
@@ -34,19 +27,8 @@ const languageChange = (obj: any) => {
       <BreadCrumb :withIcons="true"></BreadCrumb>
     </section>
     <section>
-      <a-dropdown>
-        <a class="ant-dropdown-link">
-          <translation-outlined />
-        </a>
-        <template #overlay>
-          <a-menu @click="languageChange">
-            <a-menu-item key="zh_CN">中文简体</a-menu-item>
-            <a-menu-item key="en_US">English</a-menu-item>
-          </a-menu>
-        </template>
-      </a-dropdown>
       <span style="margin-right: 1rem">{{ user.name }}</span>
-      <AButton type="primary" shape="circle" :loading="loading?.logout" @click="logout" :title="$t('layout.header.logOut')">
+      <AButton type="primary" shape="circle" :loading="loading?.logout" @click="logout" title="退出登录">
         <template #icon>
           <LogoutOutlined />
         </template>
@@ -90,8 +72,5 @@ header {
   &.collapsed {
     transform: rotate(180deg);
   }
-}
-.ant-dropdown-link {
-  margin-right: 8px;
 }
 </style>

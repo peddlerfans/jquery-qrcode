@@ -58,9 +58,6 @@ import { stringLiteral } from "@babel/types";
 import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue"
 import { propsToAttrMap } from "@vue/shared";
-import { useI18n } from "vue-i18n";
-
-const { t } = useI18n()
 
 window.joint = joint;
 
@@ -448,7 +445,7 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
  * Panel --Json schema forms
  */
  let tableDataDirectInput = ref([]);
- let
+ let 
  tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
@@ -573,7 +570,7 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-
+  
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
 const uischema={
@@ -614,7 +611,7 @@ const linkschema = ref({
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
     },
-
+    
   },
 });
 
@@ -848,7 +845,7 @@ function awhandlerSubmit() {
   // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
-  message.success(t('component.message.saveSuccess'));
+  message.success("Save aw Successfully");
 }
 
 /**
@@ -861,7 +858,7 @@ function globalhandlerSubmit() {
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
   onCloseDrawer();
-  message.success(t('component.message.saveSuccess'));
+  message.success("Save config Successfully");
 }
 
 function linkhandlerSubmit() {
@@ -872,7 +869,7 @@ function linkhandlerSubmit() {
   }else{
     linkFormData.label="undefined"
   }
-
+  
   linkFormData.ruleData = rulesData.value;
   // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
@@ -916,7 +913,7 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
-  // message.success(t('component.message.saveSuccess'));
+  // message.success("Save it Successfully");
 }
 
 function handlerEditExpected() {
@@ -978,7 +975,7 @@ let toReload = ref(false);
   arr.forEach((item: any,index: any)=>{
   let keys=Object.keys(arr[0])
   if(keys){
-
+    
     setarr.forEach((tureitem: {type: string; name: string; values: any[];},i: any)=>{
       // console.log(keys[i]);
       if(tureitem.name==keys[i]){
@@ -1048,17 +1045,17 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
     console.log(rst);
-
+    
     if(rst && rst.dataDefinition && rst.dataDefinition.data){
       if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
         // showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
       console.log(condataName.value,conditionalValue.value);
-
+      
     }
     }
-
+    
     // condataName.value=rst.dataDefinition?.data.tableData
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
@@ -1157,9 +1154,9 @@ async function saveMBT(route?: any) {
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
   console.log(mbtCache);
-
+  
   await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
-  message.success(t('component.message.saveSuccess'));
+  message.success("Save MBT model successfully");
 }
 
 function reloadMBT(route: any) {
@@ -1238,7 +1235,7 @@ function reloadMBT(route: any) {
       });
     }
   });
-  message.success(t('MBTStore.reloadTip'));
+  message.success("MBT model reloaded");
 }
 
 let dataFrom = ref('');
@@ -1349,15 +1346,15 @@ onMounted(() => {
    * Drag & Drop stencil to modeler paper
    */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
-
-
+    
+    
     let aw = "";
     let cellid = ""; //element ID
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
     let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
-
+    
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1365,7 +1362,7 @@ onMounted(() => {
       cellViewNamespace: namespace,
     });
     let flyShape = cellView.model!.clone();
-
+    
     let pos = cellView.model!.position();
     let offset = {
       x: x - pos.x,
@@ -1421,8 +1418,8 @@ onMounted(() => {
   modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
     // 判断是否选择了模板，没选择则不打开link
     console.log(stencil,modeler);
-
-
+    
+    
     lv_id = linkView.model.id + "";
     // await queryName()
     isAW.value = false;
@@ -1432,12 +1429,12 @@ onMounted(() => {
       let templinkData = cacheprops.get(linkView.model.id);
       console.log(templinkData);
       linkData.value = templinkData.props;
-
+    
       if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
         rulesData.value=templinkData.props.ruleData
       }
-
-
+      
+      
       if(linkData.value.editable){
 
       }
@@ -1835,8 +1832,8 @@ const handleDirectInput = (data:any) => {
 const handleStaticTable = (data:any) => {
   // console.log('get data from static children',data  )
   let tempObj = {};
-
-
+  
+  
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'static_template'})
@@ -1871,15 +1868,15 @@ let ifNameOpetions=computed(()=>{
 })
 let childvalue=computed(()=>{
   console.log(conditionalValue.value);
-
+  
   if(conditionalValue.value.length>0){
     // showAddConditional.value=true
     return valueOption(conditionalValue.value)
-
+    
   }else{
     // return showAddConditional.value=false
   }
-
+  
 })
 // 表格的数据
 let conditionalDatasource=ref<any>([])
@@ -1904,7 +1901,7 @@ const rulesData=ref(
   ]
 )
 const rulesChange=(datas: any,key:string)=>{
-    rulesData.value=datas//输出的条件对象
+    rulesData.value=datas//输出的条件对象 
 }
 // 递归改变if结构
 function ifdata(arr:any){
@@ -1923,13 +1920,13 @@ function ifdata(arr:any){
       // finditem=conditionstr(item.conditions)+' '+item.relation
       finditem=`${conditionstr(item.conditions)} ${item.relation} `
     }
-    if(item.children.length>0){
+    if(item.children.length>0){      
       finditem+=ifdata(item.children)
       // if
     }else{
       break
     }
-
+    
   }
   if(finditem!=null){
     let findlength=finditem.length
@@ -1939,7 +1936,7 @@ function ifdata(arr:any){
 
     return finditem
   }
-
+  
 }
 function selectvalue(value:any){
   let values=null
@@ -1971,7 +1968,7 @@ function selectvalue(value:any){
 const conditionstr=(arr:any)=>{
   let ifcondition=null
   // if(arr[arr.length-1].value){
-        // delete arr[arr.length-1].selectvalues
+        // delete arr[arr.length-1].selectvalues  
   // }
   ifcondition=arr.map((item:any)=>{
     if(item.operator=='='){item.operator="=="}
@@ -1983,10 +1980,10 @@ const conditionstr=(arr:any)=>{
       }else{
         // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
         return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `
-      }
+      }    
   })
-
-
+ 
+  
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 watch(rulesData,(newvalue:any)=>{
@@ -2006,9 +2003,9 @@ watch(rulesData,(newvalue:any)=>{
       <a-row>
         <a-col span="18">
           <a-button-group>
-            <a-button type="primary" @click="saveMBT(route)"> {{ $t('common.saveText') }} </a-button>
+            <a-button type="primary" @click="saveMBT(route)"> Save </a-button>
             <span style="margin-left: 5px">
-              <a-button danger @click="reloadMBT(route)"> {{ $t('layout.multipleTab.reload') }} </a-button>
+              <a-button danger @click="reloadMBT(route)"> Reload </a-button>
             </span>
           </a-button-group>
         </a-col>
@@ -2191,7 +2188,7 @@ watch(rulesData,(newvalue:any)=>{
                         >
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerCancel()">{{ $t('common.editText') }}</a-button>
+                        <a-button type="primary" @click="handlerCancel()">Edit</a-button>
                       </span>
                       <a-button danger @click="onExpectedAW()">Next</a-button>
                     </div>
@@ -2312,7 +2309,7 @@ watch(rulesData,(newvalue:any)=>{
                     <div slot-scope="{ awformdataExpected }">
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerEditExpected()"
-                          >{{ $t('common.editText') }}</a-button
+                          >Edit</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
@@ -2323,8 +2320,8 @@ watch(rulesData,(newvalue:any)=>{
                       <span style="margin-left: 5px">
                         <a-popconfirm
                           title="Are you sure clear this form?"
-                          :ok-text="$t('common.yesText')"
-                          :cancel-text="$t('common.noText')"
+                          ok-text="Yes"
+                          cancel-text="No"
                           @confirm="handlerClearExpected()"
                           @cancel="cancel"
                         >
@@ -2356,12 +2353,12 @@ watch(rulesData,(newvalue:any)=>{
               <a-button @click="onCloseDrawer">cancel</a-button>
               </div>
               </div>
-
-
-
+             
+              
+              
             </VueForm>
               <!-- <div v-if="showAddFactorBtn=false"> -->
-
+              
             <!-- </div> -->
 
             </div>
@@ -2478,17 +2475,17 @@ watch(rulesData,(newvalue:any)=>{
                       <div class="editable-row-operations">
                         <span v-if="resourceseditableData[record.key]">
                           <a-typography-link @click="resourcessave(record.key)"
-                            >{{ $t('common.saveText') }}</a-typography-link
+                            >Save</a-typography-link
                           >
                           <a-popconfirm
-                            :title="$t('component.message.sureCancel')"
+                            title="Sure to cancel?"
                             @confirm="resourcescancel(record.key)"
                           >
-                            <a>{{ $t('common.cancelText') }}</a>
+                            <a>Cancel</a>
                           </a-popconfirm>
                         </span>
                         <span v-else>
-                          <a @click="resourcesedit(record.key)">{{ $t('common.editText') }}</a>
+                          <a @click="resourcesedit(record.key)">Edit</a>
                         </span>
                         <span>
                           <a-popconfirm
@@ -2496,14 +2493,14 @@ watch(rulesData,(newvalue:any)=>{
                             title="Sure to delete?"
                             @confirm="onresourcesDelete(record.key)"
                           >
-                            <a> {{ $t('common.delText') }}</a>
+                            <a> Delete</a>
                           </a-popconfirm>
                         </span>
                       </div>
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">{{ $t('common.saveText') }}</a-button>
+                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
               </a-tab-pane>
             </a-tabs>
           </div>
@@ -2623,7 +2620,7 @@ header {
         color: red !important;
       }
     }
-
+    
   }
   .ant-form-item-control{
     .ant-form-item-control-input{
@@ -2647,7 +2644,7 @@ header {
         color: red !important;
       }
     }
-
+    
   }
 }
 .__pathRoot_template{
@@ -2657,7 +2654,7 @@ header {
         color: red !important;
       }
     }
-
+    
   }
 }
 .__pathRoot_tags{
@@ -2667,7 +2664,7 @@ header {
         color: red !important;
       }
     }
-
+    
   }
 }
 </style>
