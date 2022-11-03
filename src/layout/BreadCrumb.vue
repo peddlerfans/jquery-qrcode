@@ -40,8 +40,8 @@ function refreshBreadCrumb() {
           <component v-else :is="route.meta.icon"></component>
         </template>
         <RouterLink custom :to="route.path" v-slot="{ navigate, href }">
-          <a v-if="index < routeMatched.length - 1" :href="href" @click="navigate">&nbsp;{{ route.meta.title }}</a>
-          <span v-else>&nbsp;{{ route.meta.title }}</span>
+          <a v-if="index < routeMatched.length - 1" :href="href" @click="navigate">&nbsp;{{ $t(route.meta.title as string) }}</a>
+          <span v-else>&nbsp;{{ $t(route.meta.title as string) }}</span>
         </RouterLink>
       </ABreadcrumbItem>
     </ABreadcrumb>

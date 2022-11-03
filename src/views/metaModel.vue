@@ -6,6 +6,10 @@ import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
 import { PlusSquareFilled,DeleteTwoTone,CheckCircleTwoTone,PlusOutlined} from '@ant-design/icons-vue'
 import { any } from 'vue-types';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n()
+
 let route=useRoute()
 console.log(route);
 
@@ -198,31 +202,31 @@ const handleCloseTag = (record:any,removedTag: string) => {
 const columns=reactive<Object[]>(
   [
   {
-    title: 'name',
+    title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
     width:180
   },
   {
-    title:'description',
+    title: 'component.table.description',
     dataIndex:'description',
     key:'description',
     width:180
   },
   {
-    title: 'type',
+    title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
     width:180
     },
     {
-    title: 'enum',
+    title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
     width:180
     },
 {
-    title:'action',
+    title:'component.table.action',
     dataIndex:'action',
     key:'action',
     width:100
@@ -262,9 +266,9 @@ const optiones = ref<SelectProps['options']>([
 <template>
    <main style="height:100%;overflow-x: hidden!important;">      
     <a-table :columns="columns" :data-source="tableData" bordered>
-      <template #headerCell="{column}">
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
         <template v-if="column.key==='action'">
-          <span>action</span>
           <span class="iconsave" style="color:#1890ff;" @click="saveModel" v-if="showAddFactorBtn">
             <plus-square-filled />
           </span>
@@ -297,7 +301,7 @@ const optiones = ref<SelectProps['options']>([
           </template>
           <template v-if='column.key==="type"'>
           <div>
-            <a-select v-if="record.editing" 
+            <a-select v-if="record.editing"
             :options="optiones"
             v-model:value="record.type"
             ></a-select>
@@ -328,7 +332,7 @@ const optiones = ref<SelectProps['options']>([
             @keyup.enter="handleInputConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput(record)">
               <plus-outlined />
-              New Value
+              {{ $t('common.newValue') }}
             </a-tag>
           </template>
 
@@ -342,13 +346,17 @@ const optiones = ref<SelectProps['options']>([
             <template v-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a style="color:red" @click="save(record)">save </a>
-            <a style="margin-left:0.625rem;" @click="cancel(record)">cancel</a>
+              <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
+            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
           </span>
             <span v-else>
-              <a @click="edit(record)">Edit</a>
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:0.625rem;">delete</a>
+              <a @click="edit(record)">{{ $t('common.editText') }}</a>
+               <a-popconfirm
+                   :title="$t('component.message.sureDel')"
+                   :ok-text="$t('common.yesText')"
+                   :cancel-text="$t('common.noText')"
+                   @confirm="delmodel(record)">
+              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
           </div>
