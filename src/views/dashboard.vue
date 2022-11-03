@@ -9,12 +9,37 @@ import RequestData from '@/components/RequestData.vue'
 import { message } from 'ant-design-vue';
 import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
-import { QuestionCircleFilled } from '@ant-design/icons-vue';
-import { stubString } from 'lodash';
+import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
+import { SelectValue } from 'ant-design-vue/lib/select';
 
 interface FormState {
   'range-time-picker': [string, string];
 }
+
+function lineData(arr:any){
+  let buckets:any = {}
+arr.forEach((a: { buckets: any[]; }) => a.buckets.forEach(b => buckets[b.key] = {name:b.key,doc_count:"",data:[],type:"line"} ))
+arr.forEach((a: { buckets: any[]; }) => {
+    Object.keys(buckets).forEach(k => {
+        // console.log(a.bucket)
+        let data = a.buckets.find(t => t&&t.key === k);
+        if (data) {
+          if(buckets[k].doc_count<data.doc_count){
+            buckets[k].doc_count=data.doc_count
+          }
+           
+            buckets[k].data.push(data.duration.value/1000000)
+            
+        } else {
+            buckets[k].data.push(0)
+        }        
+    })
+})
+let arrdata=Object.values(buckets).sort((a:any,b:any)=>b.doc_count-a.doc_count).filter((item,index)=>{if(index<5){return item}})
+
+return arrdata
+}
+
 // 格式化时间的函数
 function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"minutes"|"weeks"|"month"="days") {
   const unitmapping:any={
@@ -94,10 +119,19 @@ const search={
 // 发送子组件的数据
 // 识别展示的数据类型
 let cpuCharts:string="cpucharts" 
-let memorycharts:string="memorycharts"
-let sendXdata=ref([])
+let cpuColor="#EE6666"
 let cpuData=ref([])
+let memorycharts:string="memorycharts"
+let memoryColor="#5470C6"
 let memory=ref([])
+let throughputTitle:string="throughputCharts"
+let throughputColor="#97CC71"
+let throughput=ref([])
+let sendXdata=ref([])
+
+
+let lineDatas:any=ref([])
+
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
   let rst:any=await request.post(dashboradUrl,search)
@@ -124,11 +158,20 @@ async function query(){
       }
       return item.memory_free.value
       }      
-      let requestData=rst.map((item:any)=>{
-        item.terms.buchets
-      })
-      
     })
+    let requestData=rst.map((item:any)=>{
+        return item.terms
+      })      
+      lineDatas.value=lineData(requestData)
+      throughput.value=rst.map((item:any)=>{
+        if(search.interval=="1m"){
+          return item.transations.value
+        }else if(search.interval=="1h"){
+          return item.transations.value/60
+        }else if(search.interval=="1d"){
+          return item.transations.value/1440
+        }
+      })
   }
 }
 onMounted(()=>{
@@ -136,7 +179,6 @@ onMounted(()=>{
   query()
 
 })
-const formState = reactive({} as FormState);
 const options=ref([
   {label:"Last 30 minutes",value:"Last 30 minutes"  },
   {label:"Last 1 hour",value:"Last 1 hours"},
@@ -144,8 +186,8 @@ const options=ref([
   {label:"Last 7 day",value:"Last 7 days"},
   {label:"Last 30 day",value:"Last 30 days"},
 ])
-const choseData=ref("")
-const datachange=async (value:string)=>{  
+const choseData:any=ref("")
+const datachange=async (value:SelectValue)=>{  
   choseData.value=value
   if(value=="Last 30 minutes"){
     search.start=timeFormat(endDate,30,"minutes")
@@ -168,43 +210,9 @@ const datachange=async (value:string)=>{
 }
 
 
-
-// console.log(timeFormat(endDate,7,"days"));
 let 	minutes = endDate.getMinutes()
   minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
-const searchs={
-  start:timeFormat(endDate,7,"hours"),
-  end:endDate.toISOString(),
-  interval:'1h',
-  aggs: {
-        transaction_duration: {
-            avg: {
-                field: "transaction.duration.us",
-                missing: 0
-            }
-        },
-        terms: {
-            terms: {
-                field: "transaction.name",
-                size: 10
 
-            },
-            aggs: {
-                duration: {
-                    avg: {
-                    field: "transaction.duration.us"
-                    }
-                }
-            }
-        },
-        transations: {
-
-            value_count: {
-            field: "transaction.id"
-            }
-        }
-    }
-}
 
 
 const steps=ref<any>([
@@ -271,12 +279,9 @@ const prev = () => {
 
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function querys(){
-  let rst=await request.post(dashboradUrl,searchs)
-
   try {
     // let res = await request.get(`/api/statistics`)
     let res:any = await request.get(`/api/statistics`)
-    // console.log(res.reduce(((r, c) => Object.assign(r, c)), {}));
     steps.value[0].number=res.hlfs
     steps.value[1].number=res.template_meta
     steps.value[2].number[0]=res.template_static
@@ -289,13 +294,8 @@ async function querys(){
     //   statistics={...obj}
     // })
     // steps.value[3].number=res[0].test_model
-    console.log('query')
-    console.log(steps)
-    console.log(res)
-
   } catch (e) {
     message.error("Query failed!")
-    console.log(e)
   }
 }
 
@@ -310,8 +310,8 @@ onMounted(()=>{
 </script>
 
 <template>
-  <section class="block shadow flex-start" style="width: 100%; height: 100%; color: var(--gray); flex-direction: column;" >
-    <a-row style="width:100%; height: 55%;">
+  <section class="block shadow flex-start" style="width: 100%;  color: var(--gray); flex-direction: column;" >
+    <a-row style="width:100%; height: 31.75rem;">
       <div class="steps-div">
         <h2>使用向导</h2>
         <a-steps v-model:current="current">
@@ -348,44 +348,49 @@ onMounted(()=>{
       </div>
     </a-row>
 
-      <a-row style="margin-top:2.25rem">
-      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
-      <a-col :span="5" style="display:flex">
-
+      <a-row style="margin-top:2.25rem; ">
+      <a-col :span="21" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
+      <a-col :span="2" style="display:flex">
           <a-select
           :options="options"
           v-model:value="choseData"
+          @change="datachange"
           ></a-select>
-          <!-- <a-range-picker
-            v-model:value="formState['range-time-picker']"
-            show-time
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          /> -->
           <a-button type="primary">search</a-button>
-
       </a-col>
     </a-row>
-    <a-row style="height:32%;display: flex; justify-content: space-between;margin-top: 20px;">
-      <a-col :span="7" style=" ">
+    <a-row style="height:19.75rem;display: flex; justify-content: space-around;margin-top: 20px;">
+      <a-col :span="12" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="cpuData"
           :chartstype="cpuCharts"
+          :datacolor="cpuColor"
           ></echarts-model>
       </a-col>
-      <a-col :span="7" >
+      <a-col :span="12" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="memory"
           :chartstype="memorycharts"
+          :datacolor="memoryColor"
           ></echarts-model>
       </a-col>
-      <a-col :span="7">
-          <request-data></request-data>
+      
+    </a-row>
+    <a-row style="height:19.75rem; margin-top: 20px;">
+      <a-col :span="12">
+          <request-data v-if="sendXdata.length>0 ||lineDatas.length>0" :sendXdata="sendXdata" :lineDatas="lineDatas"></request-data>
+      </a-col>
+      <a-col :span="12" >
+        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+          :sendXdata="sendXdata"
+          :cpuData="throughput"
+          :chartstype="throughputTitle"
+          :datacolor="throughputColor"
+          ></echarts-model>
       </a-col>
     </a-row>
-
   </section>
 </template>
 
