@@ -498,7 +498,6 @@ let awformdataExpected = ref<Stores.awView>({
   _id: "",
   name: "",
   description: "",
-
   tags: "",
   template: "",
 });
@@ -867,7 +866,7 @@ function linkhandlerSubmit() {
   if(linkData.value.label){
     linkFormData.label = linkData.value.label;
   }else{
-    linkFormData.label="undefined"
+    linkFormData.label!=undefined
   }
   
   linkFormData.ruleData = rulesData.value;
@@ -1444,7 +1443,7 @@ onMounted(() => {
       linkData.value._id = linkView.model.id;
     } else {
       // todo link props
-
+      message.warning("Select a template first")
       currentLinkMap.set(linkView.model.id, { props: {} });
 
       // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
@@ -1469,6 +1468,9 @@ onMounted(() => {
 
         isLink.value = false;
         isGlobal.value = false;
+      }else{
+        console.log(elementView.model);
+        
       }
     }
   );
@@ -1487,8 +1489,8 @@ onMounted(() => {
         isAW.value = true;
 
         isLink.value = false;
-        isGlobal.value = false;
-
+        isGlobal.value = false
+          
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
@@ -2093,7 +2095,7 @@ watch(rulesData,(newvalue:any)=>{
                     <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
                   </a-col>
                 </a-row>
-                <div class="awtable" v-if="!hasAWInfo && isAW">
+                <div class="awtable" v-if="!hasAWInfo && isAW" >
                   <a-row>
                     <a-table
                       bordered
@@ -2102,6 +2104,7 @@ watch(rulesData,(newvalue:any)=>{
                       :data-source="tableData"
                       class="components-table-demo-nested "
                       :pagination="pagination"
+                      style="width:59.25rem"
                     >
                       <template #headerCell="{ column }">
                         <template v-if="column.key === 'name'">
@@ -2217,7 +2220,7 @@ watch(rulesData,(newvalue:any)=>{
                   </a-form-item>
                 </AForm>
 
-                <div v-if="!hasAWExpectedInfo && isAW">
+                <div v-if="!hasAWExpectedInfo && isAW" >
                   <a-table
                     bordered
                     row-key="record=>record._id"
@@ -2225,6 +2228,7 @@ watch(rulesData,(newvalue:any)=>{
                     :data-source="tableDataExpected"
                     class="components-table-demo-nested"
                     :pagination="paginationExpected"
+                    style="width:59.25rem"
                   >
                     <template #headerCell="{ column }">
                       <template v-if="column.key === 'name'">

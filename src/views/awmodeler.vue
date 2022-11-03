@@ -722,7 +722,7 @@ const onchangtitle =async (data: any) => {
   }else{
     
     let str=getPath(nowNode.title,treeData.value)
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   // 将新输入的值拼接到newPath
   let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
@@ -770,7 +770,7 @@ const pushSubtree =async (key: any,title:any) => {
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   let pushPath
   if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
 
@@ -858,7 +858,7 @@ const addSib=async(key:any)=>{
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str=getPath(nowNode.title,treeData.value)
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   if(str.indexOf('/')){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
@@ -881,7 +881,7 @@ const confirmtree =async (key:any,title:string) => {
   let nowNode=getTreeDataByItem(treeData.value,key)
   
   let str=getPath(nowNode.title,treeData.value) 
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   let delNode=getTreeParentChilds(treeData.value,key);
   // const index= delNode.findIndex((e:any)=> e.title == nowNode.title)
   // delete delNode[index]
@@ -931,7 +931,7 @@ const onSelectChange = (changableRowKeys: Key[]) => {
 // 右键添加Aw的path
 const addAwmodel= (key:any,title:string)=>{
   let str=getPath(title,treeData.value)
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   if(selectedRowKeys.value.length>0){
     // let selectAw=selectedRowKeys.value.map((e:any)=>{return {...e , e.path:str}})
     // for(let i=0;i<selectedRowKeys.value.length-1;i++){
