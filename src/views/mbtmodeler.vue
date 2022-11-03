@@ -866,7 +866,7 @@ function linkhandlerSubmit() {
   if(linkData.value.label){
     linkFormData.label = linkData.value.label;
   }else{
-    linkFormData.label=""
+    linkFormData.label!=undefined
   }
   
   linkFormData.ruleData = rulesData.value;
