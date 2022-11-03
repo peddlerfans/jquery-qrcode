@@ -7,7 +7,6 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    ABadge: typeof import('ant-design-vue/es')['Badge']
     ABreadcrumb: typeof import('ant-design-vue/es')['Breadcrumb']
     ABreadcrumbItem: typeof import('ant-design-vue/es')['BreadcrumbItem']
     AButton: typeof import('ant-design-vue/es')['Button']
@@ -34,14 +33,11 @@ declare module '@vue/runtime-core' {
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
-    AStep: typeof import('ant-design-vue/es')['Step']
-    ASteps: typeof import('ant-design-vue/es')['Steps']
     ATable: typeof import('ant-design-vue/es')['Table']
     ATag: typeof import('ant-design-vue/es')['Tag']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyLink: typeof import('ant-design-vue/es')['TypographyLink']
-    ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     DynamicTable: typeof import('./src/components/dynamicTable.vue')['default']
