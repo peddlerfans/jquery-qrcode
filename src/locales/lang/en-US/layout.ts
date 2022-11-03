@@ -18,7 +18,6 @@ export default {
     lockScreenBtn: 'Locking',
 
     home: 'Home',
-    logOut: 'log out'
   },
   multipleTab: {
     reload: 'Refresh current',

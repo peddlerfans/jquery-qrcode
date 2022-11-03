@@ -16,10 +16,14 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
-      meta: { title: 'component.route.dashboard', icon: HomeOutlined }
+      meta: { title: 'Dashboard', icon: HomeOutlined }
     }
   ]
 }
+
+
+
+
 
 const constantRoutes: RouteRecordRaw[] = [
   {
@@ -57,13 +61,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
-    meta: { title: 'component.route.awModeler',icon: ApiOutlined },
+    meta: { title: 'AWModeler',icon: ApiOutlined },
     children: [
       {
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'component.route.awModeler',icon: ApiOutlined }
+        meta: { title: 'AWModeler',icon: ApiOutlined }
       }
     ]
   }
@@ -74,13 +78,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { title: 'component.route.mtbStore',icon: AppstoreAddOutlined},
+    meta: { title: 'MBTStore',icon: AppstoreAddOutlined},
     children: [
       {
         path: 'index',
         name: 'mbtstore',
         component: () => import('@/views/mbtstore.vue'),
-        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
 
@@ -90,29 +94,29 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title: 'component.route.templateManager',icon:ExportOutlined },
+    meta: { title:'Template Manager',icon:ExportOutlined },
     children: [
       {
         path: 'meta',
         name: 'metaTemplate',
         component: () => import('@/views/metatemplate.vue'),
-        meta: { title: 'component.route.metaTemplate', icon: FieldBinaryOutlined, keepAlive: true }
+        meta: { title: 'Meta Template', icon: FieldBinaryOutlined, keepAlive: true }
       },
       {
         path: 'static',
         name: 'staticTemplate',
         component: () => import('@/views/statictemplate.vue'),
-        meta: { title: 'component.route.staticTemplate', icon: LineChartOutlined, keepAlive: true }
+        meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
       },{
         path: 'dynamic',
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
-        meta: { title: 'component.route.dynamicTemplate', icon: FireOutlined, keepAlive: true }
+        meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
       },{
         path: 'codegen',
         name: 'codegenTemplate',
         component: () => import('@/views/codegentemplate.vue'),
-        meta: { title: 'component.route.codegenTemplate', icon: CodeOutlined, keepAlive: true }
+        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
       }
 
     ]

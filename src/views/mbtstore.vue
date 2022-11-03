@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
 import request from "@/utils/request";
 import useTable from "@/composables/useTable";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
@@ -29,7 +28,6 @@ const url = realMBTUrl;
 const route = useRoute();
 const router = useRouter();
 const tableRef = ref();
-const { t } = useI18n()
 let searchobj: tableSearch = reactive({
   search: "",
   size: 20,
@@ -56,10 +54,10 @@ const {
 } = useTable({
   table: tableRef,
   columns: [
-    { title: 'component.table.name', dataIndex: "name", key: "name", width: 40 },
-    { title: 'component.table.description', dataIndex: "description", key: "description", width: 120 },
+    { title: "name", dataIndex: "name", key: "name", width: 40 },
+    { title: "description", dataIndex: "description", key: "description", width: 120 },
     {
-      title: 'component.table.tags',
+      title: "tags",
       dataIndex: "tags",
       key: "tags",
       width: 100,
@@ -69,7 +67,7 @@ const {
         } else return opt.value;
       },
     },
-    { title: 'component.table.action', dataIndex: "action", key: "action", width: 100 },
+    { title: "Action", dataIndex: "action", key: "action", width: 100 },
   ],
   updateTableOptions: {
     fetchUrl: url,
@@ -171,7 +169,7 @@ async function saveMBT(data: any) {
       })
       .catch(function (error) {
         if (error.response.status == 409) {
-          message.error(t('MBTStore.tip1'));
+          message.error("Duplicate name or description");
         }
       })
       .finally(() => {
@@ -194,18 +192,18 @@ const onFinishForm = async (modelstates: any) => {
 
         updateTable({ fetchUrl: fetchUrl });
       });
-      message.success(t('component.message.modifiedText'));
+      message.success("Modified successfully");
     } else {
-
+      
       delete modelstates.value._id
       saveMBT(modelstates.value);
 
-      message.success('component.message.addText');
+      message.success("Added successfully");
     }
     // }
     visible.value = false;
   } else {
-    return message.error(t('MBTStore.tip2'));
+    return message.error("name and descript is required");
   }
 };
 
@@ -232,7 +230,7 @@ async function delmbt(key: any) {
 const confirm = (e: MouseEvent) => {
   delmbt(e);
   query();
-  message.success(t('MBTStore.tip3'));
+  message.success("Delete on Successed");
 };
 
 const cancel = (e: MouseEvent) => {
@@ -242,7 +240,7 @@ const cancel = (e: MouseEvent) => {
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'));
+    return Promise.reject("Please input your name!");
   } else {
     return Promise.resolve();
   }
@@ -250,7 +248,7 @@ let checkName = async (_rule: Rule, value: string) => {
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('MBTStore.tip5'));
+    return Promise.reject("Please input your name!");
   } else {
     return Promise.resolve();
   }
@@ -306,7 +304,7 @@ const handleInputConfirm = () => {
               <a-input
                 v-model:value="formState.search"
                 split=""
-                :placeholder="$t('MBTStore.searchText')"
+                placeholder="Input name to search MBT"
               ></a-input>
               <!-- <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
@@ -317,7 +315,7 @@ const handleInputConfirm = () => {
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+              <a-button type="primary" html-type="submit">search</a-button>
             </a-col>
           </AForm>
         </a-col>
@@ -334,14 +332,14 @@ const handleInputConfirm = () => {
     <div>
       <a-modal
         v-model:visible="visible"
-        :title="modelstates._id ? $t('MBTStore.updateTitle') : $t('MBTStore.saveTitle')"
+        :title="modelstates._id ? 'Update MBT' : 'Save MBT'"
         @cancel="closemodel"
         @ok="handleOk"
         :width="700"
       >
         <template #footer>
-          <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+          <a-button @click="closemodel">cancel</a-button>
+          <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
         </template>
         <a-form
           ref="refForm"
@@ -354,16 +352,16 @@ const handleInputConfirm = () => {
           @finish="onFinishForm"
           @finishFailed="onFinishFailedForm"
         >
-          <a-form-item :label="$t('component.table.name')" name="name">
+          <a-form-item label="name" name="name">
             <a-input v-model:value="modelstates.name" />
           </a-form-item>
 
-          <a-form-item :label="$t('component.table.description')" name="description">
+          <a-form-item label="description" name="description">
             <a-input v-model:value="modelstates.description" />
           </a-form-item>
 
           <!-- tags标签 -->
-          <a-form-item :label="$t('component.table.tags')" name="tags">
+          <a-form-item label="tags" name="tags">
             <template v-for="(tag, index) in states.tags" :key="tag">
               <a-tooltip v-if="tag.length > 20" :title="tag">
                 <a-tag :closable="true" @close="handleClose(tag)">
@@ -391,7 +389,7 @@ const handleInputConfirm = () => {
               @click="showInput"
             >
               <plus-outlined />
-              {{ $t('common.newTag') }}
+              New Tag
             </a-tag>
           </a-form-item>
         </a-form>
@@ -411,7 +409,12 @@ const handleInputConfirm = () => {
       >
         >
         <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
+          <template v-if="column.key === 'name'">
+            <span>
+              <edit-outlined />
+              Name
+            </span>
+          </template>
         </template>
 
         <template #bodyCell="{ column, record }">
@@ -438,18 +441,18 @@ const handleInputConfirm = () => {
 
           <template v-else-if="column.key === 'action'">
             <span>
-              <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
+              <a @click="edit(record)">Edit</a>
               <a-divider type="vertical" />
               <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
                 <a-divider type="vertical" /> -->
               <a-popconfirm
-                :title="$t('MBTStore.tip6')"
-                :ok-text="$t('common.yesText')"
-                :cancel-text="$t('common.noText')"
+                title="Are you sure delete this task?"
+                ok-text="Yes"
+                cancel-text="No"
                 @confirm="confirm(record)"
                 @cancel="cancel"
               >
-                <a>{{ $t('common.delText') }}</a>
+                <a>Delete</a>
               </a-popconfirm>
             </span>
           </template>

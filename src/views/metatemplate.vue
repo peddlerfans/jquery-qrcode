@@ -5,11 +5,8 @@ import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
-import { useI18n } from "vue-i18n";
-import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
-const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
@@ -146,7 +143,7 @@ const save =async (record:any) => {
 
 
 const createMeta=()=>{
-
+  
   showAddFactorBtn.value=false
   tableData.value.unshift({
     name:'',
@@ -166,7 +163,7 @@ const delmodel =async (obj: any) => {
   }else{
     const index= tableData.value.findIndex(e => e === obj)
   tableData.value.splice(index,1);
-  }
+  }  
 };
 
 // 点击取消的函数
@@ -188,23 +185,23 @@ const cancel=(record:any)=>{
 const columns = reactive<Object[]>(
   [
   {
-    title: 'component.table.name',
+    title: 'name',
     dataIndex: 'name',
     key: 'name',
   },
   {
-    title: 'component.table.description',
+    title: 'description',
     dataIndex: 'description',
     key: 'description',
     },
 
    {
-      title: 'component.table.tags',
+      title: 'tags',
       dataIndex: 'tags',
     key:'tags'
     },
   {
-    title: 'component.table.action',
+    title: 'Action',
     dataIndex: 'action',
     key: 'action',
   }]
@@ -252,7 +249,7 @@ const handleClose = (record:any,removedTag: string) => {
 // })
 let checkName=async (_rule:Rule,value:string)=>{
   console.log(123);
-
+  
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   if(!value){
     return Promise.reject("place input your name")
@@ -279,9 +276,8 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions
-                  v-model:value="formState.search" split=""
-                  :placeholder="$t('templateManager.metaSearchText')">
+              <a-mentions v-model:value="formState.search" split=""
+                placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
@@ -289,7 +285,7 @@ let rules:Record<string,Rule[]>={
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+              <a-button type="primary" html-type="submit">search</a-button>
             </a-col>
           </AForm>
         </a-col>
@@ -304,9 +300,6 @@ let rules:Record<string,Rule[]>={
       </header>
       
       <a-table :columns="columns" :data-source="tableData" bordered>
-        <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
-        </template>
       <template #bodyCell="{ column, text, record }">
       <template v-if='column.key==="name"'>
         <div>
@@ -319,7 +312,7 @@ let rules:Record<string,Rule[]>={
               />
             </a-form-item>
           </a-form>
-
+          
           <template v-else>
             <a :href="'/#/metaModeler/'+record._id+'/'+record.name">{{text}}</a>
           </template>
@@ -330,13 +323,13 @@ let rules:Record<string,Rule[]>={
           <a-form v-if="record.editing" :model="record" :rules="rules">
             <a-form-item name="description">
               <a-input
-
+            
             v-model:value="record.description"
             style="margin: -5px 0"
           />
             </a-form-item>
           </a-form>
-
+          
           <template v-else>
             {{ text }}
           </template>
@@ -368,7 +361,7 @@ let rules:Record<string,Rule[]>={
               <a-tag v-else style="background: #fff; border-style: dashed" 
               @click="showInput(record)">
                 <plus-outlined />
-                {{ $t('common.newTag') }}
+                New Tag
               </a-tag>
             </template>
               <span v-else>
@@ -384,19 +377,15 @@ let rules:Record<string,Rule[]>={
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
           <span v-if="record.editing">
-            <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
+            <a style="color:red" @click="save(record)">save </a>
 
-            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+            <a style="margin-left:0.625rem;" @click="cancel(record)">cancel</a>
 
           </span>
           <span v-else>
-            <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
-              <a-popconfirm
-                  :title="$t('component.message.sureDel')"
-                  @confirm="delmodel(record)"
-                  :cancel-text="$t('common.cancelText')"
-                  :ok-text="$t('common.okText')">
-              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
+            <a @click="edit(record)">Edit</a>
+              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a style="margin-left:0.625rem;">delete         </a>
             </a-popconfirm>
           </span>
         </div>

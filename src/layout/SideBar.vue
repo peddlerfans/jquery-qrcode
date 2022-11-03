@@ -10,10 +10,7 @@
   import type { RouteMeta, RouteRecordRaw } from 'vue-router'
   import type { Layout } from 'types/layout'
   import { sidebarStore } from '@/stores/sidebar'
-  import { useI18n } from "vue-i18n";
-
-  const { t } = useI18n()
-
+  
   const router = useRouter()
   const route = useRoute()
   const selectedKeys = ref<string[]>([route.path]) // 菜单默认选中项
@@ -58,9 +55,8 @@
     const subMenuTemplate = (route: RouteRecordRaw) => {
       const slots = {
         icon: () => getNavIcon(route.meta),
-        title: () => t(route.meta?.title as string)
+        title: () => route.meta?.title
       }
-      console.log(slots)
       const basePath = resolve(props.basePath, route.path)
       return (
         <SubMenu v-slots={slots} key={basePath}>
@@ -77,7 +73,7 @@
       return (
         <MenuItem key={url} v-slots={slots}>
           <MenuItemLink route={route} url={url}>
-            <span>{t(route.meta?.title as string)}</span>
+            <span>{route.meta?.title}</span>
           </MenuItemLink>
         </MenuItem>
       )

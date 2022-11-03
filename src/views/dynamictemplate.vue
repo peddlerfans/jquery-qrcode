@@ -11,7 +11,6 @@ import {
   toRaw,
   getCurrentInstance
 } from 'vue';
-import { useI18n } from "vue-i18n";
 import { useRouter } from 'vue-router';
 
 import useTable from '@/composables/useTable';
@@ -50,7 +49,6 @@ import {
   valueStatesTs,
 } from "./componentTS/dynamictemplate";
 
-const { t } = useI18n()
 
 // Specify the api for dynamic template data CRUD
 const url = templateUrl;
@@ -72,24 +70,24 @@ const initModelAttr={
 
 const columns1 = [ // Setup the header of columns
   {
-    title: 'component.table.name',
+    title: 'Name',
     dataIndex: 'name',
     key: 'name',
     // width: 40
   },
   {
-    title: 'component.table.description',
+    title: 'Description',
     dataIndex: 'description',
     key: 'description',
     // width: 120
   },
   {
-    title: 'component.table.tags',
+    title: 'Tags',
     dataIndex: 'tags',
     key: 'tags',
   },
   {
-    title: 'component.table.action',
+    title: 'Action',
     dataIndex: 'action',
     key: 'action',
     // width: 100
@@ -304,7 +302,7 @@ const saveModel = async () => {
     model: initModelAttr
   }
   let rst = await request.post(url, model)
-  message.success(t('templateManager.createModelSuccess'))
+  message.success("Created a model successfully")
 
   closeModel()
 }
@@ -321,10 +319,10 @@ const updateModel = async () => {
   if (modelState._id) {
     let rst = await request.put(url + `/${modelState._id}`, model)
     query()
-    message.success(t('templateManager.updateModelSuccess'))
+    message.success("Updated a model successfully")
   } else {
     // delete modelState.value._id
-    message.warning(t('templateManager.readModelErr'))
+    message.warning("Cannot read the model information")
   }
   clearModelState()
 }
@@ -332,7 +330,7 @@ const updateModel = async () => {
 const deleteModel = async (id: string) => {
   let rst = await request.delete(url + `/${id}`)
   query()
-  message.success(t('component.message.delText'));
+  message.success('Delete Successfully!');
 }
 
 const cancelModel = () => {
@@ -353,8 +351,7 @@ const previewModel = async (id: string) => {
   let rst = await request.post(url+`/${id}/preview`)
 
   modelDataPreview.value=rst
-  debugger
-  columnPreview.value = rst.model?.parameters.map((e:any)=>{
+  columnPreview.value=rst.model?.parameters.map((e:any)=>{
     return {
       title: e.property,
       dataIndex: e.property,
@@ -374,7 +371,7 @@ const previewModel = async (id: string) => {
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'))
+    return Promise.reject("Please input the name of model")
   } else {
     return Promise.resolve();
   }
@@ -382,7 +379,7 @@ let checkName = async (_rule: Rule, value: string) => {
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('component.message.emptyDescription'))
+    return Promise.reject("Please input the description of model")
   } else {
     return Promise.resolve();
   }
@@ -491,7 +488,7 @@ onMounted(() => {
             <a-col :span="20">
 
               <a-mentions v-model:value.trim="formState.search"
-                :placeholder="$t('templateManager.dynamicSearchText')">
+                placeholder="input @ to search tags, input name to search Dynamic Templates">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
@@ -499,7 +496,7 @@ onMounted(() => {
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+              <a-button type="primary" html-type="submit">search</a-button>
             </a-col>
 
           </AForm>
@@ -509,7 +506,7 @@ onMounted(() => {
             <template #icon>
               <plus-outlined />
             </template>
-            {{ $t('templateManager.createDynamicTemp') }}
+            Create a New Dynamic Template
           </a-button>
         </a-col>
       </a-row>
@@ -520,24 +517,24 @@ onMounted(() => {
 
     <div>
       <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? $t('templateManager.updateDynamicTemp') : $t('templateManager.createDynamicTemp')" @cancel="closeModel" :width="900">
+        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel" :width="900">
 
         <!-- Model meta info -->
 
-        <h2>{{ $t('templateManager.template') }}</h2>
+        <h2>Model</h2>
 
         <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
           :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item :label="$t('component.table.name')" name="name">
+          <a-form-item label="Name" name="name">
             <a-input v-model:value.trim="modelState.name" />
           </a-form-item>
 
-          <a-form-item :label="$t('component.table.description')" name="description">
+          <a-form-item label="Description" name="description">
             <a-input v-model:value.trim="modelState.description" />
           </a-form-item>
 
           <!-- tags标签 -->
-          <a-form-item :label="$t('component.table.tags')" name="tags">
+          <a-form-item label="Tag" name="tags">
             <template v-for="(tag) in modelState.tags" :key="tag">
               <a-tooltip v-if="tag.length > 20" :title="tag">
                 <a-tag :closable="true" @close="handleCloseTag(tag)">
@@ -554,14 +551,14 @@ onMounted(() => {
               @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(1)">
               <plus-outlined />
-              {{ $t('common.newTag') }}
+              Add a New Tag
             </a-tag>
           </a-form-item>
         </a-form>
 
         <template #footer>
-          <a-button @click="closeModel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">{{ $t('common.saveText') }}</a-button>
+          <a-button @click="closeModel">Cancel</a-button>
+          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
         </template>
 
 
@@ -578,12 +575,9 @@ onMounted(() => {
 
       <!-- Model meta info -->
 
-      <h2>{{ $t('templateManager.data') }}</h2>
+      <h2>Data</h2>
 
       <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
-        </template>
         <template #bodyCell="{ column, text, record }">
 <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
 <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
@@ -596,7 +590,7 @@ onMounted(() => {
 <!--        <a-button @click="closeModel">Cancel</a-button>-->
       </template>
 
-      <h2>{{ $t('templateManager.template') }}</h2>
+      <h2>Model</h2>
       <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
 
     </a-modal>
@@ -606,9 +600,6 @@ onMounted(() => {
     <!-- List of dynamic templates -->
     <!-- ######################### -->
     <a-table :columns="columns1" :data-source="tableData" bordered>
-      <template #headerCell="{ column }">
-        <span>{{ $t(column.title) }}</span>
-      </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
@@ -649,7 +640,7 @@ onMounted(() => {
               @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(2)">
               <plus-outlined />
-              {{ $t('common.newTag') }}
+              Add a New Tag
             </a-tag>
           </template>
 
@@ -663,30 +654,22 @@ onMounted(() => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="modelState._id===record._id && modelState.editing">
-              <a-typography-link type="danger" @click="updateModel()">{{ $t('common.saveText') }}</a-typography-link>
+              <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm
-                  :title="$t('component.message.sureCancel')"
-                  @confirm="clearModelState()"
-                  :ok-text="$t('common.okText')"
-                  :cancel-text="$t('common.cancelText')">
-                <a>{{ $t('common.cancelText') }}</a>
+              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
+                <a>Cancel</a>
               </a-popconfirm>
             </span>
 
             <span v-else>
-              <a @click="editModel(record)">{{ $t('component.table.edit') }}</a>
+              <a @click="editModel(record)">Edit</a>
               <!-- <a-divider type="vertical" />
               <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">Config</a> -->
 
               <a-divider type="vertical" />
-              <a-popconfirm
-                  :title="$t('templateManager.delDynamicTemp')"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="deleteModel(record._id)"
-                  @cancel="cancel">
-                <a>{{ $t('common.delText') }}</a>
+              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
+                @confirm="deleteModel(record._id)" @cancel="cancel">
+                <a>Delete</a>
               </a-popconfirm>
 
 
