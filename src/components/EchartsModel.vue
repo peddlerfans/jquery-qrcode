@@ -16,7 +16,9 @@ import {
 import { LineChart, LineSeriesOption } from 'echarts/charts';
 import { UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref,watch } from 'vue';
+import { computed } from '@vue/reactivity';
+import { any, string } from 'vue-types';
 
 echarts.use([
   TitleComponent,
@@ -39,22 +41,39 @@ type EChartsOption = echarts.ComposeOption<
 >;
 onMounted(()=>{
   let myChart = echarts.init(main.value);
-  myChart.setOption(option);
+  myChart.setOption(option,true);
   window.onresize = function () {
     myChart.resize()
       }
-
 }) 
+// const props=defineProps(["sendXdata","cpuData","memory"])
+// const titleData:any=computed(()=>{
+//   if(props.chartstype=="cpucharts"){
+//     return "cpu"
+//   }else{
+//     return "memory"
+//   }
+// })
+const props=defineProps({
+  sendXdata:{
+    type:Array<any>,
 
-function timeFormat(hour: number |string |any) {
-  let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000),
-    date = new Date(state),
-	minutes = date.getMinutes()
-  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
-  //转换格式
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
-}
-console.log(timeFormat(1) );
+  },
+  cpuData:{
+    type:Array<any>
+  },
+  chartstype:{
+    type:String
+  }
+})
+let Xdata:any=ref([])
+watch(() => props.sendXdata,(newval:any)=>{
+  Xdata.value=newval
+  
+  
+},{deep:true,immediate:true})
+console.log(Xdata.value);
+
 
 // 获取div的dom
 let main=ref()
@@ -65,7 +84,7 @@ option = {
   color: colors,
   title: {
     left: 'left',
-    text: 'Performance monitoring',
+    text: "titleData",
     textStyle:{
       fontWeight:500,
       fontSize:14
@@ -90,7 +109,8 @@ option = {
     {
       type: 'inside',
       start: 0,
-      end: 20
+      end: 20,
+      top:100
     },
     {
       start: 0,
@@ -100,14 +120,14 @@ option = {
   // legend: {},
   grid: {
     top: 70,
-    bottom: 50
+    bottom: 70
   },
   xAxis: [
     {
       type: 'category',
-      axisTick: {
-        alignWithLabel: true
-      },
+      // axisTick: {
+      //   alignWithLabel: true
+      // },
       axisLine: {
         onZero: false,
         lineStyle: {
@@ -117,44 +137,26 @@ option = {
       axisPointer: {
         label: {
           formatter: function (params: any) {
-            return (
-              'Precipitation  ' +
+            if(props.chartstype=="cpucharts"){
+              return (
+              'cpu ' +
+              params.value +
+              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+            )
+            }else{
+              return (
+              'memory ' +
               params.value +
               (params.seriesData.length ? '：' + params.seriesData[0].data : '')
             );
+            }
+            
           }
         }
       },
-
       // prettier-ignore
-      data: ['2016-1', '2016-2', '2016-3', '2016-4', '2016-5', '2016-6', '2016-7', '2016-8', '2016-9', '2016-10', '2016-11', '2016-12']
+      data: Xdata.value 
     },
-    {
-      type: 'category',
-      axisTick: {
-        alignWithLabel: true
-      },
-      axisLine: {
-        onZero: false,
-        lineStyle: {
-          color: colors[0]
-        }
-      },
-      axisPointer: {
-        label: {
-          formatter: function (params: any) {
-            return (
-              'Precipitation  ' +
-              params.value +
-              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-            );
-          }
-        }
-      },
-
-      // prettier-ignore
-      data: ['2015-1', '2015-2', '2015-3', '2015-4', '2015-5', '2015-6', '2015-7', '2015-8', '2015-9', '2015-10', '2015-11', '2015-12']
-    }
   ],
   yAxis: [
     {
@@ -163,26 +165,13 @@ option = {
   ],
   series: [
     {
-      name: 'Precipitation(2015)',
+      name: 'cpu',
       type: 'line',
-      xAxisIndex: 1,
-      smooth: true,
+      // smooth: true,
       emphasis: {
         focus: 'series'
       },
-      data: [        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
-      ]
-    },
-    {
-      name: 'Precipitation(2016)',
-      type: 'line',
-      smooth: true,
-      emphasis: {
-        focus: 'series'
-      },
-      data: [
-        3.9, 5.9, 11.1, 18.7, 48.3, 69.2, 231.6, 46.6, 55.4, 18.4, 10.3, 0.7
-      ]
+      data: props.cpuData
     }
   ]
 };

@@ -543,7 +543,10 @@ function objToArr(obj:Object) {
       const arr = [];
       if (_.isObject(obj)) {
         // let i: keyof any
-        for (var i in obj) {          
+        for (var i in obj) {  
+          if(i==""){
+            i="1"
+          }        
           var oo:any = {
             title: i,
             key:uuid(),
@@ -581,13 +584,13 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   }else{
     let str=getPath(info.node.dataRef.title,treeData.value)
   
-  str=str.substring(2,str.length)
+  str=str.substring(1,str.length)
   clickKey.path=str
   clickKey.dataRef=info.node.dataRef
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
-    await query({q:`path:/.*${str}/`,search:''})
-
+    await query({q:`path:"${str}"`,search:''})
+    
   }else{
   // 这里走前置匹配
   await query({q:`path:${str}`,search:''})
