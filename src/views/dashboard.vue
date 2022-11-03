@@ -10,6 +10,7 @@ import { message } from 'ant-design-vue';
 import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
 import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
+import { SelectValue } from 'ant-design-vue/lib/select';
 
 interface FormState {
   'range-time-picker': [string, string];
@@ -185,8 +186,8 @@ const options=ref([
   {label:"Last 7 day",value:"Last 7 days"},
   {label:"Last 30 day",value:"Last 30 days"},
 ])
-const choseData=ref("")
-const datachange=async (value:string)=>{  
+const choseData:any=ref("")
+const datachange=async (value:SelectValue)=>{  
   choseData.value=value
   if(value=="Last 30 minutes"){
     search.start=timeFormat(endDate,30,"minutes")
