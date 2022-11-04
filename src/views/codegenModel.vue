@@ -316,24 +316,24 @@ const handleOk = (e: MouseEvent) => {
 
 const columns = [ // Setup the header of columns
   {
-    title: 'Time Stamp',
+    title: 'templateManager.timeStamp',
     dataIndex: 'time',
     key: 'time',
     // width: 40
   },
   {
-    title: 'Template Engine',
+    title: 'templateManager.templateEngine',
     dataIndex: 'template',
     key: 'template',
     // width: 120
   },
   {
-    title: 'Output Language',
+    title: 'templateManager.outLang',
     dataIndex: 'output',
     key: 'output',
   },
   {
-    title: 'Action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
     // width: 100
@@ -368,17 +368,17 @@ const softwrap=true
 
           <a-row  type="flex" justify="center" :gutter="24">
             <a-col :span="6">
-              <a-form-item label="Template Engine">
+              <a-form-item :label="$t('templateManager.templateEngine')">
                 <a-select v-model:value="modelState.model.templateEngine" :options="templateOptions"></a-select>
               </a-form-item>
             </a-col>
             <a-col :span="6">
-              <a-form-item label="Output Language">
+              <a-form-item :label="$t('templateManager.outLang')">
                 <a-select v-model:value="modelState.model.outputLanguage" :options="langOptions"></a-select>
               </a-form-item>
             </a-col>
             <a-col :span="6">
-              <a-form-item label="Theme">
+              <a-form-item :label="$t('templateManager.theme')">
                 <a-select v-model:value="states.theme" :options="themeOptions"></a-select>
               </a-form-item>
             </a-col>
@@ -389,7 +389,10 @@ const softwrap=true
     <a-row type="flex" justify="space-around" align="middle">
       <a-col :span="12">
 
-        <a-typography-title :level="5"><edit-filled /> Edit Template</a-typography-title>
+        <a-typography-title :level="5">
+          <edit-filled />
+          {{ $t('templateManager.editTemp') }}
+        </a-typography-title>
         <VAceEditor
             v-model:value="modelState.templateText"
             class="ace-template"
@@ -405,7 +408,7 @@ const softwrap=true
 
 <!--      </a-col>-->
       <a-col :span="12">
-        <a-typography-title :level="5"><code-filled /> Preview Result (Read-only)</a-typography-title>
+        <a-typography-title :level="5"><code-filled />{{ $t('templateManager.previewTemp') }}</a-typography-title>
         <VAceEditor
             v-model:value="states.result"
             class="ace-result"
@@ -421,8 +424,8 @@ const softwrap=true
 
 
     <div style="margin-top: 30px">
-      <a-button type="primary" @click="saveModel">Save & Preview</a-button>
-      <a-button type="link" @click="showModal" style="margin-left:50px;">Edit Data</a-button>
+      <a-button type="primary" @click="saveModel">{{ $t('templateManager.saveApreview') }}</a-button>
+      <a-button type="link" @click="showModal" style="margin-left:50px;">{{ $t('templateManager.editData') }}</a-button>
       <a-modal v-model:visible="visible" width="1000px" title="Edit Data" @ok="handleOk">
         <VAceEditor
             v-model:value="inputData"
@@ -442,6 +445,9 @@ const softwrap=true
     <h2 style="margin-top:30px">History</h2>
 
     <a-table :columns="columns" :data-source="modelState.model.history" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="time"'>
           <div>
@@ -460,7 +466,7 @@ const softwrap=true
         </template>
         <template v-else-if="column.key === 'action'">
           <div class="editable-row-operations">
-            <a-button @click="loadHistory(record)"><upload-outlined /> Load</a-button>
+            <a-button @click="loadHistory(record)"><upload-outlined /> {{ $t('common.loadText') }}</a-button>
           </div>
         </template>
       </template>
