@@ -70,13 +70,23 @@ export default defineConfig({
     port: 7777,
     proxy: {
       "/api": {
-        target: 'https://mbt-dev.oppo.itealab.net/api',
+        // target: 'https://mbt-dev.oppo.itealab.net/api',
+        target: 'http://localhost:3000/',
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => {
           return path.replace(/^\/api/, '')
         }
       },
+      // "/auth": {
+      //   target: 'http://localhost:3000/auth',
+      //   changeOrigin: true,
+      //   secure: false,
+      //   rewrite: (path: string) => {
+      //     return path.replace(/^\/auth/, '')
+      //   }
+      // },
+
       //   "/mbtapi": {
       //     target: 'https://flows.iteatechnologies.com',
       //     changeOrigin: true,

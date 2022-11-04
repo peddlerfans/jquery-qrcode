@@ -22,7 +22,22 @@ export const dashboardRoute: RouteRecordRaw = {
 }
 
 
-
+export const authRoute: any={
+  name: 'auth',
+  path: '/auth',
+  children: [
+    {
+      path: '/atlassian',
+      name: 'atlassian',
+      query: { redirect: encodeURIComponent('http://127.0.0.1:7777/#/dashboard'), error_redirect: FieldBinaryOutlined, keepAlive: true }
+    },
+    {
+      path: '/gitlab',
+      name: 'gitlab',
+      query: { redirect: 'Static Template', error_redirect: LineChartOutlined, keepAlive: true }
+    }
+  ]
+}
 
 
 const constantRoutes: RouteRecordRaw[] = [

@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined,GitlabOutlined,  } from '@ant-design/icons-vue'
 import { appTitle } from '@/appConfig'
 import { userStore } from '@/stores/user'
 import { message } from 'ant-design-vue/es'
 import { useRouter } from 'vue-router'
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faAtlassian, faGitlab } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+library.add(faAtlassian, faGitlab)
 
 interface LoginForm {
   username: string
@@ -31,6 +36,8 @@ function login() {
     message.error(err)
   })
 }
+
+// const redirect=encodeURIComponent('http://127.0.0.1:7777/#/dashboard')
 </script>
 
 <template>
@@ -59,7 +66,16 @@ function login() {
         </AFormItem>
         <AButton type="primary" style="width: 100%;" size="large" html-type="submit" :loading="loading.login">登录
         </AButton>
+
+        <a-divider style="height: 2px;"/>
+        <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian`">
+          <font-awesome-icon icon="fa-brands fa-atlassian"/> Log in with Atlassian
+        </a-button>
+        <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" href="/api/auth/gitlab">
+          <font-awesome-icon icon="fa-brands fa-gitlab" /> Log in with GitLab
+        </a-button>
       </AForm>
+
     </section>
   </main>
 </template>
