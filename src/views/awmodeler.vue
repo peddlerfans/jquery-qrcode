@@ -422,7 +422,12 @@ let treeData = ref([
 ])
 const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
   console.log('selected', selectedKeys, info);
-      // return selectedKeys
+  info.node.showEdit=false
+  info.node.dataRef.showEdit = false
+  if (info.node.dataRef.title == "New Node") {
+    info.node.showEdit=true
+  info.node.dataRef.showEdit = true
+  }// return selectedKeys
 };
 // 查询父级节点的key
 const getTreeParentKey = (childs: any, findChild: any): any => {
@@ -527,8 +532,8 @@ const onExpand = (keys: any) => {
 const onchangtitle = (data: any) => {
   console.log(data);
   
-  data.appendFlag = false;
-  data.showEdit=false
+  data.dataRef.appendFlag = false;
+  data.dataRef.showEdit=false
 }
 const vFocus = {
   //必须以 vNameOfDirective 的形式来命名本地自定义指令，以使得它们可以直接在模板中使用。
@@ -547,19 +552,22 @@ const updTree = (obj: any) => {
   
   obj.showEdit=true
 }
-const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
+const lodata: TreeProps['loadData'] = ():any => {
+  const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
   ...item,
   showEdit:false,
   children: addKey(item.children)
 }))
 treeData.value = addKey(treeData.value)
+}
+
 
 const newChild = ref(
   {
-    title: " ",
+    title: "New Node",
     key: "/",
     children: [],
-    appendFlag: true, //添加输入框
+    //appendFlag: true, //添加输入框
     showEdit: false //修改输入框
   }
 )
@@ -614,7 +622,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
 
 <template>
   <main class="main"> 
-      <SplitPanel>
+       <SplitPanel>
         <template #left-content>
           <div class="flex justify-between">
             <Space>
@@ -671,7 +679,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
                 </template>
     <template v-if="!item.appendFlag&&!item.showEdit">{{item.title}}</template>
     <a-input v-if="item.showEdit" type="text" v-focus v-model="item.title" @blur="onchangtitle(item)"/>
-    <a-input v-focus type="text" v-if="item.appendFlag"  v-model="item.tltle"  @blur="onchangtitle(item)"/>
+    <!-- <a-input v-focus type="text" v-if="item.appendFlag"  v-model="item.tltle"  @blur="onchangtitle(item)"/> -->
         </a-tooltip>  
     </template>
 
@@ -903,6 +911,7 @@ const onContextMenuClick = (treeKey: string, menuKey: string | number) => {
       </a-table>
         </template>
       </SplitPanel>
+
    <!-- </section> -->
    </main>
 </template>
