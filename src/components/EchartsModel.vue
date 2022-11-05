@@ -16,7 +16,7 @@ import {
 import { LineChart, LineSeriesOption } from 'echarts/charts';
 import { UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref,watch,defineProps } from 'vue';
 
 echarts.use([
   TitleComponent,
@@ -37,169 +37,252 @@ type EChartsOption = echarts.ComposeOption<
   | DataZoomComponentOption
   | LineSeriesOption
 >;
+
 onMounted(()=>{
-  let myChart = echarts.init(main.value);
+
+//   let myChart = echarts.init(main.value);
+//  myChart.setOption(option,true);
+//  window.onresize = function () {
+//    myChart.resize()
+// }
+optionChange()
+}) 
+let option: EChartsOption;
+
+const props=defineProps({
+ sendXdata:{
+   type:Array<any>,
+
+ },
+ cpuData:{
+   type:Array<any>
+ },
+ chartstype:{
+   type:String
+ },
+ datacolor:{
+   type:String
+ }
+})
+let myChart:any=null
+const optionChange=()=>{
+  myChart = echarts.init(main.value);
   myChart.setOption(option);
   window.onresize = function () {
     myChart.resize()
-      }
+  }
+ }
+watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(newval:any)=>{
+ // let myChart = echarts.init(main.value);
+ option = {
+ color: props.datacolor,
+ title: {
+   left: 'left',
+   text: props.chartstype,
+   textStyle:{
+     fontWeight:700,
+     fontSize:14
+   }
+ },
+ tooltip: {
+   trigger: 'none',
+   axisPointer: {
+     type: 'cross'
+   }
+ },
+ toolbox: {
+   feature: {
+     dataZoom: {
+       yAxisIndex: 'none'
+     },
+     restore: {},
+     saveAsImage: {},
+   },
+   right: "9%"
+ },
+ dataZoom: [
+   {
+     type: 'inside',
+     start: 0,
+     end: 50,
+     top:100
+   },
+   {
+     start: 0,
+     end: 20
+   }
+ ],
+ // legend: {},
+ grid: {
+   top: 70,
+   bottom: 80
+ },
+ xAxis: [
+   {
+     type: 'category',
+     // axisTick: {
+     //   alignWithLabel: true
+     // },
+     axisLine: {
+       onZero: false,
+       // lineStyle: {
+       //   color: colors[1]
+       // }
+     },
+     axisPointer: {
+       label: {
+         formatter: function (params: any) {
+           if(newval[2]=="cpucharts"){
+             return (
+             'cpu ' +
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           )
+           }else{
+             return (
+             'memory ' +
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           );
+           }
+           
+         }
+       }
+     },
+     // prettier-ignore
+     data: newval[0] 
+   },
+ ],
+ yAxis: [
+   {
+     type: 'value'
+   }
+ ],
+ series: [
+   {
+     name: 'cpu',
+     type: 'line',
+     // smooth: true,
+     emphasis: {
+       focus: 'series'
+     },
+     data: newval[1]
+   }
+ ],
 
-}) 
+};
+if(newval.length>0){ myChart.setOption(option);}
 
-function timeFormat(hour: number |string |any) {
-  let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000),
-    date = new Date(state),
-	minutes = date.getMinutes()
-  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
-  //转换格式
-  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
-}
-console.log(timeFormat(1) );
-
+  // optionChange()
+},{deep:true})
 // 获取div的dom
 let main=ref()
-let option: EChartsOption;
-const colors = ['#5470C6', '#EE6666'];
 
 option = {
-  color: colors,
-  title: {
-    left: 'left',
-    text: 'Performance monitoring',
-    textStyle:{
-      fontWeight:500,
-      fontSize:14
-    }
-  },
-  tooltip: {
-    trigger: 'none',
-    axisPointer: {
-      type: 'cross'
-    }
-  },
-  toolbox: {
-    feature: {
-      dataZoom: {
-        yAxisIndex: 'none'
-      },
-      restore: {},
-      saveAsImage: {}
-    }
-  },
-  dataZoom: [
-    {
-      type: 'inside',
-      start: 0,
-      end: 20
-    },
-    {
-      start: 0,
-      end: 20
-    }
-  ],
-  // legend: {},
-  grid: {
-    top: 70,
-    bottom: 50
-  },
-  xAxis: [
-    {
-      type: 'category',
-      axisTick: {
-        alignWithLabel: true
-      },
-      axisLine: {
-        onZero: false,
-        lineStyle: {
-          color: colors[1]
-        }
-      },
-      axisPointer: {
-        label: {
-          formatter: function (params: any) {
-            return (
-              'Precipitation  ' +
-              params.value +
-              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-            );
-          }
-        }
-      },
+ color: props.datacolor,
+ title: {
+   left: 'left',
+   text: props.chartstype,
+   textStyle:{
+     fontWeight:700,
+     fontSize:14
+   }
+ },
+ tooltip: {
+   trigger: 'none',
+   axisPointer: {
+     type: 'cross'
+   }
+ },
+ toolbox: {
+   feature: {
+     dataZoom: {
+       yAxisIndex: 'none'
+     },
+     restore: {},
+     saveAsImage: {},
+   },
+   right: "9%"
+ },
+ dataZoom: [
+   {
+     type: 'inside',
+     start: 0,
+     end: 50,
+     top:100
+   },
+   {
+     start: 0,
+     end: 20
+   }
+ ],
+ // legend: {},
+ grid: {
+   top: 70,
+   bottom: 80
+ },
+ xAxis: [
+   {
+     type: 'category',
+     // axisTick: {
+     //   alignWithLabel: true
+     // },
+     axisLine: {
+       onZero: false,
+       // lineStyle: {
+       //   color: colors[1]
+       // }
+     },
+     axisPointer: {
+       label: {
+         formatter: function (params: any) {
+           if(props.chartstype=="cpucharts"){
+             return (
+             'cpu ' +
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           )
+           }else{
+             return (
+             'memory ' +
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           );
+           }
+           
+         }
+       }
+     },
+     // prettier-ignore
+     data: props.sendXdata
+   },
+ ],
+ yAxis: [
+   {
+     type: 'value'
+   }
+ ],
+ series: [
+   {
+     name: 'cpu',
+     type: 'line',
+     // smooth: true,
+     emphasis: {
+       focus: 'series'
+     },
+     data: props.cpuData
+   }
+ ],
 
-      // prettier-ignore
-      data: ['2016-1', '2016-2', '2016-3', '2016-4', '2016-5', '2016-6', '2016-7', '2016-8', '2016-9', '2016-10', '2016-11', '2016-12']
-    },
-    {
-      type: 'category',
-      axisTick: {
-        alignWithLabel: true
-      },
-      axisLine: {
-        onZero: false,
-        lineStyle: {
-          color: colors[0]
-        }
-      },
-      axisPointer: {
-        label: {
-          formatter: function (params: any) {
-            return (
-              'Precipitation  ' +
-              params.value +
-              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-            );
-          }
-        }
-      },
-
-      // prettier-ignore
-      data: ['2015-1', '2015-2', '2015-3', '2015-4', '2015-5', '2015-6', '2015-7', '2015-8', '2015-9', '2015-10', '2015-11', '2015-12']
-    }
-  ],
-  yAxis: [
-    {
-      type: 'value'
-    }
-  ],
-  series: [
-    {
-      name: 'Precipitation(2015)',
-      type: 'line',
-      xAxisIndex: 1,
-      smooth: true,
-      emphasis: {
-        focus: 'series'
-      },
-      data: [        2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3
-      ]
-    },
-    {
-      name: 'Precipitation(2016)',
-      type: 'line',
-      smooth: true,
-      emphasis: {
-        focus: 'series'
-      },
-      data: [
-        3.9, 5.9, 11.1, 18.7, 48.3, 69.2, 231.6, 46.6, 55.4, 18.4, 10.3, 0.7
-      ]
-    }
-  ]
 };
 
-// function init(){
-  // let myChart = echarts.init(main.value);
 
 
-
-
-// myChart.setOption(option);
-// }
 
 
 
 </script>
     
 <template>
-    <div ref="main" style="width:100%;height: 100%;"></div>
+    <div ref="main" calss="box_echarts" style="width:100%;height: 100%;"></div>
 </template>

@@ -74,6 +74,9 @@ interface ModelDefinition {
 }
 
 interface DataDefinition {
+dataForm: any;
+dataForm: any;
+dataForm: any;
     data:any,
     meta:object,
     resources:object
