@@ -96,7 +96,7 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateCategory = ref(1)
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-  console.log(",,,,,,", v);
+  
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -877,7 +877,7 @@ function linkhandlerSubmit() {
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
-  console.log(linkFormData.label);
+  // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   // let loopcount1 = linkData.value.loopcount;
@@ -1046,14 +1046,14 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
-    console.log(rst);
+    // console.log(rst);
 
     if(rst && rst.dataDefinition && rst.dataDefinition.data){
       if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
         // showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
-      console.log(condataName.value,conditionalValue.value);
+      // console.log(condataName.value,conditionalValue.value);
 
     }
     }
@@ -1155,7 +1155,7 @@ async function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
-  console.log(mbtCache);
+  // console.log(mbtCache);
 
   await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
   message.success(t('component.message.saveSuccess'));
@@ -1217,7 +1217,10 @@ function reloadMBT(route: any) {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
                 // cell.attrs.label.text = aw.template || aw.description;
                 let showheadtext = aw.template || aw.description;
-                cell.attr(
+                
+                let cellonpaper = modeler.graph.getCell(cell.id);
+                
+                cellonpaper.attr(
                   "headerText/text",
                   joint.util.breakText(
                     showheadtext,
@@ -1843,7 +1846,7 @@ const handleStaticTable = (data:any) => {
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'static_template'})
   cacheDataDefinition.data = tempObj;
-  console.log(tempObj);
+  // console.log(tempObj);
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   if(data){
     condataName.value=data.tableColumns
@@ -1872,7 +1875,7 @@ let ifNameOpetions=computed(()=>{
   return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
 })
 let childvalue=computed(()=>{
-  console.log(conditionalValue.value);
+  // console.log(conditionalValue.value);
 
   if(conditionalValue.value.length>0){
     // showAddConditional.value=true
