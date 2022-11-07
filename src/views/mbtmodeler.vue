@@ -453,9 +453,9 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
-  description: "",
-  tags: "",
-  codegen:""
+  descriptions: "",
+  codegen_text:"",
+  codegen_script:""
 
 });
 let linkData = ref({
@@ -471,7 +471,7 @@ let linkData = ref({
 interface LinkFormData {
 ruleData: any[];
   _id: string;
-  label: string;
+  label: any;
   editable:boolean;
   // loop?: boolean;
   // loopcount?: number;
@@ -480,7 +480,7 @@ ruleData: any[];
 }
 let linkFormData: LinkFormData = {
 _id: "",
-label: "",
+label: undefined,
 editable: false,
 // loop: false,
 // loopcount: 1,
@@ -504,7 +504,7 @@ let awformdataExpected = ref<Stores.awView>({
   tags: "",
   template: "",
 });
-let codegennames=ref([''])
+let codegennames:any=ref([])
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -515,22 +515,25 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
-    description: {
+    descriptions: {
       title: "Description",
       type: "string",
-      readOnly: true,
     },
-    tags: {
-      title: "Tags",
-      type: "string",
-      readOnly: true,
-    },
-    codegen:{
-      title:"Output Text/Script",
+    // tags: {
+    //   title: "Tags",
+    //   type: "string",
+    //   readOnly: true,
+    // },
+    codegen_text:{
+      title:"Output Text",
       type:"string",
       enum: codegennames.value
-
-    }
+    },
+    codegen_script:{
+      title:"Output Script",
+      type:"string",
+      enum: codegennames.value
+    },
   },
 });
 
@@ -565,10 +568,6 @@ const awschema = ref({
       type: "string",
       readOnly: true,
     },
-    // params: {
-    //   title: "Params",
-    //   type: "string",
-    // },
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
@@ -1198,7 +1197,8 @@ function reloadMBT(route: any) {
           }
         }
       });
-
+        console.log(value);
+        
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
@@ -1217,9 +1217,7 @@ function reloadMBT(route: any) {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
                 // cell.attrs.label.text = aw.template || aw.description;
                 let showheadtext = aw.template || aw.description;
-                
                 let cellonpaper = modeler.graph.getCell(cell.id);
-                
                 cellonpaper.attr(
                   "headerText/text",
                   joint.util.breakText(
@@ -1266,8 +1264,9 @@ onMounted(() => {
           // console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
             rst.forEach((rec:any)=>{
-              
-              globalschema.value.properties.codegen.enum.push(rec.name)
+              codegennames.value.push(rec.name)
+              // globalschema.value.properties.codegen_text.enum.push(rec.name)
+              // globalschema.value.properties.codegen_script.enum.push(rec.name)
             })
 
           }
@@ -1358,8 +1357,140 @@ onMounted(() => {
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
-    let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
+    let flyGraph = new joint.dia.Graph({},{ cellNamespace: namespace });
+    var headerHeight = 30;
+    var buttonSize = 14;
 
+//     let container=joint.dia.Element.define('Container.Parent', {
+//     collapsed: false,
+//     attrs: {
+//         root: {
+//             magnetSelector: 'body'
+//         },
+//         shadow: {
+//             refWidth: '100%',
+//             refHeight: '100%',
+//             x: 3,
+//             y: 3,
+//             fill: '#000000',
+//             opacity: 0.05
+//         },
+//         body: {
+//             refWidth: 100,
+//             refHeight: 100,
+//             strokeWidth: 1,
+//             stroke: '#DDDDDD',
+//             fill: '#FCFCFC'
+//         },
+//         header: {
+//             refWidth: 100,
+//             height: headerHeight,
+//             strokeWidth: 0.5,
+//             stroke: '#4666E5',
+//             fill: '#4666E5'
+//         },
+//         headerText: {
+//             textVerticalAnchor: 'middle',
+//             textAnchor: 'start',
+//             refX: 8,
+//             refY: headerHeight / 2,
+//             fontSize: 16,
+//             fontFamily: 'sans-serif',
+//             letterSpacing: 1,
+//             fill: '#FFFFFF',
+//             textWrap: {
+//                 width: -40,
+//                 maxLineCount: 1,
+//                 ellipsis: '*'
+//             },
+//             style: {
+//                 textShadow: '1px 1px #222222',
+//             }
+//         },
+//         button: {
+//             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+//             refY: (headerHeight - buttonSize) / 2,
+//             cursor: 'pointer',
+//             event: 'element:button:pointerdown',
+//             title: 'Collapse / Expand'
+//         },
+//         buttonBorder: {
+//             width: buttonSize,
+//             height: buttonSize,
+//             fill: '#4666E5',
+//             fillOpacity: 0.2,
+//             stroke: '#4666E5',
+//             strokeWidth: 0.5,
+//         },
+//         buttonIcon: {
+//             fill: '#4666E5',
+//             stroke: '#4666E5',
+//             strokeWidth: 1
+//         }
+//     }
+//     }, {
+//     markup: [{
+//         tagName: 'rect',
+//         selector: 'shadow'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'body'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'header'
+//     }, {
+//         tagName: 'text',
+//         selector: 'headerText'
+//     },
+//      {
+//         tagName: 'g',
+//         selector: 'button',
+//         children: [{
+//             tagName: 'rect',
+//             selector: 'buttonBorder'
+//         }, {
+//             tagName: 'path',
+//             selector: 'buttonIcon'
+//         }]
+//     }
+//   ],
+
+//     toggle: function(shouldCollapse: undefined) {
+//         var buttonD;
+//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+//         if (collapsed) {
+//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+//             this.resize(140, 30);
+//         } else {
+//             buttonD = 'M 2 7 12 7';
+//             this.fitChildren();
+//         }
+//         this.attr(['buttonIcon','d'], buttonD);
+//         this.set('collapsed', collapsed);
+//     },
+
+//     isCollapsed: function() {
+//         return Boolean(this.get('collapsed'));
+//     },
+
+//     fitChildren: function() {
+//         var padding = 10;
+//         this.fitEmbeds({
+//             padding: {
+//                 top: headerHeight + padding,
+//                 left: padding,
+//                 right: padding,
+//                 bottom: padding
+//             }
+//         });
+//     }
+// });
+// let containerparent=joint.shapes.Container.Parent
+//     let conatiner_a=new containerparent({
+//       z: 1,
+//         attrs: { headerText: { text: 'Container A' }}
+//     })
+// modeler.graph.addCell(conatiner_a)
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1512,6 +1643,7 @@ onMounted(() => {
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
+          console.log(tempawschema,tempformdata2);
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
@@ -1523,6 +1655,12 @@ onMounted(() => {
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
             let tempawschemaExpected = generateObj(awschemaExpected);
             let tempformdata2Expected = generateObj(awformdataExpected);
+
+
+            
+            
+
+
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
             hasAWExpectedInfo.value = true;
@@ -1574,25 +1712,53 @@ onMounted(() => {
 function showGlobalInfo() {
   globalformData.value._id =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
-  globalformData.value.tags = "";
+  // globalformData.value.tags = "";
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
-    globalformData.value.description = mbtCache["description"];
-    if (_.isArray(mbtCache["tags"])) {
-      _.forEach(mbtCache["tags"], function (value, key) {
-        globalformData.value.tags += value + " ";
-      });
-    }
+    globalformData.value.descriptions = mbtCache["description"];
+    // if (_.isArray(mbtCache["tags"])) {
+    //   _.forEach(mbtCache["tags"], function (value, key) {
+    //     globalformData.value.tags += value + " ";
+    //   });
+    // }
     // globalformData.value.tags = mbtCache['tags'];
   }
 }
 
 function showAWInfo(rowobj: any) {
+  awschema.value.properties={
+    _id: {
+      type: "string",
+      "ui:hidden": true,
+      required: true,
+    },
+    name: {
+      title: "AW Name",
+      type: "string",
+      readOnly: true,
+    },
+    description: {
+      title: "Description",
+      type: "string",
+      readOnly: true,
+      "ui:widget": "TextAreaWidget",
+    },
+    template: {
+      title: "Template",
+      type: "string",
+      readOnly: true,
+    },
+    tags: {
+      title: "Tags",
+      type: "string",
+      readOnly: true,
+    },
+  }
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
   awformdata.value.tags = "";
-  // awformdata.value.params = "";
+  awformdata.value.template=rowobj.template
   awformdata.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1600,8 +1766,9 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + " ";
     });
   }
+console.log(awschema.value.properties);
 
-  if (_.isArray(rowobj.params)) {
+  if (_.isArray(rowobj.params) && rowobj.params.length>0) {
     let appendedschema = generateSchema(rowobj.params);
     appendedschema.forEach((field: any) => {
       Object.assign(awschema.value.properties, field);
@@ -1637,7 +1804,7 @@ function showAWExpectedInfo(rowobj: any) {
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
   awformdataExpected.value.tags = "";
-  // awformdataExpected.value.params = "";
+  awformdataExpected.value.template=rowobj.template
   awformdataExpected.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -2052,7 +2219,7 @@ watch(rulesData,(newvalue:any)=>{
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23">
+        <a-col :span="23" style=" width: 100%; height: 100%;">
           <div class="canvas" ref="canvas"></div>
         </a-col>
 
@@ -2110,7 +2277,7 @@ watch(rulesData,(newvalue:any)=>{
                       :data-source="tableData"
                       class="components-table-demo-nested "
                       :pagination="pagination"
-                      style="width:59.25rem"
+                      style="width:49.25rem"
                     >
                       <template #headerCell="{ column }">
                         <template v-if="column.key === 'name'">
@@ -2234,7 +2401,7 @@ watch(rulesData,(newvalue:any)=>{
                     :data-source="tableDataExpected"
                     class="components-table-demo-nested"
                     :pagination="paginationExpected"
-                    style="width:59.25rem"
+                    style="width:49.25rem"
                   >
                     <template #headerCell="{ column }">
                       <template v-if="column.key === 'name'">
@@ -2568,12 +2735,12 @@ header {
   overflow: hidden;
 }
 
-.awtable {
-  padding: 5px;
-  display: flex !important;
-  justify-content: flex-end;
+/* .awtable { */
+  /* padding: 5px; */
+  /* display: flex !important; */
+  /* justify-content: flex-end; */
    /* flex-direction:column-reverse!important; */
-}
+/* } */
 
 .search_form {
   width: 100%;
@@ -2588,6 +2755,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {

@@ -74,7 +74,7 @@ watch(() => [props.sendXdata,props.lineDatas],(newval:any)=>{
  // let myChart = echarts.init(main.value);
  option = {
     title: {
-    text: 'request'
+    text: 'latency(seconds)'
   },
   tooltip: {
     trigger: 'axis'
@@ -125,7 +125,7 @@ if(newval.length>0){ myChart.setOption(option);}
 },{deep:true})
 option = {
   title: {
-    text: 'request'
+    text: 'latency(seconds)'
   },
   tooltip: {
     trigger: 'axis'
