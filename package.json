@@ -28,7 +28,6 @@
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
     "echarts": "^5.4.0",
-    "http-server": "^14.1.1",
     "jointjs": "^3.6.2",
     "jquery": "^3.6.1",
     "js-shortid": "^0.1.1",
