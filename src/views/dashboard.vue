@@ -118,13 +118,13 @@ const search={
 }
 // 发送子组件的数据
 // 识别展示的数据类型
-let cpuCharts:string="cpucharts" 
+let cpuCharts:string="cpu(%)" 
 let cpuColor="#EE6666"
 let cpuData=ref([])
-let memorycharts:string="memorycharts"
+let memorycharts:string="memory(GB)"
 let memoryColor="#5470C6"
 let memory=ref([])
-let throughputTitle:string="throughputCharts"
+let throughputTitle:string="throughput(tps)"
 let throughputColor="#97CC71"
 let throughput=ref([])
 let sendXdata=ref([])
@@ -145,19 +145,9 @@ async function query(){
       return item.cpu.value
     })
     memory.value=rst.map((item:any)=>{
-      if(item.memory_free.value){
-        let str=item.memory_free.value.toString().substring(0,2)
-      if(str>0 && str<20){
-        item.memory_free.value="2"
-      }else if(str>=20 && str<40){
-        item.memory_free.value="4"
-      }else if(str>=40 && str<60){
-        item.memory_free.value="6"
-      }else if(str>=60 && str<80){
-        item.memory_free.value="8"
-      }
-      return item.memory_free.value
-      }      
+      
+      return item.memory_free.value/1024/1024/1024
+           
     })
     let requestData=rst.map((item:any)=>{
         return item.terms
@@ -186,7 +176,7 @@ const options=ref([
   {label:"Last 7 day",value:"Last 7 days"},
   {label:"Last 30 day",value:"Last 30 days"},
 ])
-const choseData:any=ref("")
+const choseData:any=ref("Last 24 hours")
 const datachange=async (value:SelectValue)=>{  
   choseData.value=value
   if(value=="Last 30 minutes"){
@@ -349,8 +339,8 @@ onMounted(()=>{
     </a-row>
 
       <a-row style="margin-top:2.25rem; ">
-      <a-col :span="21" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
-      <a-col :span="2" style="display:flex">
+      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
+      <a-col :span="5" style="display:flex">
           <a-select
           :options="options"
           v-model:value="choseData"
@@ -360,41 +350,45 @@ onMounted(()=>{
       </a-col>
     </a-row>
     <a-row style="height:19.75rem;display: flex; justify-content: space-around;margin-top: 20px;">
-      <a-col :span="12" >
+      <a-col :span="11" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="cpuData"
           :chartstype="cpuCharts"
           :datacolor="cpuColor"
           ></echarts-model>
+          <div v-else class="noData">No Data</div>
       </a-col>
-      <a-col :span="12" >
+      <a-col :span="11" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="memory"
           :chartstype="memorycharts"
           :datacolor="memoryColor"
           ></echarts-model>
+          <div v-else class="noData">No Data</div>
       </a-col>
       
     </a-row>
-    <a-row style="height:19.75rem; margin-top: 20px;">
-      <a-col :span="12">
+    <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
+      <a-col :span="11">
           <request-data v-if="sendXdata.length>0 ||lineDatas.length>0" :sendXdata="sendXdata" :lineDatas="lineDatas"></request-data>
-      </a-col>
-      <a-col :span="12" >
+          <div v-else class="noData">No Data</div>
+        </a-col>
+      <a-col :span="11">
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="throughput"
           :chartstype="throughputTitle"
           :datacolor="throughputColor"
           ></echarts-model>
+          <div v-else class="noData">No Data</div>
       </a-col>
     </a-row>
   </section>
 </template>
 
-<style>
+<style lang="less">
 .steps-div{
   width:100%;
   padding: 1.875rem 1.25rem 0rem 1.25rem;
@@ -417,5 +411,18 @@ onMounted(()=>{
 [data-theme='dark'] .steps-content {
   background-color: #2f2f2f;
   border: .0625rem dashed #404040;
+}
+.ant-select{
+  width: 13.5rem !important;
+}
+.noData{
+  width: 100%;
+  height: 100%;
+  background-color: rgb(237, 237, 237);
+  line-height: 19.75rem;
+  text-align: center;
+  border-radius: .625rem;
+  font-size: 2.25rem;
+  font-weight: 700;
 }
 </style>
