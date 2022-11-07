@@ -10,4 +10,9 @@ export default {
 
     // MBTModeler
     reloadTip: 'MBT model reloaded',
+    // MBTModeler detail
+    primary: 'Primary',
+    expected: 'Expected',
+    configAW: 'Configuration for the AW',
+    // linkTitle: 'Configuration for Link'
 }
