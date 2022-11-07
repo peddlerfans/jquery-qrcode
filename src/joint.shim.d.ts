@@ -5,6 +5,7 @@ import 'vue-router';
 import { any } from 'vue-types';
 import $ from 'jquery'
 import { S } from 'vitest/dist/global-d05ffb3f';
+import { Container } from 'postcss';
 
 declare module JQuery {
     namespace JQuery {
@@ -14,15 +15,13 @@ declare module JQuery {
     }
 }
 declare module 'jointjs' {
-
+    
     export namespace dia {
-
         namespace Paper {
             
             interface Options extends mvc.ViewOptions<Graph> {
                 model?: Graph;
                 el?: any;
-
             }
 
         }
@@ -50,8 +49,15 @@ declare module 'jointjs' {
             model?:Cell,
             attributes:any
         }
-
     }
+    export namespace shapes{
+        class Container{
+            static Parent: any;
+            static Child: any;
+            
+        }
+    }
+
 }
 interface Label{
     text:string

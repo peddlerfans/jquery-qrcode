@@ -348,7 +348,6 @@ const onFinishForm = async (modelstates: any) => {
       visible.value = false;
         tableData.value[modelstates.value.key]={...modelstates.value}
         await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
-        message.success("Modified successfully")
     } else {
           delete modelstates.value._id
           if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
@@ -419,8 +418,11 @@ async function updateAw(url:string,data:any) {
   //   data={...data,path:clickKey.path}
   // }
   let rst = await request.put(url, data)
-  // pagination.value.total = 1
-      // tableData.value = [rst]
+  if(rst){
+    // message.success('Modification succeeded')
+  }else{
+    // message.success('Modification failed')
+  }
      
     }
 // 修改的函数
@@ -907,6 +909,8 @@ const confirmtree =async (key:any,title:string) => {
     const selectedRowKeys = ref<any>([]); // Check here to configure the default column
 
 const onSelectChange = (changableRowKeys: Key[]) => {  
+  console.log(changableRowKeys);
+  
   selectedRowKeys.value = changableRowKeys;
 };
     // 表格复选框
@@ -933,18 +937,15 @@ const addAwmodel= (key:any,title:string)=>{
   let str=getPath(title,treeData.value)
   str=str.substring(1,str.length)
   if(selectedRowKeys.value.length>0){
-    // let selectAw=selectedRowKeys.value.map((e:any)=>{return {...e , e.path:str}})
-    // for(let i=0;i<selectedRowKeys.value.length-1;i++){
-    //   selectedRowKeys.value[i].path=str
-      
-      
-    //   await updateAw(`/api/hlfs/${selectedRowKeys.value[i]._id}`, selectedRowKeys.value)
-    // }
-    selectedRowKeys.value.forEach( async (item:any)=>{
+    tableData.value=tableData.value.filter((item:any)=>!selectedRowKeys.value.some((child:any)=>item._id===child._id))
+    let pool: any[]=[]
+    selectedRowKeys.value.forEach(  (item:any)=>{
       item.path=str
-      await updateAw(`/api/hlfs/${item._id}`, item)
+      pool.push(updateAw(`/api/hlfs/${item._id}`, item))
     })
-    
+    Promise.all(pool).then((res:any)=>{
+      if(res){message.success("Modification succeeded")}
+    }).catch(()=>{message.error("Modification failed")})
   }else{
     message.warning("Please select the Aw to be added")
   }

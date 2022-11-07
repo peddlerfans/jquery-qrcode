@@ -24,8 +24,8 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 let tableData= ref<Array<any>>([])
 let searchobj: tableSearch = reactive({
   search: "",
-  // page: 1,
-  // perPage:10,
+  page: 1,
+  perPage:10,
   q:'category:meta'
 })
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
