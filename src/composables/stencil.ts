@@ -1,6 +1,7 @@
 import { ConsoleSqlOutlined } from "@ant-design/icons-vue";
 import * as joint from "jointjs";
 import { dia, g } from "jointjs";
+
 window.joint = joint
 export class Stencil {
   namespace = joint.shapes; 
@@ -9,6 +10,129 @@ export class Stencil {
   transitions: [] = [];
   graph: dia.Graph = new joint.dia.Graph({},{ cellNamespace: joint.shapes });
   paper: dia.Paper=new joint.dia.Paper({model: this.graph, cellViewNamespace: joint.shapes});;
+  headerHeight = 14;
+  buttonSize = 14;
+  
+  container=joint.dia.Element.define('Container.Parent', {
+    collapsed: false,
+    attrs: {
+        root: {
+            magnetSelector: 'body'
+        },
+        body: {
+            refWidth: 20,
+            refHeight: 20,
+            strokeWidth: 1,
+            stroke: '#DDDDDD',
+            fill: '#FCFCFC'
+        },
+        header: {
+            refWidth: 20,
+            height: this.headerHeight,
+            strokeWidth: 0.5,
+            stroke: '#4666E5',
+            fill: '#4666E5'
+        },
+        headerText: {
+            textVerticalAnchor: 'middle',
+            textAnchor: 'start',
+            refX: 8,
+            refY: this.headerHeight/2,
+            fontSize: 12,
+            fontFamily: 'sans-serif',
+            letterSpacing: 1,
+            // fill: '#FFFFFF',
+            // textWrap: {
+            //     width: 40,
+            //     maxLineCount: 1,
+            //     ellipsis: '*'
+            // },
+            // style: {
+            //     textShadow: '1px 1px #222222',
+            // }
+        },
+        // button: {
+        //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
+        //     refY: (this.headerHeight - this.buttonSize) / 2,
+        //     cursor: 'pointer',
+        //     event: 'element:button:pointerdown',
+        //     title: 'Collapse / Expand'
+        // },
+        buttonBorder: {
+            width: this.buttonSize,
+            height: this.buttonSize,
+            fill: '#000000',
+            fillOpacity: 0.2,
+            stroke: '#FFFFFF',
+            strokeWidth: 0.5,
+        },
+        buttonIcon: {
+            fill: 'none',
+            stroke: '#FFFFFF',
+            strokeWidth: 1
+        }
+    }
+    }, {
+    markup: [
+    //   {
+    //     tagName: 'rect',
+    //     selector: 'shadow'
+    // },
+     {
+        tagName: 'rect',
+        selector: 'body'
+    },
+     {
+        tagName: 'rect',
+        selector: 'header'
+    }, 
+    {
+        tagName: 'text',
+        selector: 'headerText'
+    }, 
+    // {
+    //     tagName: 'g',
+    //     selector: 'button',
+    //     children: [{
+    //         tagName: 'rect',
+    //         selector: 'buttonBorder'
+    //     }, {
+    //         tagName: 'path',
+    //         selector: 'buttonIcon'
+    //     }]
+    // }
+  ],
+
+    toggle: function(shouldCollapse: undefined) {
+        var buttonD;
+        var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+        if (collapsed) {
+            buttonD = 'M 2 7 12 7 M 7 2 7 12';
+            this.resize(140, 30);
+        } else {
+            buttonD = 'M 2 7 12 7';
+            this.fitChildren();
+        }
+        this.attr(['buttonIcon','d'], buttonD);
+        this.set('collapsed', collapsed);
+    },
+
+    isCollapsed: function() {
+        return Boolean(this.get('collapsed'));
+    },
+
+    fitChildren: function() {
+        var padding = 10;
+        this.fitEmbeds({
+            padding: {
+                top: this.headerHeight + padding,
+                left: padding,
+                right: padding,
+                bottom: padding
+            }
+        });
+    }
+});
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
@@ -31,7 +155,7 @@ export class Stencil {
     const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
     let s0 = new joint.shapes.uml.StartState({
-      position: { x: 22, y: 20 },
+      position: { x: 14, y: 20 },
       size: { width: 30, height: 30 },
       attrs: {
         circle: {
@@ -42,10 +166,8 @@ export class Stencil {
     });
 
 
-
-
     let se = new joint.shapes.uml.EndState({
-      position: { x: 22, y: 70 },
+      position: { x: 14, y: 70 },
       size: { width: 30, height: 30 },
       attrs: {
         ".outer": {
@@ -60,8 +182,8 @@ export class Stencil {
 
  
     let umlstate = new joint.shapes.standard.HeaderedRectangle({
-      size: { width: 35, height: 23 },
-      position: { x: 22, y: 120 },
+      size: { width: 30, height: 22 },
+      position: { x: 14, y: 120 },
       attrs: {
        
         body: {
@@ -81,22 +203,13 @@ export class Stencil {
           // text: 'bodyText'
         }
       }})
-      // let Container =new joint.shapes.container.Parent;
-      let Groupstate = new joint.shapes.standard.HeaderedRectangle({
-
-        position: { x: 19, y: 175 },
-        size: { width: 45, height: 30 },
-        attrs: {
-          body: {
-            fill: '#ffffff',
-          },
-  
-          headerText: {
-            text: 'group',
-            // ...this.labelAttributes
-          },
-        }
-      });
+      // let Container =joint.shapes.Container.Parent;
+      // let Groupstate = new Container({
+      //   position: { x: 18, y: 170 },
+      //   size: { width: 30, height: 20 },
+      //   z: 1,
+      //   attrs: {       headerText: { text: 'group' }}
+      // });
 /*
     let umlstate = new joint.shapes.standard.Rectangle({
 
@@ -115,8 +228,8 @@ export class Stencil {
 */
     let ParallelRhombusShape = new joint.shapes.standard.Polygon({
 
-      position: { x: 18, y: 220 },
-      size: { width: 45, height: 30 },
+      position: { x: 10, y: 170 },
+      size: { width: 40, height: 30 },
       attrs: {
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
@@ -131,8 +244,8 @@ export class Stencil {
 
     let ExclusiveRhombusShape = new joint.shapes.standard.Polygon({
 
-      position: { x: 18, y: 270 },
-      size: { width: 45, height: 30 },
+      position: { x: 10, y: 220 },
+      size: { width: 40, height: 30 },
       attrs: {
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
@@ -154,7 +267,7 @@ export class Stencil {
 
     Object.assign(this.states, { se: se });
     Object.assign(this.states, { umlstate: umlstate });
-    Object.assign(this.states, { Groupstate: Groupstate });
+    // Object.assign(this.states, { Groupstate: Groupstate });
     Object.assign(this.states, { exclusiverhombus: ExclusiveRhombusShape });
     Object.assign(this.states, { parallelsrhombus: ParallelRhombusShape });
 

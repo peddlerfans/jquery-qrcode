@@ -60,7 +60,7 @@
         icon: () => getNavIcon(route.meta),
         title: () => t(route.meta?.title as string)
       }
-      console.log(slots)
+      // console.log(slots)
       const basePath = resolve(props.basePath, route.path)
       return (
         <SubMenu v-slots={slots} key={basePath}>

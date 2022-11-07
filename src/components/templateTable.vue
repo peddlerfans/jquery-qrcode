@@ -266,7 +266,7 @@ function HandleClear() {
   chooseTemplate.value = true;
   hasData.value = false;
 }
-const chooseTemplate = ref(false);
+const chooseTemplate = ref(true);
 const chooseTemplateFunc = () => {
   
   let category = templateCategory!.value;
@@ -348,9 +348,9 @@ const chooseTemplateFunc = () => {
         >Choose A Template</a-button
       >
 
-      <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
+      <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
-      >
+      > -->
     </div>
     <!-- </section> -->
   </main>
