@@ -47,7 +47,10 @@ export async function getTemplatePreview(templateId:string){
     await request
     .post(strsql)
     .then((record: any) => {
+      
       rst = record.data;
+      console.log(rst);
+      
       if (rst.length > 0) {
       templatetableData = arr(rst);
       }
