@@ -13,126 +13,126 @@ export class Stencil {
   headerHeight = 14;
   buttonSize = 14;
   
-  container=joint.dia.Element.define('Container.Parent', {
-    collapsed: false,
-    attrs: {
-        root: {
-            magnetSelector: 'body'
-        },
-        body: {
-            refWidth: 20,
-            refHeight: 20,
-            strokeWidth: 1,
-            stroke: '#DDDDDD',
-            fill: '#FCFCFC'
-        },
-        header: {
-            refWidth: 20,
-            height: this.headerHeight,
-            strokeWidth: 0.5,
-            stroke: '#4666E5',
-            fill: '#4666E5'
-        },
-        headerText: {
-            textVerticalAnchor: 'middle',
-            textAnchor: 'start',
-            refX: 8,
-            refY: this.headerHeight/2,
-            fontSize: 12,
-            fontFamily: 'sans-serif',
-            letterSpacing: 1,
-            // fill: '#FFFFFF',
-            // textWrap: {
-            //     width: 40,
-            //     maxLineCount: 1,
-            //     ellipsis: '*'
-            // },
-            // style: {
-            //     textShadow: '1px 1px #222222',
-            // }
-        },
-        // button: {
-        //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
-        //     refY: (this.headerHeight - this.buttonSize) / 2,
-        //     cursor: 'pointer',
-        //     event: 'element:button:pointerdown',
-        //     title: 'Collapse / Expand'
-        // },
-        buttonBorder: {
-            width: this.buttonSize,
-            height: this.buttonSize,
-            fill: '#000000',
-            fillOpacity: 0.2,
-            stroke: '#FFFFFF',
-            strokeWidth: 0.5,
-        },
-        buttonIcon: {
-            fill: 'none',
-            stroke: '#FFFFFF',
-            strokeWidth: 1
-        }
-    }
-    }, {
-    markup: [
-    //   {
-    //     tagName: 'rect',
-    //     selector: 'shadow'
-    // },
-     {
-        tagName: 'rect',
-        selector: 'body'
-    },
-     {
-        tagName: 'rect',
-        selector: 'header'
-    }, 
-    {
-        tagName: 'text',
-        selector: 'headerText'
-    }, 
-    // {
-    //     tagName: 'g',
-    //     selector: 'button',
-    //     children: [{
-    //         tagName: 'rect',
-    //         selector: 'buttonBorder'
-    //     }, {
-    //         tagName: 'path',
-    //         selector: 'buttonIcon'
-    //     }]
-    // }
-  ],
+//   container=joint.dia.Element.define('Container.Parent', {
+//     collapsed: false,
+//     attrs: {
+//         root: {
+//             magnetSelector: 'body'
+//         },
+//         body: {
+//             refWidth: 20,
+//             refHeight: 20,
+//             strokeWidth: 1,
+//             stroke: '#DDDDDD',
+//             fill: '#FCFCFC'
+//         },
+//         header: {
+//             refWidth: 20,
+//             height: this.headerHeight,
+//             strokeWidth: 0.5,
+//             stroke: '#4666E5',
+//             fill: '#4666E5'
+//         },
+//         headerText: {
+//             textVerticalAnchor: 'middle',
+//             textAnchor: 'start',
+//             refX: 8,
+//             refY: this.headerHeight/2,
+//             fontSize: 12,
+//             fontFamily: 'sans-serif',
+//             letterSpacing: 1,
+//             // fill: '#FFFFFF',
+//             // textWrap: {
+//             //     width: 40,
+//             //     maxLineCount: 1,
+//             //     ellipsis: '*'
+//             // },
+//             // style: {
+//             //     textShadow: '1px 1px #222222',
+//             // }
+//         },
+//         // button: {
+//         //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
+//         //     refY: (this.headerHeight - this.buttonSize) / 2,
+//         //     cursor: 'pointer',
+//         //     event: 'element:button:pointerdown',
+//         //     title: 'Collapse / Expand'
+//         // },
+//         buttonBorder: {
+//             width: this.buttonSize,
+//             height: this.buttonSize,
+//             fill: '#000000',
+//             fillOpacity: 0.2,
+//             stroke: '#FFFFFF',
+//             strokeWidth: 0.5,
+//         },
+//         buttonIcon: {
+//             fill: 'none',
+//             stroke: '#FFFFFF',
+//             strokeWidth: 1
+//         }
+//     }
+//     }, {
+//     markup: [
+//     //   {
+//     //     tagName: 'rect',
+//     //     selector: 'shadow'
+//     // },
+//      {
+//         tagName: 'rect',
+//         selector: 'body'
+//     },
+//      {
+//         tagName: 'rect',
+//         selector: 'header'
+//     }, 
+//     {
+//         tagName: 'text',
+//         selector: 'headerText'
+//     }, 
+//     // {
+//     //     tagName: 'g',
+//     //     selector: 'button',
+//     //     children: [{
+//     //         tagName: 'rect',
+//     //         selector: 'buttonBorder'
+//     //     }, {
+//     //         tagName: 'path',
+//     //         selector: 'buttonIcon'
+//     //     }]
+//     // }
+//   ],
 
-    toggle: function(shouldCollapse: undefined) {
-        var buttonD;
-        var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-        if (collapsed) {
-            buttonD = 'M 2 7 12 7 M 7 2 7 12';
-            this.resize(140, 30);
-        } else {
-            buttonD = 'M 2 7 12 7';
-            this.fitChildren();
-        }
-        this.attr(['buttonIcon','d'], buttonD);
-        this.set('collapsed', collapsed);
-    },
+//     toggle: function(shouldCollapse: undefined) {
+//         var buttonD;
+//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+//         if (collapsed) {
+//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+//             this.resize(140, 30);
+//         } else {
+//             buttonD = 'M 2 7 12 7';
+//             this.fitChildren();
+//         }
+//         this.attr(['buttonIcon','d'], buttonD);
+//         this.set('collapsed', collapsed);
+//     },
 
-    isCollapsed: function() {
-        return Boolean(this.get('collapsed'));
-    },
+//     isCollapsed: function() {
+//         return Boolean(this.get('collapsed'));
+//     },
 
-    fitChildren: function() {
-        var padding = 10;
-        this.fitEmbeds({
-            padding: {
-                top: this.headerHeight + padding,
-                left: padding,
-                right: padding,
-                bottom: padding
-            }
-        });
-    }
-});
+//     fitChildren: function() {
+//         var padding = 10;
+//         this.fitEmbeds({
+//             padding: {
+//                 top: this.headerHeight + padding,
+//                 left: padding,
+//                 right: padding,
+//                 bottom: padding
+//             }
+//         });
+//     }
+// });
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
