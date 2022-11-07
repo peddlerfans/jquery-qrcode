@@ -61,9 +61,10 @@ const url = templateUrl;
 const tableRef = ref()
 
 const initModelAttr={
-  option: {strategy:''},
-  factor: [],
-  constraint: []
+  outputLanguage: '',
+  templateEngine: '',
+  data: '',
+  history: []
 }
 // ##### Invoke table hook #####
 // Initialize  without pagination ??????
@@ -97,7 +98,7 @@ const columns1 = [ // Setup the header of columns
 ]
 
 const {
-  dataSource, columns, originColumns, tableLoading, pagination ,
+  dataSource, columns, originColumns, tableLoading, pagination, selectedRowKeys,
   updateTable, onTableRowSelectChange, tableResize
 } = useTable({
   table: tableRef, // Predefined a null reference which might be an instance of component
@@ -129,10 +130,10 @@ const {
 
 // ######## Search bar ########
 
-// Search 
+// Search
 let searchobj: tableSearch = reactive({
   search: "",
-  q: "category:dynamic",
+  q: "category:codegen",
   size: 20,
   page: 1,
   perPage: 10
@@ -142,7 +143,7 @@ let searchobj: tableSearch = reactive({
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: '',
-  q: "category:dynamic",
+  q: "category:codegen",
 });
 
 // 表格的数据
@@ -159,16 +160,13 @@ async function query(data?: any) {
   if (data && data.search.toString().substring(0, 6) == '@tags:') {
     rst = await request.get(url + `?q=tags:` + data.search.substring(6, data.search.length).toUpperCase().trim())
   } else {
-    // Inital render search 
+    // Inital render search
     rst = await request.get(url, { params: data || searchobj })
   }
 
-  console.log('query')
-  console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
-    // console.log('rst:', rst.data)
     dataSource.value = rst.data
     tableData.value = rst.data
 
@@ -177,14 +175,8 @@ async function query(data?: any) {
 }
 
 const handleFinish: FormProps['onFinish'] = (values: any) => {
-  // console.log(' formstate to search :', formState);
 
   query(formState)
-  // highlight.value = dataSource.value.filter((item: any, index: any) => {
-
-  //   return item._highlight
-  // })
-  // console.log(highlight.value);
 
 };
 
@@ -241,13 +233,11 @@ const closeModel = () => {
   clearModelState()
 
   query()
-  // console.log(modelstates);
 }
 
 // Handel Tags in modal form
 const handleCloseTag = (removedTag: string) => {
   const tags = modelState.tags.filter((tag: string) => tag !== removedTag);
-  console.log(tags);
   modelState.tags = tags;
 
 };
@@ -297,7 +287,7 @@ const saveModel = async () => {
     name: modelState.name,
     description: modelState.description,
     tags: toRaw(modelState.tags),
-    category: "dynamic",
+    category: "codegen",
     templateText: '',
     model: initModelAttr
   }
@@ -312,7 +302,7 @@ const updateModel = async () => {
     name: modelState.name,
     description: modelState.description,
     tags: toRaw(modelState.tags),
-    category: "dynamic",
+    category: "codegen",
     templateText: '',
   }
 
@@ -343,25 +333,6 @@ const cancelModel = () => {
   modelState.inputValue = ''
 }
 
-let columnPreview=ref<any>()
-let modelDataPreview=ref<any>()
-let prev=ref<boolean>(false);
-
-const previewModel = async (id: string) => {
-  let rst = await request.post(url+`/${id}/preview`)
-
-  modelDataPreview.value=rst
-  columnPreview.value=rst.model?.parameters.map((e:any)=>{
-    return {
-      title: e.property,
-      dataIndex: e.property,
-      key: e.property,
-    }
-  })
-
-  prev.value=true
-
-}
 
 // ################################
 // ######## Model CRUD END ########
@@ -386,64 +357,10 @@ let checkDesc = async (_rule: Rule, value: string) => {
 }
 
 let modelRules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+  name: [{ required: true, validator: checkName }],
+  description: [{ required: true, validator: checkDesc }],
 };
 
-
-// const handleOk = () => {
-//   onFinishForm(modelState)
-//
-//   clearModelState()
-//   query()
-// };
-
-
-// const onFinishForm = async (modelState: any) => {
-//   // 输入验证
-//
-//   const model = {
-//     name: modelState.name,
-//     description: modelState.description,
-//     tags: toRaw(modelState.tags),
-//     category: "dynamic",
-//     templateText: '',
-//     model: {
-//       option: {},
-//       factor: [],
-//       constraint: []
-//     }
-//   }
-//
-//   visibleModel.value = false;
-//
-//   // 判断修改或添加
-//   if (modelState._id) {
-//     let rst = await request.put(url + `/${modelState.value._id}`, model)
-//     // message.success("Modified successfully")
-//   } else {
-//     // delete modelState.value._id
-//     let rst = await request.post(url, model)
-//     console.log(rst)
-//     message.success("Added successfully")
-//   }
-//
-//   // showAddConstraint.value = false
-//   // showAddFactor.value = false
-//   // if (modelState.value.name && modelState.value.description) {
-//
-//   //   // }
-//   //   visible.value = false;
-//   //   clear()
-//   //   query()
-//   // } else {
-//   //   return message.error("name and descript is required")
-//   // }
-// };
-
-// const onFinishFailedForm = (errorInfo: any) => {
-//   console.log('Failed:', errorInfo);
-// };
 
 
 // Antdv select
@@ -460,13 +377,10 @@ const cancel = (e: MouseEvent) => {
 };
 
 onBeforeMount(() => {
-  console.log("xxxxxxxxxx")
+  console.log("")
 })
 
 onMounted(() => {
-  console.log("onMounted: dataSource")
-  console.log(dataSource)
-  console.log(tableData)
   query()
 })
 
@@ -484,11 +398,11 @@ onMounted(() => {
       <a-row>
         <a-col :span="20">
           <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
+                 @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value.trim="formState.search"
-                placeholder="input @ to search tags, input name to search Dynamic Templates">
+              <a-mentions v-model:value="formState.search"
+                          placeholder="input @ to search tags, input name to search CodeGen Templates">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
@@ -506,7 +420,7 @@ onMounted(() => {
             <template #icon>
               <plus-outlined />
             </template>
-            Create a New Dynamic Template
+            Create a New CodeGen Template
           </a-button>
         </a-col>
       </a-row>
@@ -517,20 +431,20 @@ onMounted(() => {
 
     <div>
       <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel" :width="900">
+               :title="modelState._id? 'Update a CodeGen Template':'Create a New CodeGen Template'" @cancel="closeModel" :width="900">
 
         <!-- Model meta info -->
 
         <h2>Model</h2>
 
         <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+                :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
           <a-form-item label="Name" name="name">
-            <a-input v-model:value.trim="modelState.name" />
+            <a-input v-model:value="modelState.name" />
           </a-form-item>
 
           <a-form-item label="Description" name="description">
-            <a-input v-model:value.trim="modelState.description" />
+            <a-input v-model:value="modelState.description" />
           </a-form-item>
 
           <!-- tags标签 -->
@@ -546,9 +460,9 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value.trim="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
+            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value="modelState.inputValue" type="text"
+                     size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
+                     @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(1)">
               <plus-outlined />
               Add a New Tag
@@ -569,54 +483,25 @@ onMounted(() => {
 
 
 
-
-
-    <a-modal v-model:visible="prev" :title="modelState._id? 'Model preview':'Model preview'" :width="900">
-
-      <!-- Model meta info -->
-
-      <h2>Data</h2>
-
-      <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        <template #bodyCell="{ column, text, record }">
-<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-          {{ text }}
-        </template>
-      </a-table>
-
-      <template #footer>
-<!--        <a-button @click="closeModel">Cancel</a-button>-->
-      </template>
-
-      <h2>Model</h2>
-      <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-
-    </a-modal>
-
-
     <!-- ######################### -->
-    <!-- List of dynamic templates -->
+    <!-- List of CodeGen templates -->
     <!-- ######################### -->
     <a-table :columns="columns1" :data-source="tableData" bordered>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.name"
-              style="margin: -5px 0" />
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.name"
+                     style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a v-if="record.model.factor.length>1" :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
-              <!-- <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a> -->
-              <span v-else>{{text}}</span>
+              <a :href="`/#/codegenModeler/${record._id}/${record.name}`">{{text}}</a>
             </template>
           </div>
         </template>
         <template v-if='column.key==="description"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.description"
-              style="margin: -5px 0" />
+            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.description"
+                     style="margin: -5px 0" />
             <template v-else>
               {{ text }}
             </template>
@@ -635,9 +520,9 @@ onMounted(() => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value.trim="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
+            <a-input v-if="modelState.inputVisible" ref="inputRef2" v-model:value="modelState.inputValue" type="text"
+                     size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
+                     @keyup.enter="handleModelTagConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(2)">
               <plus-outlined />
               Add a New Tag
@@ -646,7 +531,7 @@ onMounted(() => {
 
           <span v-else>
             <a-tag v-for="tag in record.tags" :key="tag"
-              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
+                   :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
               {{ tag.toUpperCase() }}
             </a-tag>
           </span>
@@ -656,19 +541,15 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">Save</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to cancel?" @confirm="clearModelState()">
-                <a>Cancel</a>
-              </a-popconfirm>
+              <a @click="clearModelState()">Cancel</a>
             </span>
 
             <span v-else>
               <a @click="editModel(record)">Edit</a>
-              <!-- <a-divider type="vertical" />
-              <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">Config</a> -->
 
               <a-divider type="vertical" />
-              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                @confirm="deleteModel(record._id)" @cancel="cancel">
+              <a-popconfirm title="Are you sure to delete this CodeGen Template?" ok-text="Yes" cancel-text="No"
+                            @confirm="deleteModel(record._id)" @cancel="cancel">
                 <a>Delete</a>
               </a-popconfirm>
 

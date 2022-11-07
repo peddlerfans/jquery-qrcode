@@ -52,7 +52,7 @@
             <HeadBar></HeadBar>
             <TabsBar :withIcons="true"></TabsBar>
           </div>
-          <RouterView v-slot="{ Component, route }" class="content-view">
+          <RouterView v-slot="{ Component, route }" class="content-view" :key="$route.path">
             <Transition :name="transitions.fadeScale" mode="out-in" appear>
               <!-- 
                 vite的hmr和keepalive组件冲突会导致路由失效，
@@ -60,7 +60,7 @@
                 开发过程注释掉keepalive
               -->
               <KeepAlive :include="Array.from(keepAlivePages)" :max="10">
-                <component :is="Component" :key="route.name" />
+                <component :is="Component" :key="route.meta.title" />
               </KeepAlive>
             </Transition>
           </RouterView>

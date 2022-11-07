@@ -6,5 +6,7 @@ services:
       - "8080:8080"
   mbt-api:
     image: registry.gitlab.com/itea-tech/itea-oppo/mbt-backend:master
+    environment:
+      - config=./config-master.yml
     ports:
       - "3000:3000"

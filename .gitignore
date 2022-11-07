@@ -27,9 +27,13 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
+*.png
+n
 # auto generate file
 components.d.ts
 playwright-report/
 allure-report/
 allure-results/
+package-lock.json
+package-lock*
+yarn.lock*

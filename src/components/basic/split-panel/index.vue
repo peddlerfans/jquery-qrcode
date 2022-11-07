@@ -60,6 +60,7 @@
     height: 100%;
 
     .scalable {
+      // height: 100%;
       position: relative;
       width: 240px;
       max-width: 50vw;
@@ -79,7 +80,7 @@
         width: 14px;
         height: 100%;
         cursor: col-resize;
-        box-shadow: -4px -2px 4px -5px rgba(0, 0, 0, 0.35), 4px 3px 4px -5px rgba(0, 0, 0, 0.35);
+        box-shadow: -4px 4px 4px -5px rgba(0, 0, 0, 0.35), 2px 3px 4px -5px rgba(0, 0, 0, 0.35);
         align-items: center;
         justify-content: center;
 

@@ -4,6 +4,7 @@ export interface tableSearch {
     search: string
     page: number
     perPage: number
+    q:string
 }
 // 查询表单的数据
 export interface FormState {
@@ -11,11 +12,15 @@ export interface FormState {
 }
 // 模态窗表单
 export interface paramsobj {
+    inputVisible:boolean
     name: string,
     type: string;
-
+    enum:Array<any>
+    editing:boolean
+    inputValue:string
 }
 export interface ModelState {
+    key?:number
     name: string;
     description: string;
     template: string;
@@ -31,11 +36,7 @@ export interface statesTs {
     inputValue: string
 }
 
-
-
-
-interface DataItem {
-    key: string;
-    name: string;
-    description: string
+export interface clickobj {
+    path: string;
+    dataRef: any;
 }

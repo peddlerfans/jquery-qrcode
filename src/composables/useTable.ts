@@ -18,7 +18,7 @@ function tableColumns(columns: TableColumnsType) {
 function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function) {
   const orz: TablePaginationConfig = {
     current: 1,
-    pageSize: 10,
+    pageSize: 20,
     pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
@@ -71,10 +71,24 @@ export default function ({ table, columns, pagination, updateTableOptions }:
         perPage: _pagination.pageSize
       }
     }).then(res => {
-      // console.log('res:',res)
-      _dataSource.value = res.data
+      //original data structure res.data.data
+      if(res.hasOwnProperty('data') && res.hasOwnProperty('total')){
+        let tempdata = res.data
+        let temptotal = res.total      
+        Object.assign(res.data,{data:tempdata})
+        Object.assign(res.data,{total:temptotal})
+        _dataSource.value = res.data?.data      
+        _pagination.total = res.total
+      }else{
+        let tempresult =[]
+        tempresult.push(res);
+        _dataSource.value = tempresult;
+        _pagination.total = 1;
+
+      }
+     
+
       
-      _pagination.total = res.data?.total
     }).catch(e=>{
       console.log('err:',e)
     })

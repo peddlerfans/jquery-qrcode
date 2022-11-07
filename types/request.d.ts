@@ -3,6 +3,7 @@ import { Axios, AxiosResponse } from "axios"
 export type RequestFail = 'fail'
 
 export interface ResponseData<T> {
+    length: number
     code: number,
     msg: string,
     data: T | null

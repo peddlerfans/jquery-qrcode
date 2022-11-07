@@ -3,7 +3,7 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, ProfileOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
+  AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
 
 export const dashboardRoute: RouteRecordRaw = {
@@ -56,13 +56,29 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+  {
+    path: '/awmodeler',
+    name: 'Awmodeler',
+    component: Layout,
+    redirect: { name: 'awmodeler' },
+    meta: { title: 'AWModeler',icon: ApiOutlined },
+    children: [
+      {
+        path: 'index',
+        name: 'awmodeler',
+        component: () => import('@/views/awmodeler.vue'),
+        meta: { title: 'AWModeler',icon: ApiOutlined }
+      }
+    ]
+  }
+  ,
 
   {
     path: '/mbtstore',
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { breadcrumb: false },
+    meta: { title: 'MBTStore',icon: AppstoreAddOutlined},
     children: [
       {
         path: 'index',
@@ -78,7 +94,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title:'Template Manager',icon:ExportOutlined,breadcrumb: false },
+    meta: { title:'Template Manager',icon:ExportOutlined },
     children: [
       {
         path: 'meta',
@@ -96,28 +112,18 @@ export const routes: RouteRecordRaw[] = [
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
         meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
+      },{
+        path: 'codegen',
+        name: 'codegenTemplate',
+        component: () => import('@/views/codegentemplate.vue'),
+        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
       }
 
     ]
   }
 
   ,
-  {
-    path: '/awmodeler',
-    name: 'Awmodeler',
-    component: Layout,
-    redirect: { name: 'awmodeler' },
-    meta: { breadcrumb: false },
-    children: [
-      {
-        path: 'index',
-        name: 'awmodeler',
-        component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', icon: ApiOutlined, keepAlive: true }
-      }
-    ]
-  }
-  ,
+  
 
   {
     path: '/account',
@@ -139,16 +145,133 @@ export const routes: RouteRecordRaw[] = [
     path: '/mbtmodeler',
     name: 'Mbtmodeler',
     component: Layout,
-    redirect: { name: 'mbtmodeler' },    
+    redirect: { name: 'mbtmodeler' },  
+    meta: { hidden: true}, 
     children: [
       {
-        path: ':name',
-        name: 'Mbtmodeler',
-        component: () => import('@/views/mbtmodeler.vue'),
-        meta: { hidden: true, title: 'Mbtmodeler', icon: LayoutOutlined }
+        path: ':_id/:name',
+        name: 'mbtmodeler',
+        component: () => import('@/views/mbtmodeler.vue'),        
+        meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true}
       }
-    ]
-
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=pathname
+       
+        }
+        next()
+      }
+  },
+  {
+    path: '/metaModeler',
+    name: 'MetaModeler',
+    component: Layout,
+    redirect: { name: 'metaModeler' },    
+    meta: { hidden: true}, 
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'metaModeler',
+        component: () => import('@/views/metaModel.vue'),
+        meta: { hidden: true, title: 'MetaModel', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+    if(to.params._id && to.params.name){
+      to.meta.title=`MetaModel ${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/dynamicModeler',
+    name: 'DynamicModeler',
+    component: Layout,
+    redirect: { name: 'dynamicModeler' },
+    meta: { hidden: true},
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'dynamicModeler',
+        component: () => import('@/views/dynamicModel.vue'),
+        meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/staticModeler',
+    name: 'staticmodeler',
+    component: Layout,
+    redirect: { name: 'staticmodeler' },  
+    meta: { hidden: true},  
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'staticmodeler',
+        component: () => import('@/views/statictemplateModeler.vue'),
+        meta: { hidden: true, title: 'Static Template Modeler', icon: LayoutOutlined }
+      }
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      if(to.path==`/staticModeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=`Static `+pathname
+       
+        }
+        next()
+      }
+  },
+  {
+    path: '/codegenModeler',
+    name: 'CodegenModeler',
+    component: Layout,
+    redirect: { name: 'codegenModeler' },
+    meta: { hidden: true},
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'codegenModeler',
+        component: () => import('@/views/codegenModel.vue'),
+        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/codegenModeler',
+    name: 'CodegenModeler',
+    component: Layout,
+    redirect: { name: 'codegenModeler' },
+    meta: { hidden: true},
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'codegenModeler',
+        component: () => import('@/views/codegenModel.vue'),
+        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to,form,next){
+      if(to.params._id && to.params.name){
+        to.meta.title=`${to.params.name}`
+      }
+      next()
+    }
   }
 ]
 
