@@ -1217,7 +1217,8 @@ function reloadMBT(route: any) {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
                 // cell.attrs.label.text = aw.template || aw.description;
                 let showheadtext = aw.template || aw.description;
-                $(cell).attr(
+                let cellonpaper = modeler.graph.getCell(cell.id);
+                cellonpaper.attr(
                   "headerText/text",
                   joint.util.breakText(
                     showheadtext,
@@ -1360,136 +1361,136 @@ onMounted(() => {
     var headerHeight = 30;
     var buttonSize = 14;
 
-    let container=joint.dia.Element.define('Container.Parent', {
-    collapsed: false,
-    attrs: {
-        root: {
-            magnetSelector: 'body'
-        },
-        shadow: {
-            refWidth: '100%',
-            refHeight: '100%',
-            x: 3,
-            y: 3,
-            fill: '#000000',
-            opacity: 0.05
-        },
-        body: {
-            refWidth: 100,
-            refHeight: 100,
-            strokeWidth: 1,
-            stroke: '#DDDDDD',
-            fill: '#FCFCFC'
-        },
-        header: {
-            refWidth: 100,
-            height: headerHeight,
-            strokeWidth: 0.5,
-            stroke: '#4666E5',
-            fill: '#4666E5'
-        },
-        headerText: {
-            textVerticalAnchor: 'middle',
-            textAnchor: 'start',
-            refX: 8,
-            refY: headerHeight / 2,
-            fontSize: 16,
-            fontFamily: 'sans-serif',
-            letterSpacing: 1,
-            fill: '#FFFFFF',
-            textWrap: {
-                width: -40,
-                maxLineCount: 1,
-                ellipsis: '*'
-            },
-            style: {
-                textShadow: '1px 1px #222222',
-            }
-        },
-        button: {
-            refDx:  buttonSize - (headerHeight - buttonSize) / 2,
-            refY: (headerHeight - buttonSize) / 2,
-            cursor: 'pointer',
-            event: 'element:button:pointerdown',
-            title: 'Collapse / Expand'
-        },
-        buttonBorder: {
-            width: buttonSize,
-            height: buttonSize,
-            fill: '#4666E5',
-            fillOpacity: 0.2,
-            stroke: '#4666E5',
-            strokeWidth: 0.5,
-        },
-        buttonIcon: {
-            fill: '#4666E5',
-            stroke: '#4666E5',
-            strokeWidth: 1
-        }
-    }
-    }, {
-    markup: [{
-        tagName: 'rect',
-        selector: 'shadow'
-    }, {
-        tagName: 'rect',
-        selector: 'body'
-    }, {
-        tagName: 'rect',
-        selector: 'header'
-    }, {
-        tagName: 'text',
-        selector: 'headerText'
-    },
-     {
-        tagName: 'g',
-        selector: 'button',
-        children: [{
-            tagName: 'rect',
-            selector: 'buttonBorder'
-        }, {
-            tagName: 'path',
-            selector: 'buttonIcon'
-        }]
-    }
-  ],
+//     let container=joint.dia.Element.define('Container.Parent', {
+//     collapsed: false,
+//     attrs: {
+//         root: {
+//             magnetSelector: 'body'
+//         },
+//         shadow: {
+//             refWidth: '100%',
+//             refHeight: '100%',
+//             x: 3,
+//             y: 3,
+//             fill: '#000000',
+//             opacity: 0.05
+//         },
+//         body: {
+//             refWidth: 100,
+//             refHeight: 100,
+//             strokeWidth: 1,
+//             stroke: '#DDDDDD',
+//             fill: '#FCFCFC'
+//         },
+//         header: {
+//             refWidth: 100,
+//             height: headerHeight,
+//             strokeWidth: 0.5,
+//             stroke: '#4666E5',
+//             fill: '#4666E5'
+//         },
+//         headerText: {
+//             textVerticalAnchor: 'middle',
+//             textAnchor: 'start',
+//             refX: 8,
+//             refY: headerHeight / 2,
+//             fontSize: 16,
+//             fontFamily: 'sans-serif',
+//             letterSpacing: 1,
+//             fill: '#FFFFFF',
+//             textWrap: {
+//                 width: -40,
+//                 maxLineCount: 1,
+//                 ellipsis: '*'
+//             },
+//             style: {
+//                 textShadow: '1px 1px #222222',
+//             }
+//         },
+//         button: {
+//             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+//             refY: (headerHeight - buttonSize) / 2,
+//             cursor: 'pointer',
+//             event: 'element:button:pointerdown',
+//             title: 'Collapse / Expand'
+//         },
+//         buttonBorder: {
+//             width: buttonSize,
+//             height: buttonSize,
+//             fill: '#4666E5',
+//             fillOpacity: 0.2,
+//             stroke: '#4666E5',
+//             strokeWidth: 0.5,
+//         },
+//         buttonIcon: {
+//             fill: '#4666E5',
+//             stroke: '#4666E5',
+//             strokeWidth: 1
+//         }
+//     }
+//     }, {
+//     markup: [{
+//         tagName: 'rect',
+//         selector: 'shadow'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'body'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'header'
+//     }, {
+//         tagName: 'text',
+//         selector: 'headerText'
+//     },
+//      {
+//         tagName: 'g',
+//         selector: 'button',
+//         children: [{
+//             tagName: 'rect',
+//             selector: 'buttonBorder'
+//         }, {
+//             tagName: 'path',
+//             selector: 'buttonIcon'
+//         }]
+//     }
+//   ],
 
-    toggle: function(shouldCollapse: undefined) {
-        var buttonD;
-        var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-        if (collapsed) {
-            buttonD = 'M 2 7 12 7 M 7 2 7 12';
-            this.resize(140, 30);
-        } else {
-            buttonD = 'M 2 7 12 7';
-            this.fitChildren();
-        }
-        this.attr(['buttonIcon','d'], buttonD);
-        this.set('collapsed', collapsed);
-    },
+//     toggle: function(shouldCollapse: undefined) {
+//         var buttonD;
+//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+//         if (collapsed) {
+//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+//             this.resize(140, 30);
+//         } else {
+//             buttonD = 'M 2 7 12 7';
+//             this.fitChildren();
+//         }
+//         this.attr(['buttonIcon','d'], buttonD);
+//         this.set('collapsed', collapsed);
+//     },
 
-    isCollapsed: function() {
-        return Boolean(this.get('collapsed'));
-    },
+//     isCollapsed: function() {
+//         return Boolean(this.get('collapsed'));
+//     },
 
-    fitChildren: function() {
-        var padding = 10;
-        this.fitEmbeds({
-            padding: {
-                top: headerHeight + padding,
-                left: padding,
-                right: padding,
-                bottom: padding
-            }
-        });
-    }
-});
-let containerparent=joint.shapes.Container.Parent
-    let conatiner_a=new containerparent({
-      z: 1,
-        attrs: { headerText: { text: 'Container A' }}
-    })
-modeler.graph.addCell(conatiner_a)
+//     fitChildren: function() {
+//         var padding = 10;
+//         this.fitEmbeds({
+//             padding: {
+//                 top: headerHeight + padding,
+//                 left: padding,
+//                 right: padding,
+//                 bottom: padding
+//             }
+//         });
+//     }
+// });
+// let containerparent=joint.shapes.Container.Parent
+//     let conatiner_a=new containerparent({
+//       z: 1,
+//         attrs: { headerText: { text: 'Container A' }}
+//     })
+// modeler.graph.addCell(conatiner_a)
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -2218,7 +2219,7 @@ watch(rulesData,(newvalue:any)=>{
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23">
+        <a-col :span="23" style=" width: 100%; height: 100%;">
           <div class="canvas" ref="canvas"></div>
         </a-col>
 
@@ -2754,6 +2755,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {

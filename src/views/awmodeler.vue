@@ -17,6 +17,7 @@ import {uuid} from '@/utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
+import awModeler from "@/locales/lang/zh-CN/routes/awModeler";
 
 const { t } = useI18n()
 let tableData:any= ref([])
@@ -99,6 +100,7 @@ const closemodel = () => {
   clear()
   visible.value = false;
 }
+
 // 模态窗表单
   const optiones = ref<SelectProps['options']>([
       {
@@ -218,7 +220,6 @@ const editparams = (record:any) => {
   obj.value.type = record.type
   obj.value.enum = record.values
   record.editing = true
-
 }
 // 新添加一条params数据
 const addNewParams = () => {
@@ -262,7 +263,6 @@ const paramsColum = [
 const handleCloseTag = (record: any, removedTag: string) => {
   const tags = record.enum.filter((tag: string) => tag !== removedTag);
   record.enum = tags;
-
 };
 const handleFactorValueConfirm = (record: any) => {
   let values = record.enum;
@@ -423,7 +423,6 @@ async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
   // pagination.value.total = 1
       // tableData.value = [rst]
-
     }
 // 修改的函数
 const edit = (rowobj:any) => {
@@ -948,7 +947,8 @@ const addAwmodel= (key:any,title:string)=>{
     message.warning("Please select the Aw to be added")
   }
 }
-
+// 定义修改的变量
+let awupdate=ref("awmodeler")
 
 </script>
 <template>
@@ -1303,7 +1303,7 @@ const addAwmodel= (key:any,title:string)=>{
           
           <template v-else-if="column.key === 'action'">
               <span>
-                  <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
+                  <a :href="'/#/awupdate/'+record._id+'/'+record.name+'/'+awupdate" >{{ $t('component.table.edit') }}</a>
                     <a-divider type="vertical" />
                         <a-popconfirm
                           :title="$t('awModeler.delTip')"

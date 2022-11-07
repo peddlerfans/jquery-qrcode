@@ -155,7 +155,7 @@ export class Stencil {
     const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
     let s0 = new joint.shapes.uml.StartState({
-      position: { x: 18, y: 20 },
+      position: { x: 14, y: 20 },
       size: { width: 30, height: 30 },
       attrs: {
         circle: {
@@ -167,7 +167,7 @@ export class Stencil {
 
 
     let se = new joint.shapes.uml.EndState({
-      position: { x: 18, y: 70 },
+      position: { x: 14, y: 70 },
       size: { width: 30, height: 30 },
       attrs: {
         ".outer": {
@@ -182,8 +182,8 @@ export class Stencil {
 
  
     let umlstate = new joint.shapes.standard.HeaderedRectangle({
-      size: { width: 35, height: 22 },
-      position: { x: 18, y: 120 },
+      size: { width: 30, height: 22 },
+      position: { x: 14, y: 120 },
       attrs: {
        
         body: {
@@ -203,26 +203,13 @@ export class Stencil {
           // text: 'bodyText'
         }
       }})
-      let Container =joint.shapes.Container.Parent;
-      let Groupstate = new Container({
-        position: { x: 18, y: 170 },
-        size: { width: 30, height: 20 },
-
-        z: 1,
-        attrs: {       headerText: { text: 'group' }}
-        // position: { x: 19, y: 175 },
-        // size: { width: 45, height: 30 },
-        // attrs: {
-        //   body: {
-        //     fill: '#ffffff',
-        //   },
-  
-        //   headerText: {
-        //     text: 'group',
-        //     // ...this.labelAttributes
-        //   },
-        // }
-      });
+      // let Container =joint.shapes.Container.Parent;
+      // let Groupstate = new Container({
+      //   position: { x: 18, y: 170 },
+      //   size: { width: 30, height: 20 },
+      //   z: 1,
+      //   attrs: {       headerText: { text: 'group' }}
+      // });
 /*
     let umlstate = new joint.shapes.standard.Rectangle({
 
@@ -241,8 +228,8 @@ export class Stencil {
 */
     let ParallelRhombusShape = new joint.shapes.standard.Polygon({
 
-      position: { x: 18, y: 220 },
-      size: { width: 45, height: 30 },
+      position: { x: 10, y: 170 },
+      size: { width: 40, height: 30 },
       attrs: {
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
@@ -257,8 +244,8 @@ export class Stencil {
 
     let ExclusiveRhombusShape = new joint.shapes.standard.Polygon({
 
-      position: { x: 18, y: 270 },
-      size: { width: 45, height: 30 },
+      position: { x: 10, y: 220 },
+      size: { width: 40, height: 30 },
       attrs: {
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
@@ -280,7 +267,7 @@ export class Stencil {
 
     Object.assign(this.states, { se: se });
     Object.assign(this.states, { umlstate: umlstate });
-    Object.assign(this.states, { Groupstate: Groupstate });
+    // Object.assign(this.states, { Groupstate: Groupstate });
     Object.assign(this.states, { exclusiverhombus: ExclusiveRhombusShape });
     Object.assign(this.states, { parallelsrhombus: ParallelRhombusShape });
 
