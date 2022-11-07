@@ -139,9 +139,8 @@ const save =async (record:any) => {
   console.log(tableData.value);
     await request.post("/api/templates",record)
   }
-  await query()
   clearFactorState()
-  showAddFactorBtn.value=false
+  showAddFactorBtn.value=true
 }
 
 
@@ -230,12 +229,11 @@ const handleInputConfirm = (record:any) => {
   if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
     tags = [...tags, record.inputValue];
   }
-  Object.assign(states, {
+  Object.assign(record, {
     tags:tags,
     inputVisible: false,
     inputValue: '',
  });  
-  console.log(states.tags);
   
 }
 // 移除tags
@@ -351,7 +349,7 @@ let rules:Record<string,Rule[]>={
                     </a-tag>
                   </a-tooltip>
                   <a-tag v-else-if="tag.length==0"></a-tag>
-                  <a-tag v-else :closable="true" @close="handleClose(record,tag)">
+                  <a-tag v-else :closable="true" :visible="true"  @close="handleClose(record,tag)">
                     {{tag}}
                   </a-tag>  
                 </template>

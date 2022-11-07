@@ -9,7 +9,7 @@ import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
 import type { Ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
@@ -870,7 +870,7 @@ function linkhandlerSubmit() {
   }else{
     linkFormData.label!=undefined
   }
-
+  
   linkFormData.ruleData = rulesData.value;
   // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
@@ -989,6 +989,10 @@ let toReload = ref(false);
 })
 return setarr
  }
+ localStorage.setItem(
+            "mbt_" + route.params.name,
+            JSON.stringify(route.params.name)
+          );
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1037,6 +1041,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
           );
+
           return mbtCache;
         }
       })
@@ -1253,7 +1258,10 @@ onMounted(() => {
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
+   
+    
     res = mbtquery(mbtId);
+    console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -1261,9 +1269,9 @@ onMounted(() => {
       ) {
 
         getAllTemplatesByCategory('codegen').then((rst:any)=>{
-          // console.log('codegen:',rst)
+          console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
-            rst.forEach((rec:any)=>{
+            rst.forEach((rec:any)=>{              
               codegennames.value.push(rec.name)
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
@@ -1325,6 +1333,19 @@ onMounted(() => {
           // cacheDataDefinition.meta;
         }
 
+      }else{
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
+              // globalschema.value.properties.codegen_text.enum.push(rec.name)
+              // globalschema.value.properties.codegen_script.enum.push(rec.name)
+            })
+
+          }
+
+        })
       }
     });
   } else {
@@ -2166,6 +2187,27 @@ watch(rulesData,(newvalue:any)=>{
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
+let router=useRouter()
+// 点击跳转Aw修改
+const routerAw=(awData:any)=>{
+  
+  
+  let awUpdate:any=ref("mbtAW")
+  let getmbtNAme=localStorage.getItem("mbt_"+route.params.name)
+  let getmbtId=localStorage.getItem("mbt_"+route.params._id+route.params.name+"_id")
+  console.log(awData.name,getmbtNAme,getmbtId);
+  router.push({
+    name:"awupdate",
+    // path:`/#/awupdate/${awData._id}/${awData.name}/${awUpdate.value}`,
+    params:{
+      _id:awData._id,
+      name:awData.name,
+      awupdate:awUpdate.value,
+      mbtid:getmbtId!,
+      mbtname:JSON.parse(getmbtNAme!)
+    }
+  })
+}
 
 </script>
 
@@ -2357,7 +2399,11 @@ watch(rulesData,(newvalue:any)=>{
                     :schema="awschema"
                     v-if="isAW && hasAWInfo"
                   >
-                    <div slot-scope="{ awformdata }">
+                    <div slot-scope="{ awformdata }" style="position: relative;">
+                      <span style="position: absolute; left: 3rem;top: -27.25rem; ">
+                        <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
+                        <a-button danger @click="routerAw(awformdata)">updateAw</a-button>
+                      </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()"
                           >Submit</a-button
@@ -2523,7 +2569,7 @@ watch(rulesData,(newvalue:any)=>{
                 @cancel="onCloseDrawer"
               >
               <div slot-scope="{linkData}">
-                <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
               <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
               <div style="margin-top:1.625rem">
                 <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
@@ -2654,6 +2700,7 @@ watch(rulesData,(newvalue:any)=>{
                           <a-typography-link @click="resourcessave(record.key)"
                             >{{ $t('common.saveText') }}</a-typography-link
                           >
+                          <a-divider type="vertical" />
                           <a-popconfirm
                             :title="$t('component.message.sureCancel')"
                             @confirm="resourcescancel(record.key)"
@@ -2664,6 +2711,7 @@ watch(rulesData,(newvalue:any)=>{
                         <span v-else>
                           <a @click="resourcesedit(record.key)">{{ $t('common.editText') }}</a>
                         </span>
+                        <a-divider type="vertical" />
                         <span>
                           <a-popconfirm
                             v-if="resourcesdataSource.length"
