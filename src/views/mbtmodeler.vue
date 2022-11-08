@@ -55,7 +55,7 @@ import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
-import { array, func } from "vue-types";
+import { any, array, func, object } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue"
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
@@ -1108,7 +1108,7 @@ async function updateMBT(url: string, data: any) {
   await request.put(url, data);
 }
 
-const canvas = ref(HTMLElement);
+const canvas:any = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
@@ -2001,10 +2001,32 @@ const importfromstatic = () => {};
 const isDisabled = ref(true);
 const value1 = ref<number>(1);
 const paperscale = ref(1);
+let dom=ref()
 const onAfterChange = (value: any) => {
+  const canvasRect:any = canvas.value.getClientRects()[0]
+  console.log(canvasRect);
+  
+  value1.value=value
   modeler.paper.scale(value);
+  // modeler.paper.options.width=`${100*value1.value}%`;
+  // modeler.paper.options.height=`${100*value1.value}%`;
+  Object.assign(modeler.paper.options,{overflow:'scroll'})
+  modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
+  
+  
   paperscale.value = value;
+  // zoomStyle.value=value1.value*100%;
 };
+
+const zoomin=()=>{
+value1.value-=0.2
+onAfterChange(value1.value)
+
+}
+const zoomout=()=>{
+value1.value+=0.2
+onAfterChange(value1.value)
+}
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
@@ -2253,7 +2275,7 @@ const routerAw=(awData:any)=>{
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
-            <minus-circle-outlined />
+            <minus-circle-outlined @click="zoomin"/>
             <a-slider
               v-model:value="value1"
               :min="0.2"
@@ -2261,7 +2283,7 @@ const routerAw=(awData:any)=>{
               :step="0.2"
               @afterChange="onAfterChange"
             />
-            <plus-circle-outlined />
+            <plus-circle-outlined @click="zoomout"/>
           </div>
         </a-col>
       </a-row>
@@ -2269,8 +2291,7 @@ const routerAw=(awData:any)=>{
 
     <section
       class="block shadow flex-center"
-      style="
-        width: 100%;
+      style=" width: 100%;
         height: 100%;
         min-height: 100%;
         color: var(--gray);
@@ -2281,13 +2302,13 @@ const routerAw=(awData:any)=>{
     >
       <a-row
         type="flex"
-        style="width: 100%; height: 100%; min-height: 100%; padding: 0rem !important"
+        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; padding: 0rem !important"
       >
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23" style=" width: 100%; height: 100%;">
-          <div class="canvas" ref="canvas"></div>
+        <a-col :span="23" ref="dom">
+          <div class="canvas" ref="canvas" ></div>
         </a-col>
 
         <!-- aw-panel -->
