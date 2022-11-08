@@ -135,7 +135,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }

@@ -14,6 +14,11 @@ export default {
   yesText: '是',
   noText: '否',
   loadText: '加载',
+  prev: '上一步',
+  next: '下一步',
+  preview: '预览',
+  submitText: '提交',
+  close: '关闭',
 
   inputText: '请输入',
   chooseText: '请选择',

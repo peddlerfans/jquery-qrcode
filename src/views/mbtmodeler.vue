@@ -96,7 +96,7 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateCategory = ref(1)
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-  
+
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -286,25 +286,25 @@ const metatemplatecolumns = reactive<Object[]>([
 
 const columns = reactive<Object[]>([
   {
-    name: "Name",
+    title: "component.table.name",
     dataIndex: "name",
     key: "name",
     width:80
   },
   {
-    title: "description",
+    title: "component.table.description",
     dataIndex: "description",
     key: "description",
     width:80
   },
   {
-    title: "template",
+    title: "component.table.template",
     dataIndex: "template",
     key: "template",
     width:80
   },
   {
-    title: "tags",
+    title: "component.table.tags",
     dataIndex: "tags",
     key: "tags",
     width:80
@@ -361,7 +361,7 @@ let pagination = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `Total ${total} `, // 显示总数
+  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize), //点击页码事件
   total: 0, //总条数
@@ -399,7 +399,7 @@ let paginationExpected = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `Total ${total} `, // 显示总数
+  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) =>
     onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize), //点击页码事件
@@ -582,6 +582,7 @@ const uischema={
                   'ui:widget': CreateRule,
               }
 }
+
 const linkschema = ref({
   title: "LINK",
   description: "Configuration for Link",
@@ -1204,8 +1205,6 @@ function reloadMBT(route: any) {
           }
         }
       });
-        console.log(value);
-        
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
@@ -1272,7 +1271,7 @@ onMounted(() => {
         getAllTemplatesByCategory('codegen').then((rst:any)=>{
           // console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
-            rst.forEach((rec:any)=>{              
+            rst.forEach((rec:any)=>{
               codegennames.value.push(rec.name)
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
@@ -2303,7 +2302,7 @@ const routerAw=(awData:any)=>{
         >
           <div class="infoPanel" ref="infoPanel" v-if="isAW">
             <a-tabs v-model:activeKey="awActiveKey">
-              <a-tab-pane key="1" tab="Primary">
+              <a-tab-pane key="1" :tab="$t('MBTStore.primary')">
                 <a-row>
                   <a-col span="18">
                     <AForm
@@ -2322,18 +2321,18 @@ const routerAw=(awData:any)=>{
                         </a-input>
                       </a-form-item>
                       <a-form-item :wrapper-col="{ span: 4 }">
-                        <a-button type="primary" html-type="submit">search</a-button>
+                        <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
                       </a-form-item>
                     </AForm>
                   </a-col>
                   <a-col>
                     <span style="margin-right: 5px">
                       <a-button v-if="!hasAWInfo" type="primary" @click="onCloseDrawer()"
-                        >Close</a-button
+                        >{{ $t('common.closeText') }}</a-button
                       >
                     </span>
 
-                    <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
+                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{ $t('common.back') }}</a-button>
                   </a-col>
                 </a-row>
                 <div class="awtable" v-if="!hasAWInfo && isAW" >
@@ -2348,12 +2347,7 @@ const routerAw=(awData:any)=>{
                       style="width:49.25rem"
                     >
                       <template #headerCell="{ column }">
-                        <template v-if="column.key === 'name'">
-                          <span>
-                            <smile-outlined />
-                            Name
-                          </span>
-                        </template>
+                        <span>{{ $t(column.title) }}</span>
                       </template>
                       <template #bodyCell="{ column, text, record }">
                         <template v-if="column.key === 'name'">
@@ -2432,19 +2426,19 @@ const routerAw=(awData:any)=>{
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()"
-                          >Submit</a-button
+                          >{{ $t('common.submitText') }}</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerCancel()">{{ $t('common.editText') }}</a-button>
                       </span>
-                      <a-button danger @click="onExpectedAW()">Next</a-button>
+                      <a-button danger @click="onExpectedAW()">{{ $t('common.next') }}</a-button>
                     </div>
                   </VueForm>
                 </div>
               </a-tab-pane>
 
-              <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
+              <a-tab-pane key="2" :tab="$t('MBTStore.expected')" :disabled="isDisabled">
                 <AForm
                   v-if="!hasAWExpectedInfo && isAW"
                   layout="inline"
@@ -2598,8 +2592,8 @@ const routerAw=(awData:any)=>{
                 <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
               <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
               <div style="margin-top:1.625rem">
-                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
-              <a-button @click="onCloseDrawer">cancel</a-button>
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">{{ $t('common.close') }}</a-button>
+              <a-button @click="onCloseDrawer">{{ $t('common.cancelText') }}</a-button>
               </div>
               </div>
             </VueForm>

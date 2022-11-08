@@ -844,7 +844,7 @@ const previewModel = async () => {
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
                 style="margin-bottom: 8px">{{ $t('templateManager.saveModel') }}</a-button>
-                <a-button @click="previewModel()">preview</a-button>
+                <a-button @click="previewModel()">{{ $t('common.preview') }}</a-button>
     </div>
     <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">
 
