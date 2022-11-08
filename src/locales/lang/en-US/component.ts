@@ -60,7 +60,10 @@ export default {
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
 
-    noData: 'No Data',
+    nocpuData: 'No CPU Data',
+    nomemoryData: 'No Memory Data',
+    noLatencyData: 'No Latency Data',
+    nothroughputData: 'No Throughput Data',
   },
 
   route: {
