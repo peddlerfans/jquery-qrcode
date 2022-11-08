@@ -158,7 +158,8 @@ const showDrawer = (
   id?: string
 ) => {
   visible.value = true;
-
+  console.log(el);
+  
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
     ev_id = id;
@@ -225,6 +226,7 @@ const onCloseDrawer = () => {
 let isAW = ref(false);
 let isGlobal = ref(false);
 let isLink = ref(false);
+let isChoose=ref(false)
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
 // aw form searching primary
@@ -1261,7 +1263,6 @@ onMounted(() => {
    
     
     res = mbtquery(mbtId);
-    console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -1269,7 +1270,7 @@ onMounted(() => {
       ) {
 
         getAllTemplatesByCategory('codegen').then((rst:any)=>{
-          console.log('codegen:',rst)
+          // console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
             rst.forEach((rec:any)=>{              
               codegennames.value.push(rec.name)
@@ -1335,7 +1336,7 @@ onMounted(() => {
 
       }else{
         getAllTemplatesByCategory('codegen').then((rst:any)=>{
-          console.log('codegen:',rst)
+          // console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
             rst.forEach((rec:any)=>{              
               codegennames.value.push(rec.name)
@@ -1560,7 +1561,7 @@ onMounted(() => {
           cellid = s.id + "";
         }
       }
-      console.log("e",flyShape);
+      // console.log("e",flyShape);
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
@@ -1571,20 +1572,24 @@ onMounted(() => {
   /**
    *  When click the element/link/blank, show the propsPanel
    */
+   modeler.paper.on("link:mouseout", async function  (linkView: any) {
+    
+    console.log(123);
+    
+   })
 
   modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
     // 判断是否选择了模板，没选择则不打开link
-    console.log(stencil,modeler);
-
-
-    lv_id = linkView.model.id + "";
+    if(condataName.value.length>0 && conditionalValue.value.length>0){
+        lv_id = linkView.model.id + "";
     // await queryName()
     isAW.value = false;
     isLink.value = true;
+    isChoose.value=false
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
       let templinkData = cacheprops.get(linkView.model.id);
-      console.log(templinkData);
+      // console.log(templinkData);
       linkData.value = templinkData.props;
 
       if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
@@ -1603,13 +1608,22 @@ onMounted(() => {
       // todo link props
       message.warning("Select a template first")
       currentLinkMap.set(linkView.model.id, { props: {} });
-
       // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
       cacheprops.set(linkView.model.id, { props: {} });
     }
     // console.log('cacheprops for link dblclick:',cacheprops)
     // console.log('currentLinkMap',currentLinkMap);
     showDrawer(linkView);
+    }else{      
+      showDrawer(linkView);
+      isChoose.value=true
+      isAW.value = false;
+    isLink.value = false;
+    isGlobal.value = false;
+    console.log(isChoose.value);
+    
+    }
+    
   });
 
   modeler.paper.on(
@@ -1645,7 +1659,7 @@ onMounted(() => {
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
         ev_id = elementView.model.id + "";
         isAW.value = true;
-
+        isChoose.value=false
         isLink.value = false;
         isGlobal.value = false
           
@@ -1664,7 +1678,7 @@ onMounted(() => {
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
-          console.log(tempawschema,tempformdata2);
+          // console.log(tempawschema,tempformdata2);
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
@@ -1725,10 +1739,22 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    isChoose.value=false;
+    activeKey.value="3"
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
 });
+// 点击打开选择模板
+const chooseTemplate=()=>{
+  isAW.value = false;
+    isLink.value = false;
+    isChoose.value=false;
+    isGlobal.value = true;
+    activeKey.value="3"
+    showGlobalInfo();
+    showDrawer(undefined, "", "");
+}
 
 function showGlobalInfo() {
   globalformData.value._id =
@@ -1787,7 +1813,7 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + " ";
     });
   }
-console.log(awschema.value.properties);
+// console.log(awschema.value.properties);
 
   if (_.isArray(rowobj.params) && rowobj.params.length>0) {
     let appendedschema = generateSchema(rowobj.params);
@@ -2195,7 +2221,7 @@ const routerAw=(awData:any)=>{
   let awUpdate:any=ref("mbtAW")
   let getmbtNAme=localStorage.getItem("mbt_"+route.params.name)
   let getmbtId=localStorage.getItem("mbt_"+route.params._id+route.params.name+"_id")
-  console.log(awData.name,getmbtNAme,getmbtId);
+  // console.log(awData.name,getmbtNAme,getmbtId);
   router.push({
     name:"awupdate",
     // path:`/#/awupdate/${awData._id}/${awData.name}/${awUpdate.value}`,
@@ -2400,9 +2426,9 @@ const routerAw=(awData:any)=>{
                     v-if="isAW && hasAWInfo"
                   >
                     <div slot-scope="{ awformdata }" style="position: relative;">
-                      <span style="position: absolute; left: 3rem;top: -27.25rem; ">
+                      <span style="position: absolute; left: 3rem;top: -27.5rem; ">
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <a-button danger @click="routerAw(awformdata)">updateAw</a-button>
+                        <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()"
@@ -2559,7 +2585,7 @@ const routerAw=(awData:any)=>{
           </div>
 
           <!-- link panel -->
-
+        
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
             <div style="margin: 5px; padding: 5px">
               <VueForm
@@ -2576,17 +2602,22 @@ const routerAw=(awData:any)=>{
               <a-button @click="onCloseDrawer">cancel</a-button>
               </div>
               </div>
-
-
-
             </VueForm>
-              <!-- <div v-if="showAddFactorBtn=false"> -->
-
-            <!-- </div> -->
-
             </div>
           </div>
 
+          <div class="infoPanel" ref="infoPanel"  v-if="isChoose">
+            <div style="margin: 5px; padding: 5px">
+              <h2>Link</h2>
+              <a @click="chooseTemplate">
+                Please select a template first
+              </a>
+            </div>
+          </div>
+          <!-- <div v-else>
+            
+          </div> -->
+        
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
                     @cancel="onCloseDrawer" :schema="tempschema"-->
                     <!--  :isVisible="isVisible"-->

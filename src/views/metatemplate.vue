@@ -17,6 +17,7 @@ const formState: UnwrapRef<FormState> = reactive({
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  formState.search=``
   query(formState)
 };
 // 表单失败后的回调
@@ -277,13 +278,13 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions
-                  v-model:value="formState.search" split=""
+              <a-input
+                  v-model:value="formState.search"
                   :placeholder="$t('templateManager.metaSearchText')">
-                <a-mentions-option value="tags:">
+                <!-- <a-mentions-option value="tags:">
                   tags:
-                </a-mentions-option>
-              </a-mentions>
+                </a-mentions-option> -->
+              </a-input>
             </a-col>
 
             <a-col :span="4">

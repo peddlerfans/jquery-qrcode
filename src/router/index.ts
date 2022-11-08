@@ -155,7 +155,6 @@ export const routes: RouteRecordRaw[] = [
       }
     ], 
     beforeEnter(to,form,next){
-      console.log("mbtpath",to);
       if(to.params.awupdate=="mbtAW"){
           to.meta.title=`MbtUpdateAw-${to.params.name}`
       }else if(to.params.awupdate=="awmodeler"){
