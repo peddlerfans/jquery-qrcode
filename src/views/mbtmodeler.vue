@@ -9,7 +9,7 @@ import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
 import type { Ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
@@ -96,7 +96,7 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateCategory = ref(1)
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-  
+
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -158,7 +158,8 @@ const showDrawer = (
   id?: string
 ) => {
   visible.value = true;
-
+  console.log(el);
+  
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
     ev_id = id;
@@ -225,6 +226,7 @@ const onCloseDrawer = () => {
 let isAW = ref(false);
 let isGlobal = ref(false);
 let isLink = ref(false);
+let isChoose=ref(false)
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
 // aw form searching primary
@@ -284,25 +286,25 @@ const metatemplatecolumns = reactive<Object[]>([
 
 const columns = reactive<Object[]>([
   {
-    name: "Name",
+    title: "component.table.name",
     dataIndex: "name",
     key: "name",
     width:80
   },
   {
-    title: "description",
+    title: "component.table.description",
     dataIndex: "description",
     key: "description",
     width:80
   },
   {
-    title: "template",
+    title: "component.table.template",
     dataIndex: "template",
     key: "template",
     width:80
   },
   {
-    title: "tags",
+    title: "component.table.tags",
     dataIndex: "tags",
     key: "tags",
     width:80
@@ -359,7 +361,7 @@ let pagination = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `Total ${total} `, // 显示总数
+  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize), //点击页码事件
   total: 0, //总条数
@@ -397,7 +399,7 @@ let paginationExpected = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => `Total ${total} `, // 显示总数
+  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) =>
     onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize), //点击页码事件
@@ -580,6 +582,7 @@ const uischema={
                   'ui:widget': CreateRule,
               }
 }
+
 const linkschema = ref({
   title: "LINK",
   description: "Configuration for Link",
@@ -870,7 +873,7 @@ function linkhandlerSubmit() {
   }else{
     linkFormData.label!=undefined
   }
-
+  
   linkFormData.ruleData = rulesData.value;
   // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
@@ -989,6 +992,10 @@ let toReload = ref(false);
 })
 return setarr
  }
+ localStorage.setItem(
+            "mbt_" + route.params.name,
+            JSON.stringify(route.params.name)
+          );
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1037,6 +1044,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
           );
+
           return mbtCache;
         }
       })
@@ -1197,8 +1205,6 @@ function reloadMBT(route: any) {
           }
         }
       });
-        console.log(value);
-        
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
@@ -1217,7 +1223,8 @@ function reloadMBT(route: any) {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
                 // cell.attrs.label.text = aw.template || aw.description;
                 let showheadtext = aw.template || aw.description;
-                $(cell).attr(
+                let cellonpaper = modeler.graph.getCell(cell.id);
+                cellonpaper.attr(
                   "headerText/text",
                   joint.util.breakText(
                     showheadtext,
@@ -1252,6 +1259,8 @@ onMounted(() => {
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
+   
+    
     res = mbtquery(mbtId);
     res.then((value: any) => {
       if (
@@ -1324,6 +1333,19 @@ onMounted(() => {
           // cacheDataDefinition.meta;
         }
 
+      }else{
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          // console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
+              // globalschema.value.properties.codegen_text.enum.push(rec.name)
+              // globalschema.value.properties.codegen_script.enum.push(rec.name)
+            })
+
+          }
+
+        })
       }
     });
   } else {
@@ -1360,136 +1382,136 @@ onMounted(() => {
     var headerHeight = 30;
     var buttonSize = 14;
 
-    let container=joint.dia.Element.define('Container.Parent', {
-    collapsed: false,
-    attrs: {
-        root: {
-            magnetSelector: 'body'
-        },
-        shadow: {
-            refWidth: '100%',
-            refHeight: '100%',
-            x: 3,
-            y: 3,
-            fill: '#000000',
-            opacity: 0.05
-        },
-        body: {
-            refWidth: 100,
-            refHeight: 100,
-            strokeWidth: 1,
-            stroke: '#DDDDDD',
-            fill: '#FCFCFC'
-        },
-        header: {
-            refWidth: 100,
-            height: headerHeight,
-            strokeWidth: 0.5,
-            stroke: '#4666E5',
-            fill: '#4666E5'
-        },
-        headerText: {
-            textVerticalAnchor: 'middle',
-            textAnchor: 'start',
-            refX: 8,
-            refY: headerHeight / 2,
-            fontSize: 16,
-            fontFamily: 'sans-serif',
-            letterSpacing: 1,
-            fill: '#FFFFFF',
-            textWrap: {
-                width: -40,
-                maxLineCount: 1,
-                ellipsis: '*'
-            },
-            style: {
-                textShadow: '1px 1px #222222',
-            }
-        },
-        button: {
-            refDx:  buttonSize - (headerHeight - buttonSize) / 2,
-            refY: (headerHeight - buttonSize) / 2,
-            cursor: 'pointer',
-            event: 'element:button:pointerdown',
-            title: 'Collapse / Expand'
-        },
-        buttonBorder: {
-            width: buttonSize,
-            height: buttonSize,
-            fill: '#4666E5',
-            fillOpacity: 0.2,
-            stroke: '#4666E5',
-            strokeWidth: 0.5,
-        },
-        buttonIcon: {
-            fill: '#4666E5',
-            stroke: '#4666E5',
-            strokeWidth: 1
-        }
-    }
-    }, {
-    markup: [{
-        tagName: 'rect',
-        selector: 'shadow'
-    }, {
-        tagName: 'rect',
-        selector: 'body'
-    }, {
-        tagName: 'rect',
-        selector: 'header'
-    }, {
-        tagName: 'text',
-        selector: 'headerText'
-    },
-     {
-        tagName: 'g',
-        selector: 'button',
-        children: [{
-            tagName: 'rect',
-            selector: 'buttonBorder'
-        }, {
-            tagName: 'path',
-            selector: 'buttonIcon'
-        }]
-    }
-  ],
+//     let container=joint.dia.Element.define('Container.Parent', {
+//     collapsed: false,
+//     attrs: {
+//         root: {
+//             magnetSelector: 'body'
+//         },
+//         shadow: {
+//             refWidth: '100%',
+//             refHeight: '100%',
+//             x: 3,
+//             y: 3,
+//             fill: '#000000',
+//             opacity: 0.05
+//         },
+//         body: {
+//             refWidth: 100,
+//             refHeight: 100,
+//             strokeWidth: 1,
+//             stroke: '#DDDDDD',
+//             fill: '#FCFCFC'
+//         },
+//         header: {
+//             refWidth: 100,
+//             height: headerHeight,
+//             strokeWidth: 0.5,
+//             stroke: '#4666E5',
+//             fill: '#4666E5'
+//         },
+//         headerText: {
+//             textVerticalAnchor: 'middle',
+//             textAnchor: 'start',
+//             refX: 8,
+//             refY: headerHeight / 2,
+//             fontSize: 16,
+//             fontFamily: 'sans-serif',
+//             letterSpacing: 1,
+//             fill: '#FFFFFF',
+//             textWrap: {
+//                 width: -40,
+//                 maxLineCount: 1,
+//                 ellipsis: '*'
+//             },
+//             style: {
+//                 textShadow: '1px 1px #222222',
+//             }
+//         },
+//         button: {
+//             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+//             refY: (headerHeight - buttonSize) / 2,
+//             cursor: 'pointer',
+//             event: 'element:button:pointerdown',
+//             title: 'Collapse / Expand'
+//         },
+//         buttonBorder: {
+//             width: buttonSize,
+//             height: buttonSize,
+//             fill: '#4666E5',
+//             fillOpacity: 0.2,
+//             stroke: '#4666E5',
+//             strokeWidth: 0.5,
+//         },
+//         buttonIcon: {
+//             fill: '#4666E5',
+//             stroke: '#4666E5',
+//             strokeWidth: 1
+//         }
+//     }
+//     }, {
+//     markup: [{
+//         tagName: 'rect',
+//         selector: 'shadow'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'body'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'header'
+//     }, {
+//         tagName: 'text',
+//         selector: 'headerText'
+//     },
+//      {
+//         tagName: 'g',
+//         selector: 'button',
+//         children: [{
+//             tagName: 'rect',
+//             selector: 'buttonBorder'
+//         }, {
+//             tagName: 'path',
+//             selector: 'buttonIcon'
+//         }]
+//     }
+//   ],
 
-    toggle: function(shouldCollapse: undefined) {
-        var buttonD;
-        var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-        if (collapsed) {
-            buttonD = 'M 2 7 12 7 M 7 2 7 12';
-            this.resize(140, 30);
-        } else {
-            buttonD = 'M 2 7 12 7';
-            this.fitChildren();
-        }
-        this.attr(['buttonIcon','d'], buttonD);
-        this.set('collapsed', collapsed);
-    },
+//     toggle: function(shouldCollapse: undefined) {
+//         var buttonD;
+//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+//         if (collapsed) {
+//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+//             this.resize(140, 30);
+//         } else {
+//             buttonD = 'M 2 7 12 7';
+//             this.fitChildren();
+//         }
+//         this.attr(['buttonIcon','d'], buttonD);
+//         this.set('collapsed', collapsed);
+//     },
 
-    isCollapsed: function() {
-        return Boolean(this.get('collapsed'));
-    },
+//     isCollapsed: function() {
+//         return Boolean(this.get('collapsed'));
+//     },
 
-    fitChildren: function() {
-        var padding = 10;
-        this.fitEmbeds({
-            padding: {
-                top: headerHeight + padding,
-                left: padding,
-                right: padding,
-                bottom: padding
-            }
-        });
-    }
-});
-let containerparent=joint.shapes.Container.Parent
-    let conatiner_a=new containerparent({
-      z: 1,
-        attrs: { headerText: { text: 'Container A' }}
-    })
-modeler.graph.addCell(conatiner_a)
+//     fitChildren: function() {
+//         var padding = 10;
+//         this.fitEmbeds({
+//             padding: {
+//                 top: headerHeight + padding,
+//                 left: padding,
+//                 right: padding,
+//                 bottom: padding
+//             }
+//         });
+//     }
+// });
+// let containerparent=joint.shapes.Container.Parent
+//     let conatiner_a=new containerparent({
+//       z: 1,
+//         attrs: { headerText: { text: 'Container A' }}
+//     })
+// modeler.graph.addCell(conatiner_a)
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1538,7 +1560,7 @@ modeler.graph.addCell(conatiner_a)
           cellid = s.id + "";
         }
       }
-      console.log("e",flyShape);
+      // console.log("e",flyShape);
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
@@ -1549,20 +1571,24 @@ modeler.graph.addCell(conatiner_a)
   /**
    *  When click the element/link/blank, show the propsPanel
    */
+   modeler.paper.on("link:mouseout", async function  (linkView: any) {
+    
+    console.log(123);
+    
+   })
 
   modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
     // 判断是否选择了模板，没选择则不打开link
-    console.log(stencil,modeler);
-
-
-    lv_id = linkView.model.id + "";
+    if(condataName.value.length>0 && conditionalValue.value.length>0){
+        lv_id = linkView.model.id + "";
     // await queryName()
     isAW.value = false;
     isLink.value = true;
+    isChoose.value=false
     isGlobal.value = false;
     if (cacheprops.has(linkView.model.id)) {
       let templinkData = cacheprops.get(linkView.model.id);
-      console.log(templinkData);
+      // console.log(templinkData);
       linkData.value = templinkData.props;
 
       if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
@@ -1581,13 +1607,22 @@ modeler.graph.addCell(conatiner_a)
       // todo link props
       message.warning("Select a template first")
       currentLinkMap.set(linkView.model.id, { props: {} });
-
       // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
       cacheprops.set(linkView.model.id, { props: {} });
     }
     // console.log('cacheprops for link dblclick:',cacheprops)
     // console.log('currentLinkMap',currentLinkMap);
     showDrawer(linkView);
+    }else{      
+      showDrawer(linkView);
+      isChoose.value=true
+      isAW.value = false;
+    isLink.value = false;
+    isGlobal.value = false;
+    console.log(isChoose.value);
+    
+    }
+    
   });
 
   modeler.paper.on(
@@ -1623,7 +1658,7 @@ modeler.graph.addCell(conatiner_a)
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
         ev_id = elementView.model.id + "";
         isAW.value = true;
-
+        isChoose.value=false
         isLink.value = false;
         isGlobal.value = false
           
@@ -1642,7 +1677,7 @@ modeler.graph.addCell(conatiner_a)
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
-          console.log(tempawschema,tempformdata2);
+          // console.log(tempawschema,tempformdata2);
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
@@ -1703,10 +1738,22 @@ modeler.graph.addCell(conatiner_a)
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
+    isChoose.value=false;
+    activeKey.value="3"
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
 });
+// 点击打开选择模板
+const chooseTemplate=()=>{
+  isAW.value = false;
+    isLink.value = false;
+    isChoose.value=false;
+    isGlobal.value = true;
+    activeKey.value="3"
+    showGlobalInfo();
+    showDrawer(undefined, "", "");
+}
 
 function showGlobalInfo() {
   globalformData.value._id =
@@ -1765,7 +1812,7 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + " ";
     });
   }
-console.log(awschema.value.properties);
+// console.log(awschema.value.properties);
 
   if (_.isArray(rowobj.params) && rowobj.params.length>0) {
     let appendedschema = generateSchema(rowobj.params);
@@ -2165,6 +2212,27 @@ watch(rulesData,(newvalue:any)=>{
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
+let router=useRouter()
+// 点击跳转Aw修改
+const routerAw=(awData:any)=>{
+  
+  
+  let awUpdate:any=ref("mbtAW")
+  let getmbtNAme=localStorage.getItem("mbt_"+route.params.name)
+  let getmbtId=localStorage.getItem("mbt_"+route.params._id+route.params.name+"_id")
+  // console.log(awData.name,getmbtNAme,getmbtId);
+  router.push({
+    name:"awupdate",
+    // path:`/#/awupdate/${awData._id}/${awData.name}/${awUpdate.value}`,
+    params:{
+      _id:awData._id,
+      name:awData.name,
+      awupdate:awUpdate.value,
+      mbtid:getmbtId!,
+      mbtname:JSON.parse(getmbtNAme!)
+    }
+  })
+}
 
 </script>
 
@@ -2218,7 +2286,7 @@ watch(rulesData,(newvalue:any)=>{
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23">
+        <a-col :span="23" style=" width: 100%; height: 100%;">
           <div class="canvas" ref="canvas"></div>
         </a-col>
 
@@ -2234,7 +2302,7 @@ watch(rulesData,(newvalue:any)=>{
         >
           <div class="infoPanel" ref="infoPanel" v-if="isAW">
             <a-tabs v-model:activeKey="awActiveKey">
-              <a-tab-pane key="1" tab="Primary">
+              <a-tab-pane key="1" :tab="$t('MBTStore.primary')">
                 <a-row>
                   <a-col span="18">
                     <AForm
@@ -2253,18 +2321,18 @@ watch(rulesData,(newvalue:any)=>{
                         </a-input>
                       </a-form-item>
                       <a-form-item :wrapper-col="{ span: 4 }">
-                        <a-button type="primary" html-type="submit">search</a-button>
+                        <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
                       </a-form-item>
                     </AForm>
                   </a-col>
                   <a-col>
                     <span style="margin-right: 5px">
                       <a-button v-if="!hasAWInfo" type="primary" @click="onCloseDrawer()"
-                        >Close</a-button
+                        >{{ $t('common.closeText') }}</a-button
                       >
                     </span>
 
-                    <a-button danger v-if="!hasAWInfo" @click="onBack()">Back</a-button>
+                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{ $t('common.back') }}</a-button>
                   </a-col>
                 </a-row>
                 <div class="awtable" v-if="!hasAWInfo && isAW" >
@@ -2279,12 +2347,7 @@ watch(rulesData,(newvalue:any)=>{
                       style="width:49.25rem"
                     >
                       <template #headerCell="{ column }">
-                        <template v-if="column.key === 'name'">
-                          <span>
-                            <smile-outlined />
-                            Name
-                          </span>
-                        </template>
+                        <span>{{ $t(column.title) }}</span>
                       </template>
                       <template #bodyCell="{ column, text, record }">
                         <template v-if="column.key === 'name'">
@@ -2356,22 +2419,26 @@ watch(rulesData,(newvalue:any)=>{
                     :schema="awschema"
                     v-if="isAW && hasAWInfo"
                   >
-                    <div slot-scope="{ awformdata }">
+                    <div slot-scope="{ awformdata }" style="position: relative;">
+                      <span style="position: absolute; left: 3rem;top: -27.5rem; ">
+                        <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
+                        <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
+                      </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()"
-                          >Submit</a-button
+                          >{{ $t('common.submitText') }}</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerCancel()">{{ $t('common.editText') }}</a-button>
                       </span>
-                      <a-button danger @click="onExpectedAW()">Next</a-button>
+                      <a-button danger @click="onExpectedAW()">{{ $t('common.next') }}</a-button>
                     </div>
                   </VueForm>
                 </div>
               </a-tab-pane>
 
-              <a-tab-pane key="2" tab="Expected" :disabled="isDisabled">
+              <a-tab-pane key="2" :tab="$t('MBTStore.expected')" :disabled="isDisabled">
                 <AForm
                   v-if="!hasAWExpectedInfo && isAW"
                   layout="inline"
@@ -2512,7 +2579,7 @@ watch(rulesData,(newvalue:any)=>{
           </div>
 
           <!-- link panel -->
-
+        
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
             <div style="margin: 5px; padding: 5px">
               <VueForm
@@ -2522,24 +2589,29 @@ watch(rulesData,(newvalue:any)=>{
                 @cancel="onCloseDrawer"
               >
               <div slot-scope="{linkData}">
-                <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
               <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
               <div style="margin-top:1.625rem">
-                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
-              <a-button @click="onCloseDrawer">cancel</a-button>
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">{{ $t('common.close') }}</a-button>
+              <a-button @click="onCloseDrawer">{{ $t('common.cancelText') }}</a-button>
               </div>
               </div>
-
-
-
             </VueForm>
-              <!-- <div v-if="showAddFactorBtn=false"> -->
-
-            <!-- </div> -->
-
             </div>
           </div>
 
+          <div class="infoPanel" ref="infoPanel"  v-if="isChoose">
+            <div style="margin: 5px; padding: 5px">
+              <h2>Link</h2>
+              <a @click="chooseTemplate">
+                Please select a template first
+              </a>
+            </div>
+          </div>
+          <!-- <div v-else>
+            
+          </div> -->
+        
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
                     @cancel="onCloseDrawer" :schema="tempschema"-->
                     <!--  :isVisible="isVisible"-->
@@ -2653,6 +2725,7 @@ watch(rulesData,(newvalue:any)=>{
                           <a-typography-link @click="resourcessave(record.key)"
                             >{{ $t('common.saveText') }}</a-typography-link
                           >
+                          <a-divider type="vertical" />
                           <a-popconfirm
                             :title="$t('component.message.sureCancel')"
                             @confirm="resourcescancel(record.key)"
@@ -2663,6 +2736,7 @@ watch(rulesData,(newvalue:any)=>{
                         <span v-else>
                           <a @click="resourcesedit(record.key)">{{ $t('common.editText') }}</a>
                         </span>
+                        <a-divider type="vertical" />
                         <span>
                           <a-popconfirm
                             v-if="resourcesdataSource.length"
@@ -2754,6 +2828,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {

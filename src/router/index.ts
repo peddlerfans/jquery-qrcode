@@ -52,6 +52,8 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+
+
   {
     path: '/awmodeler',
     name: 'Awmodeler',
@@ -63,11 +65,12 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'component.route.awModeler',icon: ApiOutlined }
+        meta: { title: 'component.route.awModeler',icon: ApiOutlined , keepAlive: true}
       }
     ]
   }
   ,
+
 
   {
     path: '/mbtstore',
@@ -132,11 +135,40 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }
   ,
+  {
+    path: '/awupdate',
+    name: 'AWupdate',
+    component: Layout,
+    redirect: { name: 'awupdate' },  
+    meta: { hidden: true}, 
+    children: [
+      {
+        path: ':_id/:name/:awupdate/:mbtid?/:mbtname?',
+        name: 'awupdate',
+        component: () => import('@/views/updateAw.vue'),        
+        meta: { title: 'UpdateAw',icon: AppstoreAddOutlined, keepAlive: true}
+      }
+    ], 
+    beforeEnter(to,form,next){
+      if(to.params.awupdate=="mbtAW"){
+          to.meta.title=`MbtUpdateAw-${to.params.name}`
+      }else if(to.params.awupdate=="awmodeler"){
+        to.meta.title=`AwUpdate-${to.params.name}`
+      }
+      // let pathname =`${to.params.name}`;
+      // if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        // to.meta.title=pathname
+       
+        // }
+        next()
+      }
+  },
   {
     path: '/mbtmodeler',
     name: 'Mbtmodeler',

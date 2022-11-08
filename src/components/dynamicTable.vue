@@ -283,7 +283,7 @@ const saveCol = (key: string) => {
         </template>
       </a-table>
     </div>
-    <a-button type="primary" @click="HandleSubmit()">Save1</a-button>
+    <a-button type="primary" @click="HandleSubmit()">Save</a-button>
   </main>
 </template>
 
