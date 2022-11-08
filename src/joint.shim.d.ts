@@ -47,7 +47,9 @@ declare module 'jointjs' {
         }
         interface Graph {
             model?:Cell,
-            attributes:any
+            attributes:any,
+            on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+            // addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
         }
     }
     export namespace shapes{

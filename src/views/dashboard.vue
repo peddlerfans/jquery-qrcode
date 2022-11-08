@@ -3,13 +3,12 @@ export default {name: 'Dashboard'}
 </script>
 
 <script setup lang="ts">
-import { h, onMounted, reactive, ref } from 'vue';
+import {  onMounted, ref } from 'vue';
 import EchartsModel from '@/components/EchartsModel.vue'
-import RequestData from '@/components/RequestData.vue'
 import { message } from 'ant-design-vue';
 import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
-import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
+// import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
 import { SelectValue } from 'ant-design-vue/lib/select';
 import { useI18n } from "vue-i18n";
 
