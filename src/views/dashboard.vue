@@ -123,17 +123,10 @@ const search={
 // 识别展示的数据类型
 let cpuCharts:string="cpu(%)" 
 let cpuColor="#EE6666"
-<<<<<<< HEAD
 let cpuData:any=ref([])
 let memorycharts:string="memory(GB)"
 let memoryColor="#5470C6"
 let memory:any=ref([])
-=======
-let cpuData=ref([])
-let memorycharts:string="memory(GB)"
-let memoryColor="#5470C6"
-let memory=ref([])
->>>>>>> dev
 let throughputTitle:string="throughput(tps)"
 let throughputColor="#97CC71"
 let throughput:any=ref([])
@@ -167,18 +160,11 @@ async function query(){
     let cpu=rst.map((item:any)=>{
       return item.cpu.value*10000
     })
-<<<<<<< HEAD
     cpuData.value.push({data:cpu,type:"line",name:"cpu(%)"})
     console.log(cpuData.value);
     
     let neicun=rst.map((item:any)=>{
       return item.memory_free.value/1024/1024/1024
-=======
-    memory.value=rst.map((item:any)=>{
-      
-      return item.memory_free.value/1024/1024/1024
-           
->>>>>>> dev
     })
     memory.value.push({data:neicun,type:"line",name:"memory(GB)"})
     let requestData=rst.map((item:any)=>{
@@ -209,11 +195,7 @@ const options=ref([
   {label:"Last 7 day",value:"Last 7 days"},
   {label:"Last 30 day",value:"Last 30 days"},
 ])
-<<<<<<< HEAD
 const choseData:any=ref("Last 7 days")
-=======
-const choseData:any=ref("Last 24 hours")
->>>>>>> dev
 const datachange=async (value:SelectValue)=>{  
   choseData.value=value
   if(value=="Last 30 minutes"){
@@ -360,11 +342,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
 
       <a-row style="margin-top:2.25rem; ">
-<<<<<<< HEAD
       <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
-=======
-      <a-col :span="18" style="fontSize:20px;fontWeight:700">{{ $t('dashboard.dataMonitoring') }}</a-col>
->>>>>>> dev
       <a-col :span="5" style="display:flex">
           <a-select
           :options="options"
@@ -385,11 +363,7 @@ const dataZoom=(val1:any,val2:any)=>{
           :zoomin="zoomin"
           :zoomout="zoomout"
           ></echarts-model>
-<<<<<<< HEAD
-          <div v-else class="noData">No CPU Data</div>
-=======
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
->>>>>>> dev
+          <div v-else class="noData">{{ $t('component.message.nocpuData') }}</div>
       </a-col>
       <a-col :span="11" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
@@ -401,17 +375,12 @@ const dataZoom=(val1:any,val2:any)=>{
           :zoomin="zoomin"
           :zoomout="zoomout"
           ></echarts-model>
-<<<<<<< HEAD
-          <div v-else class="noData">No Memory Data</div>
-=======
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
->>>>>>> dev
+          <div v-else class="noData">{{ $t('component.message.nomemoryData') }}</div>
       </a-col>
 
     </a-row>
     <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
       <a-col :span="11">
-<<<<<<< HEAD
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
           :sendXdata="sendXdata"
           :cpuData="lineDatas"
@@ -421,11 +390,7 @@ const dataZoom=(val1:any,val2:any)=>{
           :zoomin="zoomin"
           :zoomout="zoomout"
           ></echarts-model>
-          <div v-else class="noData">No Latency Data</div>
-=======
-          <request-data v-if="sendXdata.length>0 ||lineDatas.length>0" :sendXdata="sendXdata" :lineDatas="lineDatas"></request-data>
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
->>>>>>> dev
+          <div v-else class="noData">{{ $t('component.message.noLatencyData') }}</div>
         </a-col>
       <a-col :span="11">
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
@@ -437,11 +402,7 @@ const dataZoom=(val1:any,val2:any)=>{
           :zoomin="zoomin"
           :zoomout="zoomout"
           ></echarts-model>
-<<<<<<< HEAD
-          <div v-else class="noData">No Throughput Data</div>
-=======
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
->>>>>>> dev
+          <div v-else class="noData">{{ $t('component.message.nothroughputData') }}</div>
       </a-col>
     </a-row>
   </section>
