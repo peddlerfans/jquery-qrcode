@@ -64,7 +64,10 @@ export default {
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
 
-    noData: '暂无数据',
+    nocpuData: '暂无处理器数据',
+    nomemoryData: '暂无内存数据',
+    noLatencyData: '暂无延迟数据',
+    nothroughputData: '暂无吞吐量数据',
   },
 
   route: {

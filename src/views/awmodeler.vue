@@ -1242,7 +1242,7 @@ let awupdate=ref("awmodeler")
 <div ref="tabledom">
     <a-table bordered
     :row-selection="rowSelection"
-    :row-key="record => record"
+    :row-key="(record: any) => record"
       :columns="columns" 
       :data-source="tableData" 
       class="components-table-demo-nested"

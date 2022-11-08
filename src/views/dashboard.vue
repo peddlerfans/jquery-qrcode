@@ -69,9 +69,9 @@ function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"
 let endDate=new Date()
 // console.log(timeFormat(endDate,7,"days"));
 const search={
-  start:timeFormat(endDate,24,"hours"),
+  start:timeFormat(endDate,7,"days"),
   end:endDate.toISOString(),
-  interval:'1h',
+  interval:'1d',
   aggs: {
         transaction_duration: {
             avg: {
@@ -123,17 +123,29 @@ const search={
 // 识别展示的数据类型
 let cpuCharts:string="cpu(%)" 
 let cpuColor="#EE6666"
-let cpuData=ref([])
+let cpuData:any=ref([])
 let memorycharts:string="memory(GB)"
 let memoryColor="#5470C6"
-let memory=ref([])
+let memory:any=ref([])
 let throughputTitle:string="throughput(tps)"
 let throughputColor="#97CC71"
-let throughput=ref([])
+let throughput:any=ref([])
 let sendXdata=ref([])
-
-
+let lineCharts:string="latency(seconds)"
+let lineColors:any=ref(["#EE6666","#5470C6","#97CC71","#8FD5F3","#F6DC7D"])
 let lineDatas:any=ref([])
+function TimeTrans(timestamp: string | number | Date){
+
+      let date:any=new Date(new Date(timestamp).getTime() + 8 * 3600 * 1000)
+
+      date=date.toJSON();
+
+      date=date.substring(0,19).replace('T',' ')
+
+    return date.substring(5,16)
+
+}
+let aa:any=ref([])
 
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
@@ -142,29 +154,33 @@ async function query(){
   
   if(rst){
     sendXdata.value=rst.map((item:any)=>{
-      return item.key_as_string
-    })
-    cpuData.value=rst.map((item:any)=>{
-      return item.cpu.value
-    })
-    memory.value=rst.map((item:any)=>{
       
-      return item.memory_free.value/1024/1024/1024
-           
+      return TimeTrans(item.key_as_string)
     })
+    let cpu=rst.map((item:any)=>{
+      return item.cpu.value*10000
+    })
+    cpuData.value.push({data:cpu,type:"line",name:"cpu(%)"})
+    console.log(cpuData.value);
+    
+    let neicun=rst.map((item:any)=>{
+      return item.memory_free.value/1024/1024/1024
+    })
+    memory.value.push({data:neicun,type:"line",name:"memory(GB)"})
     let requestData=rst.map((item:any)=>{
         return item.terms
       })      
       lineDatas.value=lineData(requestData)
-      throughput.value=rst.map((item:any)=>{
-        if(search.interval=="1m"){
-          return item.transations.value
-        }else if(search.interval=="1h"){
-          return item.transations.value/60
-        }else if(search.interval=="1d"){
-          return item.transations.value/1440
-        }
-      })
+    let tuntuliang=rst.map((item:any)=>{
+      if(search.interval=="1m"){
+        return item.transations.value
+      }else if(search.interval=="1h"){
+        return item.transations.value/60
+      }else if(search.interval=="1d"){
+        return item.transations.value/1440
+      }
+    })
+    throughput.value.push({data:tuntuliang,type:"line",name:"throughput(tps)"})
   }
 }
 onMounted(()=>{
@@ -179,7 +195,7 @@ const options=ref([
   {label:"Last 7 day",value:"Last 7 days"},
   {label:"Last 30 day",value:"Last 30 days"},
 ])
-const choseData:any=ref("Last 24 hours")
+const choseData:any=ref("Last 7 days")
 const datachange=async (value:SelectValue)=>{  
   choseData.value=value
   if(value=="Last 30 minutes"){
@@ -273,11 +289,13 @@ async function querys(){
     message.error("Query failed!")
   }
 }
-
-onMounted(()=>{
-  query()
-})
-
+let zoomin=ref(0)
+let zoomout=ref(100)
+const dataZoom=(val1:any,val2:any)=>{
+  zoomout.value=val1
+  zoomin.value=val2
+  
+}
 
 
 
@@ -324,7 +342,7 @@ onMounted(()=>{
     </a-row>
 
       <a-row style="margin-top:2.25rem; ">
-      <a-col :span="18" style="fontSize:20px;fontWeight:700">{{ $t('dashboard.dataMonitoring') }}</a-col>
+      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
       <a-col :span="5" style="display:flex">
           <a-select
           :options="options"
@@ -341,8 +359,11 @@ onMounted(()=>{
           :cpuData="cpuData"
           :chartstype="cpuCharts"
           :datacolor="cpuColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
           ></echarts-model>
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
+          <div v-else class="noData">{{ $t('component.message.nocpuData') }}</div>
       </a-col>
       <a-col :span="11" >
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
@@ -350,15 +371,26 @@ onMounted(()=>{
           :cpuData="memory"
           :chartstype="memorycharts"
           :datacolor="memoryColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
           ></echarts-model>
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
+          <div v-else class="noData">{{ $t('component.message.nomemoryData') }}</div>
       </a-col>
 
     </a-row>
     <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
       <a-col :span="11">
-          <request-data v-if="sendXdata.length>0 ||lineDatas.length>0" :sendXdata="sendXdata" :lineDatas="lineDatas"></request-data>
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
+        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+          :sendXdata="sendXdata"
+          :cpuData="lineDatas"
+          :chartstype="lineCharts"
+          :datacolor="lineColors"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
+          ></echarts-model>
+          <div v-else class="noData">{{ $t('component.message.noLatencyData') }}</div>
         </a-col>
       <a-col :span="11">
         <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
@@ -366,8 +398,11 @@ onMounted(()=>{
           :cpuData="throughput"
           :chartstype="throughputTitle"
           :datacolor="throughputColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
           ></echarts-model>
-          <div v-else class="noData">{{ $t('component.message.noData') }}</div>
+          <div v-else class="noData">{{ $t('component.message.nothroughputData') }}</div>
       </a-col>
     </a-row>
   </section>
