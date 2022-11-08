@@ -2781,7 +2781,7 @@ const routerAw=(awData:any)=>{
   </main>
 </template>
 
-<style  >
+<style  scoped>
 #content-window {
   overflow: hidden !important;
   padding: 0rem !important;
