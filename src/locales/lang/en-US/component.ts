@@ -25,23 +25,25 @@ export default {
     index: 'Index',
     total: 'total of {total}',
 
-    name: 'name',
-    description: 'description',
-    tags: 'tags',
-    url: 'url',
-    action: 'action',
-    detail: 'detail',
-    edit: 'edit',
-    template: 'template',
-    template_en: 'template_en',
-    params: 'params',
-    paramsName: 'paramsName',
-    type: 'type',
-    enum: 'enum',
-    values: 'values',
+    name: 'Name',
+    description: 'Description',
+    tags: 'Tags',
+    url: 'Url',
+    action: 'Action',
+    detail: 'Detail',
+    edit: 'Edit',
+    template: 'Template',
+    template_en: 'Template_en',
+    params: 'Params',
+    paramsName: 'ParamsName',
+    type: 'Type',
+    enum: 'Enum',
+    values: 'Values',
     if: 'IF',
     then: 'Then',
-    operator: 'Operator'
+    operator: 'Operator',
+
+    pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
 
   message: {
@@ -51,22 +53,25 @@ export default {
     emptyTip: 'Please enter required items',
     sureDel: 'Sure to delete?',
     sureCancel: 'Sure to cancel?',
-    saveSuccess: 'saved successfully',
+    saveSuccess: 'Saved successfully',
 
     dupDescription: 'Duplicate description',
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
-    depName: 'Duplicate name'
+    depName: 'Duplicate name',
+
+    noData: 'No Data',
   },
 
   route: {
-    dashboard: 'dashboard',
-    awModeler: 'awModeler',
-    mtbStore: 'MBTStore',
-    templateManager: 'templateManager',
-    metaTemplate: 'metaTemplate',
-    staticTemplate: 'staticTemplate',
-    dynamicTemplate: 'dynamicTemplate',
-    codegenTemplate: 'codegenTemplate',
+    dashboard: 'Dashboard',
+    awModeler: 'AW Store',
+    mtbStore: 'MBT Store',
+    templateManager: 'TemplateManager',
+    metaTemplate: 'Meta',
+    staticTemplate: 'Static',
+    dynamicTemplate: 'Dynamic',
+    codegenTemplate: 'Codegen',
+    account: 'Account'
   }
 };

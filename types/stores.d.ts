@@ -57,9 +57,10 @@ export namespace Stores {
   interface mbtView {
     _id: string,
     name: string,
-    description: string,
-    tags: string,
-    codegen?:any,
+    descriptions: string,
+    tags?: string,
+    codegen_text?:any,
+    codegen_script?:any,
     dataDefinition?: {
       resources: resourceschema[],
       dataType?: string,

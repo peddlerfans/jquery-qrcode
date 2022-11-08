@@ -11,9 +11,6 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n()
 
 let route=useRoute()
-console.log(route);
-
-
 sessionStorage.setItem('meta_'+route.params._id,JSON.stringify(route.params._id))
 // sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
 // 获取当前数据并赋值

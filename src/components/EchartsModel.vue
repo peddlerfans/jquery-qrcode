@@ -132,19 +132,11 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
      axisPointer: {
        label: {
          formatter: function (params: any) {
-           if(newval[2]=="cpucharts"){
              return (
-             'cpu ' +
              params.value +
              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
            )
-           }else{
-             return (
-             'memory ' +
-             params.value +
-             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-           );
-           }
+           
            
          }
        }
@@ -160,7 +152,7 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
  ],
  series: [
    {
-     name: 'cpu',
+     name: props.chartstype,
      type: 'line',
      // smooth: true,
      emphasis: {
@@ -236,20 +228,10 @@ option = {
      axisPointer: {
        label: {
          formatter: function (params: any) {
-           if(props.chartstype=="cpucharts"){
              return (
-             'cpu ' +
              params.value +
              (params.seriesData.length ? '：' + params.seriesData[0].data : '')
            )
-           }else{
-             return (
-             'memory ' +
-             params.value +
-             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
-           );
-           }
-           
          }
        }
      },
@@ -264,7 +246,7 @@ option = {
  ],
  series: [
    {
-     name: 'cpu',
+     name: props.chartstype,
      type: 'line',
      // smooth: true,
      emphasis: {

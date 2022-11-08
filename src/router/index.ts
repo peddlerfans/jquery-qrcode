@@ -52,6 +52,8 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+
+
   {
     path: '/awmodeler',
     name: 'Awmodeler',
@@ -68,6 +70,7 @@ export const routes: RouteRecordRaw[] = [
     ]
   }
   ,
+
 
   {
     path: '/mbtstore',
@@ -132,11 +135,35 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }
   ,
+  {
+    path: '/awupdate',
+    name: 'AWupdate',
+    component: Layout,
+    redirect: { name: 'awupdate' },  
+    meta: { hidden: true}, 
+    children: [
+      {
+        path: ':_id/:name/:awupdate',
+        name: 'awupdate',
+        component: () => import('@/views/updateAw.vue'),        
+        meta: { title: 'UpdateAw',icon: AppstoreAddOutlined, keepAlive: true}
+      }
+    ], 
+    beforeEnter(to,form,next){
+      let pathname =`${to.params.name}`;
+      // if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        to.meta.title=pathname
+       
+        // }
+        next()
+      }
+  },
   {
     path: '/mbtmodeler',
     name: 'Mbtmodeler',

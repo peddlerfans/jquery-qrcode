@@ -45,7 +45,9 @@ export default {
     values: '值',
     if: '如果',
     then: '因此',
-    operator: '关系'
+    operator: '关系',
+
+    pageTip: '当前显示第{head}-{tail}条，共{total}条'
   },
 
   message: {
@@ -60,17 +62,20 @@ export default {
     dupDescription: '描述不能和现有数据的描述重复',
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
-    depName: '名称不能和现有数据的名称重复'
+    depName: '名称不能和现有数据的名称重复',
+
+    noData: '暂无数据',
   },
 
   route: {
     dashboard: '仪表板',
-    awModeler: 'AW设计',
-    mtbStore: '测试建模',
+    awModeler: 'AW管理',
+    mtbStore: '测试建模管理',
     templateManager: '模板管理',
     metaTemplate: '用例元数据',
     staticTemplate: '静态数据',
     dynamicTemplate: '动态数据',
     codegenTemplate: '代码生成',
+    account: '账户管理'
   }
 };
