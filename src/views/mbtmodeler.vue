@@ -28,7 +28,7 @@ import {
   PlusSquareFilled,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
-import $, { param } from "jquery";
+import $, { data, param } from "jquery";
 import {
   red,
   volcano,
@@ -856,15 +856,36 @@ function awhandlerSubmit() {
   message.success(t("component.message.saveSuccess"));
 }
 
+
+
+const subAttributes=(data:any)=>{
+  
+  
+  globalformData.value.codegen_text=data.value.codegen_text
+  globalformData.value.codegen_script=data.value.codegen_script
+  Object.assign(mbtCache,{codegen_text:globalformData.value.codegen_text})
+  Object.assign(mbtCache,{codegen_script:globalformData.value.codegen_script})
+  console.log(mbtCache);
+  onCloseDrawer();
+  let metaObj = {};
+  Object.assign(metaObj, { schema: tempschema.value });
+  Object.assign(metaObj, { data: metatemplatedetailtableData.value });
+  cacheDataDefinition.meta = metaObj;
+}
+
+
 /**
  * todo
  */
-function globalhandlerSubmit() {
+function globalhandlerSubmit(data?:any) {
+  // console.log(data);
+  
   // console.log(tempschema,metatemplatedetailtableData);
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
+  
   onCloseDrawer();
   message.success(t("component.message.saveSuccess"));
 }
@@ -1594,6 +1615,7 @@ onMounted(() => {
       flyShape.remove();
       $("#flyPaper").remove();
       if (aw.length > 0) showDrawer(undefined, aw, cellid); //First param used when clicking an element or a link. Undefined means not clicking
+      isLink.value=false
     });
   });
 
@@ -1735,7 +1757,7 @@ onMounted(() => {
         linkData.value._id = linkView.model.id;
       } else {
         // todo link props
-        message.warning("Select a template first");
+        // message.warning("Select a template first");
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
@@ -1885,15 +1907,21 @@ function showGlobalInfo() {
   globalformData.value._id =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
   // globalformData.value.tags = "";
+  console.log(mbtCache);
+  
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
     globalformData.value.descriptions = mbtCache["description"];
-    // if (_.isArray(mbtCache["tags"])) {
-    //   _.forEach(mbtCache["tags"], function (value, key) {
-    //     globalformData.value.tags += value + " ";
-    //   });
-    // }
-    // globalformData.value.tags = mbtCache['tags'];
+    if (_.isArray(mbtCache["codegen_text"])) {
+      _.forEach(mbtCache["codegen_text"], function (value, key) {
+        globalformData.value.codegen_text += value + " ";
+      });
+    }
+    globalformData.value.codegen_text = mbtCache['codegen_text'];
+  }else if(_.isArray(mbtCache["codegen_script"])){
+    _.forEach(mbtCache["codegen_script"], function (value, key) {
+        globalformData.value.codegen_script += value + " ";
+      });
   }
 }
 
@@ -2603,11 +2631,6 @@ const routerAw = (awData: any) => {
                         <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
                       <!-- </span> -->
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit()"
-                          >{{ $t('common.submitText') }}</a-button
-                        >
-                      </span>
-                      <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()">{{
                           $t("common.submitText")
                         }}</a-button>
@@ -2774,15 +2797,31 @@ const routerAw = (awData: any) => {
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-              <div slot-scope="{linkData}">
-                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
-              <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
-              <div style="margin-top:1.625rem">
-                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">{{ $t('common.close') }}</a-button>
-              <a-button @click="onCloseDrawer">{{ $t('common.cancelText') }}</a-button>
-              </div>
-              </div>
-            </VueForm>
+              <div v-if="isExclusiveGateway" slot-scope="{ linkData }">
+                  <create-rule
+                    v-if="conditionalValue.length > 0"
+                    :keys="keys"
+                    :formDatas="formDatas"
+                    :valueData="valueData"
+                    :rulesData="rulesData"
+                    @rulesChange="rulesChange"
+                  ></create-rule>
+                  </div>
+                  <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
+                  <div style="margin-top: 1.625rem">
+                    <a-button
+                      @click="linkhandlerSubmit"
+                      type="primary"
+                      style="margin-right: 0.625rem"
+                      >{{ $t("common.close") }}</a-button
+                    >
+                    <a-button @click="onCloseDrawer">{{
+                      $t("common.cancelText")
+                    }}</a-button>
+                  
+                </div>
+              </VueForm>
+
             </div>
           </div>
 
@@ -2819,7 +2858,7 @@ const routerAw = (awData: any) => {
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      @submit="globalhandlerSubmit"
+                      @submit="subAttributes"
                       @cancel="onCloseDrawer"
                       v-if="isGlobal"
                     >
