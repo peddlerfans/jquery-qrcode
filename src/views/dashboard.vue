@@ -123,12 +123,15 @@ const search={
 let cpuCharts:string="cpu(%)" 
 let cpuColor="#EE6666"
 let cpuData:any=ref([])
+let cpu=ref([])
 let memorycharts:string="memory(GB)"
 let memoryColor="#5470C6"
 let memory:any=ref([])
+let neicun=ref([])
 let throughputTitle:string="throughput(tps)"
 let throughputColor="#97CC71"
 let throughput:any=ref([])
+let tuntuliang=ref([])
 let sendXdata=ref([])
 let lineCharts:string="latency(seconds)"
 let lineColors:any=ref(["#EE6666","#5470C6","#97CC71","#8FD5F3","#F6DC7D"])
@@ -144,7 +147,6 @@ function TimeTrans(timestamp: string | number | Date){
     return date.substring(5,16)
 
 }
-let aa:any=ref([])
 
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
@@ -156,21 +158,21 @@ async function query(){
       
       return TimeTrans(item.key_as_string)
     })
-    let cpu=rst.map((item:any)=>{
+     cpu.value=rst.map((item:any)=>{
       return item.cpu.value*10000
     })
-    cpuData.value.push({data:cpu,type:"line",name:"cpu(%)"})
+    cpuData.value.push({data:cpu.value,type:"line",name:"cpu(%)"})
     console.log(cpuData.value);
     
-    let neicun=rst.map((item:any)=>{
+     neicun.value=rst.map((item:any)=>{
       return item.memory_free.value/1024/1024/1024
     })
-    memory.value.push({data:neicun,type:"line",name:"memory(GB)"})
+    memory.value.push({data:neicun.value,type:"line",name:"memory(GB)"})
     let requestData=rst.map((item:any)=>{
         return item.terms
       })      
       lineDatas.value=lineData(requestData)
-    let tuntuliang=rst.map((item:any)=>{
+     tuntuliang.value=rst.map((item:any)=>{
       if(search.interval=="1m"){
         return item.transations.value
       }else if(search.interval=="1h"){
@@ -179,7 +181,7 @@ async function query(){
         return item.transations.value/1440
       }
     })
-    throughput.value.push({data:tuntuliang,type:"line",name:"throughput(tps)"})
+    throughput.value.push({data:tuntuliang.value,type:"line",name:"throughput(tps)"})
   }
 }
 onMounted(()=>{

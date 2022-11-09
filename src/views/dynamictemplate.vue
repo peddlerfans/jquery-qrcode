@@ -617,9 +617,9 @@ onMounted(() => {
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a v-if="record.model.factor.length>1" :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
               <!-- <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a> -->
-              <span v-else>{{text}}</span>
+              <!-- <span v-else>{{text}}</span> -->
             </template>
           </div>
         </template>
