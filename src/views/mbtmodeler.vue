@@ -64,6 +64,7 @@ import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
+import { nextTick } from "process";
 
 const { t } = useI18n();
 
@@ -163,7 +164,6 @@ const showDrawer = (
 ) => {
   visible.value = true;
   console.log(el);
-
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
     ev_id = id;
@@ -877,7 +877,7 @@ function linkhandlerSubmit() {
   } else {
     linkFormData.label != undefined;
   }
-
+  
   linkFormData.ruleData = rulesData.value;
   
   // linkFormData.loopcount = linkData.value.loopcount;
@@ -979,27 +979,29 @@ let toReload = ref(false);
 let condataName = ref([]);
 let conditionalValue = ref([]);
 //  let showAddConditional=ref(false)
-function valueOption(arr: any) {
-  let newarr = Object.keys(arr[0]);
-  let setarr = newarr.map((item: any) => ({ name: item, type: "", values: [] }));
-  arr.forEach((item: any, index: any) => {
-    let keys = Object.keys(arr[0]);
-    if (keys) {
-      setarr.forEach(
-        (tureitem: { type: string; name: string; values: any[] }, i: any) => {
-          // console.log(keys[i]);
-          if (tureitem.name == keys[i]) {
-            tureitem.type = typeof item[keys[i]];
-            tureitem.values.push(item[keys[i]]);
-          }
-          tureitem.values = [...new Set(tureitem.values)];
-        }
-      );
-    }
-  });
-  return setarr;
-}
-localStorage.setItem("mbt_" + route.params.name, JSON.stringify(route.params.name));
+ function valueOption(arr:any){
+  let newarr=Object.keys(arr[0])
+  let setarr=newarr.map((item: any)=>({name:item,type:"",values:[]}))
+  arr.forEach((item: any,index: any)=>{
+  let keys=Object.keys(arr[0])
+  if(keys){
+
+    setarr.forEach((tureitem: {type: string; name: string; values: any[];},i: any)=>{
+      // console.log(keys[i]);
+      if(tureitem.name==keys[i]){
+        tureitem.type=typeof item[keys[i]]
+        tureitem.values.push(item[keys[i]])
+      }
+      tureitem.values=[...new Set(tureitem.values)]
+    })
+  }
+})
+return setarr
+ }
+ localStorage.setItem(
+            "mbt_" + route.params.name,
+            JSON.stringify(route.params.name)
+          );
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1110,7 +1112,7 @@ async function updateMBT(url: string, data: any) {
   await request.put(url, data);
 }
 
-const canvas = ref(HTMLElement);
+const canvas:any = ref(HTMLElement);
 const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
@@ -1196,12 +1198,18 @@ function reloadMBT(route: any) {
         cacheprops = map;
         // console.log('after:',cacheprops)
       }
+      let cells: any[]=[]
+      let newData:any[]=[]
       modeler.graph.getCells().forEach((item: any) => {
         if (item.attributes.type == "standard.HeaderedRectangle") {
           graphIds.push(item.id);
           if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
+              cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:true})
+              newData.push(cacheprops.get(item.id).props.primaryprops)
             sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
             if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
+              cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:false})
+              newData.push(cacheprops.get(item.id).props.expectedprops)
               sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
             }
           }
@@ -1211,23 +1219,22 @@ function reloadMBT(route: any) {
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
+      console.log(cacheprops);
+      
       tempdata.then((aws) => {
-        aws.forEach((aw: Stores.aw) => {
-          for (let [key, val] of cacheprops) {
-            //update cacheprops
-            if (val.props._id == aw._id) {
-              val.props.description = aw.description;
-              val.props.template = aw.template;
-            }
-            //update aw details in value.modelDefinition.cellsinfo
-            //rendering using updated cellsinfo
-            tempcellsinfo.cells.forEach((cell: any) => {
-              if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
-                // cell.attrs.label.text = aw.template || aw.description;
-                let showheadtext = aw.template || aw.description;
-                let cellonpaper = modeler.graph.getCell(cell.id);
-                cellonpaper.attr(
-                  "headerText/text",
+      const awById=_.groupBy(aws,"_id")
+      newData.forEach((obj:any)=>{
+        obj.aw=awById[obj.data._id][0]
+      })
+      console.log(newData,"+++++",cells);
+      cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
+        let attrName=cell.isStep? "headerText/text":"bodyText/text"
+        // console.log(awById[cell.item.id],cell.item.id,awById);
+        
+        let aw=awById[cell.id][0]
+        let showheadtext = aw.template || aw.description;
+        cell.item.attr(
+                  attrName,
                   joint.util.breakText(
                     showheadtext,
                     {
@@ -1236,13 +1243,41 @@ function reloadMBT(route: any) {
                     { "font-size": 16 }
                   )
                 );
-              }
-            });
-          }
-        });
+      })
+
+        // aws.forEach((aw: Stores.aw) => {
+        //   for (let [key, val] of cacheprops) {
+        //     //update cacheprops
+        //     if (val.props._id == aw._id) {
+        //       // val.aw=aw
+        //       val.props.description = aw.description;
+        //       val.props.template = aw.template;
+        //     }
+        //     //update aw details in value.modelDefinition.cellsinfo
+        //     //rendering using updated cellsinfo
+        //     tempcellsinfo.cells.forEach((cell: any) => {
+        //       if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
+        //         // cell.attrs.label.text = aw.template || aw.description;
+        //         // value.modelDefinition.props[key]
+        //         let showheadtext = aw.template || aw.description;
+        //         let cellonpaper = modeler.graph.getCell(cell.id);
+        //         cellonpaper.attr(
+        //           "headerText/text",
+        //           joint.util.breakText(
+        //             showheadtext,
+        //             {
+        //               width: 160,
+        //             },
+        //             { "font-size": 16 }
+        //           )
+        //         );
+        //       }
+        //     });
+        //   }
+        // });
         // console.log('tempcellsinfo:', tempcellsinfo,'cacheprops:', cacheprops)
-        let tempstr = JSON.stringify(tempcellsinfo);
-        modeler.graph.fromJSON(JSON.parse(tempstr)); //Loading data from backend
+        // let tempstr = JSON.stringify(tempcellsinfo);
+        // modeler.graph.fromJSON(JSON.parse(tempstr)); //Loading data from backend
       });
     }
   });
@@ -1261,6 +1296,8 @@ onMounted(() => {
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
+   
+    
     res = mbtquery(mbtId);
     res.then((value: any) => {
       if (
@@ -1326,17 +1363,20 @@ onMounted(() => {
            */
           // cacheDataDefinition.meta;
         }
-      } else {
-        getAllTemplatesByCategory("codegen").then((rst: any) => {
+
+      }else{
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
           // console.log('codegen:',rst)
-          if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {
-              codegennames.value.push(rec.name);
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
-            });
+            })
+
           }
-        });
+
+        })
       }
     });
   } else {
@@ -1825,6 +1865,10 @@ onMounted(() => {
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
+  setTimeout(()=>{
+    onAfterChange(1)
+  },1000)
+  
 });
 // 点击打开选择模板
 const chooseTemplate = () => {
@@ -1899,6 +1943,7 @@ function showAWInfo(rowobj: any) {
   if (_.isArray(rowobj.params) && rowobj.params.length > 0) {
     let appendedschema = generateSchema(rowobj.params);
     appendedschema.forEach((field: any) => {
+      
       Object.assign(awschema.value.properties, field);
     });
 
@@ -2081,12 +2126,31 @@ const onImportFromMetaTemplate = () => {
 
 const importfromstatic = () => {};
 const isDisabled = ref(true);
-const value1 = ref<number>(1);
+const value1 = ref<number>(0.8);
 const paperscale = ref(1);
+let dom=ref()
 const onAfterChange = (value: any) => {
+  
+  const canvasRect:any = canvas.value.getClientRects()[0]
+  value1.value=value
   modeler.paper.scale(value);
+  // modeler.paper.options.width=`${100*value1.value}%`;
+  // modeler.paper.options.height=`${100*value1.value}%`;
+  Object.assign(modeler.paper.options,{overflow:'auto'})
+  modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
   paperscale.value = value;
+  // zoomStyle.value=value1.value*100%;
 };
+
+const zoomin=()=>{
+value1.value-=0.2
+onAfterChange(value1.value)
+
+}
+const zoomout=()=>{
+value1.value+=0.2
+onAfterChange(value1.value)
+}
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
@@ -2344,7 +2408,7 @@ const routerAw = (awData: any) => {
   <main>
     <header
       class="block shadow"
-      style="padding: 0rem !important; margin-bottom: 0.2rem !important"
+      style="padding: 0rem !important;"
     >
       <a-row>
         <a-col span="18">
@@ -2361,7 +2425,7 @@ const routerAw = (awData: any) => {
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
-            <minus-circle-outlined />
+            <minus-circle-outlined @click="zoomin"/>
             <a-slider
               v-model:value="value1"
               :min="0.2"
@@ -2369,7 +2433,7 @@ const routerAw = (awData: any) => {
               :step="0.2"
               @afterChange="onAfterChange"
             />
-            <plus-circle-outlined />
+            <plus-circle-outlined @click="zoomout"/>
           </div>
         </a-col>
       </a-row>
@@ -2377,8 +2441,7 @@ const routerAw = (awData: any) => {
 
     <section
       class="block shadow flex-center"
-      style="
-        width: 100%;
+      style=" width: 100%;
         height: 100%;
         min-height: 100%;
         color: var(--gray);
@@ -2389,13 +2452,13 @@ const routerAw = (awData: any) => {
     >
       <a-row
         type="flex"
-        style="width: 100%; height: 100%; min-height: 100%; padding: 0rem !important"
+        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; padding: 0rem !important"
       >
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23" style="width: 100%; height: 100%">
-          <div class="canvas" ref="canvas"></div>
+        <a-col :span="23" ref="dom">
+          <div class="canvas" ref="canvas" ></div>
         </a-col>
 
         <!-- aw-panel -->
@@ -2459,7 +2522,7 @@ const routerAw = (awData: any) => {
                       :data-source="tableData"
                       class="components-table-demo-nested"
                       :pagination="pagination"
-                      style="width: 49.25rem"
+                      
                     >
                       <template #headerCell="{ column }">
                         <span>{{ $t(column.title) }}</span>
@@ -2534,11 +2597,14 @@ const routerAw = (awData: any) => {
                     :schema="awschema"
                     v-if="isAW && hasAWInfo"
                   >
-                    <div slot-scope="{ awformdata }" style="position: relative">
-                      <span style="position: absolute; left: 3rem; top: -27.5rem">
+                    <div slot-scope="{ awformdata }" style="position: relative;">
+                      <!-- <span style="position: absolute; left: 3rem;top: -27.5rem; "> -->
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <a-button danger @click="routerAw(awformdata)" size="small"
-                          >updateAw</a-button
+                        <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
+                      <!-- </span> -->
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="awhandlerSubmit()"
+                          >{{ $t('common.submitText') }}</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
@@ -2588,7 +2654,6 @@ const routerAw = (awData: any) => {
                     :data-source="tableDataExpected"
                     class="components-table-demo-nested"
                     :pagination="paginationExpected"
-                    style="width: 49.25rem"
                   >
                     <template #headerCell="{ column }">
                       <template v-if="column.key === 'name'">
@@ -2700,7 +2765,7 @@ const routerAw = (awData: any) => {
           </div>
 
           <!-- link panel -->
-
+        
           <div class="infoPanel" ref="infoPanel" v-if="isLink">
             <div style="margin: 5px; padding: 5px">
               <VueForm
@@ -2709,43 +2774,29 @@ const routerAw = (awData: any) => {
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-                <div v-if="isExclusiveGateway" slot-scope="{ linkData }">
-                  <create-rule
-                    v-if="conditionalValue.length > 0"
-                    :keys="keys"
-                    :formDatas="formDatas"
-                    :valueData="valueData"
-                    :rulesData="rulesData"
-                    @rulesChange="rulesChange"
-                  ></create-rule>
-                  </div>
-                  <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
-                  <div style="margin-top: 1.625rem">
-                    <a-button
-                      @click="linkhandlerSubmit"
-                      type="primary"
-                      style="margin-right: 0.625rem"
-                      >{{ $t("common.close") }}</a-button
-                    >
-                    <a-button @click="onCloseDrawer">{{
-                      $t("common.cancelText")
-                    }}</a-button>
-                  
-                </div>
-              </VueForm>
+              <div slot-scope="{linkData}">
+                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+              <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
+              <div style="margin-top:1.625rem">
+                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">{{ $t('common.close') }}</a-button>
+              <a-button @click="onCloseDrawer">{{ $t('common.cancelText') }}</a-button>
+              </div>
+              </div>
+            </VueForm>
             </div>
           </div>
 
-          <div class="infoPanel" ref="infoPanel" v-if="isChoose">
+          <div class="infoPanel" ref="infoPanel"  v-if="isChoose">
             <div style="margin: 5px; padding: 5px">
               <h2>Link</h2>
-              <a @click="chooseTemplate"> Please select a template first </a>
+              <a @click="chooseTemplate">
+                Please select a template first
+              </a>
             </div>
           </div>
           <!-- <div v-else>
             
           </div> -->
-
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
                     @cancel="onCloseDrawer" :schema="tempschema"-->
           <!--  :isVisible="isVisible"-->
@@ -2811,7 +2862,10 @@ const routerAw = (awData: any) => {
                 ></template-table>
               </a-tab-pane>
               <a-tab-pane key="4" tab="Resources">
-                <a-button class="editable-add-btn" style="margin-bottom: 8px" @click=""
+                <a-button
+                  class="editable-add-btn"
+                  style="margin-bottom: 8px"
+                  @click="resourceshandleAdd"
                   >Add
                 </a-button>
                 <a-table
@@ -2849,9 +2903,9 @@ const routerAw = (awData: any) => {
                     <template v-else-if="column.dataIndex === 'operation'">
                       <div class="editable-row-operations">
                         <span v-if="resourceseditableData[record.key]">
-                          <a-typography-link @click="resourcessave(record.key)">{{
-                            $t("common.saveText")
-                          }}</a-typography-link>
+                          <a-typography-link @click="resourcessave(record.key)"
+                            >{{ $t('common.saveText') }}</a-typography-link
+                          >
                           <a-divider type="vertical" />
                           <a-popconfirm
                             :title="$t('component.message.sureCancel')"
@@ -2893,7 +2947,7 @@ const routerAw = (awData: any) => {
 
 <style>
 #content-window {
-  overflow: hidden !important;
+  /* overflow: hidden; */
   padding: 0rem !important;
 }
 
@@ -2952,7 +3006,7 @@ header {
 }
 
 .ant-drawer-body {
-  overflow-x: hidden !important;
+  /* overflow-x: hidden; */
   padding: 0px !important;
 }
 
