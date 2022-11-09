@@ -95,10 +95,10 @@ function dataZoom() {
 watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,props.zoomin,props.zoomout],(newval:any)=>{
  // let myChart = echarts.init(main.value);
  option = {
- color: props.datacolor,
+ color: newval[3],
  title: {
    left: 'left',
-   text: props.chartstype,
+   text: newval[2],
    textStyle:{
      fontWeight:700,
      fontSize:14
