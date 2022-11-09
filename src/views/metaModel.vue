@@ -59,13 +59,19 @@ let editData=reactive<DataItem>({
   inputVisible:false,
   inputValue:""
 })
+let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
 const updMeta=async (data:any)=>{
+  console.log(data);
+  
   if(data.__v){
     delete data.__v
-  }
-  let rst=await request.put(`/api/templates/${data._id}`,data)
+  }else{
+    let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,data)
   message.success('Modification succeeded')
+  showAddFactorBtn.value=true
+  }
+
 }
 let showAddFactorBtn=ref(true)
 const edit = (record: any) => {
@@ -93,7 +99,7 @@ const clearFactorState = () => {
 const save =async (obj:any) => {
   obj.editing=false
   
-  await updMeta(obj.value)
+  await updMeta(obj)
   
 }
 // 点击删除的方法
