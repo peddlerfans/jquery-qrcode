@@ -3,7 +3,6 @@ import { dia, shapes ,g } from "jointjs";
 // import { join } from "path";
 import { Ref, ref } from "vue";
 import { Stencil } from "@/composables/stencil";
-import { setupI18n } from "@/locales";
 import _ from 'lodash';
 import { PaperClipOutlined } from "@ant-design/icons-vue";
 window.joint = joint

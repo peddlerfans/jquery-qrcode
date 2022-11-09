@@ -40,7 +40,9 @@ import {
   valueStatesTs,
 } from "./componentTS/dynamictemplate"; 
 import CreateRule from '@/components/CreateRule.vue'
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n()
 // Specify the api for dynamic template data CRUD
 let url = templateUrl;
 let route = useRoute()
@@ -67,7 +69,7 @@ async function query(id?: any) {
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
-  
+
   condata.value = finalModel.constraint.map((e: any,index:number) => {
     return {if:ifdata(e.if),then:{...e.then},keys:index}
   })
@@ -90,17 +92,17 @@ const saveModel = async () => {
   console.log('saveModel');
   if (showAddFactorBtn.value ){
     if (finalModel.factor.length<2){
-      message.warning('It is requires at least TWO factors in a model')
+      message.warning(t('templateManager.saveModelTip'))
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
       if(rst){
          query(finalResult._id)
       }
       
-      message.success('Model is saved successfully')
+      message.success(t('templateManager.saveModelSuccess'))
     }
   }else{
-    message.warning('Please save all the editing fields first')
+    message.warning(t('templateManager.saveTip'))
   }
 
 
@@ -145,24 +147,24 @@ let factorState = reactive<Factor>({
 
 const factorColumns = [ // Setup the header of columns
   {
-    title: 'Name',
+    title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
     // width: 40
   },
   {
-    title: 'Type',
+    title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
     // width: 120
   },
   {
-    title: 'Values',
+    title: 'component.table.values',
     dataIndex: 'values',
     key: 'values',
   },
   {
-    title: 'Action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
     // width: 100
@@ -215,10 +217,10 @@ const deleteFactor = (record: Factor) => {
   console.log('deleteFactorByName')
   console.log(index)
   finalModel.factor.splice(index,1);
-  message.success('Delete Successfully!');
+  message.success(t('component.message.delText'));
 }
 const cancelFactor = (record: Factor) => {
-  
+
   if (factorState.name === ''){
     const index= finalModel.factor.findIndex(e => e === record)
     finalModel.factor.splice(index,1);
@@ -388,19 +390,19 @@ const focus = () => {
 
 const columns=[
 {
-    title: 'IF',
+    title: 'component.table.if',
     dataIndex: 'if',
     key: 'if',
     width: 120
   },
   {
-    title: 'Then',
+    title: 'component.table.then',
     dataIndex: 'then',
     key: 'then',
     width: 120
   },
   {
-    title:'action',
+    title: 'component.table.action',
     dataIndex:'action',
     key:'action',
     width:60
@@ -644,13 +646,13 @@ const previewModel = async () => {
     <!-- ############ -->
 
     <div>
-      <h2>Option (required)</h2>
+      <h2>{{ $t('templateManager.optionLabel') }}</h2>
       <a-form
           name="basic"
           :wrapper-col="{ span: 2 }"
           autocomplete="off"
       >
-        <a-form-item label="Strategy">
+        <a-form-item :label="$t('templateManager.strategyLabel')">
           <a-select v-model:value="finalModel.option.strategy" :options="orderOptions"></a-select>
         </a-form-item>
       </a-form>
@@ -663,14 +665,18 @@ const previewModel = async () => {
     <!-- ############ -->
 
     <div style="margin: 30px 0px 8px 0px;">
-      <h2 style="display: inline;">Factors (required)</h2>
-      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">Add a
-        New Factor</a-button>
+      <h2 style="display: inline;">{{ $t('templateManager.factorsLabel') }}</h2>
+      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">
+        {{ $t('templateManager.newFactor') }}
+      </a-button>
 
     </div>
 
 
     <a-table v-if="finalModel.factor.length>0" :columns="factorColumns" :data-source="finalModel.factor" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template #bodyCell="{ column, text, record }">
 
         <template v-if='column.key==="name"'>
@@ -720,7 +726,7 @@ const previewModel = async () => {
             @keyup.enter="handleFactorValueConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
               <plus-outlined />
-              Add a New Value
+              {{ $t('common.newValue') }}
             </a-tag>
           </template>
 
@@ -733,18 +739,21 @@ const previewModel = async () => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
+              <a-typography-link type="danger" @click="saveFactor(record)">{{ $t('common.saveText') }}</a-typography-link>
               <a-divider type="vertical" />
 
-                <a @click="cancelFactor(record)">Cancel</a>
+                <a @click="cancelFactor(record)">{{ $t('common.cancelText') }}</a>
             </span>
 
             <span v-else>
-              <a @click="editFactor(record)">Edit</a>
+              <a @click="editFactor(record)">{{ $t('component.table.edit') }}</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                            @confirm="deleteFactor(record)" @cancel="cancel">
-                <a>Delete</a>
+              <a-popconfirm
+                  :title="$t('templateManager.delFactor')"
+                  :ok-text="$t('common.yesText')"
+                  :cancel-text="$t('common.noText')"
+                  @confirm="deleteFactor(record)" @cancel="cancel">
+                <a>{{ $t('common.delText') }}</a>
               </a-popconfirm>
             </span>
 
@@ -761,11 +770,14 @@ const previewModel = async () => {
     <!-- ################ -->
 
     <div style="margin: 30px 0px 8px 0px;">
-      <h2 style="display: inline;">Constraint (optional)</h2>
+      <h2 style="display: inline;">{{ $t('templateManager.constraintLabel') }}</h2>
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
-                style="margin-left: 12px;">Add a New Constraint</a-button>
+                style="margin-left: 12px;">{{ $t('templateManager.newConstraint' )}}</a-button>
     </div>
     <a-table :columns="columns" :data-source="condata" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
           <span>{{'['+record.then.thenName+']'+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
@@ -773,11 +785,14 @@ const previewModel = async () => {
         </template>
         <template v-if="column.key=='action'">
           <span>
-            <a @click="editCon(record)">Edit</a>
+            <a @click="editCon(record)">{{ $t('common.editText') }}</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                            @confirm="deleteconstraint(record)" @cancel="cancel">
-                <a>Delete</a>
+              <a-popconfirm
+                  :title="$t('templateManager.delConstraint')"
+                  :ok-text="$t('common.yesText')"
+                  :cancel-text="$t('common.noText')"
+                  @confirm="deleteconstraint(record)" @cancel="cancel">
+                <a>{{ $t('common.delText') }}</a>
               </a-popconfirm>
           </span>
         </template>
@@ -788,7 +803,7 @@ const previewModel = async () => {
       <!-- <condition :factorsconditional="conditional" @parentdata="ondata"></condition> -->
     <a-row style="backgroundColor:white">
       <a-col :span="12" style="padding-top: 10px;">
-        <h2 style="display: flex; align-items: center;">IF
+        <h2 style="display: flex; align-items: center;">{{ $t('component.table.if') }}
           <div style="font-size: 14px; margin-left: .625rem;">{{conditionshow}}</div>
         </h2>
         <hr/>
@@ -798,10 +813,10 @@ const previewModel = async () => {
       </a-col>
       <a-divider type="vertical" />
       <a-col :span="11" style="margin-left: .625rem; padding-top: .625rem;">
-        <h2 style="display: flex; justify-content: space-between;">Then
+        <h2 style="display: flex; justify-content: space-between;">{{ $t('component.table.then') }}
           <div style="display: flex;">
-                    <a-button type="primary" @click='conditionsend'>save</a-button>
-                    <a-button @click="cancelbulid">cancel</a-button>
+                    <a-button type="primary" @click='conditionsend'>{{ $t('common.saveText') }}</a-button>
+                    <a-button @click="cancelbulid">{{ $t('common.cancelText') }}</a-button>
                 </div>
         </h2>
         
@@ -809,13 +824,13 @@ const previewModel = async () => {
         <div style="margin-top: .625rem;">
           
                 <a-form layout="inline" style="margin-top:1.25rem;">
-                <a-form-item label="Name">
+                <a-form-item :label="$t('component.table.name')">
                     <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
                 </a-form-item>
-                <a-form-item label="Operator">
+                <a-form-item :label="$t('component.table.operator')">
                     <a-select :options="ifOperatorOptions" v-model:value="thenObj.thenOperator"></a-select>
                 </a-form-item>
-                <a-form-item label="Value">
+                <a-form-item :label="$t('component.table.values')">
                     <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue"></a-select>
                 </a-form-item>
                 
@@ -828,7 +843,7 @@ const previewModel = async () => {
     </div>
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
-                style="margin-bottom: 8px">Save Model</a-button>
+                style="margin-bottom: 8px">{{ $t('templateManager.saveModel') }}</a-button>
                 <a-button @click="previewModel()">preview</a-button>
     </div>
     <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">

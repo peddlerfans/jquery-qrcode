@@ -9,7 +9,7 @@ import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
 import type { Ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
@@ -24,40 +24,22 @@ import {
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
-import {
-  red,
-  volcano,
-  gold,
-  yellow,
-  lime,
-  green,
-  cyan,
-  blue,
-  geekblue,
-  purple,
-  magenta,
-  grey,
-} from "@ant-design/colors";
+import { red, volcano, gold, yellow, lime, green, cyan, blue, geekblue, purple, magenta,  grey,} from "@ant-design/colors";
 import VueForm from "@lljj/vue3-form-ant";
-import {
-  tableSearch,
-  FormState,
-  paramsobj,
-  ModelState,
-  statesTs,
-} from "./componentTS/awmodeler";
+import {tableSearch,FormState,paramsobj,ModelState,statesTs,} from "./componentTS/awmodeler";
 import _, { transform } from "lodash";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
 import { StorageSerializers, useCurrentElement } from "@vueuse/core";
-
 import { computed, defineComponent } from "vue";
-
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { stringLiteral } from "@babel/types";
 import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue"
 import { propsToAttrMap } from "@vue/shared";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n()
 
 window.joint = joint;
 
@@ -93,7 +75,7 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 const templateCategory = ref(1)
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-  console.log(",,,,,,", v);
+  
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -445,14 +427,14 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
  * Panel --Json schema forms
  */
  let tableDataDirectInput = ref([]);
- let 
+ let
  tableColumnsDirectInput = ref([])
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
-  description: "",
-  tags: "",
-  codegen:""
+  descriptions: "",
+  codegen_text:"",
+  codegen_script:""
 
 });
 let linkData = ref({
@@ -468,7 +450,7 @@ let linkData = ref({
 interface LinkFormData {
 ruleData: any[];
   _id: string;
-  label: string;
+  label: any;
   editable:boolean;
   // loop?: boolean;
   // loopcount?: number;
@@ -477,7 +459,7 @@ ruleData: any[];
 }
 let linkFormData: LinkFormData = {
 _id: "",
-label: "",
+label: undefined,
 editable: false,
 // loop: false,
 // loopcount: 1,
@@ -501,7 +483,7 @@ let awformdataExpected = ref<Stores.awView>({
   tags: "",
   template: "",
 });
-let codegennames=ref([''])
+let codegennames:any=ref([])
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -512,22 +494,25 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
-    description: {
+    descriptions: {
       title: "Description",
       type: "string",
-      readOnly: true,
     },
-    tags: {
-      title: "Tags",
-      type: "string",
-      readOnly: true,
-    },
-    codegen:{
-      title:"Output Text/Script",
+    // tags: {
+    //   title: "Tags",
+    //   type: "string",
+    //   readOnly: true,
+    // },
+    codegen_text:{
+      title:"Output Text",
       type:"string",
       enum: codegennames.value
-
-    }
+    },
+    codegen_script:{
+      title:"Output Script",
+      type:"string",
+      enum: codegennames.value
+    },
   },
 });
 
@@ -562,14 +547,10 @@ const awschema = ref({
       type: "string",
       readOnly: true,
     },
-    // params: {
-    //   title: "Params",
-    //   type: "string",
-    // },
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-  
+
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
 const uischema={
@@ -610,7 +591,7 @@ const linkschema = ref({
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
     },
-    
+
   },
 });
 
@@ -844,7 +825,7 @@ function awhandlerSubmit() {
   // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
-  message.success("Save aw Successfully");
+  message.success(t('component.message.saveSuccess'));
 }
 
 /**
@@ -857,7 +838,7 @@ function globalhandlerSubmit() {
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
   onCloseDrawer();
-  message.success("Save config Successfully");
+  message.success(t('component.message.saveSuccess'));
 }
 
 function linkhandlerSubmit() {
@@ -874,7 +855,7 @@ function linkhandlerSubmit() {
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   // console.log(linkData.value.connectorType)
-  console.log(linkFormData.label);
+  // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
   // let loopcount1 = linkData.value.loopcount;
@@ -912,7 +893,7 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
   onCloseDrawer();
-  // message.success("Save it Successfully");
+  // message.success(t('component.message.saveSuccess'));
 }
 
 function handlerEditExpected() {
@@ -974,7 +955,7 @@ let toReload = ref(false);
   arr.forEach((item: any,index: any)=>{
   let keys=Object.keys(arr[0])
   if(keys){
-    
+
     setarr.forEach((tureitem: {type: string; name: string; values: any[];},i: any)=>{
       // console.log(keys[i]);
       if(tureitem.name==keys[i]){
@@ -987,6 +968,10 @@ let toReload = ref(false);
 })
 return setarr
  }
+ localStorage.setItem(
+            "mbt_" + route.params.name,
+            JSON.stringify(route.params.name)
+          );
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1035,6 +1020,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
           );
+
           return mbtCache;
         }
       })
@@ -1043,18 +1029,18 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
-    console.log(rst);
-    
+    // console.log(rst);
+
     if(rst && rst.dataDefinition && rst.dataDefinition.data){
       if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
         // showAddConditional.value=true
       condataName.value=rst.dataDefinition?.data.tableColumns
       conditionalValue.value=rst.dataDefinition?.data.tableData
-      console.log(condataName.value,conditionalValue.value);
-      
+      // console.log(condataName.value,conditionalValue.value);
+
     }
     }
-    
+
     // condataName.value=rst.dataDefinition?.data.tableData
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
@@ -1152,10 +1138,10 @@ async function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
-  console.log(mbtCache);
-  
+  // console.log(mbtCache);
+
   await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
-  message.success("Save MBT model successfully");
+  message.success(t('component.message.saveSuccess'));
 }
 
 function reloadMBT(route: any) {
@@ -1195,7 +1181,8 @@ function reloadMBT(route: any) {
           }
         }
       });
-
+        console.log(value);
+        
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
@@ -1214,7 +1201,8 @@ function reloadMBT(route: any) {
               if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
                 // cell.attrs.label.text = aw.template || aw.description;
                 let showheadtext = aw.template || aw.description;
-                cell.attr(
+                let cellonpaper = modeler.graph.getCell(cell.id);
+                cellonpaper.attr(
                   "headerText/text",
                   joint.util.breakText(
                     showheadtext,
@@ -1234,7 +1222,7 @@ function reloadMBT(route: any) {
       });
     }
   });
-  message.success("MBT model reloaded");
+  message.success(t('MBTStore.reloadTip'));
 }
 
 let dataFrom = ref('');
@@ -1249,7 +1237,10 @@ onMounted(() => {
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
   let res;
   if (mbtId) {
+   
+    
     res = mbtquery(mbtId);
+    console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -1257,11 +1248,12 @@ onMounted(() => {
       ) {
 
         getAllTemplatesByCategory('codegen').then((rst:any)=>{
-          // console.log('codegen:',rst)
+          console.log('codegen:',rst)
           if(rst && _.isArray(rst)){
-            rst.forEach((rec:any)=>{
-              
-              globalschema.value.properties.codegen.enum.push(rec.name)
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
+              // globalschema.value.properties.codegen_text.enum.push(rec.name)
+              // globalschema.value.properties.codegen_script.enum.push(rec.name)
             })
 
           }
@@ -1320,6 +1312,19 @@ onMounted(() => {
           // cacheDataDefinition.meta;
         }
 
+      }else{
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
+              // globalschema.value.properties.codegen_text.enum.push(rec.name)
+              // globalschema.value.properties.codegen_script.enum.push(rec.name)
+            })
+
+          }
+
+        })
       }
     });
   } else {
@@ -1345,15 +1350,147 @@ onMounted(() => {
    * Drag & Drop stencil to modeler paper
    */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
-    
-    
+
+
     let aw = "";
     let cellid = ""; //element ID
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
-    let flyGraph = new joint.dia.Graph({ cellNamespace: namespace });
-    
+    let flyGraph = new joint.dia.Graph({},{ cellNamespace: namespace });
+    var headerHeight = 30;
+    var buttonSize = 14;
+
+//     let container=joint.dia.Element.define('Container.Parent', {
+//     collapsed: false,
+//     attrs: {
+//         root: {
+//             magnetSelector: 'body'
+//         },
+//         shadow: {
+//             refWidth: '100%',
+//             refHeight: '100%',
+//             x: 3,
+//             y: 3,
+//             fill: '#000000',
+//             opacity: 0.05
+//         },
+//         body: {
+//             refWidth: 100,
+//             refHeight: 100,
+//             strokeWidth: 1,
+//             stroke: '#DDDDDD',
+//             fill: '#FCFCFC'
+//         },
+//         header: {
+//             refWidth: 100,
+//             height: headerHeight,
+//             strokeWidth: 0.5,
+//             stroke: '#4666E5',
+//             fill: '#4666E5'
+//         },
+//         headerText: {
+//             textVerticalAnchor: 'middle',
+//             textAnchor: 'start',
+//             refX: 8,
+//             refY: headerHeight / 2,
+//             fontSize: 16,
+//             fontFamily: 'sans-serif',
+//             letterSpacing: 1,
+//             fill: '#FFFFFF',
+//             textWrap: {
+//                 width: -40,
+//                 maxLineCount: 1,
+//                 ellipsis: '*'
+//             },
+//             style: {
+//                 textShadow: '1px 1px #222222',
+//             }
+//         },
+//         button: {
+//             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+//             refY: (headerHeight - buttonSize) / 2,
+//             cursor: 'pointer',
+//             event: 'element:button:pointerdown',
+//             title: 'Collapse / Expand'
+//         },
+//         buttonBorder: {
+//             width: buttonSize,
+//             height: buttonSize,
+//             fill: '#4666E5',
+//             fillOpacity: 0.2,
+//             stroke: '#4666E5',
+//             strokeWidth: 0.5,
+//         },
+//         buttonIcon: {
+//             fill: '#4666E5',
+//             stroke: '#4666E5',
+//             strokeWidth: 1
+//         }
+//     }
+//     }, {
+//     markup: [{
+//         tagName: 'rect',
+//         selector: 'shadow'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'body'
+//     }, {
+//         tagName: 'rect',
+//         selector: 'header'
+//     }, {
+//         tagName: 'text',
+//         selector: 'headerText'
+//     },
+//      {
+//         tagName: 'g',
+//         selector: 'button',
+//         children: [{
+//             tagName: 'rect',
+//             selector: 'buttonBorder'
+//         }, {
+//             tagName: 'path',
+//             selector: 'buttonIcon'
+//         }]
+//     }
+//   ],
+
+//     toggle: function(shouldCollapse: undefined) {
+//         var buttonD;
+//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+//         if (collapsed) {
+//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+//             this.resize(140, 30);
+//         } else {
+//             buttonD = 'M 2 7 12 7';
+//             this.fitChildren();
+//         }
+//         this.attr(['buttonIcon','d'], buttonD);
+//         this.set('collapsed', collapsed);
+//     },
+
+//     isCollapsed: function() {
+//         return Boolean(this.get('collapsed'));
+//     },
+
+//     fitChildren: function() {
+//         var padding = 10;
+//         this.fitEmbeds({
+//             padding: {
+//                 top: headerHeight + padding,
+//                 left: padding,
+//                 right: padding,
+//                 bottom: padding
+//             }
+//         });
+//     }
+// });
+// let containerparent=joint.shapes.Container.Parent
+//     let conatiner_a=new containerparent({
+//       z: 1,
+//         attrs: { headerText: { text: 'Container A' }}
+//     })
+// modeler.graph.addCell(conatiner_a)
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1361,7 +1498,7 @@ onMounted(() => {
       cellViewNamespace: namespace,
     });
     let flyShape = cellView.model!.clone();
-    
+
     let pos = cellView.model!.position();
     let offset = {
       x: x - pos.x,
@@ -1417,8 +1554,8 @@ onMounted(() => {
   modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
     // 判断是否选择了模板，没选择则不打开link
     console.log(stencil,modeler);
-    
-    
+
+
     lv_id = linkView.model.id + "";
     // await queryName()
     isAW.value = false;
@@ -1428,12 +1565,12 @@ onMounted(() => {
       let templinkData = cacheprops.get(linkView.model.id);
       console.log(templinkData);
       linkData.value = templinkData.props;
-    
+
       if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
         rulesData.value=templinkData.props.ruleData
       }
-      
-      
+
+
       if(linkData.value.editable){
 
       }
@@ -1506,6 +1643,7 @@ onMounted(() => {
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
+          console.log(tempawschema,tempformdata2);
           if (
             cacheprops.get(ev_id) != null &&
             cacheprops.get(ev_id).props.expectedprops &&
@@ -1517,6 +1655,12 @@ onMounted(() => {
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
             let tempawschemaExpected = generateObj(awschemaExpected);
             let tempformdata2Expected = generateObj(awformdataExpected);
+
+
+            
+            
+
+
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
             hasAWExpectedInfo.value = true;
@@ -1568,25 +1712,53 @@ onMounted(() => {
 function showGlobalInfo() {
   globalformData.value._id =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
-  globalformData.value.tags = "";
+  // globalformData.value.tags = "";
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
-    globalformData.value.description = mbtCache["description"];
-    if (_.isArray(mbtCache["tags"])) {
-      _.forEach(mbtCache["tags"], function (value, key) {
-        globalformData.value.tags += value + " ";
-      });
-    }
+    globalformData.value.descriptions = mbtCache["description"];
+    // if (_.isArray(mbtCache["tags"])) {
+    //   _.forEach(mbtCache["tags"], function (value, key) {
+    //     globalformData.value.tags += value + " ";
+    //   });
+    // }
     // globalformData.value.tags = mbtCache['tags'];
   }
 }
 
 function showAWInfo(rowobj: any) {
+  awschema.value.properties={
+    _id: {
+      type: "string",
+      "ui:hidden": true,
+      required: true,
+    },
+    name: {
+      title: "AW Name",
+      type: "string",
+      readOnly: true,
+    },
+    description: {
+      title: "Description",
+      type: "string",
+      readOnly: true,
+      "ui:widget": "TextAreaWidget",
+    },
+    template: {
+      title: "Template",
+      type: "string",
+      readOnly: true,
+    },
+    tags: {
+      title: "Tags",
+      type: "string",
+      readOnly: true,
+    },
+  }
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
   awformdata.value.tags = "";
-  // awformdata.value.params = "";
+  awformdata.value.template=rowobj.template
   awformdata.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1594,8 +1766,9 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + " ";
     });
   }
+console.log(awschema.value.properties);
 
-  if (_.isArray(rowobj.params)) {
+  if (_.isArray(rowobj.params) && rowobj.params.length>0) {
     let appendedschema = generateSchema(rowobj.params);
     appendedschema.forEach((field: any) => {
       Object.assign(awschema.value.properties, field);
@@ -1631,7 +1804,7 @@ function showAWExpectedInfo(rowobj: any) {
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
   awformdataExpected.value.tags = "";
-  // awformdataExpected.value.params = "";
+  awformdataExpected.value.template=rowobj.template
   awformdataExpected.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1741,7 +1914,7 @@ const resourcesedit = (key: string) => {
 };
 const resourcessave = (key: string) => {
   Object.assign(
-    resourcesdataSource.value.filter((item) => key === item.key)[0],
+    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
     resourceseditableData[key]
   );
   delete resourceseditableData[key];
@@ -1752,7 +1925,7 @@ const resourcescancel = (key: string) => {
 
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item) => item.key !== key
+    (item: { key: string; }) => item.key !== key
   );
 };
 const resourceshandleAdd = () => {
@@ -1834,13 +2007,13 @@ const handleDirectInput = (data:any) => {
 const handleStaticTable = (data:any) => {
   // console.log('get data from static children',data  )
   let tempObj = {};
-  
-  
+
+
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
   Object.assign(tempObj,{dataFrom:'static_template'})
   cacheDataDefinition.data = tempObj;
-  console.log(tempObj);
+  // console.log(tempObj);
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   if(data){
     condataName.value=data.tableColumns
@@ -1869,16 +2042,16 @@ let ifNameOpetions=computed(()=>{
   return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
 })
 let childvalue=computed(()=>{
-  console.log(conditionalValue.value);
-  
+  // console.log(conditionalValue.value);
+
   if(conditionalValue.value.length>0){
     // showAddConditional.value=true
     return valueOption(conditionalValue.value)
-    
+
   }else{
     // return showAddConditional.value=false
   }
-  
+
 })
 // 表格的数据
 let conditionalDatasource=ref<any>([])
@@ -1903,7 +2076,7 @@ const rulesData=ref(
   ]
 )
 const rulesChange=(datas: any,key:string)=>{
-    rulesData.value=datas//输出的条件对象 
+    rulesData.value=datas//输出的条件对象
 }
 // 递归改变if结构
 function ifdata(arr:any){
@@ -1922,13 +2095,13 @@ function ifdata(arr:any){
       // finditem=conditionstr(item.conditions)+' '+item.relation
       finditem=`${conditionstr(item.conditions)} ${item.relation} `
     }
-    if(item.children.length>0){      
+    if(item.children.length>0){
       finditem+=ifdata(item.children)
       // if
     }else{
       break
     }
-    
+
   }
   if(finditem!=null){
     let findlength=finditem.length
@@ -1938,7 +2111,7 @@ function ifdata(arr:any){
 
     return finditem
   }
-  
+
 }
 function selectvalue(value:any){
   let values=null
@@ -1970,7 +2143,7 @@ function selectvalue(value:any){
 const conditionstr=(arr:any)=>{
   let ifcondition=null
   // if(arr[arr.length-1].value){
-        // delete arr[arr.length-1].selectvalues  
+        // delete arr[arr.length-1].selectvalues
   // }
   ifcondition=arr.map((item:any)=>{
     if(item.operator=='='){item.operator="=="}
@@ -1982,10 +2155,10 @@ const conditionstr=(arr:any)=>{
       }else{
         // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
         return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `
-      }    
+      }
   })
- 
-  
+
+
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 watch(rulesData,(newvalue:any)=>{
@@ -1993,6 +2166,27 @@ watch(rulesData,(newvalue:any)=>{
     linkData.value.label=ifdata(newvalue)!
   }
 },{deep:true,immediate: true})
+let router=useRouter()
+// 点击跳转Aw修改
+const routerAw=(awData:any)=>{
+  
+  
+  let awUpdate:any=ref("mbtAW")
+  let getmbtNAme=localStorage.getItem("mbt_"+route.params.name)
+  let getmbtId=localStorage.getItem("mbt_"+route.params._id+route.params.name+"_id")
+  console.log(awData.name,getmbtNAme,getmbtId);
+  router.push({
+    name:"awupdate",
+    // path:`/#/awupdate/${awData._id}/${awData.name}/${awUpdate.value}`,
+    params:{
+      _id:awData._id,
+      name:awData.name,
+      awupdate:awUpdate.value,
+      mbtid:getmbtId!,
+      mbtname:JSON.parse(getmbtNAme!)
+    }
+  })
+}
 
 </script>
 
@@ -2005,9 +2199,9 @@ watch(rulesData,(newvalue:any)=>{
       <a-row>
         <a-col span="18">
           <a-button-group>
-            <a-button type="primary" @click="saveMBT(route)"> Save </a-button>
+            <a-button type="primary" @click="saveMBT(route)"> {{ $t('common.saveText') }} </a-button>
             <span style="margin-left: 5px">
-              <a-button danger @click="reloadMBT(route)"> Reload </a-button>
+              <a-button danger @click="reloadMBT(route)"> {{ $t('layout.multipleTab.reload') }} </a-button>
             </span>
           </a-button-group>
         </a-col>
@@ -2046,7 +2240,7 @@ watch(rulesData,(newvalue:any)=>{
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
-        <a-col :span="23">
+        <a-col :span="23" style=" width: 100%; height: 100%;">
           <div class="canvas" ref="canvas"></div>
         </a-col>
 
@@ -2104,7 +2298,7 @@ watch(rulesData,(newvalue:any)=>{
                       :data-source="tableData"
                       class="components-table-demo-nested "
                       :pagination="pagination"
-                      style="width:59.25rem"
+                      style="width:49.25rem"
                     >
                       <template #headerCell="{ column }">
                         <template v-if="column.key === 'name'">
@@ -2184,14 +2378,18 @@ watch(rulesData,(newvalue:any)=>{
                     :schema="awschema"
                     v-if="isAW && hasAWInfo"
                   >
-                    <div slot-scope="{ awformdata }">
+                    <div slot-scope="{ awformdata }" style="position: relative;">
+                      <span style="position: absolute; left: 3rem;top: -27.25rem; ">
+                        <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
+                        <a-button danger @click="routerAw(awformdata)">updateAw</a-button>
+                      </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()"
                           >Submit</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerCancel()">Edit</a-button>
+                        <a-button type="primary" @click="handlerCancel()">{{ $t('common.editText') }}</a-button>
                       </span>
                       <a-button danger @click="onExpectedAW()">Next</a-button>
                     </div>
@@ -2228,7 +2426,7 @@ watch(rulesData,(newvalue:any)=>{
                     :data-source="tableDataExpected"
                     class="components-table-demo-nested"
                     :pagination="paginationExpected"
-                    style="width:59.25rem"
+                    style="width:49.25rem"
                   >
                     <template #headerCell="{ column }">
                       <template v-if="column.key === 'name'">
@@ -2313,7 +2511,7 @@ watch(rulesData,(newvalue:any)=>{
                     <div slot-scope="{ awformdataExpected }">
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerEditExpected()"
-                          >Edit</a-button
+                          >{{ $t('common.editText') }}</a-button
                         >
                       </span>
                       <span style="margin-right: 5px">
@@ -2324,8 +2522,8 @@ watch(rulesData,(newvalue:any)=>{
                       <span style="margin-left: 5px">
                         <a-popconfirm
                           title="Are you sure clear this form?"
-                          ok-text="Yes"
-                          cancel-text="No"
+                          :ok-text="$t('common.yesText')"
+                          :cancel-text="$t('common.noText')"
                           @confirm="handlerClearExpected()"
                           @cancel="cancel"
                         >
@@ -2350,19 +2548,19 @@ watch(rulesData,(newvalue:any)=>{
                 @cancel="onCloseDrawer"
               >
               <div slot-scope="{linkData}">
-                <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
+                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
               <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
               <div style="margin-top:1.625rem">
                 <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">close</a-button>
               <a-button @click="onCloseDrawer">cancel</a-button>
               </div>
               </div>
-             
-              
-              
+
+
+
             </VueForm>
               <!-- <div v-if="showAddFactorBtn=false"> -->
-              
+
             <!-- </div> -->
 
             </div>
@@ -2479,32 +2677,34 @@ watch(rulesData,(newvalue:any)=>{
                       <div class="editable-row-operations">
                         <span v-if="resourceseditableData[record.key]">
                           <a-typography-link @click="resourcessave(record.key)"
-                            >Save</a-typography-link
+                            >{{ $t('common.saveText') }}</a-typography-link
                           >
+                          <a-divider type="vertical" />
                           <a-popconfirm
-                            title="Sure to cancel?"
+                            :title="$t('component.message.sureCancel')"
                             @confirm="resourcescancel(record.key)"
                           >
-                            <a>Cancel</a>
+                            <a>{{ $t('common.cancelText') }}</a>
                           </a-popconfirm>
                         </span>
                         <span v-else>
-                          <a @click="resourcesedit(record.key)">Edit</a>
+                          <a @click="resourcesedit(record.key)">{{ $t('common.editText') }}</a>
                         </span>
+                        <a-divider type="vertical" />
                         <span>
                           <a-popconfirm
                             v-if="resourcesdataSource.length"
                             title="Sure to delete?"
                             @confirm="onresourcesDelete(record.key)"
                           >
-                            <a> Delete</a>
+                            <a> {{ $t('common.delText') }}</a>
                           </a-popconfirm>
                         </span>
                       </div>
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">Save</a-button>
+                <a-button type="primary" @click="globalhandlerSubmit">{{ $t('common.saveText') }}</a-button>
               </a-tab-pane>
             </a-tabs>
           </div>
@@ -2562,12 +2762,12 @@ header {
   overflow: hidden;
 }
 
-.awtable {
-  padding: 5px;
-  display: flex !important;
-  justify-content: flex-end;
+/* .awtable { */
+  /* padding: 5px; */
+  /* display: flex !important; */
+  /* justify-content: flex-end; */
    /* flex-direction:column-reverse!important; */
-}
+/* } */
 
 .search_form {
   width: 100%;
@@ -2582,6 +2782,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {
@@ -2624,7 +2825,7 @@ header {
         color: red !important;
       }
     }
-    
+
   }
   .ant-form-item-control{
     .ant-form-item-control-input{
@@ -2648,7 +2849,7 @@ header {
         color: red !important;
       }
     }
-    
+
   }
 }
 .__pathRoot_template{
@@ -2658,7 +2859,7 @@ header {
         color: red !important;
       }
     }
-    
+
   }
 }
 .__pathRoot_tags{
@@ -2668,7 +2869,7 @@ header {
         color: red !important;
       }
     }
-    
+
   }
 }
 </style>

@@ -5,8 +5,11 @@ import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
+import { useI18n } from "vue-i18n";
+import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
+const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
@@ -24,8 +27,8 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 let tableData= ref<Array<any>>([])
 let searchobj: tableSearch = reactive({
   search: "",
-  // page: 1,
-  // perPage:10,
+  page: 1,
+  perPage:10,
   q:'category:meta'
 })
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
@@ -136,14 +139,13 @@ const save =async (record:any) => {
   console.log(tableData.value);
     await request.post("/api/templates",record)
   }
-  await query()
   clearFactorState()
-  showAddFactorBtn.value=false
+  showAddFactorBtn.value=true
 }
 
 
 const createMeta=()=>{
-  
+
   showAddFactorBtn.value=false
   tableData.value.unshift({
     name:'',
@@ -163,7 +165,7 @@ const delmodel =async (obj: any) => {
   }else{
     const index= tableData.value.findIndex(e => e === obj)
   tableData.value.splice(index,1);
-  }  
+  }
 };
 
 // 点击取消的函数
@@ -185,23 +187,23 @@ const cancel=(record:any)=>{
 const columns = reactive<Object[]>(
   [
   {
-    title: 'name',
+    title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
   },
   {
-    title: 'description',
+    title: 'component.table.description',
     dataIndex: 'description',
     key: 'description',
     },
 
    {
-      title: 'tags',
+      title: 'component.table.tags',
       dataIndex: 'tags',
     key:'tags'
     },
   {
-    title: 'Action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
   }]
@@ -227,12 +229,11 @@ const handleInputConfirm = (record:any) => {
   if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
     tags = [...tags, record.inputValue];
   }
-  Object.assign(states, {
+  Object.assign(record, {
     tags:tags,
     inputVisible: false,
     inputValue: '',
  });  
-  console.log(states.tags);
   
 }
 // 移除tags
@@ -249,7 +250,7 @@ const handleClose = (record:any,removedTag: string) => {
 // })
 let checkName=async (_rule:Rule,value:string)=>{
   console.log(123);
-  
+
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   if(!value){
     return Promise.reject("place input your name")
@@ -276,8 +277,9 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search" split=""
-                placeholder="input @ to search tags, input name to search MBT">
+              <a-mentions
+                  v-model:value="formState.search" split=""
+                  :placeholder="$t('templateManager.metaSearchText')">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
@@ -285,7 +287,7 @@ let rules:Record<string,Rule[]>={
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
+              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
             </a-col>
           </AForm>
         </a-col>
@@ -300,6 +302,9 @@ let rules:Record<string,Rule[]>={
       </header>
       
       <a-table :columns="columns" :data-source="tableData" bordered>
+        <template #headerCell="{ column }">
+          <span>{{ $t(column.title) }}</span>
+        </template>
       <template #bodyCell="{ column, text, record }">
       <template v-if='column.key==="name"'>
         <div>
@@ -312,7 +317,7 @@ let rules:Record<string,Rule[]>={
               />
             </a-form-item>
           </a-form>
-          
+
           <template v-else>
             <a :href="'/#/metaModeler/'+record._id+'/'+record.name">{{text}}</a>
           </template>
@@ -323,13 +328,13 @@ let rules:Record<string,Rule[]>={
           <a-form v-if="record.editing" :model="record" :rules="rules">
             <a-form-item name="description">
               <a-input
-            
+
             v-model:value="record.description"
             style="margin: -5px 0"
           />
             </a-form-item>
           </a-form>
-          
+
           <template v-else>
             {{ text }}
           </template>
@@ -344,7 +349,7 @@ let rules:Record<string,Rule[]>={
                     </a-tag>
                   </a-tooltip>
                   <a-tag v-else-if="tag.length==0"></a-tag>
-                  <a-tag v-else :closable="true" @close="handleClose(record,tag)">
+                  <a-tag v-else :closable="true" :visible="true"  @close="handleClose(record,tag)">
                     {{tag}}
                   </a-tag>  
                 </template>
@@ -361,7 +366,7 @@ let rules:Record<string,Rule[]>={
               <a-tag v-else style="background: #fff; border-style: dashed" 
               @click="showInput(record)">
                 <plus-outlined />
-                New Tag
+                {{ $t('common.newTag') }}
               </a-tag>
             </template>
               <span v-else>
@@ -377,15 +382,19 @@ let rules:Record<string,Rule[]>={
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
           <span v-if="record.editing">
-            <a style="color:red" @click="save(record)">save </a>
+            <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
 
-            <a style="margin-left:0.625rem;" @click="cancel(record)">cancel</a>
+            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
 
           </span>
           <span v-else>
-            <a @click="edit(record)">Edit</a>
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:0.625rem;">delete         </a>
+            <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
+              <a-popconfirm
+                  :title="$t('component.message.sureDel')"
+                  @confirm="delmodel(record)"
+                  :cancel-text="$t('common.cancelText')"
+                  :ok-text="$t('common.okText')">
+              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
             </a-popconfirm>
           </span>
         </div>

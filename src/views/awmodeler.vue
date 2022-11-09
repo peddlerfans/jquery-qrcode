@@ -2,7 +2,7 @@
 export default { name: 'AWModeler'}
 </script>
 <script setup lang="ts">
-
+import { useI18n } from "vue-i18n";
 import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance, computed, unref } from 'vue';
 import { FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
 import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
@@ -13,10 +13,13 @@ import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
 import _ from 'lodash';
-import {uuid} from '../utils/Uuid'
+import {uuid} from '@/utils/Uuid'
 import { any } from 'vue-types';
 import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
+import awModeler from "@/locales/lang/zh-CN/routes/awModeler";
+
+const { t } = useI18n()
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -38,18 +41,18 @@ let treeData:any = ref([])
 // 获取后台的树形数据
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
-  
-  
+
+
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-  
+
   // let treedatass=delNode(treedatas)
   // console.log(treedatass);
   let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
-  treeData.value=[...topTreedata]  
+  treeData.value=[...topTreedata]
   // rightClick()
   
 }
@@ -60,9 +63,9 @@ const rightNode=ref(false)
 const tabledom=ref()
 
 onMounted(() => {
- 
+
   // let tbody=tabledom.value.childNodes[0].childNodes[0].childNodes[1].childNodes[1].childNodes[1].childNodes[0].childNodes[0].childNodes[2]
-   query() 
+   query()
    queryTree()
 }) 
 // 切换查询方式
@@ -97,6 +100,7 @@ const closemodel = () => {
   clear()
   visible.value = false;
 }
+
 // 模态窗表单
   const optiones = ref<SelectProps['options']>([
       {
@@ -137,7 +141,7 @@ async function saveAw(data: any) {
     if(rst._id){
       deleteId=rst._id
       tableData.value.push(data)
-      message.success("Successfully added")
+      message.success(t('component.message.addText'))
     }
     }
 let modelstates = ref<ModelState>({
@@ -195,7 +199,7 @@ const saveparams = async (record: any) => {
 const delmodel = (record: any) => {
   const index= modelstates.value.params.findIndex(e => e === record)
   modelstates.value.params.splice(index,1);
-  message.success('Delete Successfully!');
+  message.success(t('component.message.delText'));
 }
 // 点击取消修改或添加params的函数
 const cancelparams = (record:any) => {
@@ -216,7 +220,6 @@ const editparams = (record:any) => {
   obj.value.type = record.type
   obj.value.enum = record.values
   record.editing = true
-
 }
 // 新添加一条params数据
 const addNewParams = () => {
@@ -230,27 +233,27 @@ const addNewParams = () => {
   })  
 }
 // params的表格结构
-const paramsColum=[
+const paramsColum = [
 {
-    title: 'ParamsName',
+    title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
     width:100
   },
   {
-    title: 'type',
+    title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
     width:100
   },
   {
-    title: 'enum',
+    title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
     width:180
   },
   {
-    title: 'action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
     width:120
@@ -260,7 +263,6 @@ const paramsColum=[
 const handleCloseTag = (record: any, removedTag: string) => {
   const tags = record.enum.filter((tag: string) => tag !== removedTag);
   record.enum = tags;
-
 };
 const handleFactorValueConfirm = (record: any) => {
   let values = record.enum;
@@ -286,7 +288,7 @@ const newFactorValueInput = (record: any) => {
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
   if (!value) {
-    return Promise.reject("Please input your name!")
+    return Promise.reject(t('component.message.emptyName'))
   }else if(!reg.test(value)){
       return Promise.reject('The AW name is not standardized')
      // 判断是否为修改，如果修改则不用查询name
@@ -308,7 +310,7 @@ let checkName = async (_rule: Rule, value: string) => {
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
-    return Promise.reject("Please input your description!")
+    return Promise.reject(t('component.message.emptyDescription'))
   }else  {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
@@ -319,7 +321,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
       
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
-        message.error("Duplicate description")
+        message.error(t('component.message.dupDescription'))
       }
     }
     // }
@@ -329,9 +331,9 @@ let checkDesc = async (_rule: Rule, value: string) => {
 } 
 let checktem = async (_rule: Rule, value: string) => { 
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
-  if (!value) {    
-    return Promise.reject("Template or template_en is required")
-  } 
+  if (!value) {
+    return Promise.reject(t('awModeler.emptyTemp'))
+  }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
@@ -348,16 +350,16 @@ const onFinishForm = async (modelstates: any) => {
       visible.value = false;
         tableData.value[modelstates.value.key]={...modelstates.value}
         await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
-        message.success("Modified successfully")
+        message.success(t('component.message.modifiedText'))
     } else {
           delete modelstates.value._id
           if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
             await saveAw(modelstates.value)
           }else{
-            message.error("Please enter required items")
+            message.error(t('component.message.emptyTip'))
             visible.value=true
           }
-    } 
+    }
     clear()
     
   }
@@ -410,18 +412,17 @@ const confirm =async (obj:any) => {
     }
   })
       // pagination.value.pageNo=1
-      message.success('Delete on Successed');
+      message.success(t('component.message.delText'));
 };
 const cancel = (e: MouseEvent) => {};
 // 修改函数
-async function updateAw(url:string,data:any) {  
+async function updateAw(url:string,data:any) {
   // if(clickKey.path){
   //   data={...data,path:clickKey.path}
   // }
   let rst = await request.put(url, data)
   // pagination.value.total = 1
       // tableData.value = [rst]
-     
     }
 // 修改的函数
 const edit = (rowobj:any) => {
@@ -440,32 +441,32 @@ const edit = (rowobj:any) => {
 const columns = reactive<Object[]>(
   [
   {
-    name: 'Name',
+    title: 'component.table.name',
     dataIndex: 'Name',
     key: 'Name',
   },
   {
-    title: 'description',
+    title: 'component.table.description',
     dataIndex: 'description',
     key: 'description',
     },
     {
-      title: 'template',
+      title: 'component.table.template',
       dataIndex: 'template',
     key:'template'
     },
    {
-      title: 'tags',
+      title: 'component.table.tags',
       dataIndex: 'tags',
     key:'tags'
     },
   {
-      title: 'params',
+      title: 'component.table.params',
       dataIndex: 'params',
     key:'params'
   },
   {
-    title: 'Action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
   },
@@ -611,10 +612,10 @@ function objToArr(obj:Object) {
       const arr = [];
       if (_.isObject(obj)) {
         // let i: keyof any
-        for (var i in obj) {  
+        for (var i in obj) {
           if(i==""){
             i="1"
-          }        
+          }
           var oo:any = {
             title: i,
             key:uuid(),
@@ -646,7 +647,7 @@ function getPath(key:any,treearr:any){
 let clickKey=<clickobj>{}
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-  
+
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
@@ -658,7 +659,7 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
     await query({q:`path:"${str}"`,search:''})
-    
+
   }else{
   // 这里走前置匹配
   await query({q:`path:${str}`,search:''})
@@ -764,7 +765,7 @@ watch(searchValues, value => {
         }).filter((item: any, i: any, self: string | any[]) => item && self.indexOf(item) === i);
       expandedKeys.value = expanded as any;
       searchValues.value = value;
-        autoExpandParent.value = true;        
+        autoExpandParent.value = true;
       }else{
         //折叠起来
         autoExpandParent.value =  false;
@@ -844,7 +845,7 @@ const onchangtitle =async (data: any) => {
   if(updTreedata.value){
     let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
   if(searchobj.length>0 && updTreedata.value!==nowNode.title){
-    message.warning(`This node already contains a node of ${updTreedata.value}`)
+    message.warning(`${t('awModeler.tip1')} ${updTreedata.value}`)
     return
   }else{
     
@@ -860,7 +861,7 @@ const onchangtitle =async (data: any) => {
   }else{
     nowNode.title=nowNode.title
   }
-  
+
   updTreedata.value=""
   nowNode.showEdit=false
   expandedKeys.value=[nowNode.key]
@@ -876,7 +877,7 @@ const updTree = (key: any) => {
     // 判断展开修改的节点是否恢复
   if(updTreedata.value){
   updChild.showEdit=false
-  message.warning("Please complete the modification first")
+  message.warning(t('awModeler.tip2'))
   }else{
   updTreedata.value=updChild.title
   updChild.showEdit=true
@@ -981,7 +982,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
-  let nowNode=getTreeDataByItem(treeData.value,key)  
+  let nowNode=getTreeDataByItem(treeData.value,key)
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str=getPath(nowNode.title,treeData.value)
@@ -1029,11 +1030,11 @@ const confirmtree =async (key:any,title:string) => {
   // queryTree()
 }
 // 右键展开菜单项
- const onContextMenuClick = (treeKey: string) => { }; 
+ const onContextMenuClick = (treeKey: string) => { };
 
     const selectedRowKeys = ref<any>([]); // Check here to configure the default column
 
-const onSelectChange = (changableRowKeys: Key[]) => {  
+const onSelectChange = (changableRowKeys: Key[]) => {
   selectedRowKeys.value = changableRowKeys;
 };
     // 表格复选框
@@ -1060,23 +1061,21 @@ const addAwmodel= (key:any,title:string)=>{
   let str=getPath(title,treeData.value)
   str=str.substring(1,str.length)
   if(selectedRowKeys.value.length>0){
-    // let selectAw=selectedRowKeys.value.map((e:any)=>{return {...e , e.path:str}})
-    // for(let i=0;i<selectedRowKeys.value.length-1;i++){
-    //   selectedRowKeys.value[i].path=str
-      
-      
-    //   await updateAw(`/api/hlfs/${selectedRowKeys.value[i]._id}`, selectedRowKeys.value)
-    // }
-    selectedRowKeys.value.forEach( async (item:any)=>{
+    tableData.value=tableData.value.filter((item:any)=>!selectedRowKeys.value.some((child:any)=>item._id===child._id))
+    let pool: any[]=[]
+    selectedRowKeys.value.forEach(  (item:any)=>{
       item.path=str
-      await updateAw(`/api/hlfs/${item._id}`, item)
+      pool.push(updateAw(`/api/hlfs/${item._id}`, item))
     })
-    
+    Promise.all(pool).then((res:any)=>{
+      if(res){message.success("Modification succeeded")}
+    }).catch(()=>{message.error("Modification failed")})
   }else{
     message.warning("Please select the Aw to be added")
   }
 }
-
+// 定义修改的变量
+let awupdate=ref("awmodeler")
 
 </script>
 <template>
@@ -1088,7 +1087,7 @@ const addAwmodel= (key:any,title:string)=>{
       <SplitPanel>
 >>>>>>> 49f0a540222aced54340a3afd9e9390fd840eabd
         <template #left-content>
-            <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" placeholder="Search" />
+            <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" :placeholder="$t('common.searchText')" />
           <a-tree
           v-if="treeData?.length"
             :show-line="true"
@@ -1143,14 +1142,14 @@ const addAwmodel= (key:any,title:string)=>{
         <template v-if="title=='/'">
           <a-dropdown :trigger="['contextmenu']">
           <template v-if="searchValues &&  title.includes(searchValues)">
-          <div style="color: #f50;"> 
+          <div style="color: #f50;">
             <span>{{title}}</span>
           </div>
         </template>
         <span v-else-if="!showEdit">{{ title }}</span>
         <a-input v-else="showEdit"
-              type="text" 
-              ref="updDom" 
+              type="text"
+              ref="updDom"
               v-model:value="updTreedata"
               @blur="onchangtitle(treeKey)"
               @keyup.enter="onchangtitle(treeKey)"
@@ -1180,17 +1179,17 @@ const addAwmodel= (key:any,title:string)=>{
               />
         <template #overlay>
           <a-menu @click="() => onContextMenuClick(treeKey)">
-            <a-menu-item key="1" @click="addSib(treeKey)">Add sibling node</a-menu-item>
-            <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
-            <a-menu-item key="4" @click="addAwmodel(treeKey,title)">Move Selected</a-menu-item>
-            <a-menu-item key="3" @click="updTree(treeKey)"> Modify node</a-menu-item>
+            <a-menu-item key="1" @click="addSib(treeKey)">{{ $t('awModeler.addSNode') }}</a-menu-item>
+            <a-menu-item key="2" @click="pushSubtree(treeKey,title)">{{ $t('awModeler.addCNode') }}</a-menu-item>
+            <a-menu-item key="4" @click="addAwmodel(treeKey,title)">{{ $t('awModeler.moveSelected') }}</a-menu-item>
+            <a-menu-item key="3" @click="updTree(treeKey)">{{ $t('awModeler.modifyNode') }}</a-menu-item>
             <a-popconfirm
                   placement="right"
                   title="Are you sure delete this task?"
-                  ok-text="Yes"
-                  cancel-text="No"
+                  :ok-text="$t('common.yesText')"
+                  :cancel-text="$t('common.noText')"
                   @confirm="confirmtree(treeKey,title)">
-            <a-menu-item key="4" @click="deltree(title)"> Delete Node</a-menu-item>
+            <a-menu-item key="4" @click="deltree(title)">{{ $t('awModeler.delNode') }}</a-menu-item>
           </a-popconfirm>
           </a-menu>
         </template>
@@ -1221,7 +1220,7 @@ const addAwmodel= (key:any,title:string)=>{
             :wrapperCol="wrapperCol">
             <a-col :span="20">
               <a-mentions v-model:value="formState.search" v-if="checked" split=""
-                placeholder="input @ to search tags, input name to search MBT">
+                :placeholder="$t('awModeler.inputSearch1')">
                 <a-mentions-option value="tags:" >
                   tags:              
                 </a-mentions-option>
@@ -1229,12 +1228,14 @@ const addAwmodel= (key:any,title:string)=>{
                   name:              
                 </a-mentions-option>
               </a-mentions>
-              <a-input placeholder="input to search" v-else
-              v-model:value="formState.search"
+              <a-input
+                  :placeholder="$t('awModeler.inputSearch')"
+                  v-else
+                  v-model:value="formState.search"
               ></a-input>
               </a-col>
                 <a-col :span="4">
-                <a-button type="primary" html-type="submit">search</a-button>
+                <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
                 </a-col>
             </AForm>
         </a-col>
@@ -1245,14 +1246,14 @@ const addAwmodel= (key:any,title:string)=>{
           <!-- 模态窗 -->
            <div>
     <a-modal v-model:visible="visible" 
-    :title="modelstates._id? 'Update':'Save'"
+    :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
     @cancel="closemodel"
     @ok="handleOk"
     :width="700"
     >
     <template #footer>
-      <a-button @click="closemodel">cancel</a-button>
-      <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
+      <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
+      <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
@@ -1266,7 +1267,7 @@ const addAwmodel= (key:any,title:string)=>{
       @finishFailed="onFinishFailedForm"
     >
       <a-form-item
-        label="name"
+        :label="$t('component.table.name')"
         name="name"
       >
       <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
@@ -1276,20 +1277,20 @@ const addAwmodel= (key:any,title:string)=>{
       </a-form-item>
 
       <a-form-item
-        label="description"
+          :label="$t('component.table.description')"
         name="description"
       >
         <a-input v-model:value="modelstates.description" />
       </a-form-item>
 
       <a-form-item
-        label="template"
+          :label="$t('component.table.template')"
         name="template"
       >
         <a-input  v-model:value="modelstates.template" />
       </a-form-item>
       <a-form-item
-        label="template_en"
+          :label="$t('component.table.template_en')"
         name="template_en"
       >
         <a-input v-model:value="modelstates.template_en" />
@@ -1297,8 +1298,8 @@ const addAwmodel= (key:any,title:string)=>{
 
 <!-- tags标签 -->
       <a-form-item
-      label="tags"
-      name="tags" >
+        :label="$t('component.table.tags')"
+        name="tags" >
       <template v-for="(tag, index) in states.tags" :key="tag">
         <a-tooltip v-if="tag.length > 20" :title="tag">
           <a-tag :closable="true" @close="handleClose(tag)">
@@ -1323,15 +1324,20 @@ const addAwmodel= (key:any,title:string)=>{
         <a-tag v-else style="background: #fff; border-style: dashed" 
         @click="showInput">
           <plus-outlined />
-          New Tag
+          {{ $t('common.newTag') }}
         </a-tag>
       </a-form-item>
-      <a-form-item  label="params"  name="params"  >
-        <a-button @click="addNewParams">Add Params</a-button>
+      <a-form-item
+          :label="$t('component.table.params')"
+          name="params"  >
+        <a-button @click="addNewParams">{{$t('awModeler.addParams')}}</a-button>
       </a-form-item>
       </a-form>
 
         <a-table v-if="modelstates.params.length>0" :columns="paramsColum" :data-source="modelstates.params" bordered>
+          <template #headerCell="{ column }">
+            <span>{{ $t(column.title) }}</span>
+          </template>
           <template #bodyCell="{column,text,record}">
             <template v-if='column.key==="name"'>
               <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
@@ -1370,7 +1376,7 @@ const addAwmodel= (key:any,title:string)=>{
             @keyup.enter="handleFactorValueConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
               <plus-outlined />
-              Add a New Value
+              {{ $t('common.newValue') }}
             </a-tag>
           </template>
 
@@ -1384,16 +1390,20 @@ const addAwmodel= (key:any,title:string)=>{
         <template v-if="column.key === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a-typography-link type="danger" @click="saveparams(record)" style="font-size:16px">Save</a-typography-link>
+              <a-typography-link type="danger" @click="saveparams(record)" style="font-size:16px">{{ $t('common.saveText' )}}</a-typography-link>
               <a-divider type="vertical" />
-            <a @click="cancelparams(record)" >cancel</a>
+            <a @click="cancelparams(record)" >{{$t('common.cancelText') }}</a>
             </span>
             <span v-else>
-              <a @click="editparams(record)">Edit</a>
+              <a @click="editparams(record)">{{ $t('component.table.edit') }}</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
+              <a-popconfirm
+                  :title="$t('component.message.sureDel')"
+                  @confirm="delmodel(record)"
+                  :cancel-text="$t('common.cancelText')"
+                  :ok-text="$t('common.okText')">
               <a style="margin-left:10px;margin-right:10px;font-size:16px;">
-                delete</a>
+                {{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
           </div>
@@ -1406,20 +1416,15 @@ const addAwmodel= (key:any,title:string)=>{
 <div ref="tabledom">
     <a-table bordered
     :row-selection="rowSelection"
-    :row-key="record=>record" 
+    :row-key="record => record"
       :columns="columns" 
       :data-source="tableData" 
       class="components-table-demo-nested"
       :pagination="pagination"
       @expand="expend">
       <template #headerCell="{ column }">
-        <template v-if="column.key === 'Name'">
-          <span>
-            <smile-outlined />
-            Name
-          </span>
-        </template>
-    </template>
+        <span>{{ $t(column.title) }}</span>
+      </template>
 
     <template #bodyCell="{ column,text, record }">
       <template v-if="column.key === 'Name'">
@@ -1472,16 +1477,16 @@ const addAwmodel= (key:any,title:string)=>{
           
           <template v-else-if="column.key === 'action'">
               <span>
-                  <a @click="edit(record)">Edit</a>
+                  <a :href="'/#/awupdate/'+record._id+'/'+record.name+'/'+awupdate" >{{ $t('component.table.edit') }}</a>
                     <a-divider type="vertical" />
                         <a-popconfirm
-                          title="Are you sure delete this AW?"
-                          ok-text="Yes"
-                          cancel-text="No"
+                          :title="$t('awModeler.delTip')"
+                          :ok-text="$t('common.yesText')"
+                          :cancel-text="$t('common.noText')"
                           @confirm="confirm(record)"
                           @cancel="cancel"
                         >
-                      <a >Delete</a>
+                      <a >{{ $t('common.delText') }}</a>
                     </a-popconfirm>
                   </span>
           </template>
