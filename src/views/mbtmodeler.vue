@@ -3,24 +3,29 @@ import { MbtModeler } from "@/composables/MbtModeler";
 import { Stencil } from "@/composables/stencil";
 import dynamicTable from "@/components/dynamicTable.vue";
 import metainfo from "@/components/metainfo.vue";
-import templateTable from '@/components/templateTable.vue';
+import templateTable from "@/components/templateTable.vue";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref ,watch} from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch } from "vue";
 import type { Ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
-import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
+import {
+  getTemplate,
+  getAllTemplatesByCategory,
+  IColumn,
+  IJSONSchema,
+} from "@/api/mbt/index";
 import {
   SmileOutlined,
   SearchOutlined,
   MinusCircleOutlined,
   PlusCircleOutlined,
-  PlusSquareFilled
+  PlusSquareFilled,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { param } from "jquery";
@@ -54,14 +59,14 @@ import { computed, defineComponent } from "vue";
 
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
-import { stringLiteral } from "@babel/types";
-import { any, array, func, object } from "vue-types";
-import CreateRule from "@/components/CreateRule.vue"
+import { booleanLiteral, stringLiteral } from "@babel/types";
+import { array, func } from "vue-types";
+import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
 import { nextTick } from "process";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 window.joint = joint;
 
@@ -94,10 +99,9 @@ const url = realMBTUrl;
 const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
 
 // const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
-const templateCategory = ref(1)
+const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
 const handleRadioChange: any = (v: any) => {
-
   templateCategory.value = v;
 };
 const metaformProps = {
@@ -160,7 +164,6 @@ const showDrawer = (
 ) => {
   visible.value = true;
   console.log(el);
-  
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
     ev_id = id;
@@ -202,8 +205,6 @@ let tempschema = ref({
   properties: {},
 });
 
-
-
 // 给每条数据添加条属性
 const arr = (dataArr: any) =>
   dataArr.map((item: any, index: string) => ({ ...item, key: index }));
@@ -227,7 +228,7 @@ const onCloseDrawer = () => {
 let isAW = ref(false);
 let isGlobal = ref(false);
 let isLink = ref(false);
-let isChoose=ref(false)
+let isChoose = ref(false);
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
 // aw form searching primary
@@ -284,31 +285,30 @@ const metatemplatecolumns = reactive<Object[]>([
   },
 ]);
 
-
 const columns = reactive<Object[]>([
   {
     title: "component.table.name",
     dataIndex: "name",
     key: "name",
-    width:80
+    width: 80,
   },
   {
     title: "component.table.description",
     dataIndex: "description",
     key: "description",
-    width:80
+    width: 80,
   },
   {
     title: "component.table.template",
     dataIndex: "template",
     key: "template",
-    width:80
+    width: 80,
   },
   {
     title: "component.table.tags",
     dataIndex: "tags",
     key: "tags",
-    width:80
+    width: 80,
   },
 ]);
 
@@ -362,7 +362,7 @@ let pagination = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
+  showTotal: (total: any) => t("component.table.total", { total: total }), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChange(page, pageSize), //点击页码事件
   total: 0, //总条数
@@ -400,7 +400,7 @@ let paginationExpected = ref({
   showQuickJumper: true,
   showSizeChanger: true, // 显示可改变每页数量
   pageSizeOptions: ["10", "20", "50", "100"], // 每页数量选项
-  showTotal: (total: any) => t('component.table.total', {total: total}), // 显示总数
+  showTotal: (total: any) => t("component.table.total", { total: total }), // 显示总数
   onShowSizeChange: (current: any, pageSize: any) =>
     onSizeChangeExpected(current, pageSize), // 改变每页数量时更新显示
   onChange: (page: any, pageSize: any) => onPageChangeExpected(page, pageSize), //点击页码事件
@@ -450,46 +450,45 @@ const handleFinishExpected: FormProps["onFinish"] = (values: any) => {
 /**
  * Panel --Json schema forms
  */
- let tableDataDirectInput = ref([]);
- let
- tableColumnsDirectInput = ref([])
+let tableDataDirectInput = ref([]);
+let tableColumnsDirectInput = ref([]);
 let globalformData = ref<Stores.mbtView>({
   _id: "",
   name: "",
   descriptions: "",
-  codegen_text:"",
-  codegen_script:""
-
+  codegen_text: "",
+  codegen_script: "",
 });
 let linkData = ref({
   _id: "",
   label: "",
   routerType: "manhattan",
   connectorType: "rounded",
-  editable:"false",
-  ruleData:[]
+  editable: "false",
+  ruleData: [],
+  isCondition:false
   // loop: false,
   // loopcount: 1,
 });
 interface LinkFormData {
-ruleData: any[];
+  ruleData: any[];
   _id: string;
   label: any;
-  editable:boolean;
-  // loop?: boolean;
+  editable: boolean;
+  isCondition?: boolean;
   // loopcount?: number;
   connectorType?: string;
   routerType?: string;
 }
 let linkFormData: LinkFormData = {
-_id: "",
-label: undefined,
-editable: false,
-// loop: false,
-// loopcount: 1,
-connectorType: "rounded",
-routerType: "manhattan",
-ruleData: []
+  _id: "",
+  label: undefined,
+  editable: false,
+  isCondition: false,
+  // loopcount: 1,
+  connectorType: "rounded",
+  routerType: "manhattan",
+  ruleData: [],
 };
 let awformdata = ref<Stores.awView>({
   _id: "",
@@ -507,7 +506,7 @@ let awformdataExpected = ref<Stores.awView>({
   tags: "",
   template: "",
 });
-let codegennames:any=ref([])
+let codegennames: any = ref([]);
 const globalschema = ref({
   // "title": "MBTConfiguration",
   // "description": "Configuration for the MBT",
@@ -527,15 +526,15 @@ const globalschema = ref({
     //   type: "string",
     //   readOnly: true,
     // },
-    codegen_text:{
-      title:"Output Text",
-      type:"string",
-      enum: codegennames.value
+    codegen_text: {
+      title: "Output Text",
+      type: "string",
+      enum: codegennames.value,
     },
-    codegen_script:{
-      title:"Output Script",
-      type:"string",
-      enum: codegennames.value
+    codegen_script: {
+      title: "Output Script",
+      type: "string",
+      enum: codegennames.value,
     },
   },
 });
@@ -577,13 +576,13 @@ let awschemaExpected = _.cloneDeep(awschema);
 
 // linkData
 // "ui:hidden": "{{linkData.loop === false}}"
-const uischema={
+const uischema = {
   label: {
-                  // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
-                  'ui:widget': CreateRule,
-              }
-}
-
+    // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
+    "ui:widget": CreateRule,
+  },
+};
+let isExclusiveGateway = ref(false);
 const linkschema = ref({
   title: "LINK",
   description: "Configuration for Link",
@@ -597,14 +596,14 @@ const linkschema = ref({
     routerType: {
       type: "string",
       title: "Style",
-      default:"normal",
+      default: "normal",
       enum: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
       enumNames: ["manhattan", "metro", "normal", "orthogonal", "oneSide"],
     },
     connectorType: {
       type: "string",
       title: "Type",
-      default:"curve",
+      default: "curve",
       enum: ["jumpover", "normal", "rounded", "smooth", "curve"],
       enumNames: ["jumpover", "normal", "rounded", "smooth", "curve"],
     },
@@ -616,7 +615,11 @@ const linkschema = ref({
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
     },
-
+    isCondition: {
+      type: "boolean",
+      default: false,
+      "ui:hidden": true
+    },
   },
 });
 
@@ -850,7 +853,7 @@ function awhandlerSubmit() {
   // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
-  message.success(t('component.message.saveSuccess'));
+  message.success(t("component.message.saveSuccess"));
 }
 
 /**
@@ -863,22 +866,24 @@ function globalhandlerSubmit() {
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
   onCloseDrawer();
-  message.success(t('component.message.saveSuccess'));
+  message.success(t("component.message.saveSuccess"));
 }
 
 function linkhandlerSubmit() {
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
-  if(linkData.value.label){
+  if (linkData.value.label) {
     linkFormData.label = linkData.value.label;
-  }else{
-    linkFormData.label!=undefined
+  } else {
+    linkFormData.label != undefined;
   }
   
   linkFormData.ruleData = rulesData.value;
+  
   // linkFormData.loopcount = linkData.value.loopcount;
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
+  linkFormData.isCondition = linkData.value.isCondition;
   // console.log(linkData.value.connectorType)
   // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
@@ -889,13 +894,13 @@ function linkhandlerSubmit() {
     break;
   }
   // if (linkFormData.loop == true) {
-    modeler.graph.getCell(lv_id).appendLabel({
-      attrs: {
-        text: {
-          text: linkFormData.label,
-        },
+  modeler.graph.getCell(lv_id).appendLabel({
+    attrs: {
+      text: {
+        text: linkFormData.label,
       },
-    });
+    },
+  });
   //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
   //   linkFormData.label += ` Loop : ${loopcount1}`;
   // } else {
@@ -913,7 +918,7 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { _id: linkFormData._id });
   Object.assign(tempObj, { label: linkFormData.label });
   Object.assign(tempObj, { ruleData: linkFormData.ruleData });
-  // Object.assign(tempObj, { loopcount: linkFormData.loopcount });
+  Object.assign(tempObj, { isCondition: linkFormData.isCondition });
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
@@ -971,8 +976,8 @@ let toReload = ref(false);
  * Without id, the response is an array of object
  * If reload is true, it will fetch AW info from backend
  */
- let condataName=ref([])
- let conditionalValue=ref([])
+let condataName = ref([]);
+let conditionalValue = ref([]);
 //  let showAddConditional=ref(false)
  function valueOption(arr:any){
   let newarr=Object.keys(arr[0])
@@ -1051,19 +1056,17 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       })
       .catch((err) => console.log(err));
   } else if (id) {
-
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
     // console.log(rst);
 
-    if(rst && rst.dataDefinition && rst.dataDefinition.data){
-      if(rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData ){
+    if (rst && rst.dataDefinition && rst.dataDefinition.data) {
+      if (rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData) {
         // showAddConditional.value=true
-      condataName.value=rst.dataDefinition?.data.tableColumns
-      conditionalValue.value=rst.dataDefinition?.data.tableData
-      // console.log(condataName.value,conditionalValue.value);
-
-    }
+        condataName.value = rst.dataDefinition?.data.tableColumns;
+        conditionalValue.value = rst.dataDefinition?.data.tableData;
+        // console.log(condataName.value,conditionalValue.value);
+      }
     }
 
     // condataName.value=rst.dataDefinition?.data.tableData
@@ -1135,7 +1138,7 @@ async function saveMBT(route?: any) {
           attrs: {
             text: {
               text: cacheprops.get(item.id).props.label,
-              ruleData:cacheprops.get(item.id).props.ruleData,
+              ruleData: cacheprops.get(item.id).props.ruleData,
             },
           },
         });
@@ -1166,7 +1169,7 @@ async function saveMBT(route?: any) {
   // console.log(mbtCache);
 
   await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
-  message.success(t('component.message.saveSuccess'));
+  message.success(t("component.message.saveSuccess"));
 }
 
 function reloadMBT(route: any) {
@@ -1212,8 +1215,6 @@ function reloadMBT(route: any) {
           }
         }
       });
-      
-      
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
@@ -1280,11 +1281,11 @@ function reloadMBT(route: any) {
       });
     }
   });
-  message.success(t('MBTStore.reloadTip'));
+  message.success(t("MBTStore.reloadTip"));
 }
 
-let dataFrom = ref('');
-let tableColumns = ref([])
+let dataFrom = ref("");
+let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
 
@@ -1303,19 +1304,16 @@ onMounted(() => {
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo")
       ) {
-
-        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+        getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
-          if(rst && _.isArray(rst)){
-            rst.forEach((rec:any)=>{
-              codegennames.value.push(rec.name)
+          if (rst && _.isArray(rst)) {
+            rst.forEach((rec: any) => {
+              codegennames.value.push(rec.name);
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
-            })
-
+            });
           }
-
-        })
+        });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -1331,38 +1329,35 @@ onMounted(() => {
         //dataDefinition includes meta, datapool and resources
 
         if (value.dataDefinition.meta) {
-          
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
           isFormVisible.value = true;
-          
         }
 
         if (value.dataDefinition.data) {
           // console.log('has data info ',value.dataDefinition.data.tableData)
           cacheDataDefinition.data = value.dataDefinition.data;
-          // tableData.value = value.dataDefinition.data.tableData;  
-                  
-          
+          // tableData.value = value.dataDefinition.data.tableData;
+
           dataFrom.value = value.dataDefinition.data.dataFrom;
-          if(dataFrom.value =='direct_input'){
-            templateRadiovalue.value = 3
+          if (dataFrom.value == "direct_input") {
+            templateRadiovalue.value = 3;
             templateCategory.value = 3;
-            tableDataDirectInput.value = value.dataDefinition.data.tableData; 
+            tableDataDirectInput.value = value.dataDefinition.data.tableData;
             tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
-          }else if(dataFrom.value =='dynamic_template'){
-            templateRadiovalue.value =1;
-            templateCategory.value =1;
-            tableDataDynamic.value = value.dataDefinition.data.tableData;  
+          } else if (dataFrom.value == "dynamic_template") {
+            templateRadiovalue.value = 1;
+            templateCategory.value = 1;
+            tableDataDynamic.value = value.dataDefinition.data.tableData;
             tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
-          }else{
-            templateRadiovalue.value =2
-            templateCategory.value =2;
-            tableData.value = value.dataDefinition.data.tableData;  
+          } else {
+            templateRadiovalue.value = 2;
+            templateCategory.value = 2;
+            tableData.value = value.dataDefinition.data.tableData;
             tableColumns.value = value.dataDefinition.data.tableColumns;
           }
-          
+
           /**
            * todo 10.19
            */
@@ -1407,147 +1402,145 @@ onMounted(() => {
    * Drag & Drop stencil to modeler paper
    */
   stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
-
-
     let aw = "";
     let cellid = ""; //element ID
     $("body").append(
       '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
     );
-    let flyGraph = new joint.dia.Graph({},{ cellNamespace: namespace });
+    let flyGraph = new joint.dia.Graph({}, { cellNamespace: namespace });
     var headerHeight = 30;
     var buttonSize = 14;
 
-//     let container=joint.dia.Element.define('Container.Parent', {
-//     collapsed: false,
-//     attrs: {
-//         root: {
-//             magnetSelector: 'body'
-//         },
-//         shadow: {
-//             refWidth: '100%',
-//             refHeight: '100%',
-//             x: 3,
-//             y: 3,
-//             fill: '#000000',
-//             opacity: 0.05
-//         },
-//         body: {
-//             refWidth: 100,
-//             refHeight: 100,
-//             strokeWidth: 1,
-//             stroke: '#DDDDDD',
-//             fill: '#FCFCFC'
-//         },
-//         header: {
-//             refWidth: 100,
-//             height: headerHeight,
-//             strokeWidth: 0.5,
-//             stroke: '#4666E5',
-//             fill: '#4666E5'
-//         },
-//         headerText: {
-//             textVerticalAnchor: 'middle',
-//             textAnchor: 'start',
-//             refX: 8,
-//             refY: headerHeight / 2,
-//             fontSize: 16,
-//             fontFamily: 'sans-serif',
-//             letterSpacing: 1,
-//             fill: '#FFFFFF',
-//             textWrap: {
-//                 width: -40,
-//                 maxLineCount: 1,
-//                 ellipsis: '*'
-//             },
-//             style: {
-//                 textShadow: '1px 1px #222222',
-//             }
-//         },
-//         button: {
-//             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
-//             refY: (headerHeight - buttonSize) / 2,
-//             cursor: 'pointer',
-//             event: 'element:button:pointerdown',
-//             title: 'Collapse / Expand'
-//         },
-//         buttonBorder: {
-//             width: buttonSize,
-//             height: buttonSize,
-//             fill: '#4666E5',
-//             fillOpacity: 0.2,
-//             stroke: '#4666E5',
-//             strokeWidth: 0.5,
-//         },
-//         buttonIcon: {
-//             fill: '#4666E5',
-//             stroke: '#4666E5',
-//             strokeWidth: 1
-//         }
-//     }
-//     }, {
-//     markup: [{
-//         tagName: 'rect',
-//         selector: 'shadow'
-//     }, {
-//         tagName: 'rect',
-//         selector: 'body'
-//     }, {
-//         tagName: 'rect',
-//         selector: 'header'
-//     }, {
-//         tagName: 'text',
-//         selector: 'headerText'
-//     },
-//      {
-//         tagName: 'g',
-//         selector: 'button',
-//         children: [{
-//             tagName: 'rect',
-//             selector: 'buttonBorder'
-//         }, {
-//             tagName: 'path',
-//             selector: 'buttonIcon'
-//         }]
-//     }
-//   ],
+    //     let container=joint.dia.Element.define('Container.Parent', {
+    //     collapsed: false,
+    //     attrs: {
+    //         root: {
+    //             magnetSelector: 'body'
+    //         },
+    //         shadow: {
+    //             refWidth: '100%',
+    //             refHeight: '100%',
+    //             x: 3,
+    //             y: 3,
+    //             fill: '#000000',
+    //             opacity: 0.05
+    //         },
+    //         body: {
+    //             refWidth: 100,
+    //             refHeight: 100,
+    //             strokeWidth: 1,
+    //             stroke: '#DDDDDD',
+    //             fill: '#FCFCFC'
+    //         },
+    //         header: {
+    //             refWidth: 100,
+    //             height: headerHeight,
+    //             strokeWidth: 0.5,
+    //             stroke: '#4666E5',
+    //             fill: '#4666E5'
+    //         },
+    //         headerText: {
+    //             textVerticalAnchor: 'middle',
+    //             textAnchor: 'start',
+    //             refX: 8,
+    //             refY: headerHeight / 2,
+    //             fontSize: 16,
+    //             fontFamily: 'sans-serif',
+    //             letterSpacing: 1,
+    //             fill: '#FFFFFF',
+    //             textWrap: {
+    //                 width: -40,
+    //                 maxLineCount: 1,
+    //                 ellipsis: '*'
+    //             },
+    //             style: {
+    //                 textShadow: '1px 1px #222222',
+    //             }
+    //         },
+    //         button: {
+    //             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+    //             refY: (headerHeight - buttonSize) / 2,
+    //             cursor: 'pointer',
+    //             event: 'element:button:pointerdown',
+    //             title: 'Collapse / Expand'
+    //         },
+    //         buttonBorder: {
+    //             width: buttonSize,
+    //             height: buttonSize,
+    //             fill: '#4666E5',
+    //             fillOpacity: 0.2,
+    //             stroke: '#4666E5',
+    //             strokeWidth: 0.5,
+    //         },
+    //         buttonIcon: {
+    //             fill: '#4666E5',
+    //             stroke: '#4666E5',
+    //             strokeWidth: 1
+    //         }
+    //     }
+    //     }, {
+    //     markup: [{
+    //         tagName: 'rect',
+    //         selector: 'shadow'
+    //     }, {
+    //         tagName: 'rect',
+    //         selector: 'body'
+    //     }, {
+    //         tagName: 'rect',
+    //         selector: 'header'
+    //     }, {
+    //         tagName: 'text',
+    //         selector: 'headerText'
+    //     },
+    //      {
+    //         tagName: 'g',
+    //         selector: 'button',
+    //         children: [{
+    //             tagName: 'rect',
+    //             selector: 'buttonBorder'
+    //         }, {
+    //             tagName: 'path',
+    //             selector: 'buttonIcon'
+    //         }]
+    //     }
+    //   ],
 
-//     toggle: function(shouldCollapse: undefined) {
-//         var buttonD;
-//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-//         if (collapsed) {
-//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
-//             this.resize(140, 30);
-//         } else {
-//             buttonD = 'M 2 7 12 7';
-//             this.fitChildren();
-//         }
-//         this.attr(['buttonIcon','d'], buttonD);
-//         this.set('collapsed', collapsed);
-//     },
+    //     toggle: function(shouldCollapse: undefined) {
+    //         var buttonD;
+    //         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+    //         if (collapsed) {
+    //             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+    //             this.resize(140, 30);
+    //         } else {
+    //             buttonD = 'M 2 7 12 7';
+    //             this.fitChildren();
+    //         }
+    //         this.attr(['buttonIcon','d'], buttonD);
+    //         this.set('collapsed', collapsed);
+    //     },
 
-//     isCollapsed: function() {
-//         return Boolean(this.get('collapsed'));
-//     },
+    //     isCollapsed: function() {
+    //         return Boolean(this.get('collapsed'));
+    //     },
 
-//     fitChildren: function() {
-//         var padding = 10;
-//         this.fitEmbeds({
-//             padding: {
-//                 top: headerHeight + padding,
-//                 left: padding,
-//                 right: padding,
-//                 bottom: padding
-//             }
-//         });
-//     }
-// });
-// let containerparent=joint.shapes.Container.Parent
-//     let conatiner_a=new containerparent({
-//       z: 1,
-//         attrs: { headerText: { text: 'Container A' }}
-//     })
-// modeler.graph.addCell(conatiner_a)
+    //     fitChildren: function() {
+    //         var padding = 10;
+    //         this.fitEmbeds({
+    //             padding: {
+    //                 top: headerHeight + padding,
+    //                 left: padding,
+    //                 right: padding,
+    //                 bottom: padding
+    //             }
+    //         });
+    //     }
+    // });
+    // let containerparent=joint.shapes.Container.Parent
+    //     let conatiner_a=new containerparent({
+    //       z: 1,
+    //         attrs: { headerText: { text: 'Container A' }}
+    //     })
+    // modeler.graph.addCell(conatiner_a)
     let flyPaper = new joint.dia.Paper({
       el: $("#flyPaper"),
       model: flyGraph,
@@ -1607,58 +1600,157 @@ onMounted(() => {
   /**
    *  When click the element/link/blank, show the propsPanel
    */
-   modeler.paper.on("link:mouseout", async function  (linkView: any) {
-    
-    console.log(123);
-    
-   })
+  let linktype = "exclusivegateway";
+  function getLinkType(linkView: any): string {
+    if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
+      console.log("11111111111cell  ", linkView.model.id);
 
-  modeler.paper.on("link:pointerdblclick", async function  (linkView: any) {
-    // 判断是否选择了模板，没选择则不打开link
-    if(condataName.value.length>0 && conditionalValue.value.length>0){
-        lv_id = linkView.model.id + "";
-    // await queryName()
-    isAW.value = false;
-    isLink.value = true;
-    isChoose.value=false
-    isGlobal.value = false;
-    if (cacheprops.has(linkView.model.id)) {
-      let templinkData = cacheprops.get(linkView.model.id);
-      // console.log(templinkData);
-      linkData.value = templinkData.props;
+      if (modeler.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
+        console.log(linkView.model.linktype);
 
-      if(templinkData.props.ruleData&&templinkData.props.ruleData.length>0){
-        rulesData.value=templinkData.props.ruleData
+        return linkView.model["linktype"];
       }
-
-
-      if(linkData.value.editable){
-
+    }
+    return "";
+  }
+  function setLinkType(el: any, cell: any) {
+    if (el && el.attributes && el.attributes.source && el.attributes.source.id)
+      try {
+        let linksource = modeler.graph.getCell(el.attributes.source.id);
+        // console.log('type:',linksource.attributes.type)
+        if (linksource.attributes.type == "standard.Polygon") {
+          if (linksource.attributes.attrs.label.text == "x") {
+            // console.log(' source exclusive gateway    ',linksource.id)
+            Object.assign(cell, { linktype: "exclusivegateway" });
+            console.log("exclusive link", cell);
+          } else {
+            Object.assign(cell, { linktype: "parallelgateway" });
+          }
+        }
+      } catch (e) {
+        console.log("e:", e);
       }
-      // linkData.value.label=condition
-      currentLinkMap.set(lv_id, { props: templinkData });
+  }
+  modeler.graph.on("add", function (el: any) {
+    // console.log('*****',el);
+    if (el && el.hasOwnProperty("id")) {
+      try {
+        let cell = modeler.graph.getCell(el.id);
+        if (cell.isLink()) {
+          setLinkType(el, cell);
+        } else if (
+          cell.attributes.type == "standard.Polygon" &&
+          cell.attributes.attrs.label.text == "x"
+        ) {
+          // console.log('exclusive gateway    ');
+        } else if (
+          cell.attributes.type == "standard.Polygon" &&
+          cell.attributes.attrs.label.text == "+"
+        ) {
+          // console.log('parallel gateway    ');
+        } else if (cell.attributes.type == "standard.HeaderedRectangle") {
+          // console.log('aw    ....',cell.attributes);
+        } else {
+          // console.log('other    ....',cell.attributes);
+        }
+      } catch (e) {
+        console.log("error:", e);
+      }
+    }
 
-      linkData.value._id = linkView.model.id;
+    /*
+    var cell = modeler.graph.getCell(el.id);
+    // console.log('0000,',cell)
+    if (cell.isLink()) {
+      // console.log('cell.attributes.type    ',cell.attributes.type,'    source:',el.attributes.source.id);
+      let linksource = modeler.graph.getCell(el.attributes.source.id);
+      // console.log('type:',linksource.attributes.type)
+      if (
+        linksource.attributes.type == "standard.Polygon" &&
+        linksource.attributes.attrs.label.text == "x"
+      ) {
+        // console.log(' source exclusive gateway    ',linksource.id)
+        Object.assign(cell, { linktype: "exclusivegateway" });
+        console.log("exclusive link", cell);
+      } else if (
+        linksource.attributes.type == "standard.Polygon" &&
+        linksource.attributes.attrs.label.text == "+"
+      ) {
+        // console.log('source parallel gateway    ',linksource.id);
+        Object.assign(cell, { linktype: "parallelgateway" });
+        console.log("parallel link", cell);
+      }
+    } else if (
+      cell.attributes.type == "standard.Polygon" &&
+      cell.attributes.attrs.label.text == "x"
+    ) {
+      // console.log('exclusive gateway    ');
+    } else if (
+      cell.attributes.type == "standard.Polygon" &&
+      cell.attributes.attrs.label.text == "+"
+    ) {
+      // console.log('parallel gateway    ');
+    } else if (cell.attributes.type == "standard.HeaderedRectangle") {
+      // console.log('aw    ....',cell.attributes);
     } else {
-      // todo link props
-      message.warning("Select a template first")
-      currentLinkMap.set(linkView.model.id, { props: {} });
-      // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
-      cacheprops.set(linkView.model.id, { props: {} });
+      // console.log('other    ....',cell.attributes);
     }
-    // console.log('cacheprops for link dblclick:',cacheprops)
-    // console.log('currentLinkMap',currentLinkMap);
-    showDrawer(linkView);
-    }else{      
-      showDrawer(linkView);
-      isChoose.value=true
+    */
+  });
+  modeler.paper.on("link:mouseout", async function (linkView: any) {
+    console.log(123);
+  });
+
+  modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+    // console.log('11111111111cell  ',linkView.model.id);
+    isExclusiveGateway.value = false;
+    linkData.value.isCondition = false;
+    if (getLinkType(linkView) == "exclusivegateway") {
+      isExclusiveGateway.value = true;
+      linkData.value.isCondition = true;
+    }
+
+    // 判断是否选择了模板，没选择则不打开link
+    if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
+      lv_id = linkView.model.id + "";
+      // await queryName()
       isAW.value = false;
-    isLink.value = false;
-    isGlobal.value = false;
-    console.log(isChoose.value);
-    
+      isLink.value = true;
+      isChoose.value = false;
+      isGlobal.value = false;
+      if (cacheprops.has(linkView.model.id)) {
+        let templinkData = cacheprops.get(linkView.model.id);
+        // console.log(templinkData);
+        linkData.value = templinkData.props;
+
+        if (templinkData.props.ruleData && templinkData.props.ruleData.length > 0) {
+          rulesData.value = templinkData.props.ruleData;
+        }
+
+        if (linkData.value.editable) {
+        }
+        // linkData.value.label=condition
+        currentLinkMap.set(lv_id, { props: templinkData });
+
+        linkData.value._id = linkView.model.id;
+      } else {
+        // todo link props
+        message.warning("Select a template first");
+        currentLinkMap.set(linkView.model.id, { props: {} });
+        // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
+        cacheprops.set(linkView.model.id, { props: {} });
+      }
+      // console.log('cacheprops for link dblclick:',cacheprops)
+      // console.log('currentLinkMap',currentLinkMap);
+      showDrawer(linkView);
+    } else {
+      showDrawer(linkView);
+      isChoose.value = true;
+      isAW.value = false;
+      isLink.value = false;
+      isGlobal.value = false;
+      console.log(isChoose.value);
     }
-    
   });
 
   modeler.paper.on(
@@ -1675,9 +1767,8 @@ onMounted(() => {
 
         isLink.value = false;
         isGlobal.value = false;
-      }else{
+      } else {
         console.log(elementView.model);
-        
       }
     }
   );
@@ -1694,10 +1785,10 @@ onMounted(() => {
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
         ev_id = elementView.model.id + "";
         isAW.value = true;
-        isChoose.value=false
+        isChoose.value = false;
         isLink.value = false;
-        isGlobal.value = false
-          
+        isGlobal.value = false;
+
         if (
           cacheprops.get(ev_id) != null &&
           cacheprops.get(ev_id).props.primaryprops &&
@@ -1725,11 +1816,6 @@ onMounted(() => {
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
             let tempawschemaExpected = generateObj(awschemaExpected);
             let tempformdata2Expected = generateObj(awformdataExpected);
-
-
-            
-            
-
 
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
@@ -1774,8 +1860,8 @@ onMounted(() => {
     isAW.value = false;
     isLink.value = false;
     isGlobal.value = true;
-    isChoose.value=false;
-    activeKey.value="3"
+    isChoose.value = false;
+    activeKey.value = "3";
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
@@ -1785,15 +1871,15 @@ onMounted(() => {
   
 });
 // 点击打开选择模板
-const chooseTemplate=()=>{
+const chooseTemplate = () => {
   isAW.value = false;
-    isLink.value = false;
-    isChoose.value=false;
-    isGlobal.value = true;
-    activeKey.value="3"
-    showGlobalInfo();
-    showDrawer(undefined, "", "");
-}
+  isLink.value = false;
+  isChoose.value = false;
+  isGlobal.value = true;
+  activeKey.value = "3";
+  showGlobalInfo();
+  showDrawer(undefined, "", "");
+};
 
 function showGlobalInfo() {
   globalformData.value._id =
@@ -1812,7 +1898,7 @@ function showGlobalInfo() {
 }
 
 function showAWInfo(rowobj: any) {
-  awschema.value.properties={
+  awschema.value.properties = {
     _id: {
       type: "string",
       "ui:hidden": true,
@@ -1839,12 +1925,12 @@ function showAWInfo(rowobj: any) {
       type: "string",
       readOnly: true,
     },
-  }
+  };
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
   awformdata.value.tags = "";
-  awformdata.value.template=rowobj.template
+  awformdata.value.template = rowobj.template;
   awformdata.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -1852,9 +1938,9 @@ function showAWInfo(rowobj: any) {
       awformdata.value.tags += value + " ";
     });
   }
-// console.log(awschema.value.properties);
+  // console.log(awschema.value.properties);
 
-  if (_.isArray(rowobj.params) && rowobj.params.length>0) {
+  if (_.isArray(rowobj.params) && rowobj.params.length > 0) {
     let appendedschema = generateSchema(rowobj.params);
     appendedschema.forEach((field: any) => {
       
@@ -1891,7 +1977,7 @@ function showAWExpectedInfo(rowobj: any) {
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
   awformdataExpected.value.tags = "";
-  awformdataExpected.value.template=rowobj.template
+  awformdataExpected.value.template = rowobj.template;
   awformdataExpected.value._id = rowobj._id;
 
   if (_.isArray(rowobj.tags)) {
@@ -2070,68 +2156,66 @@ const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-const handleDynamicTable = (data:any) => {
+const handleDynamicTable = (data: any) => {
   // console.log('get data from children',data  )
   let tempObj = {};
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
-  Object.assign(tempObj,{dataFrom:'dynamic_template'})
+  Object.assign(tempObj, { dataFrom: "dynamic_template" });
   cacheDataDefinition.data = tempObj;
-  if(data){
-    condataName.value=data.tableColumns
-    conditionalValue.value=data.tableData
+  if (data) {
+    condataName.value = data.tableColumns;
+    conditionalValue.value = data.tableData;
   }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
 };
 
-
-const handleDynamicTableClear = (data:any) => {
+const handleDynamicTableClear = (data: any) => {
   // console.log('get data from children',data  )
   let tempObj = {};
   cacheDataDefinition.data = tempObj;
-  tableDataDynamic.value =[];
-  tableColumnsDynamic.value =[];
-}
+  tableDataDynamic.value = [];
+  tableColumnsDynamic.value = [];
+};
 
-const handleDirectInput = (data:any) => {
+const handleDirectInput = (data: any) => {
   // console.log('get data from children',data  )
   let tempObj = {};
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
-  Object.assign(tempObj,{dataFrom:'direct_input'})
+  Object.assign(tempObj, { dataFrom: "direct_input" });
   cacheDataDefinition.data = tempObj;
-  if(data){
-    condataName.value=data.tableColumns
-    conditionalValue.value=data.tableData
+  if (data) {
+    condataName.value = data.tableColumns;
+    conditionalValue.value = data.tableData;
   }
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
 };
-const handleStaticTable = (data:any) => {
+const handleStaticTable = (data: any) => {
   // console.log('get data from static children',data  )
   let tempObj = {};
 
-
   Object.assign(tempObj, { tableData: data.tableData });
   Object.assign(tempObj, { tableColumns: data.tableColumns });
-  Object.assign(tempObj,{dataFrom:'static_template'})
+  Object.assign(tempObj, { dataFrom: "static_template" });
   cacheDataDefinition.data = tempObj;
   // console.log(tempObj);
   // console.log('cachedDatadifinition:',cacheDataDefinition)
-  if(data){
-    condataName.value=data.tableColumns
-    conditionalValue.value=data.tableData
+  if (data) {
+    condataName.value = data.tableColumns;
+    conditionalValue.value = data.tableData;
   }
   onCloseDrawer();
   message.success("Save config Successfully");
 };
 
-const submitTemplate= (data:any)=>{
+const submitTemplate = (data: any) => {
   // console.log('emit value:',data)
-  
+
   let metaObj = {};
   Object.assign(metaObj, { schema: data.schema });
   Object.assign(metaObj, { data: data.data });
@@ -2139,161 +2223,185 @@ const submitTemplate= (data:any)=>{
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();
   message.success("Save config Successfully");
-}
-
+};
 
 //Display Condition Edit Component
 
-let ifNameOpetions=computed(()=>{
-  return ref<SelectProps['options']>(condataName.value.map((e:any) => { return { value: e.title, label: e.title } })).value
-})
-let childvalue=computed(()=>{
+let ifNameOpetions = computed(() => {
+  return ref<SelectProps["options"]>(
+    condataName.value.map((e: any) => {
+      return { value: e.title, label: e.title };
+    })
+  ).value;
+});
+let childvalue = computed(() => {
   // console.log(conditionalValue.value);
 
-  if(conditionalValue.value.length>0){
+  if (conditionalValue.value.length > 0) {
     // showAddConditional.value=true
-    return valueOption(conditionalValue.value)
-
-  }else{
+    return valueOption(conditionalValue.value);
+  } else {
     // return showAddConditional.value=false
   }
-
-})
+});
 // 表格的数据
-let conditionalDatasource=ref<any>([])
+let conditionalDatasource = ref<any>([]);
 
 // 传递子组件的数据
-const keys=ref<any>()
-let formDatas=ifNameOpetions
-const valueData=childvalue
-let childrelation="AND"
-let childselectvalue=childrelation
-const rulesData=ref(
-  [//初始化条件对象或者，已保存的条件对象
-      {relation:childrelation,
-      id:1,
-      conditions:[{
-        name:'name',
-        operator:"=",
-        value:undefined,
-        selectvalues:childselectvalue
-      }],
-      children:[]}
-  ]
-)
-const rulesChange=(datas: any,key:string)=>{
-    rulesData.value=datas//输出的条件对象
-}
+const keys = ref<any>();
+let formDatas = ifNameOpetions;
+const valueData = childvalue;
+let childrelation = "AND";
+let childselectvalue = childrelation;
+const rulesData = ref([
+  //初始化条件对象或者，已保存的条件对象
+  {
+    relation: childrelation,
+    id: 1,
+    conditions: [
+      {
+        name: "name",
+        operator: "=",
+        value: undefined,
+        selectvalues: childselectvalue,
+      },
+    ],
+    children: [],
+  },
+]);
+const rulesChange = (datas: any, key: string) => {
+  rulesData.value = datas; //输出的条件对象
+};
 // 递归改变if结构
-function ifdata(arr:any){
-  let finditem=null
-  for(let i=0;i<arr.length;i++){
-    let item=arr[i]
+function ifdata(arr: any) {
+  let finditem = null;
+  for (let i = 0; i < arr.length; i++) {
+    let item = arr[i];
     // if(item.children.length==0){
     //   item.relation=""
     // }
-    if(item.relation=="AND"){item.relation="&&"}
-    if(item.relation=="OR"){item.relation="||"}
-    if(item.conditions.length>1){
+    if (item.relation == "AND") {
+      item.relation = "&&";
+    }
+    if (item.relation == "OR") {
+      item.relation = "||";
+    }
+    if (item.conditions.length > 1) {
       // finditem='('+conditionstr(item.conditions)+')'+' '+item.relation+' '
-      finditem=`(${conditionstr(item.conditions)}) ${item.relation} `
-    }else{
+      finditem = `(${conditionstr(item.conditions)}) ${item.relation} `;
+    } else {
       // finditem=conditionstr(item.conditions)+' '+item.relation
-      finditem=`${conditionstr(item.conditions)} ${item.relation} `
+      finditem = `${conditionstr(item.conditions)} ${item.relation} `;
     }
-    if(item.children.length>0){
-      finditem+=ifdata(item.children)
+    if (item.children.length > 0) {
+      finditem += ifdata(item.children);
       // if
-    }else{
-      break
+    } else {
+      break;
+    }
+  }
+  if (finditem != null) {
+    let findlength = finditem.length;
+    if (
+      finditem.substring(findlength - 3, findlength) == "&& " ||
+      finditem.substring(findlength - 3, findlength) == "|| "
+    ) {
+      finditem = finditem.substring(0, findlength - 3);
     }
 
+    return finditem;
   }
-  if(finditem!=null){
-    let findlength=finditem.length
-      if(finditem.substring(findlength-3,findlength)=="&& " || finditem.substring(findlength-3,findlength)=="|| "){
-        finditem= finditem.substring(0,findlength-3)
-      }
-
-    return finditem
-  }
-
 }
-function selectvalue(value:any){
-  let values=null
-    if(Array.isArray(value)){
-      if(value.length>1){
-        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
-        let newvalue=value.map((strArr:any)=>[strArr])
-         values=`{${JSON.stringify(newvalue).substring(1,JSON.stringify(newvalue).length-1).replace(/"/g,"")}}`
-      }else{
-         values=`{${JSON.stringify(value).replace("[","").replace("]","")}}`
+function selectvalue(value: any) {
+  let values = null;
+  if (Array.isArray(value)) {
+    if (value.length > 1) {
+      if (JSON.stringify(ifNameOpetions.value).includes(value[0])) {
+        let newvalue = value.map((strArr: any) => [strArr]);
+        values = `{${JSON.stringify(newvalue)
+          .substring(1, JSON.stringify(newvalue).length - 1)
+          .replace(/"/g, "")}}`;
+      } else {
+        values = `{${JSON.stringify(value).replace("[", "").replace("]", "")}}`;
       }
-      }else{
-        if(JSON.stringify(ifNameOpetions.value).includes(value[0])){
-           values=JSON.stringify(value).replaceAll('"',"")
-        }else{
-           values=JSON.stringify(value).replace("[","").replace("]","")
-        }
-      }
-    }else{
-      if(JSON.stringify(ifNameOpetions.value).includes(value)){
-        values=`[${value}]`
-      }else{
-        values=JSON.stringify(value)
+    } else {
+      if (JSON.stringify(ifNameOpetions.value).includes(value[0])) {
+        values = JSON.stringify(value).replaceAll('"', "");
+      } else {
+        values = JSON.stringify(value).replace("[", "").replace("]", "");
       }
     }
-    return values
+  } else {
+    if (JSON.stringify(ifNameOpetions.value).includes(value)) {
+      values = `[${value}]`;
+    } else {
+      values = JSON.stringify(value);
+    }
+  }
+  return values;
 }
 // 解决括号链接
-const conditionstr=(arr:any)=>{
-  let ifcondition=null
+const conditionstr = (arr: any) => {
+  let ifcondition = null;
   // if(arr[arr.length-1].value){
-        // delete arr[arr.length-1].selectvalues
+  // delete arr[arr.length-1].selectvalues
   // }
-  ifcondition=arr.map((item:any)=>{
-    if(item.operator=='='){item.operator="=="}
-      if(item.selectvalues){
-        if(item.selectvalues=="AND"){item.selectvalues="&&"}
-        if(item.selectvalues=="OR"){item.selectvalues="||"}
-        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${item.selectvalues} `
-        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
-      }else{
-        // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
-        return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `
+  ifcondition = arr.map((item: any) => {
+    if (item.operator == "=") {
+      item.operator = "==";
+    }
+    if (item.selectvalues) {
+      if (item.selectvalues == "AND") {
+        item.selectvalues = "&&";
       }
-  })
+      if (item.selectvalues == "OR") {
+        item.selectvalues = "||";
+      }
+      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${
+        item.selectvalues
+      } `;
+      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+    } else {
+      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
+      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `;
+    }
+  });
 
-
-  return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
-}
-watch(rulesData,(newvalue:any)=>{
-  if(rulesData.value.length>0){
-    linkData.value.label=ifdata(newvalue)!
-  }
-},{deep:true,immediate: true})
-let router=useRouter()
+  return ifcondition
+    .join("")
+    .toString()
+    .substring(0, ifcondition.join("").toString().length - 4);
+};
+watch(
+  rulesData,
+  (newvalue: any) => {
+    if (rulesData.value.length > 0) {
+      linkData.value.label = ifdata(newvalue)!;
+    }
+  },
+  { deep: true, immediate: true }
+);
+let router = useRouter();
 // 点击跳转Aw修改
-const routerAw=(awData:any)=>{
-  
-  
-  let awUpdate:any=ref("mbtAW")
-  let getmbtNAme=localStorage.getItem("mbt_"+route.params.name)
-  let getmbtId=localStorage.getItem("mbt_"+route.params._id+route.params.name+"_id")
+const routerAw = (awData: any) => {
+  let awUpdate: any = ref("mbtAW");
+  let getmbtNAme = localStorage.getItem("mbt_" + route.params.name);
+  let getmbtId = localStorage.getItem(
+    "mbt_" + route.params._id + route.params.name + "_id"
+  );
   // console.log(awData.name,getmbtNAme,getmbtId);
   router.push({
-    name:"awupdate",
+    name: "awupdate",
     // path:`/#/awupdate/${awData._id}/${awData.name}/${awUpdate.value}`,
-    params:{
-      _id:awData._id,
-      name:awData.name,
-      awupdate:awUpdate.value,
-      mbtid:getmbtId!,
-      mbtname:JSON.parse(getmbtNAme!)
-    }
-  })
-}
-
+    params: {
+      _id: awData._id,
+      name: awData.name,
+      awupdate: awUpdate.value,
+      mbtid: getmbtId!,
+      mbtname: JSON.parse(getmbtNAme!),
+    },
+  });
+};
 </script>
 
 <template>
@@ -2305,9 +2413,13 @@ const routerAw=(awData:any)=>{
       <a-row>
         <a-col span="18">
           <a-button-group>
-            <a-button type="primary" @click="saveMBT(route)"> {{ $t('common.saveText') }} </a-button>
+            <a-button type="primary" @click="saveMBT(route)">
+              {{ $t("common.saveText") }}
+            </a-button>
             <span style="margin-left: 5px">
-              <a-button danger @click="reloadMBT(route)"> {{ $t('layout.multipleTab.reload') }} </a-button>
+              <a-button danger @click="reloadMBT(route)">
+                {{ $t("layout.multipleTab.reload") }}
+              </a-button>
             </span>
           </a-button-group>
         </a-col>
@@ -2380,28 +2492,35 @@ const routerAw=(awData:any)=>{
                         </a-input>
                       </a-form-item>
                       <a-form-item :wrapper-col="{ span: 4 }">
-                        <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+                        <a-button type="primary" html-type="submit">{{
+                          $t("common.searchText")
+                        }}</a-button>
                       </a-form-item>
                     </AForm>
                   </a-col>
                   <a-col>
                     <span style="margin-right: 5px">
-                      <a-button v-if="!hasAWInfo" type="primary" @click="onCloseDrawer()"
-                        >{{ $t('common.closeText') }}</a-button
+                      <a-button
+                        v-if="!hasAWInfo"
+                        type="primary"
+                        @click="onCloseDrawer()"
+                        >{{ $t("common.closeText") }}</a-button
                       >
                     </span>
 
-                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{ $t('common.back') }}</a-button>
+                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{
+                      $t("common.back")
+                    }}</a-button>
                   </a-col>
                 </a-row>
-                <div class="awtable" v-if="!hasAWInfo && isAW" >
+                <div class="awtable" v-if="!hasAWInfo && isAW">
                   <a-row>
                     <a-table
                       bordered
                       row-key="record=>record._id"
                       :columns="columns"
                       :data-source="tableData"
-                      class="components-table-demo-nested "
+                      class="components-table-demo-nested"
                       :pagination="pagination"
                       
                     >
@@ -2489,9 +2608,18 @@ const routerAw=(awData:any)=>{
                         >
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerCancel()">{{ $t('common.editText') }}</a-button>
+                        <a-button type="primary" @click="awhandlerSubmit()">{{
+                          $t("common.submitText")
+                        }}</a-button>
                       </span>
-                      <a-button danger @click="onExpectedAW()">{{ $t('common.next') }}</a-button>
+                      <span style="margin-right: 5px">
+                        <a-button type="primary" @click="handlerCancel()">{{
+                          $t("common.editText")
+                        }}</a-button>
+                      </span>
+                      <a-button danger @click="onExpectedAW()">{{
+                        $t("common.next")
+                      }}</a-button>
                     </div>
                   </VueForm>
                 </div>
@@ -2518,7 +2646,7 @@ const routerAw=(awData:any)=>{
                   </a-form-item>
                 </AForm>
 
-                <div v-if="!hasAWExpectedInfo && isAW" >
+                <div v-if="!hasAWExpectedInfo && isAW">
                   <a-table
                     bordered
                     row-key="record=>record._id"
@@ -2609,9 +2737,9 @@ const routerAw=(awData:any)=>{
                   >
                     <div slot-scope="{ awformdataExpected }">
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerEditExpected()"
-                          >{{ $t('common.editText') }}</a-button
-                        >
+                        <a-button type="primary" @click="handlerEditExpected()">{{
+                          $t("common.editText")
+                        }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerConfirmExpected()"
@@ -2669,24 +2797,21 @@ const routerAw=(awData:any)=>{
           <!-- <div v-else>
             
           </div> -->
-        
           <!-- Global panel :formProps="metaformProps"                     @submit="metahandlerSubmit"
                     @cancel="onCloseDrawer" :schema="tempschema"-->
-                    <!--  :isVisible="isVisible"-->
+          <!--  :isVisible="isVisible"-->
           <div class="infoPanel" v-if="isGlobal">
             <a-tabs v-model:activeKey="activeKey">
               <a-tab-pane key="1" tab="Meta">
-
                 <metainfo
-                  :isFormVisible = "isFormVisible"
+                  :isFormVisible="isFormVisible"
                   :metatemplatedetailtableData="metatemplatedetailtableData"
                   :schema="tempschema"
-                  :metaformProps="metaformProps"             
-                  :metatemplatecolumns="metatemplatecolumns"                 
-                  @submit-template = "submitTemplate"
+                  :metaformProps="metaformProps"
+                  :metatemplatecolumns="metatemplatecolumns"
+                  @submit-template="submitTemplate"
                 >
                 </metainfo>
-              
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
@@ -2703,7 +2828,6 @@ const routerAw=(awData:any)=>{
                 </a-card>
               </a-tab-pane>
               <a-tab-pane key="3" tab="Data Pool">
-              
                 <a-radio-group
                   v-model:value="templateRadiovalue"
                   @change="handleRadioChange(templateRadiovalue)"
@@ -2711,32 +2835,31 @@ const routerAw=(awData:any)=>{
                   <a-radio :value="1">Dynamic Template</a-radio>
                   <a-radio :value="2">Static Template</a-radio>
                   <a-radio :value="3">Input directly</a-radio>
-                
                 </a-radio-group>
                 <dynamic-table
                   :tableColumns="tableColumnsDirectInput"
-                  :tableData ="tableDataDirectInput"   
-                    v-if="templateRadiovalue === 3"
-                    @update="handleDirectInput"
-                  ></dynamic-table>
+                  :tableData="tableDataDirectInput"
+                  v-if="templateRadiovalue === 3"
+                  @update="handleDirectInput"
+                ></dynamic-table>
 
-                  <template-table    
-                  v-if="templateRadiovalue === 1 "  
-                  :tableColumns="tableColumnsDynamic"            
-                  :templateCategory = "templateCategory"
-                  :tableData = "tableDataDynamic"
+                <template-table
+                  v-if="templateRadiovalue === 1"
+                  :tableColumns="tableColumnsDynamic"
+                  :templateCategory="templateCategory"
+                  :tableData="tableDataDynamic"
                   @update="handleDynamicTable"
                   @clear="handleDynamicTableClear"
-                  ></template-table>
-                  <!-- --********---{{tableData}}**
+                ></template-table>
+                <!-- --********---{{tableData}}**
                   ++++{{tableColumns}}########                   -->
-                  <template-table    
-                  v-if="templateRadiovalue === 2 " 
-                  :tableColumns="tableColumns"             
-                  :templateCategory = "templateCategory"
-                  :tableData = "tableData"
+                <template-table
+                  v-if="templateRadiovalue === 2"
+                  :tableColumns="tableColumns"
+                  :templateCategory="templateCategory"
+                  :tableData="tableData"
                   @update="handleStaticTable"
-                  ></template-table>
+                ></template-table>
               </a-tab-pane>
               <a-tab-pane key="4" tab="Resources">
                 <a-button
@@ -2788,11 +2911,13 @@ const routerAw=(awData:any)=>{
                             :title="$t('component.message.sureCancel')"
                             @confirm="resourcescancel(record.key)"
                           >
-                            <a>{{ $t('common.cancelText') }}</a>
+                            <a>{{ $t("common.cancelText") }}</a>
                           </a-popconfirm>
                         </span>
                         <span v-else>
-                          <a @click="resourcesedit(record.key)">{{ $t('common.editText') }}</a>
+                          <a @click="resourcesedit(record.key)">{{
+                            $t("common.editText")
+                          }}</a>
                         </span>
                         <a-divider type="vertical" />
                         <span>
@@ -2801,14 +2926,16 @@ const routerAw=(awData:any)=>{
                             title="Sure to delete?"
                             @confirm="onresourcesDelete(record.key)"
                           >
-                            <a> {{ $t('common.delText') }}</a>
+                            <a> {{ $t("common.delText") }}</a>
                           </a-popconfirm>
                         </span>
                       </div>
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">{{ $t('common.saveText') }}</a-button>
+                <a-button type="primary" @click="globalhandlerSubmit">{{
+                  $t("common.saveText")
+                }}</a-button>
               </a-tab-pane>
             </a-tabs>
           </div>
@@ -2818,7 +2945,7 @@ const routerAw=(awData:any)=>{
   </main>
 </template>
 
-<style  >
+<style>
 #content-window {
   /* overflow: hidden; */
   padding: 0rem !important;
@@ -2839,7 +2966,7 @@ header {
 }
 
 .infoPanel {
-   /* height: 100%; */
+  /* height: 100%; */
   /* overflow: hidden; */
   position: relative;
   margin: 2px;
@@ -2867,10 +2994,10 @@ header {
 }
 
 /* .awtable { */
-  /* padding: 5px; */
-  /* display: flex !important; */
-  /* justify-content: flex-end; */
-   /* flex-direction:column-reverse!important; */
+/* padding: 5px; */
+/* display: flex !important; */
+/* justify-content: flex-end; */
+/* flex-direction:column-reverse!important; */
 /* } */
 
 .search_form {
@@ -2886,7 +3013,6 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
-  
 }
 
 /* .ant-table-tbody > tr > td {
@@ -2919,61 +3045,56 @@ header {
 .ant-form-horizontal .ant-form-item-label {
   width: 30% !important;
 }
-
 </style>
 <style lang="less">
-.__pathRoot_name{
-  .ant-form-item-label{
-    .ant-form-item-no-colon{
-      span{
+.__pathRoot_name {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
         color: red !important;
       }
     }
-
   }
-  .ant-form-item-control{
-    .ant-form-item-control-input{
-    .ant-form-item-control-input-content{
-      #form_item_description{
-        color: rgba(0, 0, 0, 0.25) !important;
-        background-color: #f5f5f5 !important;;
-        border-color: #d9d9d9 !important;;
-        box-shadow: none !important;;
-        cursor: not-allowed !important;;
-        opacity: 1 !important;;
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_description {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
       }
     }
-  }
   }
 }
-.__pathRoot_description{
-  .ant-form-item-label{
-    .ant-form-item-no-colon{
-      span{
+.__pathRoot_description {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
         color: red !important;
       }
     }
-
   }
 }
-.__pathRoot_template{
-  .ant-form-item-label{
-    .ant-form-item-no-colon{
-      span{
+.__pathRoot_template {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
         color: red !important;
       }
     }
-
   }
 }
-.__pathRoot_tags{
-  .ant-form-item-label{
-    .ant-form-item-no-colon{
-      span{
+.__pathRoot_tags {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
         color: red !important;
       }
     }
-
   }
 }
 </style>
