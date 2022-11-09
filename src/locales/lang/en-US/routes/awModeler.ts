@@ -10,5 +10,6 @@ export default {
     delTip: 'Are you sure delete this AW?',
     tip1: 'This node already contains a node of',
     tip2: 'Please complete the modification first',
-    emptyTemp: 'Template or template_en is required'
+    emptyTemp: 'Template or template_en is required',
+    pageTotal: '{total} in total'
 }

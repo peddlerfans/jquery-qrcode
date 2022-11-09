@@ -291,19 +291,17 @@ let checkName = async (_rule: Rule, value: string) => {
     return Promise.reject(t('component.message.emptyName'))
   }else if(!reg.test(value)){
       return Promise.reject('The AW name is not standardized')
-     // 判断是否为修改，如果修改则不用查询name
-      // if(modelstates.value._id){
-      //   return Promise.resolve();
-      // }else{
-      //  let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      // if(rst.data.length>0){
-      //   // message.error("Duplicate name")
-      //   // modelstates.value.name=""
-      //   return Promise.reject("Duplicate name")
-      // }
-      return Promise.resolve();
-      // }
-    }
+  }else{
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        return Promise.reject("Duplicate name")
+      }else{
+        return Promise.resolve();
+      
+      }
+  }
     
   
 }
@@ -343,8 +341,13 @@ let rules: Record<string, Rule[]> = {
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
-let refForm=ref(null)
+
+let refForm=ref()
 const onFinishForm = async (modelstates: any) => {  
+  refForm.value.validate((rules:any)=>{
+    console.log(rules);
+    
+  })
   modelstates.value.tags = states.tags
     if (modelstates.value._id) {
       visible.value = false;
@@ -479,10 +482,10 @@ let pagination=ref( {
       showQuickJumper: true,
       showSizeChanger: true, // 显示可改变每页数量
       pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
-      showTotal: (total: any) => `共 ${total} 条`, // 显示总数
+      showTotal: (total: any) => t('awModeler.pageTotal', { total: total }), // 显示总数
       onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
       onChange:(page: any,pageSize: any)=>onPageChange(page,pageSize),//点击页码事件
-      total:0 //总条数
+      total: 0 //总条数
 })
 const onPageChange = async(page: number, pageSize: any) => {
   pagination.value.pageNo = page
@@ -524,73 +527,6 @@ const onSizeChange =async (current: any, pageSize: number) => {
    }
 const expend = (isExpand:any,rected:any) => {}
 const wrapperCol={span:24,offset:12}
-<<<<<<< HEAD
-let treeData = ref([
-   {
-        title: 'Setup',
-        key: '0-0',
-        children: [
-          {
-            title: 'Display and brightness',
-            key: '0-0-0',
-            children: [
-              { title: 'Rest screen style', key: '0-0-0-0' },
-              {
-                title: 'screen style',key: '0-0-0-1',
-              },
-              { title: 'Auto lock', key: '0-0-0-2' },
-            ],
-          },
-          {
-            title: 'Portable tools',
-            key: '0-0-1',
-            children: [{ title: 'gesture', key: '0-0-1-0' }],
-          },
-          {
-            title: 'System settings',
-            key: '0-0-2',
-            children: [
-              { title: 'Reset system', key: '0-0-2-0' },
-              {
-                title: 'Background refresh',
-                key: '0-0-2-1',
-              },
-            ],
-          },
-        ],
-  },
-       {
-        title: 'test',
-        key: '0-1',
-        children: [
-          {
-            title: 'Audio and video test',
-            key: '0-1-0',
-            children: [
-              { title: 'Function panel', key: '0-1-0-0' },
-              { title: 'Collect sound', key: '0-1-0-1' },
-            ],
-          },
-        ],
-      },
-])
-const onSelect: TreeProps['onSelect'] = (selectedKeys: any, info: any) => {
-  console.log('selected', selectedKeys, info);
-  info.node.showEdit=false
-  info.node.dataRef.showEdit = false
-  if (info.node.dataRef.title == "New Node") {
-    info.node.showEdit=true
-  info.node.dataRef.showEdit = true
-  }// return selectedKeys
-};
-// 查询父级节点的key
-const getTreeParentKey = (childs: any, findChild: any): any => {
-  let topkey = null
-  for (let i = 0, len = childs.length; i < len; i++){
-    let item = childs[i]
-    if (item.children! == findChild && item.children && item.children.length > 0) {
-      topkey=getTreeParentKey(item.children,findChild)
-=======
 
 // 定义删除空节点的函数
 function delNode(array:any){
@@ -599,7 +535,6 @@ function delNode(array:any){
     let item=array[i]
     if(item.title!==" " && item.children  && item.children.length>0){
       delNode(item.children)
->>>>>>> 49f0a540222aced54340a3afd9e9390fd840eabd
     }
     if(item.title==""){
       arr=array.filter((str:any)=>str.title!=="")
@@ -777,69 +712,10 @@ const onExpand = (keys: any) => {
   autoExpandParent.value = false;
 };
 
-<<<<<<< HEAD
-const onchangtitle = (data: any) => {
-  console.log(data);
-  
-  data.dataRef.appendFlag = false;
-  data.dataRef.showEdit=false
-}
-const vFocus = {
-  //必须以 vNameOfDirective 的形式来命名本地自定义指令，以使得它们可以直接在模板中使用。
-  onBeforeMount: (el: any) => {
-    console.log(222);
-    
-    // 在元素上做些操作
-    nextTick(() => {
-      el.focus() //获取焦点
-    })
-  }
-}
-// 修改子节点的方法
-const updTree = (obj: any) => {
-  console.log(obj);
-  
-  obj.showEdit=true
-}
-const lodata: TreeProps['loadData'] = ():any => {
-  const addKey:any = (arr: any[]) => (arr??[]).map(item => ({
-  ...item,
-  showEdit:false,
-  children: addKey(item.children)
-}))
-treeData.value = addKey(treeData.value)
-}
-
-
-const newChild = ref(
-  {
-    title: "New Node",
-    key: "/",
-    children: [],
-    //appendFlag: true, //添加输入框
-    showEdit: false //修改输入框
-  }
-)
-// 点击添加下级节点的方法，获取当前的key（添加下级节点时，都加children，）
-const pushSubtree = (obj: any) => {
-  console.log(obj.data);
-  newChild.value.key = obj.data.key + newChild.value.key
-  autoExpandParent.value = true;
-  obj.data.children.push({...newChild.value})
-  newChild.value.key='/'
-  treeData.value = [...treeData.value]
-  expandedKeys.value = [obj.data.key];
-  obj.expanded=false    
-}
-// 添加同级时，需获取上级父节点的key，在上级父节点中push
-const pushtree = (obj: any) => {
-  console.log(obj);
-=======
 
 // 失去焦点，真正修改树节点的地方
 const onchangtitle =async (data: any) => {
   let nowNode=getTreeDataByItem(treeData.value,data)
->>>>>>> 49f0a540222aced54340a3afd9e9390fd840eabd
   
   let parentchild=getTreeParentChilds(treeData.value,data)
   if(updTreedata.value){
@@ -1080,12 +956,8 @@ let awupdate=ref("awmodeler")
 </script>
 <template>
   <main class="main"> 
-<<<<<<< HEAD
-       <SplitPanel>
-=======
     <div ref="leftRef" style="height:100%" class="id">
       <SplitPanel>
->>>>>>> 49f0a540222aced54340a3afd9e9390fd840eabd
         <template #left-content>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" :placeholder="$t('common.searchText')" />
           <a-tree
@@ -1095,48 +967,6 @@ let awupdate=ref("awmodeler")
             :expanded-keys="expandedKeys"
             @select="onSelect"
             :auto-expand-parent="autoExpandParent"
-<<<<<<< HEAD
-            @expand="onExpand"  
-            >
-      <template #icon><carry-out-outlined /></template>
-      <template #title="item" >
-              
-        <a-tooltip placement="right" overlayClassName="bgc_tooltip">
-            <template #title >
-              <a-menu mode="inline" @click="({ key: menuKey }) => onContextMenuClick(item.key, menuKey)">
-                  <a-menu-item  key="1" @click="pushtree(item)">
-                  Add Sibling
-                </a-menu-item>
-                <a-menu-item  key="2" @click="pushSubtree(item)">
-                  Add Subordinate
-                </a-menu-item>
-                <a-menu-item key="3" @click="updTree(item)">
-                  Modify node
-                </a-menu-item>
-                        <a-popconfirm
-                          title="Are you sure delete this task?"
-                          ok-text="Yes"
-                          cancel-text="No"
-                        @confirm="confirmtree(item.key)"
-                          @cancel="cancelTree"
-                        >
-                <a-menu-item key="4" @click="deltree(item.key)">
-                  Delete Node
-                </a-menu-item>
-                </a-popconfirm>
-              </a-menu>
-            </template>
-            <template v-if="searchValues &&  item.title.includes(searchValues)">
-                <div style="color: #f50;"> 
-                  <span>{{item.title}}</span>
-                </div>
-                </template>
-    <template v-if="!item.appendFlag&&!item.showEdit">{{item.title}}</template>
-    <a-input v-if="item.showEdit" type="text" v-focus v-model="item.title" @blur="onchangtitle(item)"/>
-    <!-- <a-input v-focus type="text" v-if="item.appendFlag"  v-model="item.tltle"  @blur="onchangtitle(item)"/> -->
-        </a-tooltip>  
-    </template>
-=======
             @expand="onExpand">
         <template #title="{key:treeKey,title,showEdit}">
         <template v-if="title=='/'">
@@ -1160,7 +990,6 @@ let awupdate=ref("awmodeler")
           </a-menu>
         </template>
       </a-dropdown>
->>>>>>> 49f0a540222aced54340a3afd9e9390fd840eabd
 
         </template>
         <a-dropdown :trigger="['contextmenu']" v-else>
@@ -1416,7 +1245,7 @@ let awupdate=ref("awmodeler")
 <div ref="tabledom">
     <a-table bordered
     :row-selection="rowSelection"
-    :row-key="record => record"
+    :row-key="(record: any) => record"
       :columns="columns" 
       :data-source="tableData" 
       class="components-table-demo-nested"

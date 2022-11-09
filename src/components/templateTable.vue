@@ -287,6 +287,7 @@ const chooseTemplateFunc = () => {
     }
    
   });
+  chooseTemplate.value=false
   updateTable();
 };
 </script>
@@ -341,13 +342,13 @@ const chooseTemplateFunc = () => {
       >
 
       <a-button
-        v-if="chooseTemplate || !hasData"
+        v-if="chooseTemplate"
         style="margin-right: 5px"
         type="link"
         @click="chooseTemplateFunc()"
         >Choose A Template</a-button
       >
-
+      
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
       > -->

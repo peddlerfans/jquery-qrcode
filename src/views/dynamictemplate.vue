@@ -490,12 +490,13 @@ onMounted(() => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value.trim="formState.search"
-                :placeholder="$t('templateManager.dynamicSearchText')">
-                <a-mentions-option value="tags:">
+              <a-input
+                  v-model:value="formState.search"
+                  :placeholder="$t('templateManager.metaSearchText')">
+                <!-- <a-mentions-option value="tags:">
                   tags:
-                </a-mentions-option>
-              </a-mentions>
+                </a-mentions-option> -->
+              </a-input>
             </a-col>
 
             <a-col :span="4">
@@ -616,9 +617,9 @@ onMounted(() => {
               style="margin: -5px 0" />
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
-              <a v-if="record.model.factor.length>1" :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
+              <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
               <!-- <a v-if="record.model.factor.length>1" @click="previewModel(record._id)">{{text}}</a> -->
-              <span v-else>{{text}}</span>
+              <!-- <span v-else>{{text}}</span> -->
             </template>
           </div>
         </template>

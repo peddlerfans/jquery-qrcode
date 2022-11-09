@@ -21,7 +21,7 @@ export default {
     logOut: 'log out'
   },
   multipleTab: {
-    reload: 'Refresh current',
+    reload: 'Reload',
     close: 'Close current',
     closeLeft: 'Close Left',
     closeRight: 'Close Right',

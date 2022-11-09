@@ -17,6 +17,7 @@ const formState: UnwrapRef<FormState> = reactive({
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  formState.search=``
   query(formState)
 };
 // 表单失败后的回调
@@ -104,8 +105,8 @@ let editData=reactive<DataItem>({
 })
   // 点击修改meta的方法
 const updMeta=async (data:any)=>{
-  let rst=await request.put(`/api/templates/${data._id}`,data)
-  console.log(rst);
+  let rst = await request.put(`/api/templates/${data._id}`, data)
+  clearFactorState()
 }
 let showAddFactorBtn = ref(true)
 // 点击Edit触发的函数
@@ -136,7 +137,6 @@ const save =async (record:any) => {
     await updMeta(record)
   }else{
     
-  console.log(tableData.value);
     await request.post("/api/templates",record)
   }
   clearFactorState()
@@ -181,7 +181,7 @@ const cancel=(record:any)=>{
     record.editing = false
   }
   showAddFactorBtn.value=true
-
+  clearFactorState()
 }
 // 表格的结构
 const columns = reactive<Object[]>(
@@ -277,13 +277,13 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions
-                  v-model:value="formState.search" split=""
+              <a-input
+                  v-model:value="formState.search"
                   :placeholder="$t('templateManager.metaSearchText')">
-                <a-mentions-option value="tags:">
+                <!-- <a-mentions-option value="tags:">
                   tags:
-                </a-mentions-option>
-              </a-mentions>
+                </a-mentions-option> -->
+              </a-input>
             </a-col>
 
             <a-col :span="4">
