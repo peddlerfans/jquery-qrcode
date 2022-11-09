@@ -59,7 +59,6 @@ declare module '@vue/runtime-core' {
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']
     Metainfo: typeof import('./src/components/metainfo.vue')['default']
     MovableArea: typeof import('./src/components/MovableArea.vue')['default']
-    RequestData: typeof import('./src/components/RequestData.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Scrollbar: typeof import('./src/components/Scrollbar.vue')['default']

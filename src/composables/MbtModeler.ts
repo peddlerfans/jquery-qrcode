@@ -111,8 +111,8 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
       drawGrid: true,
       cellViewNamespace: this.namespace ,
       defaultLink: new joint.shapes.standard.Link({
-        router: { name: "manhattan" },
-        connector: { name: "rounded" },
+        router: { name: "normal" },
+        connector: { name: "curve" },
         attrs: {
           line: {
             stroke: "#333333",
@@ -123,7 +123,7 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
     });
  
   
-  this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
+  this.paper.on('element:contextmenu', (elementView: dia.ElementView) => {
 
     this.paper.removeTools(); 
 
@@ -132,11 +132,9 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
       
     }
       elementView.showTools();
-
-
   });
 
-  this.paper.on('link:mouseenter', (linkView: any) => {
+  this.paper.on('link:contextmenu', (linkView: any) => {
 
     this.paper.removeTools();
     
@@ -148,7 +146,7 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
 
   });
 ;
-  this.paper.on('blank:pointerclick', () => {
+  this.paper.on('blank:contextmenu', () => {
     this.paper.removeTools();
   });
 }

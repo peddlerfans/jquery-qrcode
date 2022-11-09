@@ -17,6 +17,7 @@ const formState: UnwrapRef<FormState> = reactive({
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  formState.search=``
   query(formState)
 };
 // 表单失败后的回调
@@ -139,9 +140,8 @@ const save =async (record:any) => {
   console.log(tableData.value);
     await request.post("/api/templates",record)
   }
-  await query()
   clearFactorState()
-  showAddFactorBtn.value=false
+  showAddFactorBtn.value=true
 }
 
 
@@ -230,12 +230,11 @@ const handleInputConfirm = (record:any) => {
   if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
     tags = [...tags, record.inputValue];
   }
-  Object.assign(states, {
+  Object.assign(record, {
     tags:tags,
     inputVisible: false,
     inputValue: '',
  });  
-  console.log(states.tags);
   
 }
 // 移除tags
@@ -279,13 +278,13 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions
-                  v-model:value="formState.search" split=""
+              <a-input
+                  v-model:value="formState.search"
                   :placeholder="$t('templateManager.metaSearchText')">
-                <a-mentions-option value="tags:">
+                <!-- <a-mentions-option value="tags:">
                   tags:
-                </a-mentions-option>
-              </a-mentions>
+                </a-mentions-option> -->
+              </a-input>
             </a-col>
 
             <a-col :span="4">
@@ -351,7 +350,7 @@ let rules:Record<string,Rule[]>={
                     </a-tag>
                   </a-tooltip>
                   <a-tag v-else-if="tag.length==0"></a-tag>
-                  <a-tag v-else :closable="true" @close="handleClose(record,tag)">
+                  <a-tag v-else :closable="true" :visible="true"  @close="handleClose(record,tag)">
                     {{tag}}
                   </a-tag>  
                 </template>

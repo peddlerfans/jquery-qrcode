@@ -4,6 +4,7 @@ import { message, SelectProps } from "ant-design-vue";
 import { Rule } from "ant-design-vue/es/form";
 import { nextTick, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import {PlusOutlined} from '@ant-design/icons-vue'
 import { routerKey, useRoute, useRouter } from "vue-router";
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 const { t } = useI18n()
@@ -15,9 +16,17 @@ async function query(data?:any){
     }
 }
 let route=useRoute()
+
 let router=useRouter()
-sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
+if(route.params._id){
+  sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
 sessionStorage.setItem('awupdate_'+route.params.awupdate,JSON.stringify(route.params.awupdate))
+let str:any=route.params.mbtid
+localStorage.setItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id", str)
+localStorage.setItem("mbt_" + route.params.mbtname+"aw" , JSON.stringify(route.params.mbtname))
+
+}
+
 onMounted(()=>{
     let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
     query(JSON.parse(getId))
@@ -174,16 +183,24 @@ const handleInputConfirm = () => {
  });  
 }
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
+let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id")
+let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 // 修改函数
 async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
   console.log(JSON.parse(getupdate));
   if(rst && JSON.parse(getupdate)=="awmodeler"){
-
-    
     message.success(t('component.message.modifiedText'))
-            router.push("/#/awmodeler/index")
+            router.push("/awmodeler/index")
+    }else if(rst && JSON.parse(getupdate)=="mbtAW"){
+      router.push({
+        name:"mbtmodeler",
+        params:{
+          _id:getmbtId,
+          name:JSON.parse(getmbtname!)
         }
+      })
+    }
 }
 
 let refForm=ref(null)
@@ -199,7 +216,19 @@ modelstates.value.tags=states.tags
         // let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.update)
        
     } 
-  const onFinishFailedForm = (errorInfo: any) => {};
+  const onFinishFailedForm = (errorInfo: any) => {
+    if(JSON.parse(getupdate)=="awmodeler"){
+        router.push("/awmodeler/index")
+    }else if(JSON.parse(getupdate)=="mbtAW"){
+      router.push({
+        name:"mbtmodeler",
+        params:{
+          _id:getmbtId,
+          name:JSON.parse(getmbtname!)
+        }
+      })
+    }
+  };
 // 模态窗表单
 const optiones = ref<SelectProps['options']>([
       {

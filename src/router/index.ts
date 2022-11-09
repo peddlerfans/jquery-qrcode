@@ -65,7 +65,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'component.route.awModeler',icon: ApiOutlined }
+        meta: { title: 'component.route.awModeler',icon: ApiOutlined , keepAlive: true}
       }
     ]
   }
@@ -135,7 +135,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }
@@ -148,17 +148,22 @@ export const routes: RouteRecordRaw[] = [
     meta: { hidden: true}, 
     children: [
       {
-        path: ':_id/:name/:awupdate',
+        path: ':_id/:name/:awupdate/:mbtid?/:mbtname?',
         name: 'awupdate',
         component: () => import('@/views/updateAw.vue'),        
         meta: { title: 'UpdateAw',icon: AppstoreAddOutlined, keepAlive: true}
       }
     ], 
     beforeEnter(to,form,next){
-      let pathname =`${to.params.name}`;
+      if(to.params.awupdate=="mbtAW"){
+          to.meta.title=`MbtUpdateAw-${to.params.name}`
+      }else if(to.params.awupdate=="awmodeler"){
+        to.meta.title=`AwUpdate-${to.params.name}`
+      }
+      // let pathname =`${to.params.name}`;
       // if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
           
-        to.meta.title=pathname
+        // to.meta.title=pathname
        
         // }
         next()

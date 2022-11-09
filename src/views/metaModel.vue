@@ -59,13 +59,20 @@ let editData=reactive<DataItem>({
   inputVisible:false,
   inputValue:""
 })
+let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
 const updMeta=async (data:any)=>{
+  console.log(data);
+  
   if(data.__v){
     delete data.__v
-  }
-  let rst=await request.put(`/api/templates/${data._id}`,data)
+  }else{
+    let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,{model:data})
   message.success('Modification succeeded')
+  showAddFactorBtn.value=true
+  clearFactorState()
+  }
+
 }
 let showAddFactorBtn=ref(true)
 const edit = (record: any) => {
@@ -92,8 +99,7 @@ const clearFactorState = () => {
 // 点击save触发的函数
 const save =async (obj:any) => {
   obj.editing=false
-  
-  await updMeta(obj.value)
+  await updMeta(tableData.value)
   
 }
 // 点击删除的方法
@@ -121,7 +127,7 @@ const cancel=(record:any)=>{
     record.editing = false
   }
   showAddFactorBtn.value=true
-
+  clearFactorState()
 }
 // 点击添加数据
 const saveModel=()=>{
@@ -157,7 +163,7 @@ const changeType=(value:any)=>{
 }
 
 // 获取新建tags的dom
-let inputRef = ref();
+
 // 添加的表单tags
 let state = reactive<statesTs>({
   inputVisible: false,
@@ -170,6 +176,7 @@ interface statesTs {
   inputVisible: Boolean;
   inputValue: string
 }
+let inputRef = ref();
 // 点击添加标签的方法
 const showInput = (record:any) => {
   record.inputVisible = true;
@@ -179,15 +186,19 @@ const showInput = (record:any) => {
 };
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = (record:any) => {
-  let tags = record.enum;
-  if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
-    tags = [...tags, record.inputValue];
+  let values = record.enum;
+  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+    values = [...values, record.inputValue];
+    console.log(values);
+    
   }
   Object.assign(record, {
-    enum:tags,
+    enum:values,
     inputVisible: false,
     inputValue: '',
  });
+ console.log(record);
+ 
 }
 // 移除tags
 const handleCloseTag = (record:any,removedTag: string) => {
@@ -321,10 +332,10 @@ const optiones = ref<SelectProps['options']>([
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="state.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="state.inputValue" type="text"
+            <a-input v-if="record.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
                      @keyup.enter="handleInputConfirm(record)" />
-            <a-input-number v-else-if="state.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="state.inputValue" type="text"
+            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
             size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
             @keyup.enter="handleInputConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput(record)">
