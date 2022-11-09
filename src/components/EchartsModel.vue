@@ -17,6 +17,8 @@ import { LineChart, LineSeriesOption } from 'echarts/charts';
 import { UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
 import { onMounted, ref,watch,defineProps } from 'vue';
+import { func } from 'vue-types';
+import { number } from '@intlify/core-base';
 
 echarts.use([
   TitleComponent,
@@ -62,6 +64,12 @@ const props=defineProps({
  },
  datacolor:{
    type:String
+ },
+ zoomin:{
+    type:Number
+ },
+ zoomout:{
+  type:Number
  }
 })
 let myChart:any=null
@@ -71,8 +79,20 @@ const optionChange=()=>{
   window.onresize = function () {
     myChart.resize()
   }
+  myChart.on("datazoom",function(params: any){
+    zoomin.value=myChart.getModel().option.dataZoom[0].start
+    zoomout.value=myChart.getModel().option.dataZoom[0].end
+    dataZoom()
+  })
  }
-watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(newval:any)=>{
+const emit=defineEmits(["dataZoom"])
+// 控制zoom大小变化
+let zoomin=ref(0)
+let zoomout=ref(100)
+function dataZoom() {
+  emit("dataZoom",zoomout.value,zoomin.value)
+}
+watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,props.zoomin,props.zoomout],(newval:any)=>{
  // let myChart = echarts.init(main.value);
  option = {
  color: props.datacolor,
@@ -103,14 +123,14 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
  dataZoom: [
    {
      type: 'inside',
-     start: 0,
-     end: 50,
+     start: newval[4],
+     end: newval[5],
      top:100
    },
-   {
-     start: 0,
-     end: 20
-   }
+  //  {
+  //    start: 0,
+  //    end: 20
+  //  }
  ],
  // legend: {},
  grid: {
@@ -125,9 +145,6 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
      // },
      axisLine: {
        onZero: false,
-       // lineStyle: {
-       //   color: colors[1]
-       // }
      },
      axisPointer: {
        label: {
@@ -142,7 +159,11 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
        }
      },
      // prettier-ignore
-     data: newval[0] 
+     data: newval[0],
+     axisLabel:{
+      show:true,
+      interval:0
+     }
    },
  ],
  yAxis: [
@@ -150,17 +171,7 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor],(ne
      type: 'value'
    }
  ],
- series: [
-   {
-     name: props.chartstype,
-     type: 'line',
-     // smooth: true,
-     emphasis: {
-       focus: 'series'
-     },
-     data: newval[1]
-   }
- ],
+ series: newval[1]
 
 };
 if(newval.length>0){ myChart.setOption(option);}
@@ -199,8 +210,8 @@ option = {
  dataZoom: [
    {
      type: 'inside',
-     start: 0,
-     end: 50,
+     start: props.zoomin,
+     end: props.zoomout,
      top:100
    },
    {
@@ -221,9 +232,6 @@ option = {
      // },
      axisLine: {
        onZero: false,
-       // lineStyle: {
-       //   color: colors[1]
-       // }
      },
      axisPointer: {
        label: {
@@ -236,7 +244,11 @@ option = {
        }
      },
      // prettier-ignore
-     data: props.sendXdata
+     data: props.sendXdata,
+     axisLabel:{
+      show:true,
+      interval:0
+     }
    },
  ],
  yAxis: [
@@ -244,19 +256,9 @@ option = {
      type: 'value'
    }
  ],
- series: [
-   {
-     name: props.chartstype,
-     type: 'line',
-     // smooth: true,
-     emphasis: {
-       focus: 'series'
-     },
-     data: props.cpuData
-   }
- ],
-
+ series: props.cpuData
 };
+// defineExpose({dataZoom})
 
 
 
