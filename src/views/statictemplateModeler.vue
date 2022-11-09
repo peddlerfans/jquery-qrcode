@@ -209,6 +209,8 @@ const addCol = () => {
   dynamiccolumns.value.push(actionColumn);
 };
 
+
+
 function delCol(key: string) {
   _.remove(dynamiccolumns.value, (item: ColumnItem) => {
     return item.key == key;
