@@ -291,19 +291,17 @@ let checkName = async (_rule: Rule, value: string) => {
     return Promise.reject(t('component.message.emptyName'))
   }else if(!reg.test(value)){
       return Promise.reject('The AW name is not standardized')
-     // 判断是否为修改，如果修改则不用查询name
-      // if(modelstates.value._id){
-      //   return Promise.resolve();
-      // }else{
-      //  let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      // if(rst.data.length>0){
-      //   // message.error("Duplicate name")
-      //   // modelstates.value.name=""
-      //   return Promise.reject("Duplicate name")
-      // }
-      return Promise.resolve();
-      // }
-    }
+  }else{
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        return Promise.reject("Duplicate name")
+      }else{
+        return Promise.resolve();
+      
+      }
+  }
     
   
 }
@@ -343,8 +341,13 @@ let rules: Record<string, Rule[]> = {
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
-let refForm=ref(null)
+
+let refForm=ref()
 const onFinishForm = async (modelstates: any) => {  
+  refForm.value.validate((rules:any)=>{
+    console.log(rules);
+    
+  })
   modelstates.value.tags = states.tags
     if (modelstates.value._id) {
       visible.value = false;

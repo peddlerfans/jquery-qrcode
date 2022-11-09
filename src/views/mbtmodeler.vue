@@ -2618,7 +2618,7 @@ const routerAw = (awData: any) => {
                     </a-table>
                   </a-row>
                 </div>
-                <div style="margin: 5px; width: 80%">
+                <div style="margin: 5px; width: 80%" class="awconfig">
                   <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
@@ -2854,7 +2854,7 @@ const routerAw = (awData: any) => {
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
-                  <div style="padding: 5px">
+                  <div style="padding: 5px" class="attrconfig">
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
@@ -3086,7 +3086,8 @@ header {
 }
 </style>
 <style lang="less">
-.__pathRoot_name {
+.awconfig{
+  .__pathRoot_name {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
@@ -3095,6 +3096,32 @@ header {
     }
   }
   .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
+}
+.awconfig{
+  .__pathRoot_description {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
+        color: red !important;
+      }
+    }
+  }
+}
+.ant-form-item-control {
     .ant-form-item-control-input {
       .ant-form-item-control-input-content {
         #form_item_description {
@@ -3109,25 +3136,47 @@ header {
     }
   }
 }
-.__pathRoot_description {
+.attrconfig{
+  .__pathRoot_name {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
         color: red !important;
+      }
+    }
+  }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
       }
     }
   }
 }
-.__pathRoot_template {
-  .ant-form-item-label {
-    .ant-form-item-no-colon {
-      span {
-        color: red !important;
+.ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
       }
     }
   }
 }
-.__pathRoot_tags {
+.awconfig{
+  .__pathRoot_template {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
@@ -3135,5 +3184,45 @@ header {
       }
     }
   }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_template {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
+}
+.awconfig{
+  .__pathRoot_tags {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
+        color: red !important;
+      }
+    }
+  }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_tags {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
 }
 </style>

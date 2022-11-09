@@ -160,10 +160,10 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,prop
      },
      // prettier-ignore
      data: newval[0],
-     axisLabel:{
-      show:true,
-      interval:0
-     }
+    //  axisLabel:{
+    //   show:true,
+    //   interval:0
+    //  }
    },
  ],
  yAxis: [
@@ -245,10 +245,10 @@ option = {
      },
      // prettier-ignore
      data: props.sendXdata,
-     axisLabel:{
-      show:true,
-      interval:0
-     }
+    //  axisLabel:{
+    //   show:true,
+    //   interval:0
+    //  }
    },
  ],
  yAxis: [
