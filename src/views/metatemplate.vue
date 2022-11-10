@@ -17,7 +17,6 @@ const formState: UnwrapRef<FormState> = reactive({
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search=``
   query(formState)
 };
 // 表单失败后的回调
