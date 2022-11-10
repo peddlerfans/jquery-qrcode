@@ -9,6 +9,7 @@ import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditT
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
+import axios from "axios";
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
@@ -27,15 +28,18 @@ let searchobj: tableSearch = reactive({
   perPage:10,
   q:""
 })
+let random=new Date().valueOf()
+console.log(axios.CancelToken.source());
+let soure=axios.CancelToken.source()
 async function query(data?: any) {  
-  let rst;
-    rst = await request.get("/api/hlfs", { params: data || searchobj })
-  if (rst.data) {
-    pagination.value.total = rst.total  
+  await request.get("/api/hlfs", { params: data || searchobj }).then((res)=>{
+      if (res.data) {
+    pagination.value.total = res.total  
     pagination.value.pageNo=1  
-    tableData.value = rst.data.map((e:any,index:number)=>({...e,key:index}))
+    tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
-  return rst.data
+})
+  
 }
 let treeData:any = ref([])
 // 获取后台的树形数据
@@ -90,7 +94,8 @@ const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;      
 };
-  
+
+let disable=ref(true)
 const handleOk = () => {
 onFinishForm(modelstates)
 clear()
@@ -238,7 +243,7 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:100
+    width:180
   },
   {
     title: 'component.table.type',
@@ -256,7 +261,7 @@ const paramsColum = [
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:120
+    width:100
   }
 ]
 // 添加params的enu
@@ -286,10 +291,11 @@ const newFactorValueInput = (record: any) => {
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
-  let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(!reg.test(value)){
+  }else if(!reg.test(value) && !reg1.test(value)){
       return Promise.reject('The AW name is not standardized')
   }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
@@ -298,12 +304,16 @@ let checkName = async (_rule: Rule, value: string) => {
         // modelstates.value.name=""
         return Promise.reject("Duplicate name")
       }else{
+        if(modelstates.value.description && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        disable.value=false
         return Promise.resolve();
       
       }
   }
-    
-  
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
@@ -313,17 +323,24 @@ let checkDesc = async (_rule: Rule, value: string) => {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
     // }else{
-      if(modelstates.value._id){
-      return Promise.resolve()
-    }else{
+    //   if(modelstates.value._id){
+    //   return Promise.resolve()
+    // }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
       
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
-        message.error(t('component.message.dupDescription'))
-      }
-    }
-    // }
+        return Promise.reject(t('component.message.dupDescription'))
+      }else{
+        if(modelstates.value.name && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
+      }
+    // }
+    // }
+    
   }
   
 } 
@@ -331,39 +348,33 @@ let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
+  }else{
+    if(modelstates.value.name && modelstates.value.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
+  disable.value=false
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
-
 let refForm=ref()
-const onFinishForm = async (modelstates: any) => {  
-  refForm.value.validate((rules:any)=>{
-    console.log(rules);
-    
-  })
-  modelstates.value.tags = states.tags
-    if (modelstates.value._id) {
-      visible.value = false;
-        tableData.value[modelstates.value.key]={...modelstates.value}
-        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
-        message.success(t('component.message.modifiedText'))
-    } else {
-          delete modelstates.value._id
-          if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
-            await saveAw(modelstates.value)
-          }else{
-            message.error(t('component.message.emptyTip'))
-            visible.value=true
-          }
-    }
-    clear()
+
+const onFinishForm =  (modelstates: any) => {  
+          
+  refForm.value.validate().then(async()=>{
+  await saveAw(modelstates.value)
+  clear()
+}).catch((err:any)=>{
+
+})
     
   }
 const onFinishFailedForm = (errorInfo: any) => {};
@@ -580,6 +591,7 @@ function getPath(key:any,treearr:any){
 
 // 当点击时给其赋值，用其值判断调用查询的函数
 let clickKey=<clickobj>{}
+
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
 
@@ -1076,13 +1088,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    @cancel="closemodel"
-    @ok="handleOk"
     :width="700"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"

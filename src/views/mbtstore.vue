@@ -212,6 +212,7 @@ const onFinishForm = async (modelstates: any) => {
 /**
  * Create a new model and jump to moderler
  */
+let disable=ref(true)
 const handleOk = () => {
   visible.value = false;
 
@@ -239,19 +240,44 @@ const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-// 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'));
-  } else {
-    return Promise.resolve();
+    return Promise.reject(t('component.message.emptyName'))
+  }else if(modelstates.value.name==value){
+    return Promise.resolve()
+  }else if(!reg.test(value) && !reg1.test(value)){
+      return Promise.reject('The name is not standardized')
+  }else{
+    let rst=await request.get(url,{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        disable.value=true
+        return Promise.reject("Duplicate name")
+      }else{
+        if(modelstates.value.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        
+        return Promise.resolve();
+      
+      }
   }
-};
+}
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('MBTStore.tip5'));
   } else {
+    if(modelstates.value.name){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
   }
 };
@@ -335,13 +361,11 @@ const handleInputConfirm = () => {
       <a-modal
         v-model:visible="visible"
         :title="modelstates._id ? $t('MBTStore.updateTitle') : $t('MBTStore.saveTitle')"
-        @cancel="closemodel"
-        @ok="handleOk"
         :width="700"
       >
         <template #footer>
           <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+          <a-button @click="handleOk" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
         </template>
         <a-form
           ref="refForm"
