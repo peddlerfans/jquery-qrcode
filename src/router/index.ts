@@ -16,14 +16,10 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
-      meta: { title: 'Dashboard', icon: HomeOutlined }
+      meta: { title: 'component.route.dashboard', icon: HomeOutlined }
     }
   ]
 }
-
-
-
-
 
 const constantRoutes: RouteRecordRaw[] = [
   {
@@ -56,35 +52,38 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+
+
   {
     path: '/awmodeler',
     name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
-    meta: { title: 'AWModeler',icon: ApiOutlined, keepAlive: true },
+    meta: { title: 'component.route.awModeler',icon: ApiOutlined },
     children: [
       {
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler', hidden:true }
+        meta: { title: 'component.route.awModeler',icon: ApiOutlined , keepAlive: true}
       }
     ]
   }
   ,
+
 
   {
     path: '/mbtstore',
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true},
+    meta: { title: 'component.route.mtbStore',icon: AppstoreAddOutlined},
     children: [
       {
         path: 'index',
         name: 'mbtstore',
         component: () => import('@/views/mbtstore.vue'),
-        meta: { hidden:true, title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
 
@@ -94,29 +93,29 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title:'Template Manager',icon:ExportOutlined },
+    meta: { title: 'component.route.templateManager',icon:ExportOutlined },
     children: [
       {
         path: 'meta',
         name: 'metaTemplate',
         component: () => import('@/views/metatemplate.vue'),
-        meta: { title: 'Meta Template', icon: FieldBinaryOutlined, keepAlive: true }
+        meta: { title: 'component.route.metaTemplate', icon: FieldBinaryOutlined, keepAlive: true }
       },
       {
         path: 'static',
         name: 'staticTemplate',
         component: () => import('@/views/statictemplate.vue'),
-        meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
+        meta: { title: 'component.route.staticTemplate', icon: LineChartOutlined, keepAlive: true }
       },{
         path: 'dynamic',
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
-        meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
+        meta: { title: 'component.route.dynamicTemplate', icon: FireOutlined, keepAlive: true }
       },{
         path: 'codegen',
         name: 'codegenTemplate',
         component: () => import('@/views/codegentemplate.vue'),
-        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
+        meta: { title: 'component.route.codegenTemplate', icon: CodeOutlined, keepAlive: true }
       }
 
     ]
@@ -136,11 +135,40 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }
   ,
+  {
+    path: '/awupdate',
+    name: 'AWupdate',
+    component: Layout,
+    redirect: { name: 'awupdate' },  
+    meta: { hidden: true}, 
+    children: [
+      {
+        path: ':_id/:name/:awupdate/:mbtid?/:mbtname?',
+        name: 'awupdate',
+        component: () => import('@/views/updateAw.vue'),        
+        meta: { title: 'UpdateAw',icon: AppstoreAddOutlined, keepAlive: true}
+      }
+    ], 
+    beforeEnter(to,form,next){
+      if(to.params.awupdate=="mbtAW"){
+          to.meta.title=`MbtUpdateAw-${to.params.name}`
+      }else if(to.params.awupdate=="awmodeler"){
+        to.meta.title=`AwUpdate-${to.params.name}`
+      }
+      // let pathname =`${to.params.name}`;
+      // if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
+          
+        // to.meta.title=pathname
+       
+        // }
+        next()
+      }
+  },
   {
     path: '/mbtmodeler',
     name: 'Mbtmodeler',

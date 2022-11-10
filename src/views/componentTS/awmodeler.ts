@@ -20,6 +20,7 @@ export interface paramsobj {
     inputValue:string
 }
 export interface ModelState {
+    key?:number
     name: string;
     description: string;
     template: string;
@@ -27,6 +28,7 @@ export interface ModelState {
     _id: string;
     tags: Array<string>;
     params: Array<paramsobj>
+    path?:string
 }
 // 添加的表单tags
 export interface statesTs {

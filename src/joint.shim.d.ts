@@ -5,6 +5,7 @@ import 'vue-router';
 import { any } from 'vue-types';
 import $ from 'jquery'
 import { S } from 'vitest/dist/global-d05ffb3f';
+import { Container } from 'postcss';
 
 declare module JQuery {
     namespace JQuery {
@@ -14,15 +15,13 @@ declare module JQuery {
     }
 }
 declare module 'jointjs' {
-
+    
     export namespace dia {
-
         namespace Paper {
             
             interface Options extends mvc.ViewOptions<Graph> {
                 model?: Graph;
                 el?: any;
-
             }
 
         }
@@ -48,10 +47,19 @@ declare module 'jointjs' {
         }
         interface Graph {
             model?:Cell,
-            attributes:any
+            attributes:any,
+            on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+            // addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
         }
-
     }
+    export namespace shapes{
+        class Container{
+            static Parent: any;
+            static Child: any;
+            
+        }
+    }
+
 }
 interface Label{
     text:string
@@ -74,7 +82,10 @@ interface ModelDefinition {
 }
 
 interface DataDefinition {
-    data:object,
+dataForm: any;
+dataForm: any;
+dataForm: any;
+    data:any,
     meta:object,
     resources:object
 }
@@ -88,6 +99,14 @@ interface DynamicModel {
 declare module 'axios' {
     interface ResponseData<T> {
         // model(model: any): any;
+        hlfs?:number,
+        template_codegen?:number,
+        template_dynamic?:number,
+        template_meta?:number,
+        template_static?:number,
+        test_model?:number,
+        web_hook?:number,
+
         model?: any|any[],
         code: number,
         msg: string,

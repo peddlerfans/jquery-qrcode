@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { nextTick, onMounted, reactive, ref, UnwrapRef, Ref, computed } from "vue";
 import { onBeforeRouteLeave, useRoute } from "vue-router";
 import request from "@/utils/request";
@@ -15,6 +16,7 @@ import {
 } from "@ant-design/icons-vue";
 
 import * as _ from "lodash";
+const { t } = useI18n()
 
 let route = useRoute();
 
@@ -113,7 +115,7 @@ const tableDatasave = async () => {
   Object.assign(model.model["schema"], dynamiccolumns.value);
   Object.assign(model.model["data"], tableData.value);
   let rst = await request.put(`/api/templates/${recordobj.value._id}`, model);
-  message.success("Save succeeded");
+  message.success(t('component.message.saveSuccess'));
 };
 
 /**
@@ -206,6 +208,8 @@ const addCol = () => {
   dynamiccolumns.value.push(newcolumn);
   dynamiccolumns.value.push(actionColumn);
 };
+
+
 
 function delCol(key: string) {
   _.remove(dynamiccolumns.value, (item: ColumnItem) => {
@@ -316,13 +320,13 @@ const showInput = () => {
         <!-- <div class="statictemplateleft"> -->
 
         <span style="margin-left: 5px">
-          <a-button danger @click="tableDatasave()"> Save </a-button>
+          <a-button danger @click="tableDatasave()"> {{ $t('common.saveText') }} </a-button>
         </span>
         <!-- </div> -->
       </a-col>
       <a-col span="3">
         <!-- <div class="statictemplate"> -->
-        <a-button type="primary" @click="addCol()"> Add column </a-button>
+        <a-button type="primary" @click="addCol()"> {{ $t('templateManager.addColumn') }} </a-button>
         <span style="margin-left: 5px">
           <a-button type="primary" @click="addRow()">
             <template #icon>
@@ -432,11 +436,11 @@ const showInput = () => {
                   </a>
                 </a-popconfirm>
                 <a-typography-link @click="cancelRow(record.key)" style="margin-left: 7px"
-                  >cancel</a-typography-link
+                  >{{ $t('common.cancelText') }}</a-typography-link
                 >
               </span>
               <span v-else>
-                <a @click="editRow(record.key)">Edit</a>
+                <a @click="editRow(record.key)">{{ $t('common.editText') }}</a>
               </span>
             </div>
           </template>

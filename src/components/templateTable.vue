@@ -3,7 +3,7 @@ import request from "@/utils/request";
 import useTable from "@/composables/useTable";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
 import * as _ from "lodash";
-import { Stores } from "../../types/stores";
+import { useRoute } from "vue-router";
 import {
   ref,
   watch,
@@ -115,18 +115,17 @@ let {
 onBeforeMount(() => {
   if (tableData && templateCategory.value == 1) {
     hasData.value = true;
-    console.log("********tableData,", tableData);
-    debugger;
+    // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
+    
     dataSource.value = tableData.value as never[];
     let cust_columns = tableColumns.value;
     columnsOrigin.value = cust_columns;
-    console.log("......columns:", columns);
-    console.log("......datasource:", dataSource);
+    // console.log("......columns:", columns);
+    // console.log("......datasource:", dataSource);
   } else {
-    debugger;
-    console.log("updatatable1111");
+    
     updateTable();
-    console.log("updatatable11112222");
+    
   }
 });
 
@@ -147,41 +146,85 @@ async function query(data?: any) {
     return rst.data;
   }
 }
-
+const route = useRoute();
 onMounted(() => {
-  // console.log("datasource111:", dataSource);
-  let category = templateCategory!.value;
-  // console.log("category:", category);
-  let searchParam: string = "";
-  if (dataSource) {
-    console.log('Read data from backend')
-  } else {
-    if (category == 1) {
-      searchParam = "dynamic";
-      url = `/api/templates?q=category:dynamic&search=`;
-    } else if (category == 2) {
-      searchParam = "static";
-      url = `/api/templates?q=category:static&search=`;
-    }
-    getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-      if (rst.length > 0) {
-        let temparr = rst;
+  
 
-        dataSource.value = temparr;
+  let savedDataInfo = localStorage.getItem("mbt_" + route.params._id + route.params.name);
+  
+  if (_.isString(savedDataInfo)) {
+    let tempObj = JSON.parse(savedDataInfo);
+    let searchParam: string = "";
+    if (
+      tempObj.dataDefinition &&
+      tempObj.dataDefinition.data &&
+      tempObj.dataDefinition.data.tableData.length > 0
+    ) {
+      dataSource.value = tempObj.dataDefinition.data.tableData;
+      columnsOrigin.value = tempObj.dataDefinition.data.tableColumns;
+      if (
+        templateCategory.value == 1 &&
+        tempObj.dataDefinition.data.dataFrom == "static_template"
+      ) {
+       
+        searchParam = "dynamic";
+
+        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+          if (rst.length > 0) {
+            let temparr = rst;
+            dataSource.value = temparr;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+        });
+      } else if (
+        templateCategory.value == 2 &&
+        tempObj.dataDefinition.data.dataFrom == "dynamic_template"
+      ) {
+        searchParam = "static";
+
+        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+          if (rst.length > 0) {
+            let temparr = rst;
+            dataSource.value = temparr;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+        });
       }
-      //   console.log('datasource:',dataSource)
-    });
+    } else {
+      let category = templateCategory!.value;
+      // console.log("category:", category);
+      // searchParam: string = "";
+      if (dataSource) {
+        // console.log("Read data from backend");
+      } else {
+        if (category == 1) {
+          searchParam = "dynamic";
+          url = `/api/templates?q=category:dynamic&search=`;
+        } else if (category == 2) {
+          searchParam = "static";
+          url = `/api/templates?q=category:static&search=`;
+        }
+        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+          if (rst.length > 0) {
+            let temparr = rst;
+            dataSource.value = temparr;
+            
+          }
+          //   console.log('datasource:',dataSource)
+        });
+      }
+    }
   }
 });
 
 function showDetailInfo(data: any) {
-  // console.log('......',data)
+  
   if (data && data._id && data.category == "dynamic") {
     hasData.value = true;
     getTemplatePreview(data._id).then((dat: any) => {
-      // console.log(',,,,,,,,',dat)
+  
       let cust_columns = transfer2Table(dat);
-      // console.log('data:,,,,,,,,',dat,'columns:',cust_columns);
+  
       columnsOrigin.value = cust_columns;
       dataSource.value = dat;
       // columnsOrigin.value = dat.model.schema;
@@ -196,29 +239,7 @@ function showDetailInfo(data: any) {
     }
   }
 }
-// 修改功能4
-// 修改函数
-// async function updateMBT(url: string, data: any) {
-//   let rst = await request.put(url, data)
-//   // console.log(rst);
-// }
-// let refForm = ref(null)
 
-//     async function saveMBT(data: any) {
-
-//       return new Promise((resolve, reject) => {
-//         request.post(url, data).then(res => {
-//           console.log('post successfully',res);
-
-//         }).catch(function (error) {
-//           if (error.response.status == 409) {
-//             message.error("Duplicate name or description")
-//           }
-//         });
-//       })
-
-//   }
-// }
 interface statesTs {
   enums: Array<string>;
   inputVisible: Boolean;
@@ -237,36 +258,35 @@ function HandleSubmit() {
   emit("update", obj);
 }
 
-function HandleClear(){
+function HandleClear() {
   let obj = {};
   emit("clear", obj);
-  dataSource.value =[]
-  columnsOrigin.value =[]
-  chooseTemplate.value = true
+  dataSource.value = [];
+  columnsOrigin.value = [];
+  chooseTemplate.value = true;
   hasData.value = false;
-
 }
-const chooseTemplate = ref(false)
-const chooseTemplateFunc = ()=>{
-  console.log('choose template')
+const chooseTemplate = ref(true);
+const chooseTemplateFunc = () => {
+  
   let category = templateCategory!.value;
-  console.log("category:", category);
+  
   let searchParam: string = "";
   if (category == 1) {
-      searchParam = "dynamic";
-      url = `/api/templates?q=category:dynamic&search=`;
-    } else if (category == 2) {
-      searchParam = "static";
-      url = `/api/templates?q=category:static&search=`;
+    searchParam = "dynamic";
+    url = `/api/templates?q=category:dynamic&search=`;
+  } else if (category == 2) {
+    searchParam = "static";
+    url = `/api/templates?q=category:static&search=`;
+  }
+  getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+    if (rst.length > 0) {
+      let temparr = rst;
+      columnsOrigin.value = columnsOrigin2.value;
+      dataSource.value = temparr;
     }
-    getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-      if (rst.length > 0) {
-        let temparr = rst;
-        columnsOrigin.value=columnsOrigin2.value
-        dataSource.value = temparr;
-      }
-      //   console.log('datasource:',dataSource)
-    });
+   
+  });
   updateTable();
 };
 </script>
@@ -316,13 +336,21 @@ const chooseTemplateFunc = ()=>{
       </template>
     </ATable>
     <div>
+      <a-button style="margin-right: 5px" type="primary" @click="HandleSubmit()"
+        >Save</a-button
+      >
 
-      <a-button style="margin-right: 5px;" type="primary" @click="HandleSubmit()">Save</a-button>
-      
-      <a-button v-if="chooseTemplate || !hasData" style="margin-right: 5px;" type="link" @click="chooseTemplateFunc()">Choose A Template</a-button>
+      <a-button
+        v-if="chooseTemplate || !hasData"
+        style="margin-right: 5px"
+        type="link"
+        @click="chooseTemplateFunc()"
+        >Choose A Template</a-button
+      >
 
-      <a-button  v-if="!chooseTemplate && hasData" danger @click="HandleClear()">Clear</a-button>
-      
+      <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
+        >Clear</a-button
+      > -->
     </div>
     <!-- </section> -->
   </main>

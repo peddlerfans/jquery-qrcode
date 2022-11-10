@@ -19,6 +19,7 @@ export default {
     lockScreenBtn: '锁定',
 
     home: '首页',
+    logOut: '退出登录'
   },
   multipleTab: {
     reload: '重新加载',

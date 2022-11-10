@@ -2,6 +2,9 @@ import request from "@/utils/request"
 import { TableColumnsType, TablePaginationConfig } from "ant-design-vue"
 import { cloneDeep } from "lodash"
 import { ComponentPublicInstance, reactive, ref, Ref, shallowRef } from "vue"
+import { i18n } from '@/locales'
+
+const { t } = i18n.global;
 
 function tableColumns(columns: TableColumnsType) {
   for (const column of columns) {
@@ -22,7 +25,11 @@ function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function
     pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
-    showTotal: (total, range) => `当前显示第${range[0]}-${range[1]}条，共${total}条`,
+    showTotal: (total, range) => t('component.table.pageTip', {
+      head: range[0],
+      tail: range[1],
+      total: total
+    }),
     onChange(page, pageSize) {
       this.current = page
       this.pageSize = pageSize
@@ -72,13 +79,22 @@ export default function ({ table, columns, pagination, updateTableOptions }:
       }
     }).then(res => {
       //original data structure res.data.data
-      let tempdata = res.data
-      let temptotal = res.total      
-      Object.assign(res.data,{data:tempdata})
-      Object.assign(res.data,{total:temptotal})
-      
-      _dataSource.value = res.data?.data      
-      _pagination.total = res.total
+      if(res.hasOwnProperty('data') && res.hasOwnProperty('total')){
+        let tempdata = res.data
+        let temptotal = res.total      
+        Object.assign(res.data,{data:tempdata})
+        Object.assign(res.data,{total:temptotal})
+        _dataSource.value = res.data?.data      
+        _pagination.total = res.total
+      }else{
+        let tempresult =[]
+        tempresult.push(res);
+        _dataSource.value = tempresult;
+        _pagination.total = 1;
+
+      }
+     
+
       
     }).catch(e=>{
       console.log('err:',e)

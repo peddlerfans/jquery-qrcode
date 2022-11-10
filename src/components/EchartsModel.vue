@@ -16,7 +16,9 @@ import {
 import { LineChart, LineSeriesOption } from 'echarts/charts';
 import { UniversalTransition } from 'echarts/features';
 import { CanvasRenderer } from 'echarts/renderers';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref,watch,defineProps } from 'vue';
+import { func } from 'vue-types';
+import { number } from '@intlify/core-base';
 
 echarts.use([
   TitleComponent,
@@ -37,102 +39,234 @@ type EChartsOption = echarts.ComposeOption<
   | DataZoomComponentOption
   | LineSeriesOption
 >;
+
 onMounted(()=>{
-  // () => {
-  //   init()    
-  // }  
-  let myChart = echarts.init(main.value);
+
+//   let myChart = echarts.init(main.value);
+//  myChart.setOption(option,true);
+//  window.onresize = function () {
+//    myChart.resize()
+// }
+optionChange()
+}) 
+let option: EChartsOption;
+
+const props=defineProps({
+ sendXdata:{
+   type:Array<any>,
+
+ },
+ cpuData:{
+   type:Array<any>
+ },
+ chartstype:{
+   type:String
+ },
+ datacolor:{
+   type:String
+ },
+ zoomin:{
+    type:Number
+ },
+ zoomout:{
+  type:Number
+ }
+})
+let myChart:any=null
+const optionChange=()=>{
+  myChart = echarts.init(main.value);
   myChart.setOption(option);
   window.onresize = function () {
     myChart.resize()
-      }
+  }
+  myChart.on("datazoom",function(params: any){
+    zoomin.value=myChart.getModel().option.dataZoom[0].start
+    zoomout.value=myChart.getModel().option.dataZoom[0].end
+    dataZoom()
+  })
+ }
+const emit=defineEmits(["dataZoom"])
+// 控制zoom大小变化
+let zoomin=ref(0)
+let zoomout=ref(100)
+function dataZoom() {
+  emit("dataZoom",zoomout.value,zoomin.value)
+}
+watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,props.zoomin,props.zoomout],(newval:any)=>{
+ // let myChart = echarts.init(main.value);
+ option = {
+ color: newval[3],
+ title: {
+   left: 'left',
+   text: newval[2],
+   textStyle:{
+     fontWeight:700,
+     fontSize:14
+   }
+ },
+ tooltip: {
+   trigger: 'none',
+   axisPointer: {
+     type: 'cross'
+   }
+ },
+ toolbox: {
+   feature: {
+     dataZoom: {
+       yAxisIndex: 'none'
+     },
+     restore: {},
+     saveAsImage: {},
+   },
+   right: "9%"
+ },
+ dataZoom: [
+   {
+     type: 'inside',
+     start: newval[4],
+     end: newval[5],
+     top:100
+   },
+  //  {
+  //    start: 0,
+  //    end: 20
+  //  }
+ ],
+ // legend: {},
+ grid: {
+   top: 70,
+   bottom: 80
+ },
+ xAxis: [
+   {
+     type: 'category',
+     // axisTick: {
+     //   alignWithLabel: true
+     // },
+     axisLine: {
+       onZero: false,
+     },
+     axisPointer: {
+       label: {
+         formatter: function (params: any) {
+             return (
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           )
+           
+           
+         }
+       }
+     },
+     // prettier-ignore
+     data: newval[0],
+     axisLabel:{
+      show:true,
+      interval:0
+     }
+   },
+ ],
+ yAxis: [
+   {
+     type: 'value'
+   }
+ ],
+ series: newval[1]
 
-})
+};
+if(newval.length>0){ myChart.setOption(option);}
+
+  // optionChange()
+},{deep:true})
 // 获取div的dom
 let main=ref()
-let option: EChartsOption;
-let base = +new Date(1988, 9, 3);
-let oneDay = 24 * 3600 * 1000;
-
-let data = [[base, Math.random() * 300]];
-
-for (let i = 1; i < 20000; i++) {
-  let now = new Date((base += oneDay));
-  data.push([+now, Math.round((Math.random() - 0.5) * 20 + data[i - 1][1])]);
-}
 
 option = {
-  tooltip: {
-    trigger: 'axis',
-    position: function (pt) {
-      return [pt[0], '10%'];
-    }
-  },
-  grid:{
-    top:50,
-    left:38,
-    right:2
-  },
-  title: {
-    left: 'left',
-    text: 'EChart',
-    textStyle: {
-      fontSize: 15
-    },
-  },
-  toolbox: {
-    feature: {
-      dataZoom: {
-        yAxisIndex: 'none'
-      },
-      restore: {},
-      saveAsImage: {}
-    },
-    itemSize: 13
-  },
-  xAxis: {
-    type: 'time',
-    boundaryGap: false
-  },
-  yAxis: {
-    type: 'value',
-    boundaryGap: [0, '100%']
-  },
-  dataZoom: [
-    {
-      type: 'inside',
-      start: 0,
-      end: 20
-    },
-    {
-      start: 0,
-      end: 20
-    }
-  ],
-  series: [
-    {
-      name: 'Fake Data',
-      type: 'line',
-      smooth: true,
-      symbol: 'none',
-      areaStyle: {},
-      data: data
-    }
-  ]
+ color: props.datacolor,
+ title: {
+   left: 'left',
+   text: props.chartstype,
+   textStyle:{
+     fontWeight:700,
+     fontSize:14
+   }
+ },
+ tooltip: {
+   trigger: 'none',
+   axisPointer: {
+     type: 'cross'
+   }
+ },
+ toolbox: {
+   feature: {
+     dataZoom: {
+       yAxisIndex: 'none'
+     },
+     restore: {},
+     saveAsImage: {},
+   },
+   right: "9%"
+ },
+ dataZoom: [
+   {
+     type: 'inside',
+     start: props.zoomin,
+     end: props.zoomout,
+     top:100
+   },
+   {
+     start: 0,
+     end: 20
+   }
+ ],
+ // legend: {},
+ grid: {
+   top: 70,
+   bottom: 80
+ },
+ xAxis: [
+   {
+     type: 'category',
+     // axisTick: {
+     //   alignWithLabel: true
+     // },
+     axisLine: {
+       onZero: false,
+     },
+     axisPointer: {
+       label: {
+         formatter: function (params: any) {
+             return (
+             params.value +
+             (params.seriesData.length ? '：' + params.seriesData[0].data : '')
+           )
+         }
+       }
+     },
+     // prettier-ignore
+     data: props.sendXdata,
+     axisLabel:{
+      show:true,
+      interval:0
+     }
+   },
+ ],
+ yAxis: [
+   {
+     type: 'value'
+   }
+ ],
+ series: props.cpuData
 };
-// function init(){
-  // let myChart = echarts.init(main.value);
+// defineExpose({dataZoom})
 
 
 
-
-// myChart.setOption(option);
-// }
 
 
 
 </script>
     
 <template>
-    <div ref="main" style="width:100%;height: 100%;"></div>
+    <div ref="main" calss="box_echarts" style="width:100%;height: 100%;"></div>
 </template>

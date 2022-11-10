@@ -5,8 +5,10 @@ import { SyncOutlined, PlusOutlined, DeleteOutlined ,DeleteTwoTone,CheckCircleTw
 import request from "@/utils/request"
 import { tableSearch, FormState, statesTs, ModelState } from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
+import { useI18n } from "vue-i18n";
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 // import { FormState } from './componentTS/awmodeler';
+const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: '',
@@ -130,8 +132,8 @@ const save = async (obj: any) => {
 const createstatic = () => {
   const newstatic = {
     key: tableData.value.length,
-    name: 'New template',
-    description: 'New template',
+    name: t('templateManager.newTemp'),
+    description: t('templateManager.newTemp'),
     category: 'static',
     tags: []
 
@@ -150,7 +152,7 @@ const delmodel = async (obj: any) => {
     let rst = await request.delete(`/api/templates/${obj._id}`)
   }
   delete editableData[obj.key];
-  message.success('Template deleted successfully')
+  message.success(t('templateManager.delTemp'))
   query()
 
 };
@@ -162,24 +164,24 @@ const cancel = (key: any) => {
 const columns = reactive<Object[]>(
   [
     {
-      title: 'name',
+      title: 'component.table.name',
       dataIndex: 'name',
       key: 'name',
     },
     {
-      title: 'description',
+      title: 'component.table.description',
       dataIndex: 'description',
       key: 'description',
     },
 
     {
-      title: 'tags',
+      title: 'component.table.tags',
       dataIndex: 'tags',
       key: 'tags'
     },
 
     {
-      title: 'Action',
+      title: 'component.table.action',
       dataIndex: 'action',
       key: 'action',
     }]
@@ -236,16 +238,17 @@ const handleClose = (removedTag: string) => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search" split=""
-                placeholder="input @ to search tags, input name to search MBT">
-                <a-mentions-option value="tags:">
+              <a-input
+                  v-model:value="formState.search"
+                  :placeholder="$t('templateManager.metaSearchText')">
+                <!-- <a-mentions-option value="tags:">
                   tags:
-                </a-mentions-option>
-              </a-mentions>
+                </a-mentions-option> -->
+              </a-input>
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
+              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
             </a-col>
           </AForm>
         </a-col>
@@ -260,6 +263,9 @@ const handleClose = (removedTag: string) => {
     </header>
 
     <a-table :columns="columns" :data-source="tableData" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div  >
@@ -299,7 +305,7 @@ const handleClose = (removedTag: string) => {
               size="small" :style="{ width: '78px' }" @blur="handleInputConfirm" @keyup.enter="handleInputConfirm" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput">
               <plus-outlined />
-              New Tag
+              {{ $t('common.newTag') }}
             </a-tag>
           </template>
           <span v-else>
@@ -314,15 +320,19 @@ const handleClose = (removedTag: string) => {
             <span v-if="editableData[record.key]">
               <a-typography-link @click="save(record)" style="font-size:16px">
                 <!-- <check-circle-two-tone two-tone-color="#52c41a" /> -->
-                Save
+                {{ $t('common.saveText') }}
               </a-typography-link>
 
-              <a-typography-link @click="cancel(record.key)">Cancel</a-typography-link>
+              <a-typography-link @click="cancel(record.key)" style="margin-left:0.625rem;">{{ $t('common.cancelText') }}</a-typography-link>
             </span>
             <span v-else>
-              <a @click="edit(record.key)">Edit</a>
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:0.625rem;">Delete         </a>
+              <a @click="edit(record.key)">{{ $t('component.table.edit') }}</a>
+              <a-popconfirm
+                  :title="$t('component.message.sureDel')"
+                  @confirm="delmodel(record)"
+                  :cancel-text="$t('common.cancelText')"
+                  :ok-text="$t('common.okText')">
+              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
             </a-popconfirm>
             </span>
           </div>
