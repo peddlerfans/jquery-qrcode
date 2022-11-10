@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, UnwrapRef, onMounted, nextTick } from 'vue';
+import { ref, reactive, UnwrapRef, onMounted, nextTick, unref } from 'vue';
 import { FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
@@ -34,7 +34,6 @@ let searchobj: tableSearch = reactive({
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
- console.log(rst.data);
  
  tableData.value=arr(rst.data)
 }
@@ -84,6 +83,7 @@ const onSizeChange =async (current: any, pageSize: number) => {
   
 }
 interface DataItem {
+  _id:string
   name: string;
   category:string
   description: string;
@@ -94,9 +94,10 @@ interface DataItem {
 }
 let editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
 let editData=reactive<DataItem>({
+  _id:"",
   name:'',
   description:'',
-  category:'',
+  category:'meta',
   tags:[],
   editing: true,
   inputVisible: false,
@@ -110,7 +111,7 @@ const updMeta=async (data:any)=>{
 let showAddFactorBtn = ref(true)
 // 点击Edit触发的函数
 const edit = (record:any) => {
-  
+  editData._id=record._id
   editData.name = record.name,
   editData.description = record.description,
   editData.tags = record.tags
@@ -124,27 +125,39 @@ const clearFactorState = () => {
   editData.editing = true
   editData.inputVisible = false
   editData.inputValue = '';
-
+  editData.category="meta"
   // (instance?.refs.refFactorForm as any).resetFields();
 }
+let refForm=ref()
 
 // 点击save触发的函数
-const save =async (record:any) => {
-  record.editing=false
-  
-  if(record._id){
+const save = (record: any) => {
+  unref(refForm).validate('name').then(async (res:any) => {
+    console.log(res);
+    record.editing = false
+    if(record._id){
     await updMeta(record)
-  }else{
-    
+  }else{  
     await request.post("/api/templates",record)
-  }
+    }
   clearFactorState()
   showAddFactorBtn.value=true
-}
+  })
+  }
+  // 
+  // refForm.value.validate().then(async()=>{
+  // if(record._id){
+  //   await updMeta(record)
+  // }else{  
+  //   await request.post("/api/templates",record)
+  // }
+  // })
+
+  
+
 
 
 const createMeta=()=>{
-
   showAddFactorBtn.value=false
   tableData.value.unshift({
     name:'',
@@ -159,6 +172,8 @@ const createMeta=()=>{
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   if(obj._id){
+    console.log(obj._id);
+    
     let rst=await request.delete(`/api/templates/${obj._id}`)
     query()
   }else{
@@ -169,15 +184,18 @@ const delmodel =async (obj: any) => {
 
 // 点击取消的函数
 const cancel=(record:any)=>{
-  if(editData.name===''){
-   const index=tableData.value.findIndex(e=>e===record)
-   tableData.value.splice(index,1)
-  }else{
+  console.log(record);
+  
+  if(record._id){
     record.name = editData.name
     record.description = editData.description
     record.tags = editData.tags
-
+    record._id=editData._id
     record.editing = false
+
+  }else{
+    const index=tableData.value.findIndex(e=>e===record)
+    tableData.value.splice(index,1)
   }
   showAddFactorBtn.value=true
   clearFactorState()
@@ -240,23 +258,32 @@ const handleClose = (record:any,removedTag: string) => {
       const tags = record.tags.filter((tag: string) => tag !== removedTag);
       record.tags = tags;
 };
-// onBeforeRouteLeave(async (to,form)=>{
-// console.log("to", to , "form", form);
-// if(to.path==`/metaModeler/${to.params._id}`){
-//   let rst=await request.get(`/api/templates/${to.params._id}`,{params:{category:'meta'}})
-//   to.meta.title=`MetaModel ${rst.name}`
-// }
-// })
-let checkName=async (_rule:Rule,value:string)=>{
-  console.log(123);
 
+let disable=ref(false)
+let checkName=async (_rule:Rule,value:string)=>{
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
+    disable.value=true
     return Promise.reject("place input your name")
-  }else if(reg.test(value)){
-    return Promise.reject("Please enter the correct name")
-  }else{
+  }else if(editData._id && editData.name==value){
+    disable.value=false
     return Promise.resolve()
+  }else if(!reg.test(value) && !reg1.test(value)){
+    disable.value=true
+    return Promise.reject("The name is not standardized")
+  }else{
+    let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        disable.value=true
+        return Promise.reject("Duplicate name")
+      }else{
+        disable.value=false
+        return Promise.resolve();
+      
+      }
   }
 }
 let rules:Record<string,Rule[]>={
@@ -279,9 +306,7 @@ let rules:Record<string,Rule[]>={
               <a-input
                   v-model:value="formState.search"
                   :placeholder="$t('templateManager.metaSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
+                  
               </a-input>
             </a-col>
 
@@ -307,7 +332,7 @@ let rules:Record<string,Rule[]>={
       <template #bodyCell="{ column, text, record }">
       <template v-if='column.key==="name"'>
         <div>
-          <a-form :model="record" v-if="record.editing" :rules="rules">
+          <a-form :model="record" ref="refForm" v-if="record.editing" :rules="rules">
             <a-form-item name="name">
               <a-input
               placeholder="Meta Name"
@@ -381,7 +406,7 @@ let rules:Record<string,Rule[]>={
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
           <span v-if="record.editing">
-            <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
+            <a-button type="link" :disabled="disable" style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a-button>
 
             <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
 

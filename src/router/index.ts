@@ -160,12 +160,6 @@ export const routes: RouteRecordRaw[] = [
       } else if (to.params.awupdate == "awmodeler") {
         to.meta.title = `AwUpdate-${to.params.name}`
       }
-      // let pathname =`${to.params.name}`;
-      // if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
-
-      // to.meta.title=pathname
-
-      // }
       next()
     }
   },

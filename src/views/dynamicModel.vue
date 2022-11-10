@@ -74,22 +74,15 @@ async function query(id?: any) {
     return {if:ifdata(e.if),then:{...e.then},keys:index}
   })
   valueData.value=finalModel.factor
-  console.log('finalModel')
-  console.log(finalResult)
-  console.log(finalModel)
 }
 let modelId: any
 onMounted(() => {
   modelId = sessionStorage.getItem('dynamic_' + route.params._id)
-  console.log('onMounted');
-  console.log(JSON.parse(modelId));
-
   query(JSON.parse(modelId))
 }) 
 
 
 const saveModel = async () => {
-  console.log('saveModel');
   if (showAddFactorBtn.value ){
     if (finalModel.factor.length<2){
       message.warning(t('templateManager.saveModelTip'))
@@ -117,10 +110,12 @@ const orderOptions = ref<SelectProps['options']>([
   {
     value: 'fullcombination',
     label: 'Full Combination',
+    disabled: true
   },
   {
     value: 'random',
     label: 'Random',
+    disabled: true
   }
 ])
 
@@ -189,16 +184,10 @@ const addNewFactor = () => {
 }
 
 const editFactor = (record: Factor) => {
-  console.log('editFactor')
-  console.log(record)
-
   factorState.name = record.name
   factorState.type = record.type
   factorState.values = record.values
   showAddFactorBtn.value=false
-
-  console.log(factorState)
-
   record.editing = true
 
 }
@@ -214,8 +203,6 @@ const saveFactor = async (record: Factor) => {
 
 const deleteFactor = (record: Factor) => {
   const index= finalModel.factor.findIndex(e => e === record)
-  console.log('deleteFactorByName')
-  console.log(index)
   finalModel.factor.splice(index,1);
   message.success(t('component.message.delText'));
 }
@@ -248,11 +235,8 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
-  console.log('close tags');
-  console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
-  console.log(record.values);
 
 };
 let inputRef = ref();
@@ -267,8 +251,6 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log(JSON.stringify(record.values));
-  
 }
 
 const newFactorValueInput = (record: Factor) => {
@@ -367,12 +349,8 @@ let conditional=ref()
 const addNewConstraint = () => {
   childComponent.value=!childComponent.value
   conditional.value=finalModel.factor
-  console.log('addNewConstraint')
   // clearConstraintState()
   showAddConstraintBtn.value = false;
-
-  console.log(finalModel)
-  // console.log(constraintState)
 }
 
 
@@ -380,12 +358,9 @@ const addNewConstraint = () => {
 const instance = getCurrentInstance()
 
 const cancel = (e: MouseEvent) => {
-  console.log(e);
 };
 
 const focus = () => {
-  console.log('focus');
-  // console.log(constraintState);
 };
 
 const columns=[
@@ -428,15 +403,8 @@ function ifdata(arr:any){
       // finditem=conditionstr(item.conditions)+' '+item.relation
       finditem=`${conditionstr(item.conditions)} ${item.relation} `
     }
-    console.log(finditem);
-    
     if(item.children.length>0){
-      
-      
       finditem+=ifdata(item.children)
-      
-      
-      // if
     }else{
       break
     }
@@ -447,7 +415,6 @@ function ifdata(arr:any){
       if(finditem.substring(findlength-4,findlength)=="AND " || finditem.substring(findlength-3,findlength)=="OR "){
         finditem= finditem.substring(0,findlength-4)
       }
-    console.log(finditem);
     return finditem
   }
   
@@ -493,14 +460,10 @@ const conditionstr=(arr:any)=>{
         return `[${item.name}] ${item.operator} ${selectvalue(item.value)} `
       }    
   })
-  console.log(ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4));
-  
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 
 const rulesChange=(datas: any,key:string)=>{
-  console.log(key);
-  
     rulesData.value=datas//输出的条件对象 
 }
 
@@ -512,24 +475,17 @@ const  conditionsend=()=>{
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
       
       let thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
-      console.log(rulesData.value);
-      
       let truerow={if:rulesData.value,then:{...thenObj.value}}
-      console.log(truerow);
-      
       if(keys.value>=0){
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
         condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
-        console.log(finalModel.constraintif);
-  console.log(condata.value[keys.value]);
       }else{
         condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
         finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
-        // console.log(finalModel.constraint);
         
       }
       cancelbulid() 
@@ -539,7 +495,6 @@ const  conditionsend=()=>{
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  console.log(condata.value);
   keys.value=''
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"AND",
@@ -563,7 +518,6 @@ const cancelbulid=()=>{
 // 点击修改的值
 const editCon=(obj:any)=>{
   keys.value=obj.keys
-  console.log( obj,keys.value);
   
 if(finalModel.constraint.length>0){
     rulesData.value=finalModel.constraint[obj.keys].if
@@ -664,7 +618,7 @@ const previewModel = async () => {
     <!-- Factors info -->
     <!-- ############ -->
 
-    <div style="margin: 30px 0px 8px 0px;">
+    <div style="margin: 30px 0 8px 0;">
       <h2 style="display: inline;">{{ $t('templateManager.factorsLabel') }}</h2>
       <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">
         {{ $t('templateManager.newFactor') }}
@@ -718,13 +672,18 @@ const previewModel = async () => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="record.inputVisible && record.type=='string'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
-                     size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-                     @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-input
+                v-if="record.inputVisible && record.type=='string'"
+                ref="inputRef"
+                v-model:value.trim="record.inputValue"
+                type="text"
+                size="small" :style="{ width: '78px' }"
+                @blur="handleFactorValueConfirm(record)"
+                @keyup.enter="handleFactorValueConfirm(record)" />
             <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
             size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
             @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
+            <a-tag v-show="!record.inputVisible" style="background: #fff; border-style: dashed; cursor: pointer;" @click="newFactorValueInput(record)">
               <plus-outlined />
               {{ $t('common.newValue') }}
             </a-tag>

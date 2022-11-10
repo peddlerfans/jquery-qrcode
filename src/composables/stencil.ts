@@ -1,6 +1,9 @@
 import { ConsoleSqlOutlined } from "@ant-design/icons-vue";
 import * as joint from "jointjs";
 import { dia, g } from "jointjs";
+import {i18n} from "@/locales";
+
+const { t } = i18n.global
 
 window.joint = joint
 export class Stencil {
@@ -158,6 +161,9 @@ export class Stencil {
       position: { x: 14, y: 20 },
       size: { width: 30, height: 30 },
       attrs: {
+        root: {
+          title: t('MBTStore.start')
+        },
         circle: {
           fill: "#4b4a67",
           stroke: "none",
@@ -170,6 +176,9 @@ export class Stencil {
       position: { x: 14, y: 70 },
       size: { width: 30, height: 30 },
       attrs: {
+        root: {
+          title: t('MBTStore.end')
+        },
         ".outer": {
           stroke: "#4b4a67",
           "stroke-width": 2,
@@ -177,6 +186,9 @@ export class Stencil {
         ".inner": {
           fill: "#4b4a67",
         },
+        label: {
+          text: '结束'
+        }
       },
     });
 
@@ -201,44 +213,46 @@ export class Stencil {
         },
         bodyText: {
           // text: 'bodyText'
-        }
+        },
+      }})
+      // let Container =joint.shapes.Container.Parent;
+      // let Groupstate = new Container({
+      //   position: { x: 18, y: 170 },
+      //   size: { width: 30, height: 20 },
+      //   z: 1,
+      //   attrs: {       headerText: { text: 'group' }}
+      // });
+/*
+    let umlstate = new joint.shapes.standard.Rectangle({
+
+      position: { x: 10, y: 120 },
+      size: { width: 35, height: 35 },
+      attrs: {
+        body: {
+          // fill: 'blue'
+        },
+        label: {
+          text: 'aw',
+          // fill: 'white'
+        },
       }
-    })
-    // let Container =joint.shapes.Container.Parent;
-    // let Groupstate = new Container({
-    //   position: { x: 18, y: 170 },
-    //   size: { width: 30, height: 20 },
-    //   z: 1,
-    //   attrs: {       headerText: { text: 'group' }}
-    // });
-    /*
-        let umlstate = new joint.shapes.standard.Rectangle({
-    
-          position: { x: 10, y: 120 },
-          size: { width: 35, height: 35 },
-          attrs: {
-            body: {
-              // fill: 'blue'
-            },
-            label: {
-              text: 'aw',
-              // fill: 'white'
-            },
-          }
-        });
-    */
+    });
+*/
+
     let ParallelRhombusShape = new joint.shapes.standard.Polygon({
 
       position: { x: 10, y: 170 },
       size: { width: 40, height: 30 },
       attrs: {
+        root: {
+          title: t('MBTStore.concurrency')
+        },
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
           ...this.bodyAttributes
         },
         label: {
           text: '+',
-          // ...this.labelAttributes
         },
       }
     });
@@ -248,6 +262,9 @@ export class Stencil {
       position: { x: 10, y: 220 },
       size: { width: 40, height: 30 },
       attrs: {
+        root: {
+          title: t('MBTStore.branch')
+        },
         body: {
           refPoints: '0,10 10,0 20,10 10,20',
           ...this.bodyAttributes
@@ -255,7 +272,6 @@ export class Stencil {
 
         label: {
           text: 'x',
-          // ...this.labelAttributes
         },
       }
     });

@@ -9,6 +9,7 @@ import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditT
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
+import axios from "axios";
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
@@ -27,15 +28,15 @@ let searchobj: tableSearch = reactive({
   perPage:10,
   q:""
 })
-async function query(data?: any) {  
-  let rst;
-    rst = await request.get("/api/hlfs", { params: data || searchobj })
+
+async function query(data?: any) {
+  const rst = await request.get("/api/hlfs", { params: data || searchobj })
   if (rst.data) {
     pagination.value.total = rst.total  
     pagination.value.pageNo=1  
     tableData.value = rst.data.map((e:any,index:number)=>({...e,key:index}))
   }
-  return rst.data
+  return rst
 }
 let treeData:any = ref([])
 // 获取后台的树形数据
@@ -46,9 +47,6 @@ const queryTree=async ()=>{
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-
-  // let treedatass=delNode(treedatas)
-  // console.log(treedatass);
   let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
@@ -90,11 +88,9 @@ const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;      
 };
-  
-const handleOk = () => {
-onFinishForm(modelstates)
-clear()
-};
+
+let disable=ref(true)
+
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear()
@@ -238,7 +234,7 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:100
+    width:180
   },
   {
     title: 'component.table.type',
@@ -256,7 +252,7 @@ const paramsColum = [
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:120
+    width:100
   }
 ]
 // 添加params的enu
@@ -286,10 +282,11 @@ const newFactorValueInput = (record: any) => {
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
-  let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(!reg.test(value)){
+  }else if(!reg.test(value) && !reg1.test(value)){
       return Promise.reject('The AW name is not standardized')
   }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
@@ -298,12 +295,16 @@ let checkName = async (_rule: Rule, value: string) => {
         // modelstates.value.name=""
         return Promise.reject("Duplicate name")
       }else{
+        if(modelstates.value.description && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        disable.value=false
         return Promise.resolve();
       
       }
   }
-    
-  
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
@@ -313,17 +314,24 @@ let checkDesc = async (_rule: Rule, value: string) => {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
     // }else{
-      if(modelstates.value._id){
-      return Promise.resolve()
-    }else{
+    //   if(modelstates.value._id){
+    //   return Promise.resolve()
+    // }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
       
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
-        message.error(t('component.message.dupDescription'))
-      }
-    }
-    // }
+        return Promise.reject(t('component.message.dupDescription'))
+      }else{
+        if(modelstates.value.name && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
+      }
+    // }
+    // }
+    
   }
   
 } 
@@ -331,39 +339,40 @@ let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
+  }else{
+    if(modelstates.value.name && modelstates.value.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
+  disable.value=false
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
-
 let refForm=ref()
-const onFinishForm = async (modelstates: any) => {  
-  refForm.value.validate((rules:any)=>{
-    console.log(rules);
-    
-  })
-  modelstates.value.tags = states.tags
-    if (modelstates.value._id) {
-      visible.value = false;
-        tableData.value[modelstates.value.key]={...modelstates.value}
-        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
-        message.success(t('component.message.modifiedText'))
-    } else {
-          delete modelstates.value._id
-          if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
-            await saveAw(modelstates.value)
-          }else{
-            message.error(t('component.message.emptyTip'))
-            visible.value=true
-          }
-    }
-    clear()
+const handleOk = (data: any) => {
+    refForm.value.validate().then(async()=>{
+  await saveAw(data)
+  clear()
+})
+// onFinishForm(modelstates)
+clear()
+};
+const onFinishForm =  (modelstates: any) => {  
+          
+//   refForm.value.validate().then(async()=>{
+//   await saveAw(modelstates.value)
+//   clear()
+// }).catch((err:any)=>{
+
+// })
     
   }
 const onFinishFailedForm = (errorInfo: any) => {};
@@ -580,9 +589,9 @@ function getPath(key:any,treearr:any){
 
 // 当点击时给其赋值，用其值判断调用查询的函数
 let clickKey=<clickobj>{}
+
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
@@ -887,14 +896,6 @@ const confirmtree =async (key:any,title:string) => {
   let str=getPath(nowNode.title,treeData.value) 
   str=str.substring(1,str.length)
   let delNode=getTreeParentChilds(treeData.value,key);
-  // const index= delNode.findIndex((e:any)=> e.title == nowNode.title)
-  // delete delNode[index]
-  // delNode.forEach((e:any,index:number,array:any)=>{
-  //   console.log(e,title,array);
-  //   if(e.title==title){
-  //     delete array[index]
-  //   }
-  // })
   for (var i = delNode.length - 1; i >= 0; i--) {
         if (delNode[i].title==nowNode.title) {
           delNode.splice(i, 1);
@@ -926,10 +927,6 @@ const onSelectChange = (changableRowKeys: Key[]) => {
         ],
       };
     });
-    // const rowSelection: TableProps['rowSelection'] = {
-    //   onChange: (selectedRowKeys: string[], selectedRows: any[]) => {
-    //     console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    //   },
 
     // 获取拖拽的对象
 // 右键添加Aw的path
@@ -961,7 +958,7 @@ let awupdate=ref("awmodeler")
         <template #left-content>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" :placeholder="$t('common.searchText')" />
           <a-tree
-          v-if="treeData?.length"
+            v-if="treeData?.length"
             :show-line="true"
             :tree-data="treeData"
             :expanded-keys="expandedKeys"
@@ -1013,11 +1010,11 @@ let awupdate=ref("awmodeler")
             <a-menu-item key="4" @click="addAwmodel(treeKey,title)">{{ $t('awModeler.moveSelected') }}</a-menu-item>
             <a-menu-item key="3" @click="updTree(treeKey)">{{ $t('awModeler.modifyNode') }}</a-menu-item>
             <a-popconfirm
-                  placement="right"
-                  title="Are you sure delete this task?"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="confirmtree(treeKey,title)">
+              placement="right"
+              :title="$t('component.message.sureDel')"
+              :ok-text="$t('common.yesText')"
+              :cancel-text="$t('common.noText')"
+              @confirm="confirmtree(treeKey,title)">
             <a-menu-item key="4" @click="deltree(title)">{{ $t('awModeler.delNode') }}</a-menu-item>
           </a-popconfirm>
           </a-menu>
@@ -1036,9 +1033,9 @@ let awupdate=ref("awmodeler")
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
-        <a-col :span="1" style="display: flex; justify-content: center; align-items: center;">
-          <a-checkbox v-model:checked="checked" @change="checkquery"></a-checkbox>
-        </a-col>
+<!--        <a-col :span="1" style="display: flex; justify-content: center; align-items: center;">-->
+<!--          <a-checkbox v-model:checked="checked" @change="checkquery"></a-checkbox>-->
+<!--        </a-col>-->
         <a-col :span="20">
            <AForm  
             layout="inline"
@@ -1048,18 +1045,17 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-              <a-mentions v-model:value="formState.search" v-if="checked" split=""
-                :placeholder="$t('awModeler.inputSearch1')">
-                <a-mentions-option value="tags:" >
-                  tags:              
-                </a-mentions-option>
-                <a-mentions-option value="name:" >
-                  name:              
-                </a-mentions-option>
-              </a-mentions>
+<!--              <a-mentions v-model:value="formState.search" v-if="checked" split=""-->
+<!--                :placeholder="$t('awModeler.inputSearch1')">-->
+<!--                <a-mentions-option value="tags:" >-->
+<!--                  tags:              -->
+<!--                </a-mentions-option>-->
+<!--                <a-mentions-option value="name:" >-->
+<!--                  name:              -->
+<!--                </a-mentions-option>-->
+<!--              </a-mentions>-->
               <a-input
-                  :placeholder="$t('awModeler.inputSearch')"
-                  v-else
+                  :placeholder="$t('awModeler.inputSearch1')"
                   v-model:value="formState.search"
               ></a-input>
               </a-col>
@@ -1076,13 +1072,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    @cancel="closemodel"
-    @ok="handleOk"
     :width="700"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
@@ -1257,13 +1251,17 @@ let awupdate=ref("awmodeler")
 
     <template #bodyCell="{ column,text, record }">
       <template v-if="column.key === 'Name'">
-          <div v-if="record._highlight">
-              <div v-if="record._highlight.name">
-                <p v-for="item in record._highlight.name" v-html="item"></p>
-              </div>
-              <div v-else>{{record.name}}</div>
-            </div>
-            <div v-else>{{record.name}}</div>
+        <div v-if="record._highlight">
+          <div v-if="record._highlight.name">
+            <a
+              v-for="item in record._highlight.name"
+              v-html="item"
+              :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`"
+            ></a>
+          </div>
+          <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
+        </div>
+        <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
       </template>
       <template v-if="column.key === 'description'">
             <div v-if="record._highlight">

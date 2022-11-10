@@ -192,10 +192,10 @@ option = {
    }
  },
  tooltip: {
-   trigger: 'none',
-   axisPointer: {
-     type: 'cross'
-   }
+   trigger: 'axis',
+  //  axisPointer: {
+  //    type: 'cross'
+  //  }
  },
  toolbox: {
    feature: {
