@@ -240,7 +240,7 @@ const handleClose = (removedTag: string) => {
 
               <a-input
                   v-model:value="formState.search"
-                  :placeholder="$t('templateManager.metaSearchText')">
+                  :placeholder="$t('templateManager.staticSearchText')">
                 <!-- <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option> -->

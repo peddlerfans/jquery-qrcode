@@ -1,6 +1,6 @@
 export default {
     inputSearch: 'input to search',
-    inputSearch1: 'input {"@"} to search tags, input name to search MBT',
+    inputSearch1: "input {'@'} to search tags, input name to search AW",
     addParams: 'Add Params',
     addSNode: 'Add Sibling Node',
     addCNode: 'Add Child Node',

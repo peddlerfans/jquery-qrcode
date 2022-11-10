@@ -492,7 +492,7 @@ onMounted(() => {
 
               <a-input
                   v-model:value="formState.search"
-                  :placeholder="$t('templateManager.metaSearchText')">
+                  :placeholder="$t('templateManager.dynamicSearchText')">
                 <!-- <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option> -->
