@@ -28,18 +28,15 @@ let searchobj: tableSearch = reactive({
   perPage:10,
   q:""
 })
-let random=new Date().valueOf()
-console.log(axios.CancelToken.source());
-let soure=axios.CancelToken.source()
-async function query(data?: any) {  
-  await request.get("/api/hlfs", { params: data || searchobj }).then((res)=>{
-      if (res.data) {
-    pagination.value.total = res.total  
+
+async function query(data?: any) {
+  const rst = await request.get("/api/hlfs", { params: data || searchobj })
+  if (rst.data) {
+    pagination.value.total = rst.total  
     pagination.value.pageNo=1  
-    tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
+    tableData.value = rst.data.map((e:any,index:number)=>({...e,key:index}))
   }
-})
-  
+  return rst
 }
 let treeData:any = ref([])
 // 获取后台的树形数据
@@ -50,9 +47,6 @@ const queryTree=async ()=>{
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-
-  // let treedatass=delNode(treedatas)
-  // console.log(treedatass);
   let treedatasss=addKey(treedatas)
   topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
@@ -594,7 +588,6 @@ let clickKey=<clickobj>{}
 
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
-
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
@@ -899,14 +892,6 @@ const confirmtree =async (key:any,title:string) => {
   let str=getPath(nowNode.title,treeData.value) 
   str=str.substring(1,str.length)
   let delNode=getTreeParentChilds(treeData.value,key);
-  // const index= delNode.findIndex((e:any)=> e.title == nowNode.title)
-  // delete delNode[index]
-  // delNode.forEach((e:any,index:number,array:any)=>{
-  //   console.log(e,title,array);
-  //   if(e.title==title){
-  //     delete array[index]
-  //   }
-  // })
   for (var i = delNode.length - 1; i >= 0; i--) {
         if (delNode[i].title==nowNode.title) {
           delNode.splice(i, 1);
@@ -938,10 +923,6 @@ const onSelectChange = (changableRowKeys: Key[]) => {
         ],
       };
     });
-    // const rowSelection: TableProps['rowSelection'] = {
-    //   onChange: (selectedRowKeys: string[], selectedRows: any[]) => {
-    //     console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-    //   },
 
     // 获取拖拽的对象
 // 右键添加Aw的path
@@ -973,7 +954,7 @@ let awupdate=ref("awmodeler")
         <template #left-content>
             <a-input-search v-model:value="searchValues" style="margin-bottom: 8px" :placeholder="$t('common.searchText')" />
           <a-tree
-          v-if="treeData?.length"
+            v-if="treeData?.length"
             :show-line="true"
             :tree-data="treeData"
             :expanded-keys="expandedKeys"
@@ -1025,11 +1006,11 @@ let awupdate=ref("awmodeler")
             <a-menu-item key="4" @click="addAwmodel(treeKey,title)">{{ $t('awModeler.moveSelected') }}</a-menu-item>
             <a-menu-item key="3" @click="updTree(treeKey)">{{ $t('awModeler.modifyNode') }}</a-menu-item>
             <a-popconfirm
-                  placement="right"
-                  title="Are you sure delete this task?"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="confirmtree(treeKey,title)">
+              placement="right"
+              :title="$t('component.message.sureDel')"
+              :ok-text="$t('common.yesText')"
+              :cancel-text="$t('common.noText')"
+              @confirm="confirmtree(treeKey,title)">
             <a-menu-item key="4" @click="deltree(title)">{{ $t('awModeler.delNode') }}</a-menu-item>
           </a-popconfirm>
           </a-menu>
@@ -1048,9 +1029,9 @@ let awupdate=ref("awmodeler")
         <template #right-content>
            <!-- 表单的查询 -->
        <a-row>
-        <a-col :span="1" style="display: flex; justify-content: center; align-items: center;">
-          <a-checkbox v-model:checked="checked" @change="checkquery"></a-checkbox>
-        </a-col>
+<!--        <a-col :span="1" style="display: flex; justify-content: center; align-items: center;">-->
+<!--          <a-checkbox v-model:checked="checked" @change="checkquery"></a-checkbox>-->
+<!--        </a-col>-->
         <a-col :span="20">
            <AForm  
             layout="inline"
@@ -1060,18 +1041,17 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-              <a-mentions v-model:value="formState.search" v-if="checked" split=""
-                :placeholder="$t('awModeler.inputSearch1')">
-                <a-mentions-option value="tags:" >
-                  tags:              
-                </a-mentions-option>
-                <a-mentions-option value="name:" >
-                  name:              
-                </a-mentions-option>
-              </a-mentions>
+<!--              <a-mentions v-model:value="formState.search" v-if="checked" split=""-->
+<!--                :placeholder="$t('awModeler.inputSearch1')">-->
+<!--                <a-mentions-option value="tags:" >-->
+<!--                  tags:              -->
+<!--                </a-mentions-option>-->
+<!--                <a-mentions-option value="name:" >-->
+<!--                  name:              -->
+<!--                </a-mentions-option>-->
+<!--              </a-mentions>-->
               <a-input
-                  :placeholder="$t('awModeler.inputSearch')"
-                  v-else
+                  :placeholder="$t('awModeler.inputSearch1')"
                   v-model:value="formState.search"
               ></a-input>
               </a-col>
@@ -1267,13 +1247,17 @@ let awupdate=ref("awmodeler")
 
     <template #bodyCell="{ column,text, record }">
       <template v-if="column.key === 'Name'">
-          <div v-if="record._highlight">
-              <div v-if="record._highlight.name">
-                <p v-for="item in record._highlight.name" v-html="item"></p>
-              </div>
-              <div v-else>{{record.name}}</div>
-            </div>
-            <div v-else>{{record.name}}</div>
+        <div v-if="record._highlight">
+          <div v-if="record._highlight.name">
+            <a
+              v-for="item in record._highlight.name"
+              v-html="item"
+              :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`"
+            ></a>
+          </div>
+          <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
+        </div>
+        <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
       </template>
       <template v-if="column.key === 'description'">
             <div v-if="record._highlight">

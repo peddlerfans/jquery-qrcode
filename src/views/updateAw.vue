@@ -8,6 +8,8 @@ import {PlusOutlined} from '@ant-design/icons-vue'
 import { routerKey, useRoute, useRouter } from "vue-router";
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 const { t } = useI18n()
+
+
 async function query(data?:any){
     let rsts=await request.get(`/api/hlfs/${data}`)
     if(rsts){
@@ -19,6 +21,11 @@ async function query(data?:any){
 let route=useRoute()
 
 let router=useRouter()
+
+// 判断是否是详情还是编辑操作
+let canEdit = !router.currentRoute.value.query?.canEdit
+console.log(canEdit)
+
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
 sessionStorage.setItem('awupdate_'+route.params.awupdate,JSON.stringify(route.params.awupdate))
@@ -29,8 +36,9 @@ localStorage.setItem("mbt_" + route.params.mbtname+"aw" , JSON.stringify(route.p
 }
 
 onMounted(()=>{
-    let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
-    query(JSON.parse(getId))
+  let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
+  query(JSON.parse(getId))
+
 })
 
 let modelstates = ref<ModelState>({
@@ -140,6 +148,7 @@ const saveparams = async (record: any) => {
 }
 // 点击修改params触发的函数
 const editparams = (record:any) => {
+  if (!canEdit) return
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -363,7 +372,8 @@ let rules: Record<string, Rule[]> = {
       >
       <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
        
-        <a-input v-model:value="modelstates.name"/>
+        <a-input v-model:value="modelstates.name" v-if="canEdit" />
+        <span v-else>{{ modelstates.name }}</span>
         <!-- <span v-else>{{modelstates.name}}</span> -->
       </a-form-item>
 
@@ -371,20 +381,23 @@ let rules: Record<string, Rule[]> = {
           :label="$t('component.table.description')"
         name="description"
       >
-        <a-input v-model:value="modelstates.description" />
+        <a-input v-model:value="modelstates.description" v-if="canEdit" />
+        <span v-else>{{ modelstates.description }}</span>
       </a-form-item>
 
       <a-form-item
           :label="$t('component.table.template')"
         name="template"
       >
-        <a-input  v-model:value="modelstates.template" />
+        <a-input v-model:value="modelstates.template" v-if="canEdit" />
+        <span v-else>{{ modelstates.template }}</span>
       </a-form-item>
       <a-form-item
           :label="$t('component.table.template_en')"
         name="template_en"
       >
-        <a-input v-model:value="modelstates.template_en" />
+        <a-input v-model:value="modelstates.template_en" v-if="canEdit" />
+        <span v-else>{{ modelstates.template_en }}</span>
       </a-form-item>
 
 <!-- tags标签 -->
@@ -398,12 +411,12 @@ let rules: Record<string, Rule[]> = {
           </a-tag>
         </a-tooltip>
         <a-tag v-else-if="tag.length==0"></a-tag>
-        <a-tag v-else :closable="true" @close="handleClose(tag)">
+        <a-tag v-else :closable="canEdit" @close="handleClose(tag)">
           {{tag}}
         </a-tag>  
       </template>
           <a-input
-            v-if="states.inputVisible"
+            v-show="states.inputVisible"
             ref="inputRef"
             v-model:value="states.inputValue"
             type="text"
@@ -412,8 +425,10 @@ let rules: Record<string, Rule[]> = {
             @blur="handleInputConfirm"
             @keyup.enter="handleInputConfirm"
           />
-        <a-tag v-else style="background: #fff; border-style: dashed" 
-        @click="showInput">
+        <a-tag
+            v-show="!states.inputVisible && canEdit"
+            style="background: #fff; border-style: dashed"
+            @click="showInput">
           <plus-outlined />
           {{ $t('common.newTag') }}
         </a-tag>
@@ -421,7 +436,7 @@ let rules: Record<string, Rule[]> = {
       <a-form-item
           :label="$t('component.table.params')"
           name="params"  >
-        <a-button @click="addNewParams">{{$t('awModeler.addParams')}}</a-button>
+        <a-button @click="addNewParams" v-if="canEdit">{{$t('awModeler.addParams')}}</a-button>
       </a-form-item>
       </a-form>
 
@@ -483,18 +498,19 @@ let rules: Record<string, Rule[]> = {
             <span v-if="record.editing">
               <a-typography-link type="danger" @click="saveparams(record)" style="font-size:16px">{{ $t('common.saveText' )}}</a-typography-link>
               <a-divider type="vertical" />
-            <a @click="cancelparams(record)" >{{$t('common.cancelText') }}</a>
+            <a @click="cancelparams(record)">{{$t('common.cancelText') }}</a>
             </span>
             <span v-else>
               <a @click="editparams(record)">{{ $t('component.table.edit') }}</a>
               <a-divider type="vertical" />
               <a-popconfirm
+                  :disabled="!canEdit"
                   :title="$t('component.message.sureDel')"
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
                   :ok-text="$t('common.okText')">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;">
-                {{ $t('common.delText') }}</a>
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
           </div>
@@ -502,7 +518,7 @@ let rules: Record<string, Rule[]> = {
             </template>
         </a-table>
         <div>
-            <a-button type="primary" @click="onFinishForm" :disabled="disable">Save</a-button>
+            <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">Save</a-button>
             <a-button @click="onFinishFailedForm">Cancel</a-button>
         </div>
     </div>
