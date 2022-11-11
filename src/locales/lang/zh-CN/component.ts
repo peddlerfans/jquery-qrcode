@@ -41,7 +41,7 @@ export default {
     params: '参数',
     paramsName: '参数名',
     type: '类型',
-    enum: '举例',
+    enum: '枚举',
     values: '值',
     if: '如果',
     then: '因此',
