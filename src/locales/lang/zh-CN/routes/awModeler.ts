@@ -10,6 +10,6 @@ export default {
     delTip: '确定删除该元用例?',
     tip1: '此节点已包含的节点数为',
     tip2: '请先完成修改',
-    emptyTemp: '模板和英文模板是必填的',
+    emptyTemp: '模板或英文模板是必填的',
     pageTotal: '共{total}条'
 }

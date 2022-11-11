@@ -6,13 +6,21 @@ export default {
     // meta template
     searchText: "input {'@'} to search tags, input name to search meta template",
     metaSearchText: "input {'@'} to search tags, input name to search meta template",
+    metaName:"Meta Name",
+    metaDescription:"Meta Description",
+    nameinput:"place input your name",
+    namehefa:"The name is not standardized",
+    duplicate:"Duplicate name",
+    description:"place input your description",
 
     // static template
     staticSearchText: "input {'@'} to search tags, input name to search static template",
     // static modeler
     addColumn: 'Add column',
+    StaticName:"Static Name",
 
     // dynamic template
+    dynamicName:"dynamic Name",
     dynamicSearchText: "input {'@'} to search tags, input name to search dynamic template",
     createModelSuccess: 'Created a model successfully',
     updateModelSuccess: 'Updated a model successfully',

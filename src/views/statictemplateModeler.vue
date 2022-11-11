@@ -265,7 +265,7 @@ const query = async (data?: any) => {
 
 // 给每条数据添加条属性
 const arr = (dataArr: any) =>
-  dataArr.map((item: any, index: string) => ({ ...item, key: index }));
+  dataArr.map((item: any, index: string) => ({ ...item,editing: false, inputVisible: false, inputValue: ''}));
 
 onMounted(() => {
   let getId: string = sessionStorage.getItem("static_" + route.params._id) as string;

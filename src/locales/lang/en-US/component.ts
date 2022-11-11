@@ -59,6 +59,7 @@ export default {
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
+    hefaName:"The AW name is not standardized",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',
