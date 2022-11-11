@@ -25,17 +25,19 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   response => {
+    console.log(response);
+    
     const { code, msg } = response.data
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)
       message.error("请求失败，请重试")
       return Promise.reject(new Error("请求失败，请重试"))
     } else {
-      return response.data
+        return response.data
     }
   },
   error => {
-    console.error(error)
+    // if(error.constructor && error.constructor.name==="Cancel"){}
     // message.error(error.message, 5)
     return Promise.reject(error)
   }
