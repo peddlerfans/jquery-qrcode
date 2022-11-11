@@ -9,7 +9,7 @@ import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditT
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
-import axios from "axios";
+import http from '@/utils/http'
 import { Rule } from 'ant-design-vue/es/form';
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 // import VueContextMenu from 'vue-contextmenu'
@@ -29,12 +29,18 @@ let searchobj: tableSearch = reactive({
   q:""
 })
 
+// 防止树形数据请求覆盖
+let treeSelectTitle = '/'
+
 async function query(data?: any) {
-  const rst = await request.get("/api/hlfs", { params: data || searchobj })
-  if (rst.data) {
-    pagination.value.total = rst.total  
-    pagination.value.pageNo=1  
-    tableData.value = rst.data.map((e:any,index:number)=>({...e,key:index}))
+  const rst = await http.get("/api/hlfs", { params: data || searchobj })
+  let path = (rst.config.params?.q || '').slice(6) || '/'
+  if (path !== treeSelectTitle) return
+  let res = rst.data
+  if (res.data) {
+    pagination.value.total = rst.total
+    pagination.value.pageNo = 1
+    tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
   return rst
 }
@@ -302,7 +308,7 @@ let checkName = async (_rule: Rule, value: string) => {
         }
         disable.value=false
         return Promise.resolve();
-      
+
       }
   }
 }
@@ -331,7 +337,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       }
     // }
     // }
-    
+
   }
   
 } 
@@ -582,6 +588,7 @@ let clickKey=<clickobj>{}
 
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
+  treeSelectTitle = info.node.title
   if(info.node.dataRef.title=='/'){
     await query()
   }else{
@@ -592,7 +599,7 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   clickKey.dataRef=info.node.dataRef
   if(info.node.dataRef.children.length==0){
     // 这里走精准匹配
-    await query({q:`path:"${str}"`,search:''})
+    await query({q:`path:${str}`,search:''})
 
   }else{
   // 这里走前置匹配

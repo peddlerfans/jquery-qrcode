@@ -33,7 +33,7 @@ request.interceptors.response.use(
       message.error("请求失败，请重试")
       return Promise.reject(new Error("请求失败，请重试"))
     } else {
-      return response.data
+        return response.data
     }
   },
   error => {
