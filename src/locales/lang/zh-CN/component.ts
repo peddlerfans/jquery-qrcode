@@ -43,8 +43,8 @@ export default {
     type: '类型',
     enum: '枚举',
     values: '值',
-    if: '如果',
-    then: '因此',
+    if: '因子',
+    then: '则',
     operator: '关系',
 
     pageTip: '当前显示第{head}-{tail}条，共{total}条'
