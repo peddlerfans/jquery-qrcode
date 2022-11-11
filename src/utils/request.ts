@@ -35,7 +35,7 @@ request.interceptors.response.use(
     }
   },
   error => {
-    console.error(error)
+    // if(error.constructor && error.constructor.name==="Cancel"){}
     // message.error(error.message, 5)
     return Promise.reject(error)
   }

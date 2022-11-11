@@ -15,6 +15,7 @@ async function query(data?:any){
     if(rsts){
         modelstates.value={...rsts} as any
         states.tags=rsts.tags!
+        sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
     }
 }
 let route=useRoute()
@@ -60,7 +61,7 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:100
+    width:180
   },
   {
     title: 'component.table.type',
@@ -78,7 +79,7 @@ const paramsColum = [
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:120
+    width:100
   }
 ]
 // 新添加一条params数据
@@ -212,14 +213,20 @@ async function updateAw(url:string,data:any) {
     }
 }
 
-let refForm=ref(null)
-const onFinishForm = async () => {  
-//   modelstates.value.tags = states.tags
-modelstates.value.tags=states.tags
+let refForm=ref()
+// const validator = new Schema(descriptor);
+const onFinishForm =  () => {  
+  refForm.value.validate().then(async (res:any)=>{
+     await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+  }).catch((error:any)=>{
+    disable.value=true
+    
+  })
 
+modelstates.value.tags=states.tags
     // if (modelstates._id) {
         
-        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+       
         
         
         // let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.update)
@@ -267,48 +274,61 @@ const optiones = ref<SelectProps['options']>([
     ]);
 
 
+let disable=ref(false)
+let rst=JSON.parse(sessionStorage.getItem("awData"+route.params._id)!)
+console.log(rst);
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
+    disable.value=true
     return Promise.reject(t('component.message.emptyName'))
-  }else if(!reg.test(value)){
-      return Promise.reject('The AW name is not standardized')
-     // 判断是否为修改，如果修改则不用查询name
-      // if(modelstates.value._id){
-      //   return Promise.resolve();
-      // }else{
-      //  let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      // if(rst.data.length>0){
-      //   // message.error("Duplicate name")
-      //   // modelstates.value.name=""
-      //   return Promise.reject("Duplicate name")
-      // }
-      return Promise.resolve();
-      // }
-    }
+  }else if(rst.name==value){
     
+    disable.value=false
+    return Promise.resolve();
+  }else  if(!reg.test(value)  && !reg1.test(value)){
+    disable.value=true
+      return Promise.reject('The AW name is not standardized')
+    }else{
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        disable.value=true
+        return Promise.reject("Duplicate name")
+      }else{
+        disable.value=false
+        return Promise.resolve();
+      
+      }
+  }
   
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
+    disable.value=true
     return Promise.reject(t('component.message.emptyDescription'))
   }else  {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
     // }else{
-      if(modelstates.value._id){
+      if(modelstates.value.description==value){
+        disable.value=false
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
       
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
-        message.error(t('component.message.dupDescription'))
+        disable.value=true
+        return Promise.reject(t('component.message.dupDescription'))
       }
     }
     // }
+    disable.value=false
     return Promise.resolve();
   }
   
@@ -316,16 +336,21 @@ let checkDesc = async (_rule: Rule, value: string) => {
 let checktem = async (_rule: Rule, value: string) => { 
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
+    disable.value=true
     return Promise.reject(t('awModeler.emptyTemp'))
+  }else{
+    disable.value=false
+    return Promise.resolve()
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
+  
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
-  template: [{ required: true, validator: checktem, trigger: 'blur' }],
+  description: [{ required: true, validator: checkDesc, trigger: 'change' }],
+  template: [{ required: true, validator: checktem, trigger: 'change' }],
 }
 </script>
 <template>
@@ -493,7 +518,7 @@ let rules: Record<string, Rule[]> = {
             </template>
         </a-table>
         <div>
-            <a-button type="primary" @click="onFinishForm" v-if="canEdit">Save</a-button>
+            <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">Save</a-button>
             <a-button @click="onFinishFailedForm">Cancel</a-button>
         </div>
     </div>

@@ -9,7 +9,8 @@ import {
   onMounted,
   nextTick,
   toRaw,
-  getCurrentInstance
+  getCurrentInstance,
+unref
 } from 'vue';
 import { useI18n } from "vue-i18n";
 import { useRouter } from 'vue-router';
@@ -293,7 +294,7 @@ const editModel = (rowobj: any) => {
   modelState.editing = true
 
 }
-
+let refModelForm=ref()
 const saveModel = async () => {
   const model = {
     name: modelState.name,
@@ -303,10 +304,14 @@ const saveModel = async () => {
     templateText: '',
     model: initModelAttr
   }
-  let rst = await request.post(url, model)
-  message.success(t('templateManager.createModelSuccess'))
-
+  unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
+    let rst = await request.post(url, model)
+    message.success(t('templateManager.createModelSuccess'))
   closeModel()
+  })
+  
+
+  
 }
 
 const updateModel = async () => {
@@ -369,14 +374,32 @@ const previewModel = async (id: string) => {
 // ################################
 // ######## Model CRUD END ########
 // ################################
-
+let disable=ref(true)
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  } else {
-    return Promise.resolve();
+  } else if(!reg.test(value) && !reg1.test(value)){
+      return Promise.reject('The AW name is not standardized')
+  }else{
+    let rst=await request.get("/api/templates",{params:{q:"category:dynamic",search:`@name:${value}`}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelState.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        disable.value=true
+        return Promise.reject("Duplicate name")
+      }else{
+        if(modelState.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        return Promise.resolve();
+      
+      }
   }
 }
 
@@ -384,6 +407,11 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('component.message.emptyDescription'))
   } else {
+    if(modelState.name){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
   }
 }
@@ -562,7 +590,7 @@ onMounted(() => {
 
         <template #footer>
           <a-button @click="closeModel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">{{ $t('common.saveText') }}</a-button>
+          <a-button @click="saveModel" type="primary" :disabled="disable" class="btn_ok">{{ $t('common.saveText') }}</a-button>
         </template>
 
 
@@ -613,6 +641,7 @@ onMounted(() => {
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
+            <!-- <a-form ></a-form> -->
             <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.name"
               style="margin: -5px 0" />
             <template v-else>
@@ -666,13 +695,13 @@ onMounted(() => {
             <span v-if="modelState._id===record._id && modelState.editing">
               <a-typography-link type="danger" @click="updateModel()">{{ $t('common.saveText') }}</a-typography-link>
               <a-divider type="vertical" />
-              <a-popconfirm
+              <!-- <a-popconfirm
                   :title="$t('component.message.sureCancel')"
                   @confirm="clearModelState()"
                   :ok-text="$t('common.okText')"
-                  :cancel-text="$t('common.cancelText')">
-                <a>{{ $t('common.cancelText') }}</a>
-              </a-popconfirm>
+                  :cancel-text="$t('common.cancelText')"> -->
+                <a @click="clearModelState">{{ $t('common.cancelText') }}</a>
+              <!-- </a-popconfirm> -->
             </span>
 
             <span v-else>

@@ -7,135 +7,135 @@ const { t } = i18n.global
 
 window.joint = joint
 export class Stencil {
-  namespace = joint.shapes; 
+  namespace = joint.shapes;
   states: object;
   linkAttrs: object = {};
   transitions: [] = [];
-  graph: dia.Graph = new joint.dia.Graph({},{ cellNamespace: joint.shapes });
-  paper: dia.Paper=new joint.dia.Paper({model: this.graph, cellViewNamespace: joint.shapes});;
+  graph: dia.Graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+  paper: dia.Paper = new joint.dia.Paper({ model: this.graph, cellViewNamespace: joint.shapes });;
   headerHeight = 14;
   buttonSize = 14;
-  
-//   container=joint.dia.Element.define('Container.Parent', {
-//     collapsed: false,
-//     attrs: {
-//         root: {
-//             magnetSelector: 'body'
-//         },
-//         body: {
-//             refWidth: 20,
-//             refHeight: 20,
-//             strokeWidth: 1,
-//             stroke: '#DDDDDD',
-//             fill: '#FCFCFC'
-//         },
-//         header: {
-//             refWidth: 20,
-//             height: this.headerHeight,
-//             strokeWidth: 0.5,
-//             stroke: '#4666E5',
-//             fill: '#4666E5'
-//         },
-//         headerText: {
-//             textVerticalAnchor: 'middle',
-//             textAnchor: 'start',
-//             refX: 8,
-//             refY: this.headerHeight/2,
-//             fontSize: 12,
-//             fontFamily: 'sans-serif',
-//             letterSpacing: 1,
-//             // fill: '#FFFFFF',
-//             // textWrap: {
-//             //     width: 40,
-//             //     maxLineCount: 1,
-//             //     ellipsis: '*'
-//             // },
-//             // style: {
-//             //     textShadow: '1px 1px #222222',
-//             // }
-//         },
-//         // button: {
-//         //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
-//         //     refY: (this.headerHeight - this.buttonSize) / 2,
-//         //     cursor: 'pointer',
-//         //     event: 'element:button:pointerdown',
-//         //     title: 'Collapse / Expand'
-//         // },
-//         buttonBorder: {
-//             width: this.buttonSize,
-//             height: this.buttonSize,
-//             fill: '#000000',
-//             fillOpacity: 0.2,
-//             stroke: '#FFFFFF',
-//             strokeWidth: 0.5,
-//         },
-//         buttonIcon: {
-//             fill: 'none',
-//             stroke: '#FFFFFF',
-//             strokeWidth: 1
-//         }
-//     }
-//     }, {
-//     markup: [
-//     //   {
-//     //     tagName: 'rect',
-//     //     selector: 'shadow'
-//     // },
-//      {
-//         tagName: 'rect',
-//         selector: 'body'
-//     },
-//      {
-//         tagName: 'rect',
-//         selector: 'header'
-//     }, 
-//     {
-//         tagName: 'text',
-//         selector: 'headerText'
-//     }, 
-//     // {
-//     //     tagName: 'g',
-//     //     selector: 'button',
-//     //     children: [{
-//     //         tagName: 'rect',
-//     //         selector: 'buttonBorder'
-//     //     }, {
-//     //         tagName: 'path',
-//     //         selector: 'buttonIcon'
-//     //     }]
-//     // }
-//   ],
 
-//     toggle: function(shouldCollapse: undefined) {
-//         var buttonD;
-//         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-//         if (collapsed) {
-//             buttonD = 'M 2 7 12 7 M 7 2 7 12';
-//             this.resize(140, 30);
-//         } else {
-//             buttonD = 'M 2 7 12 7';
-//             this.fitChildren();
-//         }
-//         this.attr(['buttonIcon','d'], buttonD);
-//         this.set('collapsed', collapsed);
-//     },
+  //   container=joint.dia.Element.define('Container.Parent', {
+  //     collapsed: false,
+  //     attrs: {
+  //         root: {
+  //             magnetSelector: 'body'
+  //         },
+  //         body: {
+  //             refWidth: 20,
+  //             refHeight: 20,
+  //             strokeWidth: 1,
+  //             stroke: '#DDDDDD',
+  //             fill: '#FCFCFC'
+  //         },
+  //         header: {
+  //             refWidth: 20,
+  //             height: this.headerHeight,
+  //             strokeWidth: 0.5,
+  //             stroke: '#4666E5',
+  //             fill: '#4666E5'
+  //         },
+  //         headerText: {
+  //             textVerticalAnchor: 'middle',
+  //             textAnchor: 'start',
+  //             refX: 8,
+  //             refY: this.headerHeight/2,
+  //             fontSize: 12,
+  //             fontFamily: 'sans-serif',
+  //             letterSpacing: 1,
+  //             // fill: '#FFFFFF',
+  //             // textWrap: {
+  //             //     width: 40,
+  //             //     maxLineCount: 1,
+  //             //     ellipsis: '*'
+  //             // },
+  //             // style: {
+  //             //     textShadow: '1px 1px #222222',
+  //             // }
+  //         },
+  //         // button: {
+  //         //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
+  //         //     refY: (this.headerHeight - this.buttonSize) / 2,
+  //         //     cursor: 'pointer',
+  //         //     event: 'element:button:pointerdown',
+  //         //     title: 'Collapse / Expand'
+  //         // },
+  //         buttonBorder: {
+  //             width: this.buttonSize,
+  //             height: this.buttonSize,
+  //             fill: '#000000',
+  //             fillOpacity: 0.2,
+  //             stroke: '#FFFFFF',
+  //             strokeWidth: 0.5,
+  //         },
+  //         buttonIcon: {
+  //             fill: 'none',
+  //             stroke: '#FFFFFF',
+  //             strokeWidth: 1
+  //         }
+  //     }
+  //     }, {
+  //     markup: [
+  //     //   {
+  //     //     tagName: 'rect',
+  //     //     selector: 'shadow'
+  //     // },
+  //      {
+  //         tagName: 'rect',
+  //         selector: 'body'
+  //     },
+  //      {
+  //         tagName: 'rect',
+  //         selector: 'header'
+  //     }, 
+  //     {
+  //         tagName: 'text',
+  //         selector: 'headerText'
+  //     }, 
+  //     // {
+  //     //     tagName: 'g',
+  //     //     selector: 'button',
+  //     //     children: [{
+  //     //         tagName: 'rect',
+  //     //         selector: 'buttonBorder'
+  //     //     }, {
+  //     //         tagName: 'path',
+  //     //         selector: 'buttonIcon'
+  //     //     }]
+  //     // }
+  //   ],
 
-//     isCollapsed: function() {
-//         return Boolean(this.get('collapsed'));
-//     },
+  //     toggle: function(shouldCollapse: undefined) {
+  //         var buttonD;
+  //         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+  //         if (collapsed) {
+  //             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+  //             this.resize(140, 30);
+  //         } else {
+  //             buttonD = 'M 2 7 12 7';
+  //             this.fitChildren();
+  //         }
+  //         this.attr(['buttonIcon','d'], buttonD);
+  //         this.set('collapsed', collapsed);
+  //     },
 
-//     fitChildren: function() {
-//         var padding = 10;
-//         this.fitEmbeds({
-//             padding: {
-//                 top: this.headerHeight + padding,
-//                 left: padding,
-//                 right: padding,
-//                 bottom: padding
-//             }
-//         });
-//     }
-// });
+  //     isCollapsed: function() {
+  //         return Boolean(this.get('collapsed'));
+  //     },
+
+  //     fitChildren: function() {
+  //         var padding = 10;
+  //         this.fitEmbeds({
+  //             padding: {
+  //                 top: this.headerHeight + padding,
+  //                 left: padding,
+  //                 right: padding,
+  //                 bottom: padding
+  //             }
+  //         });
+  //     }
+  // });
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
@@ -192,12 +192,12 @@ export class Stencil {
       },
     });
 
- 
+
     let umlstate = new joint.shapes.standard.HeaderedRectangle({
       size: { width: 30, height: 22 },
       position: { x: 14, y: 120 },
       attrs: {
-       
+
         body: {
           fill: '#ffffff',
           // fillOpacity: 0.5
@@ -276,7 +276,7 @@ export class Stencil {
       }
     });
 
-    
+
 
 
     this.states = {};
@@ -288,7 +288,7 @@ export class Stencil {
     Object.assign(this.states, { exclusiverhombus: ExclusiveRhombusShape });
     Object.assign(this.states, { parallelsrhombus: ParallelRhombusShape });
 
-    
+
     this.paper = new joint.dia.Paper({
       el: canvas.value,
       model: this.graph,

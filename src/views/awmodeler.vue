@@ -94,11 +94,9 @@ const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;      
 };
-  
-const handleOk = () => {
-onFinishForm(modelstates)
-clear()
-};
+
+let disable=ref(true)
+
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear()
@@ -242,7 +240,7 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:100
+    width:180
   },
   {
     title: 'component.table.type',
@@ -260,7 +258,7 @@ const paramsColum = [
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:120
+    width:100
   }
 ]
 // 添加params的enu
@@ -290,26 +288,29 @@ const newFactorValueInput = (record: any) => {
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
-  let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(!reg.test(value)){
+  }else if(!reg.test(value) && !reg1.test(value)){
       return Promise.reject('The AW name is not standardized')
-     // 判断是否为修改，如果修改则不用查询name
-      // if(modelstates.value._id){
-      //   return Promise.resolve();
-      // }else{
-      //  let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      // if(rst.data.length>0){
-      //   // message.error("Duplicate name")
-      //   // modelstates.value.name=""
-      //   return Promise.reject("Duplicate name")
-      // }
-      return Promise.resolve();
-      // }
-    }
-    
-  
+  }else{
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        return Promise.reject("Duplicate name")
+      }else{
+        if(modelstates.value.description && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        disable.value=false
+        return Promise.resolve();
+
+      }
+  }
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
@@ -319,17 +320,24 @@ let checkDesc = async (_rule: Rule, value: string) => {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
     // }else{
-      if(modelstates.value._id){
-      return Promise.resolve()
-    }else{
+    //   if(modelstates.value._id){
+    //   return Promise.resolve()
+    // }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
       
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
-        message.error(t('component.message.dupDescription'))
-      }
-    }
-    // }
+        return Promise.reject(t('component.message.dupDescription'))
+      }else{
+        if(modelstates.value.name && modelstates.value.template){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
+      }
+    // }
+    // }
+
   }
   
 } 
@@ -337,34 +345,40 @@ let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
+  }else{
+    if(modelstates.value.name && modelstates.value.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
+  disable.value=false
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
-let refForm=ref(null)
-const onFinishForm = async (modelstates: any) => {  
-  modelstates.value.tags = states.tags
-    if (modelstates.value._id) {
-      visible.value = false;
-        tableData.value[modelstates.value.key]={...modelstates.value}
-        await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
-        message.success(t('component.message.modifiedText'))
-    } else {
-          delete modelstates.value._id
-          if(modelstates.value.name &&  modelstates.value.description && modelstates.value.template){
-            await saveAw(modelstates.value)
-          }else{
-            message.error(t('component.message.emptyTip'))
-            visible.value=true
-          }
-    }
-    clear()
+let refForm=ref()
+const handleOk = (data: any) => {
+    refForm.value.validate().then(async()=>{
+  await saveAw(data)
+  clear()
+})
+// onFinishForm(modelstates)
+clear()
+};
+const onFinishForm =  (modelstates: any) => {
+
+//   refForm.value.validate().then(async()=>{
+//   await saveAw(modelstates.value)
+//   clear()
+// }).catch((err:any)=>{
+
+// })
     
   }
 const onFinishFailedForm = (errorInfo: any) => {};
@@ -581,6 +595,7 @@ function getPath(key:any,treearr:any){
 
 // 当点击时给其赋值，用其值判断调用查询的函数
 let clickKey=<clickobj>{}
+
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   treeSelectTitle = info.node.title
@@ -1064,13 +1079,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    @cancel="closemodel"
-    @ok="handleOk"
     :width="700"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
@@ -1316,6 +1329,7 @@ let awupdate=ref("awmodeler")
     </div>
         </template>
       </SplitPanel>
+
    <!-- </section> -->
   </div>
    </main>

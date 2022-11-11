@@ -129,7 +129,7 @@ async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data);
   // console.log(rst);
 }
-let refForm = ref(null);
+let refForm = ref();
 // 清除模态窗数据
 const clear = () => {
   (modelstates.value = {
@@ -181,10 +181,9 @@ async function saveMBT(data: any) {
       });
   });
 }
-
-const onFinishForm = async (modelstates: any) => {
+const handleOk = (modelstates:any) => {
+  refForm.value.validate().then(async()=>{
   modelstates.value.tags = states.tags;
-
   // 判断修改或添加
   if (modelstates.value.name && modelstates.value.description) {
     if (modelstates.value._id) {
@@ -207,16 +206,20 @@ const onFinishForm = async (modelstates: any) => {
   } else {
     return message.error(t('MBTStore.tip2'));
   }
+})
+  visible.value = false;
+
+  // onFinishForm(modelstates);
+};
+const onFinishForm = async (modelstates: any) => {
+  
 };
 
 /**
  * Create a new model and jump to moderler
  */
-const handleOk = () => {
-  visible.value = false;
+let disable=ref(true)
 
-  onFinishForm(modelstates);
-};
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
@@ -239,19 +242,44 @@ const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-// 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'));
-  } else {
-    return Promise.resolve();
+    return Promise.reject(t('component.message.emptyName'))
+  }else if(modelstates.value.name==value){
+    return Promise.resolve()
+  }else if(!reg.test(value) && !reg1.test(value)){
+      return Promise.reject('The name is not standardized')
+  }else{
+    let rst=await request.get(url,{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+        disable.value=true
+        return Promise.reject("Duplicate name")
+      }else{
+        if(modelstates.value.description){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
+        
+        return Promise.resolve();
+      
+      }
   }
-};
+}
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('MBTStore.tip5'));
   } else {
+    if(modelstates.value.name){
+          disable.value=false
+        }else{
+          disable.value=true
+        }
     return Promise.resolve();
   }
 };
@@ -335,13 +363,11 @@ const handleInputConfirm = () => {
       <a-modal
         v-model:visible="visible"
         :title="modelstates._id ? $t('MBTStore.updateTitle') : $t('MBTStore.saveTitle')"
-        @cancel="closemodel"
-        @ok="handleOk"
         :width="700"
       >
         <template #footer>
           <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+          <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
         </template>
         <a-form
           ref="refForm"
