@@ -388,16 +388,16 @@ let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'))
+    return Promise.reject(t('templateManager.nameinput'))
   } else if(!reg.test(value) && !reg1.test(value)){
-      return Promise.reject('The AW name is not standardized')
+      return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:dynamic",search:`@name:${value}`}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
         disable.value=true
-        return Promise.reject("Duplicate name")
+        return Promise.reject(t('templateManager.duplicate'))
       }else{
         if(modelState.description){
           disable.value=false
@@ -412,7 +412,7 @@ let checkName = async (_rule: Rule, value: string) => {
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('component.message.emptyDescription'))
+    return Promise.reject(t('templateManager.description'))
   } else {
     if(modelState.name){
           disable.value=false
@@ -653,7 +653,9 @@ onMounted(() => {
           <div>
             <a-form v-if="modelState._id===record._id && modelState.editing" ref="refForm" :rules="rules"  :model="modelState" >
               <a-form-item name="name">
-                <a-input  v-model:value.trim="modelState.name"
+                <a-input
+                :placeholder="$t('templateManager.dynamicName')"  
+                v-model:value.trim="modelState.name"
               style="margin: -5px 0" />
               </a-form-item>
             </a-form>
@@ -670,7 +672,9 @@ onMounted(() => {
           <div>
             <a-form v-if="modelState._id===record._id && modelState.editing" ref="refFormdec" :rules="rules"  :model="modelState" >
               <a-form-item name="description">
-                <a-input v-model:value.trim="modelState.description"
+                <a-input
+                :placeholder="$t('templateManager.metaDescription')" 
+                v-model:value.trim="modelState.description"
               style="margin: -5px 0" />
               </a-form-item>
             </a-form>

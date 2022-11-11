@@ -52,11 +52,9 @@ import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { booleanLiteral, stringLiteral } from "@babel/types";
-import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
-import { nextTick } from "process";
 
 const { t } = useI18n();
 
@@ -2425,6 +2423,38 @@ const routerAw = (awData: any) => {
     },
   });
 };
+
+// preciew
+const visiblepreciew=ref(false)
+const previewActiveKey=ref("1")
+let searchPreview=reactive({
+  mode:""
+})
+let previewData=ref()
+async function querycode(){
+  let rst=await request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview})
+  if(rst){
+    previewData.value=rst
+  }
+}
+const preview=async (data:any)=>{
+  
+  searchPreview.mode="text"
+  await querycode()
+  visiblepreciew.value=true
+}
+const switchPut=async (val:any)=>{
+  if(val=="2"){
+    searchPreview.mode="script"
+    
+  }else{
+    searchPreview.mode="text"
+  }
+  await querycode()
+}
+const handleOk=()=>{
+  visiblepreciew.value=false
+}
 </script>
 
 <template>
@@ -2440,11 +2470,38 @@ const routerAw = (awData: any) => {
               {{ $t("common.saveText") }}
             </a-button>
             <span style="margin-left: 5px">
+              <a-button type="primary" @click="preview(route)">
+                preview
+              </a-button>
+            </span>
+            <span style="margin-left: 5px">
               <a-button danger @click="reloadMBT(route)">
                 {{ $t("layout.multipleTab.reload") }}
               </a-button>
             </span>
           </a-button-group>
+          <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
+            <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
+              <a-tab-pane key="1" tab="OutPut text">
+                <a-card >
+                  <a-card-grid
+                  v-for="(item,index) in previewData"
+                  :key="index"
+                   style="width: 25%; text-align: center"
+                   :hoverable="false">{{item.data}}</a-card-grid>
+                </a-card>
+              </a-tab-pane>
+              <a-tab-pane key="2" tab="OutPut srcpit" force-render>
+                <a-card >
+                  <a-card-grid
+                  v-for="(item,index) in previewData"
+                  :key="index"
+                   style="width: 25%; text-align: center"
+                   :hoverable="false">{{item.data}}</a-card-grid>
+                </a-card>
+              </a-tab-pane>
+            </a-tabs>
+          </a-modal>
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">

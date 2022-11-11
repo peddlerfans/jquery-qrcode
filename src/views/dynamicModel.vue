@@ -473,8 +473,14 @@ let condata=ref<Array<any>>([])
 // 点击保存时触发数据填充表格
 const  conditionsend=()=>{
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
-      
-      let thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
+      let thencondition
+      if(typeof thenObj.value.thenValue=="number"){
+        thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
+      }else{
+        thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} "${thenObj.value.thenValue}"`
+        // console.log(thencondition);
+      }
+
       let truerow={if:rulesData.value,then:{...thenObj.value}}
       if(keys.value>=0){
         finalModel.constraint[keys.value]={...truerow}
@@ -739,7 +745,8 @@ const previewModel = async () => {
       </template>
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
-          <span>{{'['+record.then.thenName+']'+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
+
+          <span>{{`[${record.then.thenName}] ${record.then.thenOperator} ${record.then.thenValue}`}}</span>
         
         </template>
         <template v-if="column.key=='action'">

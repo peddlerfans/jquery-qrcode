@@ -253,20 +253,20 @@ let checkName=async (_rule:Rule,value:string)=>{
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
     disable.value=true
-    return Promise.reject("place input your name")
+    return Promise.reject(t('templateManager.nameinput'))
   }else if(editData._id && editData.name==value){
     disable.value=false
     return Promise.resolve()
   }else if(!reg.test(value) && !reg1.test(value)){
     disable.value=true
-    return Promise.reject("The name is not standardized")
+    return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
         disable.value=true
-        return Promise.reject("Duplicate name")
+        return Promise.reject(t('templateManager.duplicate'))
       }else{
         disable.value=false
         return Promise.resolve();
@@ -278,7 +278,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     disable.value=true
-    return Promise.reject(t('awModeler.emptyDescription'))
+    return Promise.reject(t('templateManager.description'))
   }else{
           disable.value=false
   }
@@ -337,7 +337,7 @@ let rules:Record<string,Rule[]>={
           <a-form :model="record" ref="refForm" v-if="record.editing" :rules="rules">
             <a-form-item name="name">
               <a-input
-              placeholder="Meta Name"
+              :placeholder="$t('templateManager.metaName')"
               v-model:value="record.name"
               style="margin: -5px 0" 
               />
@@ -354,7 +354,7 @@ let rules:Record<string,Rule[]>={
           <a-form v-if="record.editing" :model="record" ref="refFormdec" :rules="rules">
             <a-form-item name="description">
               <a-input
-
+              :placeholder="$t('templateManager.metaDescription')"
             v-model:value="record.description"
             style="margin: -5px 0"
           />

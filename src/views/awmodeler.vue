@@ -293,13 +293,13 @@ let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
   }else if(!reg.test(value) && !reg1.test(value)){
-      return Promise.reject('The AW name is not standardized')
+      return Promise.reject(t('component.message.hefaName'))
   }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
         // message.error("Duplicate name")
         // modelstates.value.name=""
-        return Promise.reject("Duplicate name")
+        return Promise.reject(t('component.message.depName'))
       }else{
         if(modelstates.value.description && modelstates.value.template){
           disable.value=false

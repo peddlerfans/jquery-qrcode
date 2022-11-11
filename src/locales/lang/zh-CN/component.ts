@@ -63,6 +63,7 @@ export default {
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
+    hefaName:"名称格式不正确",
 
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',
