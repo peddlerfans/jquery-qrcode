@@ -313,7 +313,8 @@ const saveModel = async () => {
 
   
 }
-
+let refForm=ref()
+let refFormdec=ref()
 const updateModel = async () => {
   const model = {
     name: modelState.name,
@@ -322,8 +323,9 @@ const updateModel = async () => {
     category: "dynamic",
     templateText: '',
   }
-
-  if (modelState._id) {
+  unref(refForm).validate('name').then(async (res:any) => {
+    unref(refFormdec).validate().then(async (res:any) => {
+      if (modelState._id) {
     let rst = await request.put(url + `/${modelState._id}`, model)
     query()
     message.success(t('templateManager.updateModelSuccess'))
@@ -332,6 +334,11 @@ const updateModel = async () => {
     message.warning(t('templateManager.readModelErr'))
   }
   clearModelState()
+    })
+    
+  })
+  
+  
 }
 
 const deleteModel = async (id: string) => {
@@ -386,7 +393,7 @@ let checkName = async (_rule: Rule, value: string) => {
       return Promise.reject('The AW name is not standardized')
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:dynamic",search:`@name:${value}`}})
-      if(rst.data && rst.data.length>0 && rst.data[0].name==modelState.name){
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
         disable.value=true
@@ -420,7 +427,10 @@ let modelRules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 };
-
+let rules:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+}
 
 // const handleOk = () => {
 //   onFinishForm(modelState)
@@ -641,9 +651,13 @@ onMounted(() => {
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
-            <!-- <a-form ></a-form> -->
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.name"
+            <a-form v-if="modelState._id===record._id && modelState.editing" ref="refForm" :rules="rules"  :model="modelState" >
+              <a-form-item name="name">
+                <a-input  v-model:value.trim="modelState.name"
               style="margin: -5px 0" />
+              </a-form-item>
+            </a-form>
+            
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
               <a :href="`/#/dynamicModeler/${record._id}/${record.name}`">{{text}}</a>
@@ -654,8 +668,12 @@ onMounted(() => {
         </template>
         <template v-if='column.key==="description"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value.trim="modelState.description"
+            <a-form v-if="modelState._id===record._id && modelState.editing" ref="refFormdec" :rules="rules"  :model="modelState" >
+              <a-form-item name="description">
+                <a-input v-model:value.trim="modelState.description"
               style="margin: -5px 0" />
+              </a-form-item>
+            </a-form>
             <template v-else>
               {{ text }}
             </template>
@@ -693,7 +711,7 @@ onMounted(() => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="modelState._id===record._id && modelState.editing">
-              <a-typography-link type="danger" @click="updateModel()">{{ $t('common.saveText') }}</a-typography-link>
+              <a-button type="link" :disabled="disable" style="color:red" @click="updateModel()">{{ $t('common.saveText') }}</a-button>
               <a-divider type="vertical" />
               <!-- <a-popconfirm
                   :title="$t('component.message.sureCancel')"

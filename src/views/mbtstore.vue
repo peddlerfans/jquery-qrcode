@@ -211,7 +211,7 @@ const handleOk = (modelstates:any) => {
 
   // onFinishForm(modelstates);
 };
-const onFinishForm = async (modelstates: any) => {
+const onFinishForm =  (modelstates: any) => {
   
 };
 
@@ -377,8 +377,6 @@ const handleInputConfirm = () => {
           :label-col="{ span: 6 }"
           :wrapper-col="{ span: 16 }"
           autocomplete="off"
-          @finish="onFinishForm"
-          @finishFailed="onFinishFailedForm"
         >
           <a-form-item :label="$t('component.table.name')" name="name">
             <a-input v-model:value="modelstates.name" />

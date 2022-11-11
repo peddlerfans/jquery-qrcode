@@ -129,34 +129,22 @@ const clearFactorState = () => {
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 let refForm=ref()
-
+let refFormdec=ref()
 // 点击save触发的函数
 const save = (record: any) => {
-  unref(refForm).validate('name').then(async (res:any) => {
-    console.log(res);
-    record.editing = false
+  unref(refForm).validate().then(async (res:any) => {
+    unref(refFormdec).validate().then(async (res:any) => {
+      record.editing = false
+    showAddFactorBtn.value=true
     if(record._id){
     await updMeta(record)
   }else{  
     await request.post("/api/templates",record)
     }
   clearFactorState()
-  showAddFactorBtn.value=true
+    })
   })
   }
-  // 
-  // refForm.value.validate().then(async()=>{
-  // if(record._id){
-  //   await updMeta(record)
-  // }else{  
-  //   await request.post("/api/templates",record)
-  // }
-  // })
-
-  
-
-
-
 const createMeta=()=>{
   showAddFactorBtn.value=false
   tableData.value.unshift({
@@ -286,8 +274,22 @@ let checkName=async (_rule:Rule,value:string)=>{
       }
   }
 }
+let checkDesc = async (_rule: Rule, value: string) => { 
+  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
+  if (!value) {
+    disable.value=true
+    return Promise.reject(t('awModeler.emptyDescription'))
+  }else{
+          disable.value=false
+  }
+  // else if(!reg.test(value)){
+  //     return Promise.reject('The AW name is not standardized')
+  // }
+}
+
 let rules:Record<string,Rule[]>={
-  name:[{required:true,validator:checkName,trigger:'blur'}]
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
 
 
@@ -337,7 +339,7 @@ let rules:Record<string,Rule[]>={
               <a-input
               placeholder="Meta Name"
               v-model:value="record.name"
-              style="margin: -5px 0"
+              style="margin: -5px 0" 
               />
             </a-form-item>
           </a-form>
@@ -349,7 +351,7 @@ let rules:Record<string,Rule[]>={
         </template>
         <template v-if='column.key==="description"'>
         <div>
-          <a-form v-if="record.editing" :model="record" :rules="rules">
+          <a-form v-if="record.editing" :model="record" ref="refFormdec" :rules="rules">
             <a-form-item name="description">
               <a-input
 

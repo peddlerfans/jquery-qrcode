@@ -130,12 +130,13 @@ const clearFactorState = () => {
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 let refForm=ref()
-
+let refFormdec=ref()
 // 点击save触发的函数
 const save = (record:any) => {
   unref(refForm).validate('name').then(async (res:any) => {
-    console.log(res);
-    record.editing = false
+    unref(refFormdec).validate().then(async (res:any) => {
+
+      record.editing = false
     if(record._id){
     await updMeta(record)
   }else{  
@@ -144,6 +145,8 @@ const save = (record:any) => {
   clearFactorState()
   showAddFactorBtn.value=true
   })
+    })
+    
 }
 
 
@@ -263,7 +266,7 @@ let checkName=async (_rule:Rule,value:string)=>{
     disable.value=true
     return Promise.reject("The name is not standardized")
   }else{
-    let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
+    let rst=await request.get("/api/templates",{params:{q:"category:static",search:`@name:${value}`}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
@@ -276,8 +279,18 @@ let checkName=async (_rule:Rule,value:string)=>{
       }
   }
 }
+let checkDesc = async (_rule: Rule, value: string) => { 
+  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
+  if (!value) {
+    disable.value=true
+    return Promise.reject(t('awModeler.emptyDescription'))
+  }else{
+          disable.value=false
+  }
+}
 let rules:Record<string,Rule[]>={
-  name:[{required:true,validator:checkName,trigger:'blur'}]
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
 
 
@@ -341,7 +354,7 @@ let rules:Record<string,Rule[]>={
         </template>
         <template v-if='column.key==="description"'>
         <div>
-          <a-form v-if="record.editing" :model="record" :rules="rules">
+          <a-form v-if="record.editing" :model="record" ref="refFormdec"  :rules="rules">
             <a-form-item name="description">
               <a-input
 

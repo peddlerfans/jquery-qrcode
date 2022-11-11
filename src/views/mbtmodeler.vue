@@ -855,9 +855,12 @@ const subAttributes=(data:any)=>{
   
   globalformData.value.codegen_text=data.value.codegen_text
   globalformData.value.codegen_script=data.value.codegen_script
-  Object.assign(mbtCache,{codegen_text:globalformData.value.codegen_text})
-  Object.assign(mbtCache,{codegen_script:globalformData.value.codegen_script})
-  console.log(mbtCache);
+  mbtCache["attributes"]= mbtCache["attributes"] || {}
+  mbtCache["attributes"].codegen_text=globalformData.value.codegen_text
+  mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
+  // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
+  // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
+  console.log(mbtCache); 
   onCloseDrawer();
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -1711,10 +1714,7 @@ onMounted(() => {
       // console.log('other    ....',cell.attributes);
     }
     */
-  });
-  modeler.paper.on("link:mouseout", async function (linkView: any) {
-    console.log(123);
-  });
+  }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
     // console.log('11111111111cell  ',linkView.model.id);
@@ -1905,16 +1905,18 @@ function showGlobalInfo() {
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
     globalformData.value.descriptions = mbtCache["description"];
-    if (_.isArray(mbtCache["codegen_text"])) {
-      _.forEach(mbtCache["codegen_text"], function (value, key) {
-        globalformData.value.codegen_text += value + " ";
-      });
-    }
-    globalformData.value.codegen_text = mbtCache['codegen_text'];
-  }else if(_.isArray(mbtCache["codegen_script"])){
-    _.forEach(mbtCache["codegen_script"], function (value, key) {
-        globalformData.value.codegen_script += value + " ";
-      });
+    globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+    globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
+    // if (_.isArray(mbtCache["codegen_text"])) {
+    //   _.forEach(mbtCache["codegen_text"], function (value, key) {
+    //     globalformData.value.codegen_text += value + " ";
+    //   });
+    // }
+  //   globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+  // }else if(_.isArray(mbtCache["codegen_script"])){
+  //   _.forEach(mbtCache["codegen_script"], function (value, key) {
+  //       globalformData.value.codegen_script += value + " ";
+  //     });
   }
 }
 
@@ -2017,7 +2019,7 @@ function showAWExpectedInfo(rowobj: any) {
 const activeKey = ref("2");
 const metaActiveKey = ref(["1"]);
 const awActiveKey = ref("1");
-
+ 
 interface columnDefinition {
   title: string;
   dataIndex: string;

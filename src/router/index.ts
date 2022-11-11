@@ -174,12 +174,12 @@ export const routes: RouteRecordRaw[] = [
         path: ':_id/:name',
         name: 'mbtmodeler',
         component: () => import('@/views/mbtmodeler.vue'),
-        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { title: 'mbtModel', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ],
     beforeEnter(to, form, next) {
       let pathname = `${to.params.name}`;
-      if (to.path == `/mbtmodeler/${to.params._id}/` + encodeURIComponent(pathname)) {
+      if (to.params._id) {
 
         to.meta.title = pathname
 

@@ -197,6 +197,7 @@ let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbt
 let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 // 修改函数
 async function updateAw(url:string,data:any) {
+  delete data._id
   let rst = await request.put(url, data)
   console.log(JSON.parse(getupdate));
   if(rst && JSON.parse(getupdate)=="awmodeler"){
@@ -217,19 +218,13 @@ let refForm=ref()
 // const validator = new Schema(descriptor);
 const onFinishForm =  () => {  
   refForm.value.validate().then(async (res:any)=>{
+    modelstates.value.tags=states.tags
      await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
     
   })
 
-modelstates.value.tags=states.tags
-    // if (modelstates._id) {
-        
-       
-        
-        
-        // let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.update)
        
     } 
   const onFinishFailedForm = (errorInfo: any) => {
@@ -273,9 +268,9 @@ const optiones = ref<SelectProps['options']>([
       }
     ]);
 
-
+ 
 let disable=ref(false)
-let rst=JSON.parse(sessionStorage.getItem("awData"+route.params._id)!)
+let rst:any=route.params.name
 console.log(rst);
 
 // 表单验证
@@ -285,7 +280,7 @@ let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
     disable.value=true
     return Promise.reject(t('component.message.emptyName'))
-  }else if(rst.name==value){
+  }else if(rst==value){
     
     disable.value=false
     return Promise.resolve();
@@ -363,8 +358,6 @@ let rules: Record<string, Rule[]> = {
       :label-col="{ span: 2 }"
       :wrapper-col="{ span: 12 }"
       autocomplete="off"
-      @finish="onFinishForm"
-      @finishFailed="onFinishFailedForm"
       >
       <a-form-item
         :label="$t('component.table.name')"
@@ -509,7 +502,6 @@ let rules: Record<string, Rule[]> = {
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
                   :ok-text="$t('common.okText')">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
               <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>

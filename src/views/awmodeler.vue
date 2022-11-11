@@ -358,23 +358,13 @@ let rules: Record<string, Rule[]> = {
 }
 let refForm=ref()
 const handleOk = (data: any) => {
-    refForm.value.validate().then(async()=>{
-  await saveAw(data)
+  unref(refForm).validate('description').then(async()=>{
+  // await saveAw(data)
   clear()
 })
 // onFinishForm(modelstates)
-clear()
 };
-const onFinishForm =  (modelstates: any) => {  
-          
-//   refForm.value.validate().then(async()=>{
-//   await saveAw(modelstates.value)
-//   clear()
-// }).catch((err:any)=>{
-
-// })
-    
-  }
+const onFinishForm =  (modelstates: any) => {}
 const onFinishFailedForm = (errorInfo: any) => {};
 // 添加的表单tags
 let inputRef = ref();
@@ -1086,8 +1076,6 @@ let awupdate=ref("awmodeler")
       :label-col="{ span: 6 }"
       :wrapper-col="{ span: 16 }"
       autocomplete="off"
-      @finish="onFinishForm"
-      @finishFailed="onFinishFailedForm"
     >
       <a-form-item
         :label="$t('component.table.name')"
