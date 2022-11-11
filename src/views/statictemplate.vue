@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, UnwrapRef, onMounted, nextTick } from 'vue';
+import { ref, reactive, UnwrapRef, onMounted, nextTick, unref } from 'vue';
 import { FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
@@ -133,17 +133,17 @@ let refForm=ref()
 
 // 点击save触发的函数
 const save = (record:any) => {
-  record.editing=false
-  refForm.value.validate().then(async()=>{
+  unref(refForm).validate('name').then(async (res:any) => {
+    console.log(res);
+    record.editing = false
     if(record._id){
     await updMeta(record)
   }else{  
     await request.post("/api/templates",record)
-  }
-  })
-
+    }
   clearFactorState()
   showAddFactorBtn.value=true
+  })
 }
 
 

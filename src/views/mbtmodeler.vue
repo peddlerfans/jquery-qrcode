@@ -44,19 +44,11 @@ import {
   grey,
 } from "@ant-design/colors";
 import VueForm from "@lljj/vue3-form-ant";
-import {
-  tableSearch,
-  FormState,
-  paramsobj,
-  ModelState,
-  statesTs,
-} from "./componentTS/awmodeler";
+import {tableSearch,FormState,paramsobj,ModelState,statesTs,} from "./componentTS/awmodeler";
 import _, { transform } from "lodash";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
 import { StorageSerializers, useCurrentElement } from "@vueuse/core";
-
 import { computed, defineComponent } from "vue";
-
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { booleanLiteral, stringLiteral } from "@babel/types";
@@ -1320,6 +1312,7 @@ onMounted(() => {
    
     
     res = mbtquery(mbtId);
+    console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -2115,7 +2108,7 @@ const resourcesedit = (key: string) => {
 };
 const resourcessave = (key: string) => {
   Object.assign(
-    resourcesdataSource.value.filter((item) => key === item.key)[0],
+    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
     resourceseditableData[key]
   );
   delete resourceseditableData[key];
@@ -2126,7 +2119,7 @@ const resourcescancel = (key: string) => {
 
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item) => item.key !== key
+    (item: { key: string; }) => item.key !== key
   );
 };
 const resourceshandleAdd = () => {
@@ -3052,6 +3045,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {

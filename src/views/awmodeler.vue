@@ -90,10 +90,7 @@ const showModal = () => {
 };
 
 let disable=ref(true)
-const handleOk = () => {
-onFinishForm(modelstates)
-clear()
-};
+
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear()
@@ -360,15 +357,22 @@ let rules: Record<string, Rule[]> = {
   template: [{ required: true, validator: checktem, trigger: 'blur' }],
 }
 let refForm=ref()
-
+const handleOk = (data: any) => {
+    refForm.value.validate().then(async()=>{
+  await saveAw(data)
+  clear()
+})
+// onFinishForm(modelstates)
+clear()
+};
 const onFinishForm =  (modelstates: any) => {  
           
-  refForm.value.validate().then(async()=>{
-  await saveAw(modelstates.value)
-  clear()
-}).catch((err:any)=>{
+//   refForm.value.validate().then(async()=>{
+//   await saveAw(modelstates.value)
+//   clear()
+// }).catch((err:any)=>{
 
-})
+// })
     
   }
 const onFinishFailedForm = (errorInfo: any) => {};
@@ -1072,7 +1076,7 @@ let awupdate=ref("awmodeler")
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
@@ -1318,6 +1322,7 @@ let awupdate=ref("awmodeler")
     </div>
         </template>
       </SplitPanel>
+
    <!-- </section> -->
   </div>
    </main>

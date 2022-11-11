@@ -129,7 +129,7 @@ async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data);
   // console.log(rst);
 }
-let refForm = ref(null);
+let refForm = ref();
 // 清除模态窗数据
 const clear = () => {
   (modelstates.value = {
@@ -181,10 +181,9 @@ async function saveMBT(data: any) {
       });
   });
 }
-
-const onFinishForm = async (modelstates: any) => {
+const handleOk = (modelstates:any) => {
+  refForm.value.validate().then(async()=>{
   modelstates.value.tags = states.tags;
-
   // 判断修改或添加
   if (modelstates.value.name && modelstates.value.description) {
     if (modelstates.value._id) {
@@ -207,17 +206,20 @@ const onFinishForm = async (modelstates: any) => {
   } else {
     return message.error(t('MBTStore.tip2'));
   }
+})
+  visible.value = false;
+
+  // onFinishForm(modelstates);
+};
+const onFinishForm = async (modelstates: any) => {
+  
 };
 
 /**
  * Create a new model and jump to moderler
  */
 let disable=ref(true)
-const handleOk = () => {
-  visible.value = false;
 
-  onFinishForm(modelstates);
-};
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
@@ -365,7 +367,7 @@ const handleInputConfirm = () => {
       >
         <template #footer>
           <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="handleOk" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+          <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
         </template>
         <a-form
           ref="refForm"

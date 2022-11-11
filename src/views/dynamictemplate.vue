@@ -9,7 +9,8 @@ import {
   onMounted,
   nextTick,
   toRaw,
-  getCurrentInstance
+  getCurrentInstance,
+unref
 } from 'vue';
 import { useI18n } from "vue-i18n";
 import { useRouter } from 'vue-router';
@@ -293,7 +294,7 @@ const editModel = (rowobj: any) => {
   modelState.editing = true
 
 }
-
+let refModelForm=ref()
 const saveModel = async () => {
   const model = {
     name: modelState.name,
@@ -303,10 +304,14 @@ const saveModel = async () => {
     templateText: '',
     model: initModelAttr
   }
-  let rst = await request.post(url, model)
-  message.success(t('templateManager.createModelSuccess'))
-
+  unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
+    let rst = await request.post(url, model)
+    message.success(t('templateManager.createModelSuccess'))
   closeModel()
+  })
+  
+
+  
 }
 
 const updateModel = async () => {

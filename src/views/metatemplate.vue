@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, UnwrapRef, onMounted, nextTick } from 'vue';
+import { ref, reactive, UnwrapRef, onMounted, nextTick, unref } from 'vue';
 import { FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
@@ -34,7 +34,6 @@ let searchobj: tableSearch = reactive({
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
- console.log(rst.data);
  
  tableData.value=arr(rst.data)
 }
@@ -106,8 +105,8 @@ let editData=reactive<DataItem>({
 })
   // 点击修改meta的方法
 const updMeta=async (data:any)=>{
-  let rst=await request.put(`/api/templates/${data._id}`,data)
-  console.log(rst);
+  let rst = await request.put(`/api/templates/${data._id}`, data)
+  clearFactorState()
 }
 let showAddFactorBtn = ref(true)
 // 点击Edit触发的函数
@@ -132,19 +131,30 @@ const clearFactorState = () => {
 let refForm=ref()
 
 // 点击save触发的函数
-const save = (record:any) => {
-  record.editing=false
-  refForm.value.validate().then(async()=>{
+const save = (record: any) => {
+  unref(refForm).validate('name').then(async (res:any) => {
+    console.log(res);
+    record.editing = false
     if(record._id){
     await updMeta(record)
   }else{  
     await request.post("/api/templates",record)
-  }
-  })
-
+    }
   clearFactorState()
   showAddFactorBtn.value=true
-}
+  })
+  }
+  // 
+  // refForm.value.validate().then(async()=>{
+  // if(record._id){
+  //   await updMeta(record)
+  // }else{  
+  //   await request.post("/api/templates",record)
+  // }
+  // })
+
+  
+
 
 
 const createMeta=()=>{
