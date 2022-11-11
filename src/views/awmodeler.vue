@@ -30,7 +30,7 @@ let searchobj: tableSearch = reactive({
 })
 
 // 防止树形数据请求覆盖
-let treeSelectTitle = ''
+let treeSelectTitle = '/'
 
 async function query(data?: any) {
   const rst = await http.get("/api/hlfs", { params: data || searchobj })
