@@ -101,7 +101,7 @@ const save =async (obj:any) => {
   obj.editing=false
   await updMeta(tableData.value)
   
-}
+} 
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]

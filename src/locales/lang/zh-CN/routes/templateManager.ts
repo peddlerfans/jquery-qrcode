@@ -8,12 +8,18 @@ export default {
     // meta template
     metaDelTemp: '测试模板已成功删除',
     metaSearchText: "输入{'@'}搜索标签，输入名称搜索原组件名称",
-
+    metaName:"模板名称",
+    metaDescription:"模板描述",
+    nameinput:"请输入名称",
+    namehefa:"名称不合规",
+    duplicate:"名称已存在",
+    description:"请输入描述信息",
 
     // static template
     staticSearchText: "输入{'@'}搜索标签，输入名称搜索静态模板名称",
     // static modeler
     addColumn: '添加列',
+    
 
     // dynamic template
     dynamicSearchText: "输入{'@'}搜索标签，输入名称搜索动态模板名称",
