@@ -39,7 +39,7 @@ import {
   Model, ModelState,
 } from "./componentTS/codegen";
 import dayjs from 'dayjs';
-import {SHA256} from 'crypto-js';
+import {SHA256} from "crypto-js";
 import { VAceEditor } from 'vue3-ace-editor';
 
 import "./componentTS/ace-config";
