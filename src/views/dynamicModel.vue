@@ -482,11 +482,12 @@ const  conditionsend=()=>{
       }
 
       let truerow={if:rulesData.value,then:{...thenObj.value}}
-      if(keys.value>=0){
+      if (keys.value) {
+        
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
         condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
-      }else{
+      } else {
         condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
@@ -494,8 +495,9 @@ const  conditionsend=()=>{
         finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
         
       }
-      cancelbulid() 
+ 
       saveModel()
+      cancelbulid()
       // condata.value=conditionData(condata.value)
     }
 }

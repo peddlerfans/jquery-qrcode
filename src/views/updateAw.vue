@@ -116,7 +116,7 @@ const cancelparams = (record:any) => {
   }else{
     record.name = obj.value.name
     record.type = obj.value.type
-    record.enum=obj.value.enum
+    states.tags=obj.value.enum
     record.editing = false
   }
   clearFactorState()
@@ -215,7 +215,9 @@ async function updateAw(url:string,data:any) {
 
 let refForm=ref()
 // const validator = new Schema(descriptor);
-const onFinishForm =  () => {
+const onFinishForm = () => {
+  // console.log(modelstates.value);
+
   refForm.value.validate().then(async (res:any)=>{
     modelstates.value.tags=states.tags
      await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
