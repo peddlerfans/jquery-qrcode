@@ -166,8 +166,8 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
-  console.log('query')
-  console.log(url)
+  // console.log('query')
+  // console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
