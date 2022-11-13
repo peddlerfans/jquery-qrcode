@@ -519,12 +519,12 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
   },
 });
@@ -563,15 +563,6 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-
-// linkData
-// "ui:hidden": "{{linkData.loop === false}}"
-const uischema = {
-  label: {
-    // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
-    "ui:widget": CreateRule,
-  },
-};
 let isExclusiveGateway = ref(false);
 const linkschema = ref({
   title: "LINK",
@@ -850,7 +841,6 @@ function awhandlerSubmit() {
 
 const subAttributes=(data:any)=>{
   
-  
   globalformData.value.codegen_text=data.value.codegen_text
   globalformData.value.codegen_script=data.value.codegen_script
   mbtCache["attributes"]= mbtCache["attributes"] || {}
@@ -858,7 +848,6 @@ const subAttributes=(data:any)=>{
   mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
-  console.log(mbtCache); 
   onCloseDrawer();
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -1322,8 +1311,8 @@ onMounted(() => {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {
-              codegennames.value.push(rec.name);
+            rst.forEach((rec: any) => {              
+              codegennames.value.push({title:rec.name,const:rec._id});
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
@@ -1903,8 +1892,11 @@ function showGlobalInfo() {
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
     globalformData.value.descriptions = mbtCache["description"];
-    globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+    if (mbtCache['attributes']) {
+       globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
     globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
+    }
+   
     // if (_.isArray(mbtCache["codegen_text"])) {
     //   _.forEach(mbtCache["codegen_text"], function (value, key) {
     //     globalformData.value.codegen_text += value + " ";
