@@ -472,7 +472,7 @@ interface LinkFormData {
 }
 let linkFormData: LinkFormData = {
   _id: "",
-  label: undefined,
+  label: '',
   editable: false,
   isCondition: false,
   // loopcount: 1,
@@ -1222,28 +1222,36 @@ function reloadMBT(route: any) {
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
-      console.log(cacheprops);
-      
-      tempdata.then((aws) => {
-      const awById=_.groupBy(aws,"_id")
-      newData.forEach((obj:any)=>{
-        obj.aw=awById[obj.data._id][0]
-      })
+      // console.log(tempdata);
       console.log(newData,"+++++",cells);
+      tempdata.then((aws) => {
+        const awById = _.groupBy(aws, "_id")
+        console.log(awById)
+      newData.forEach((obj:any)=>{
+        if (awById[obj.data._id]) {
+          obj.aw=awById[obj.data._id][0]
+        }
+        
+      })
+      
       cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
-        
-        let aw=awById[cell.id][0]
+        let aw:any={template:"",description:""}
+        if (awById[cell.id]) {
+           aw=awById[cell.id][0]
+        }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
                   attrName,
                   joint.util.breakText(
-                    showheadtext,
+                    showheadtext?showheadtext:"Please select Aw",
                     {
                       width: 160,
+                      // borderColor:"red"
                     },
-                    { "font-size": 16 }
+                    { "font-size": 16 },
+                    
                   )
                 );
       })

@@ -23,8 +23,8 @@ let route=useRoute()
 let router=useRouter()
 
 // 判断是否是详情还是编辑操作
-let canEdit = !router.currentRoute.value.query?.canEdit
-console.log(canEdit)
+let canEdit = ref(!router.currentRoute.value.query?.canEdit)
+// console.log(canEdit)
 
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
@@ -148,7 +148,7 @@ const saveparams = async (record: any) => {
 }
 // 点击修改params触发的函数
 const editparams = (record:any) => {
-  if (!canEdit) return
+  if (!canEdit.value) return
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -268,12 +268,16 @@ const optiones = ref<SelectProps['options']>([
       value: 'SUT',
         label:'SUT'
       }
-    ]);
-
+]);
+const editAw = () => {
+  // if (canEdit) {
+    canEdit.value=true
+  // }
+}
+    
  
 let disable=ref(false)
 let rst:any=route.params.name
-console.log(rst);
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -496,7 +500,7 @@ let rules: Record<string, Rule[]> = {
             <a @click="cancelparams(record)">{{$t('common.cancelText') }}</a>
             </span>
             <span v-else>
-              <a @click="editparams(record)">{{ $t('component.table.edit') }}</a>
+              <a-button type="link" @click="editparams(record)" :disabled="!canEdit">{{ $t('component.table.edit') }}</a-button>
               <a-divider type="vertical" />
               <a-popconfirm
                   
@@ -504,7 +508,7 @@ let rules: Record<string, Rule[]> = {
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
                   :ok-text="$t('common.okText')">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
+              <a-button type="link"  style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="!canEdit">{{ $t('common.delText') }}</a-button>
             </a-popconfirm>
             </span>
           </div>
@@ -512,6 +516,7 @@ let rules: Record<string, Rule[]> = {
             </template>
         </a-table>
         <div>
+          <a-button typr="primary" @click="editAw" v-if="!canEdit">Edit</a-button>
             <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">Save</a-button>
             <a-button @click="onFinishFailedForm">Cancel</a-button>
         </div>
