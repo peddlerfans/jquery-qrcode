@@ -23,12 +23,8 @@ let route=useRoute()
 let router=useRouter()
 
 // 判断是否是详情还是编辑操作
-<<<<<<< HEAD
 let canEdit = ref(!router.currentRoute.value.query?.canEdit)
 // console.log(canEdit)
-=======
-let canEdit = !router.currentRoute.value.query?.canEdit
->>>>>>> 5c88f4ab016e9b02ada923b106769bccd59c71e7
 
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
@@ -272,7 +268,6 @@ const optiones = ref<SelectProps['options']>([
       value: 'SUT',
         label:'SUT'
       }
-<<<<<<< HEAD
 ]);
 const editAw = () => {
   // if (canEdit) {
@@ -281,11 +276,6 @@ const editAw = () => {
 }
     
  
-=======
-    ]);
-
-
->>>>>>> 5c88f4ab016e9b02ada923b106769bccd59c71e7
 let disable=ref(false)
 let rst:any=route.params.name
 
