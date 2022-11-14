@@ -849,6 +849,8 @@ const subAttributes=(data:any)=>{
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
+  console.log(globalformData.value);
+  
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
@@ -1319,11 +1321,14 @@ onMounted(() => {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {              
+            rst.forEach((rec: any) => {      
+              // console.log(rec);
+                      
               codegennames.value.push({title:rec.name,const:rec._id});
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
+            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
