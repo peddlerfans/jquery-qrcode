@@ -159,7 +159,7 @@ async function query(){
     })
 
      cpu.value=rst.map((item:any)=>{
-      return item.cpu.value*10000
+      return item.cpu.value*1000
     })
     cpuData.value=[{data:cpu.value,type:"line",name:"cpu(%)"}]
     

@@ -105,10 +105,10 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,prop
    }
  },
  tooltip: {
-   trigger: 'none',
-   axisPointer: {
-     type: 'cross'
-   }
+   trigger: 'axis',
+  //  axisPointer: {
+  //    type: 'cross'
+  //  }
  },
  toolbox: {
    feature: {
