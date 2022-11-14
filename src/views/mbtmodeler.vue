@@ -2487,7 +2487,7 @@ const handleOk=()=>{
           </a-button-group>
           <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
             <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
-              <a-tab-pane key="1" tab="OutPut text">
+              <a-tab-pane key="1" tab="Test cases">
                 <a-card >
                   <a-card-grid
                   v-for="(item,index) in previewData"
@@ -2496,7 +2496,7 @@ const handleOk=()=>{
                    :hoverable="false">{{item.data}}</a-card-grid>
                 </a-card>
               </a-tab-pane>
-              <a-tab-pane key="2" tab="OutPut srcpit" force-render>
+              <a-tab-pane key="2" tab="Test script" force-render>
                 <a-card >
                   <a-card-grid
                   v-for="(item,index) in previewData"
