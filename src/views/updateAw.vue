@@ -24,7 +24,6 @@ let router=useRouter()
 
 // 判断是否是详情还是编辑操作
 let canEdit = !router.currentRoute.value.query?.canEdit
-console.log(canEdit)
 
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
@@ -46,7 +45,7 @@ let modelstates = ref<ModelState>({
   name: '',
   description: '',
   template: "",
-  template_en:"", 
+  template_en:"",
   _id: "",
   params:[],
   tags:[],
@@ -74,14 +73,14 @@ const paramsColum = [
     dataIndex: 'enum',
     key: 'enum',
     width:180
-  },
-  {
-    title: 'component.table.action',
-    dataIndex: 'action',
-    key: 'action',
-    width:100
   }
 ]
+if (canEdit) paramsColum.push( {
+  title: 'component.table.action',
+  dataIndex: 'action',
+  key: 'action',
+  width:100
+})
 // 新添加一条params数据
 const addNewParams = () => {
   modelstates.value.params.push({
@@ -91,7 +90,7 @@ const addNewParams = () => {
     editing: true,
     inputVisible: true,
     inputValue: ''
-  })  
+  })
 }
 // 添加params的enu
 const handleCloseTag = (record: any, removedTag: string) => {
@@ -169,7 +168,7 @@ let states = reactive<statesTs>({
 });
 
 const handleClose = (removedTag: string) => {
-  
+
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
   states.tags = tags;
 };
@@ -190,7 +189,7 @@ const handleInputConfirm = () => {
     tags,
     inputVisible: false,
     inputValue: '',
- });  
+ });
 }
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
 let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id")
@@ -224,11 +223,11 @@ const onFinishForm = () => {
      await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
-    
+
   })
 
-       
-    } 
+
+    }
   const onFinishFailedForm = (errorInfo: any) => {
     if(JSON.parse(getupdate)=="awmodeler"){
         router.push("/awmodeler/index")
@@ -251,7 +250,7 @@ const optiones = ref<SelectProps['options']>([
       {
         value: 'float',
         label: 'float',
-      },  
+      },
       {
         value: 'boolean',
         label: 'boolean',
@@ -270,7 +269,7 @@ const optiones = ref<SelectProps['options']>([
       }
     ]);
 
- 
+
 let disable=ref(false)
 let rst:any=route.params.name
 console.log(rst);
@@ -283,7 +282,7 @@ let checkName = async (_rule: Rule, value: string) => {
     disable.value=true
     return Promise.reject(t('component.message.emptyName'))
   }else if(rst==value){
-    
+
     disable.value=false
     return Promise.resolve();
   }else  if(!reg.test(value)  && !reg1.test(value)){
@@ -299,10 +298,10 @@ let checkName = async (_rule: Rule, value: string) => {
       }else{
         disable.value=false
         return Promise.resolve();
-      
+
       }
   }
-  
+
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
@@ -318,7 +317,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
-      
+
       if(rst.data && rst.data.length>0 && rst.data[0].description==value){
         disable.value=true
         return Promise.reject(t('component.message.dupDescription'))
@@ -328,9 +327,9 @@ let checkDesc = async (_rule: Rule, value: string) => {
     disable.value=false
     return Promise.resolve();
   }
-  
-} 
-let checktem = async (_rule: Rule, value: string) => { 
+
+}
+let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     disable.value=true
@@ -342,7 +341,7 @@ let checktem = async (_rule: Rule, value: string) => {
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
-  
+
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
@@ -366,7 +365,7 @@ let rules: Record<string, Rule[]> = {
         name="name"
       >
       <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
-       
+
         <a-input v-model:value="modelstates.name" v-if="canEdit" />
         <span v-else>{{ modelstates.name }}</span>
         <!-- <span v-else>{{modelstates.name}}</span> -->
@@ -408,7 +407,7 @@ let rules: Record<string, Rule[]> = {
         <a-tag v-else-if="tag.length==0"></a-tag>
         <a-tag v-else :closable="canEdit" @close="handleClose(tag)">
           {{tag}}
-        </a-tag>  
+        </a-tag>
       </template>
           <a-input
             v-show="states.inputVisible"
@@ -504,7 +503,7 @@ let rules: Record<string, Rule[]> = {
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
                   :ok-text="$t('common.okText')">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
+              <a style="margin-left:10px;margin-right:10px;font-size:16px;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
           </div>
