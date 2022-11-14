@@ -472,7 +472,7 @@ interface LinkFormData {
 }
 let linkFormData: LinkFormData = {
   _id: "",
-  label: undefined,
+  label: '',
   editable: false,
   isCondition: false,
   // loopcount: 1,
@@ -849,6 +849,8 @@ const subAttributes=(data:any)=>{
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
+  console.log(globalformData.value);
+  
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
@@ -1222,28 +1224,36 @@ function reloadMBT(route: any) {
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
-      console.log(cacheprops);
-      
-      tempdata.then((aws) => {
-      const awById=_.groupBy(aws,"_id")
-      newData.forEach((obj:any)=>{
-        obj.aw=awById[obj.data._id][0]
-      })
+      // console.log(tempdata);
       console.log(newData,"+++++",cells);
+      tempdata.then((aws) => {
+        const awById = _.groupBy(aws, "_id")
+        console.log(awById)
+      newData.forEach((obj:any)=>{
+        if (awById[obj.data._id]) {
+          obj.aw=awById[obj.data._id][0]
+        }
+        
+      })
+      
       cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
-        
-        let aw=awById[cell.id][0]
+        let aw:any={template:"",description:""}
+        if (awById[cell.id]) {
+           aw=awById[cell.id][0]
+        }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
                   attrName,
                   joint.util.breakText(
-                    showheadtext,
+                    showheadtext?showheadtext:"Please select Aw",
                     {
                       width: 160,
+                      // borderColor:"red"
                     },
-                    { "font-size": 16 }
+                    { "font-size": 16 },
+                    
                   )
                 );
       })
@@ -1311,11 +1321,14 @@ onMounted(() => {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {              
+            rst.forEach((rec: any) => {      
+              // console.log(rec);
+                      
               codegennames.value.push({title:rec.name,const:rec._id});
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
+            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -2474,7 +2487,7 @@ const handleOk=()=>{
           </a-button-group>
           <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
             <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
-              <a-tab-pane key="1" tab="OutPut text">
+              <a-tab-pane key="1" tab="Test cases">
                 <a-card >
                   <a-card-grid
                   v-for="(item,index) in previewData"
@@ -2483,7 +2496,7 @@ const handleOk=()=>{
                    :hoverable="false">{{item.data}}</a-card-grid>
                 </a-card>
               </a-tab-pane>
-              <a-tab-pane key="2" tab="OutPut srcpit" force-render>
+              <a-tab-pane key="2" tab="Test script" force-render>
                 <a-card >
                   <a-card-grid
                   v-for="(item,index) in previewData"

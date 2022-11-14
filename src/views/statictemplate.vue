@@ -13,7 +13,7 @@ const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
-      q:'category:meta'
+      q:'category:static'
 });
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
