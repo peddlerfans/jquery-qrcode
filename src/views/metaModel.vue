@@ -24,7 +24,7 @@ async function query (data?:any){
    recordobj.value=rst   
           
           recordobj.value.model=rst.model
-          if(rst.model){
+          if(rst.model.length>0){
             tableData.value=arr(rst.model)
           }
       ;

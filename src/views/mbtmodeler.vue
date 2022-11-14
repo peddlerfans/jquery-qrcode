@@ -55,6 +55,7 @@ import { booleanLiteral, stringLiteral } from "@babel/types";
 import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
+import { VAceEditor } from 'vue3-ace-editor';
 
 const { t } = useI18n();
 
@@ -1717,11 +1718,16 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+          console.log(linkView);
     // console.log('11111111111cell  ',linkView.model.id);
     isExclusiveGateway.value = false;
+    // isChoose.value=false
     linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
+
+      
       isExclusiveGateway.value = true;
+      
       linkData.value.isCondition = true;
     }
 
@@ -2431,7 +2437,8 @@ const routerAw = (awData: any) => {
 
 // preciew
 const visiblepreciew=ref(false)
-const previewActiveKey=ref("1")
+const previewActiveKey = ref("1")
+const casesKey=ref("1")
 let searchPreview=reactive({
   mode:""
 })
@@ -2460,6 +2467,7 @@ const switchPut=async (val:any)=>{
 const handleOk=()=>{
   visiblepreciew.value=false
 }
+const softwrap=true
 </script>
 
 <template>
@@ -2488,22 +2496,40 @@ const handleOk=()=>{
           <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
             <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
               <a-tab-pane key="1" tab="Test cases">
-                <a-card >
-                  <a-card-grid
-                  v-for="(item,index) in previewData"
-                  :key="index"
-                   style="width: 25%; text-align: center"
-                   :hoverable="false">{{item.data}}</a-card-grid>
-                </a-card>
+                <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
+                  <a-tab-pane v-for="(item,index) in previewData"
+                  :key="index+1"
+                  :tab=index
+                  >
+                       <VAceEditor
+                          v-model:value="item.data"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          lang="python"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+                  </a-tab-pane>
+                </a-tabs>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Test script" force-render>
-                <a-card >
-                  <a-card-grid
-                  v-for="(item,index) in previewData"
-                  :key="index"
-                   style="width: 25%; text-align: center"
-                   :hoverable="false">{{item.data}}</a-card-grid>
-                </a-card>
+                 <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
+                  <a-tab-pane v-for="(item,index) in previewData"
+                  :key="index+1"
+                  :tab=index
+                  >
+                       <VAceEditor
+                          v-model:value="item.data"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          lang="python"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+                  </a-tab-pane>
+                </a-tabs>
               </a-tab-pane>
             </a-tabs>
           </a-modal>
@@ -3144,6 +3170,13 @@ header {
 }
 </style>
 <style lang="less">
+.ace-result{
+  flex: 1;
+  margin-top: 15px;
+  font-size: 18px;
+  border: 1px solid;
+  height: 35rem;
+}
 .awconfig{
   .__pathRoot_name {
   .ant-form-item-label {
