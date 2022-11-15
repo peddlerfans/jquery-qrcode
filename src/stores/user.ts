@@ -1,4 +1,4 @@
-import { removeCookie, setCookie } from "@/utils"
+import {getCookie, removeCookie, setCookie} from "@/utils"
 import { defineStore } from "pinia"
 import request from "@/utils/request"
 import { message } from "ant-design-vue"
@@ -9,7 +9,9 @@ export const userStore = defineStore('user', {
     name: '',
     age: null,
     sex: 'unknown',
-    token: ''
+    token: '',
+    email: 'example@oppo.com',
+    avatar_url: 'https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg',
   }),
   actions: {
     async login(username: string, password: string) {
@@ -59,6 +61,26 @@ export const userStore = defineStore('user', {
             resolve(msg)
           } else {
             reject(msg)
+          }
+        })
+      })
+    },
+    async getOauthUserInfo(): Promise<string> {
+      return new Promise((resolve, reject) => {
+        request.get<Stores.user>('/api/user_profile').then((res:any) => {
+          console.log("getOauthUserInfo")
+          console.log(res)
+          if (!res.error) {
+            this.name = res.name
+            this.email = res.email
+            this.avatar_url = res.avatar_url
+            this.token = `${res.name}Token`
+            setCookie('token', this.token)
+            console.log(getCookie('token'))
+            resolve('Login successful')
+
+          } else {
+            reject(res.error)
           }
         })
       })

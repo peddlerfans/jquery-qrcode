@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { UserOutlined, LockOutlined,GitlabOutlined,  } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined,  } from '@ant-design/icons-vue'
 import { appTitle } from '@/appConfig'
 import { userStore } from '@/stores/user'
 import { message } from 'ant-design-vue/es'
@@ -61,18 +61,20 @@ function login() {
         </AFormItem>
         <AFormItem name="remember" no-style>
           <div style="margin-bottom: .7rem">
-            <ACheckbox v-model:checked="form.remember">记住我</ACheckbox>
+            <ACheckbox v-model:checked="form.remember">Remember me</ACheckbox>
           </div>
         </AFormItem>
-        <AButton type="primary" style="width: 100%;" size="large" html-type="submit" :loading="loading.login">登录
+        <AButton type="primary" style="width: 100%;margin-bottom: 5px;" size="large" html-type="submit" :loading="loading.login">Login
         </AButton>
 
-        <a-divider style="height: 2px;"/>
-        <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian`">
-<!--          <font-awesome-icon icon="fa-brands fa-atlassian"/> Log in with Atlassian-->Log in with Atlassian
+        <AButton style="width: 100%;" size="large">Register</AButton>
+
+          <a-divider style="height: 2px;"/>
+        <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian?redirect=${encodeURIComponent('http://localhost:7777/#/dashboard')}`">
+          <font-awesome-icon icon="fa-brands fa-atlassian"/> Log in with Atlassian
         </a-button>
-        <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" href="/api/auth/gitlab">
-<!--          <font-awesome-icon icon="fa-brands fa-gitlab" /> Log in with GitLab-->Log in with GitLab
+        <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" :href="`/api/auth/gitlab?redirect=${encodeURIComponent('http://localhost:7777/#/dashboard')}`">
+          <font-awesome-icon icon="fa-brands fa-gitlab" /> Log in with GitLab
         </a-button>
       </AForm>
 

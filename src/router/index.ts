@@ -16,7 +16,14 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
-      meta: { title: 'Dashboard', icon: HomeOutlined }
+      meta: { title: 'Dashboard', icon: HomeOutlined },
+      beforeEnter(to,form,next){
+
+        if(to.params._id && to.params.name){
+          to.meta.title=`MetaModel ${to.params.name}`
+        }
+        next()
+      }
     }
   ]
 }
@@ -29,7 +36,11 @@ export const authRoute: any={
     {
       path: '/atlassian',
       name: 'atlassian',
-      query: { redirect: encodeURIComponent('http://127.0.0.1:7777/#/dashboard'), error_redirect: FieldBinaryOutlined, keepAlive: true }
+      query: {
+        redirect: encodeURIComponent('http://127.0.0.1:7777/#/dashboard'),
+        error_redirect: FieldBinaryOutlined,
+        keepAlive: true
+      }
     },
     {
       path: '/gitlab',

@@ -2,9 +2,11 @@ import router from './router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { appTitle } from './appConfig'
-import { getCookie, removeCookie } from './utils'
+import {getCookie, removeCookie, setCookie} from './utils'
 import { userStore } from './stores/user'
 import { message } from 'ant-design-vue'
+import request from "@/utils/request";
+import {Stores} from "../types/stores";
 
 NProgress.configure({ showSpinner: false })
 
@@ -22,14 +24,25 @@ router.beforeEach(async (to, from, next) => {
     // 判断是否有token
     const token = getCookie('token')
     const user = userStore()
+
     if (!token) {
-      next('/login')
+      try {
+        await user.getOauthUserInfo()
+        console.log(user)
+        next()
+      } catch (e) {
+        console.log(e)
+        message.error('Invalid token, please login again')
+        removeCookie('token') // 清除cookie
+        next('/login')
+      }
+
     } else if (!user.token) {
       try {
         await user.getUserInfo(token)
         next()
       } catch (_) {
-        message.error('token失效，请重新登录')
+        message.error('Invalid token, please login again')
         removeCookie('token') // 清除cookie
         next('/login')
       }

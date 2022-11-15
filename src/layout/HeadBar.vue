@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MenuFoldOutlined, LogoutOutlined } from '@ant-design/icons-vue'
+import { MenuFoldOutlined, LogoutOutlined, UserOutlined} from "@ant-design/icons-vue";
 import type { Layout } from 'types/layout'
 import { inject } from 'vue'
 import { useRouter } from 'vue-router'
@@ -27,12 +27,37 @@ function logout() {
       <BreadCrumb :withIcons="true"></BreadCrumb>
     </section>
     <section>
-      <span style="margin-right: 1rem">{{ user.name }}</span>
-      <AButton type="primary" shape="circle" :loading="loading?.logout" @click="logout" title="退出登录">
-        <template #icon>
-          <LogoutOutlined />
+      <a-dropdown>
+        <a class="ant-dropdown-link" @click.prevent>
+          <a-avatar v-if="user.avatar_url == ''">
+            <user-outlined />
+          </a-avatar>
+          <a-avatar v-else :src="user.avatar_url" />
+          <span style="margin-left: 5px; margin-right:30px;">{{ user.name }}</span>
+        </a>
+        <template #overlay>
+          <a-menu>
+
+            <a-menu-item>
+              <a href="javascript:;">View Profile</a>
+            </a-menu-item>
+            <a-menu-item>
+              <a href="javascript:;">Edit Profile</a>
+            </a-menu-item>
+            <a-menu-item>
+              <a :loading="loading?.logout" @click="logout">Logout</a>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </AButton>
+      </a-dropdown>
+
+
+
+<!--      <AButton type="primary" shape="circle" :loading="loading?.logout" @click="logout" title="退出登录">-->
+<!--        <template #icon>-->
+<!--          <LogoutOutlined />-->
+<!--        </template>-->
+<!--      </AButton>-->
     </section>
   </header>
 </template>
