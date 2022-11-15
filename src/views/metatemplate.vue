@@ -247,28 +247,28 @@ const handleClose = (record:any,removedTag: string) => {
       record.tags = tags;
 };
 
-let disable=ref(false)
+
 let checkName=async (_rule:Rule,value:string)=>{
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
-    disable.value=true
+   
     return Promise.reject(t('templateManager.nameinput'))
   }else if(editData._id && editData.name==value){
-    disable.value=false
+
     return Promise.resolve()
   }else if(!reg.test(value) && !reg1.test(value)){
-    disable.value=true
+
     return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
-        disable.value=true
+
         return Promise.reject(t('templateManager.duplicate'))
       }else{
-        disable.value=false
+
         return Promise.resolve();
       
       }
@@ -277,10 +277,10 @@ let checkName=async (_rule:Rule,value:string)=>{
 let checkDesc = async (_rule: Rule, value: string) => { 
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
-    disable.value=true
+
     return Promise.reject(t('templateManager.description'))
   }else{
-          disable.value=false
+
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
@@ -408,7 +408,7 @@ let rules:Record<string,Rule[]>={
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
           <span v-if="record.editing">
-            <a-button type="link" :disabled="disable" style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a-button>
+            <a-button type="link" style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a-button>
 
             <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
 

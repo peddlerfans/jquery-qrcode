@@ -181,23 +181,27 @@ async function saveMBT(data: any) {
       });
   });
 }
+let disable=ref(false)
 const handleOk = (modelstates:any) => {
-  refForm.value.validate().then(async()=>{
-  modelstates.value.tags = states.tags;
+  modelstates.tags = states.tags;
+  refForm.value.validate().then(()=>{
+    console.log(123);
+    
+  // disable.value=false
   // 判断修改或添加
-  if (modelstates.value.name && modelstates.value.description) {
-    if (modelstates.value._id) {
-      mbtId.value = modelstates.value._id;
-      updateMBT(url + `/${modelstates.value._id}`, modelstates.value).then((res: any) => {
+  if (modelstates.name && modelstates.description) {
+    if (modelstates._id) {
+      mbtId.value = modelstates._id;
+      updateMBT(url + `/${modelstates._id}`, modelstates).then((res: any) => {
         let fetchUrl = `${url}/${mbtId.value}`;
 
         updateTable({ fetchUrl: fetchUrl });
       });
       message.success(t('component.message.modifiedText'));
     } else {
-
-      delete modelstates.value._id
-      saveMBT(modelstates.value);
+    
+      delete modelstates._id
+      saveMBT(modelstates);
 
       message.success('component.message.addText');
     }
@@ -206,19 +210,17 @@ const handleOk = (modelstates:any) => {
   } else {
     return message.error(t('MBTStore.tip2'));
   }
+}).catch(()=>{
+  // disable.value=true
 })
-  visible.value = false;
-
   // onFinishForm(modelstates);
 };
-const onFinishForm =  (modelstates: any) => {
-  
-};
+const onFinishForm =  (modelstates: any) => {};
 
 /**
  * Create a new model and jump to moderler
  */
-let disable=ref(true)
+
 
 // 关闭模态窗触发事件
 const closemodel = () => {
@@ -256,15 +258,9 @@ let checkName = async (_rule: Rule, value: string) => {
       if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
         // message.error("Duplicate name")
         // modelstates.value.name=""
-        disable.value=true
+
         return Promise.reject(t('component.message.depName'))
       }else{
-        if(modelstates.value.description){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
-        
         return Promise.resolve();
       
       }
@@ -275,11 +271,6 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('MBTStore.tip5'));
   } else {
-    if(modelstates.value.name){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
     return Promise.resolve();
   }
 };
