@@ -1,12 +1,14 @@
-export interface tableSearch{
-    search: string,
+export interface tableSearch {
+  page: number;
+  perPage: any;
+  search: string,
   // page: number,
   // perPage:number
-  q:string
+  q: string
 }
-export interface FormState{
-    search:string
-    q:string
+export interface FormState {
+  search: string
+  q: string
 }
 export interface statesTs {
   tags: Array<string>
@@ -18,5 +20,5 @@ export interface ModelState {
   description: string;
   _id: string;
   tags: Array<string>;
-  category:string
+  category: string
 }

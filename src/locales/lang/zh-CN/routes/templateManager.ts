@@ -8,18 +8,19 @@ export default {
     // meta template
     metaDelTemp: '测试模板已成功删除',
     metaSearchText: "输入{'@'}搜索标签，输入名称搜索原组件名称",
-    metaName:"模板名称",
-    metaDescription:"模板描述",
-    nameinput:"请输入名称",
-    namehefa:"名称不合规",
-    duplicate:"名称已存在",
-    description:"请输入描述信息",
+    metaName: "模板名称",
+    metaDescription: "模板描述",
+    nameinput: "请输入名称",
+    namehefa: "名称不合规",
+    duplicate: "名称已存在",
+    description: "请输入描述信息",
 
     // static template
     staticSearchText: "输入{'@'}搜索标签，输入名称搜索静态模板名称",
     // static modeler
     addColumn: '添加列',
-    
+    StaticName: "静态模板名称",
+
 
     // dynamic template
     dynamicSearchText: "输入{'@'}搜索标签，输入名称搜索动态模板名称",
@@ -31,6 +32,7 @@ export default {
     updateDynamicTemp: '更新动态模板',
     delDynamicTemp: '是否确定要删除此动态模板?',
     // dynamicModel
+    dynamicDelText: '请先完成下方编辑',
     optionLabel: '选项（必填）',
     strategyLabel: '策略',
     factorsLabel: '因素（必填）',
@@ -47,6 +49,8 @@ export default {
     delFactor: '是否确定要删除此因素?',
 
     // codegen template
+    codegenName: "编码名称",
+    codegenDes: "编码描述",
     codegenSearchText: "输入{'@'}搜索标签，输入名称搜索编码模板名称",
     newCodegenTemp: '新建编码模板',
     updateCodegenTemp: '更新编码模板',
