@@ -56,6 +56,7 @@ import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
+import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 
 const { t } = useI18n();
 
@@ -1635,15 +1636,18 @@ onMounted(() => {
   function setLinkType(el: any, cell: any) {
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
+        
         let linksource = modeler.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "standard.Polygon") {
+          
           if (linksource.attributes.attrs.label.text == "x") {
             // console.log(' source exclusive gateway    ',linksource.id)
             Object.assign(cell, { linktype: "exclusivegateway" });
             console.log("exclusive link", cell);
           } else {
             Object.assign(cell, { linktype: "parallelgateway" });
+            console.log("exclusive link", cell);
           }
         }
       } catch (e) {
@@ -1654,8 +1658,12 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
+        
+        
         let cell = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
+          console.log(el, cell);
+          
           setLinkType(el, cell);
         } else if (
           cell.attributes.type == "standard.Polygon" &&
@@ -1718,27 +1726,46 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(linkView);
-    // console.log('11111111111cell  ',linkView.model.id);
-    isExclusiveGateway.value = false;
+          console.log(linkView.model);
+    // isExclusiveGateway.value = false;
     // isChoose.value=false
-    linkData.value.isCondition = false;
+    // linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
-
-      
-      isExclusiveGateway.value = true;
-      
-      linkData.value.isCondition = true;
+        if(condataName.value.length == 0 && conditionalValue.value.length == 0){
+          isLink.value=false
+          isExclusiveGateway.value = false;
+          isGlobal.value = false;
+          isChoose.value=true
+          isAW.value = false;
+          linkData.value.isCondition = false;
+        }else{
+          // console.log(123);
+          isLink.value=true
+          isExclusiveGateway.value = true;
+          isGlobal.value = false;
+          isChoose.value=false
+          isAW.value = false;
+          linkData.value.isCondition = true;
+        }
+    }else{
+      // console.log(123);
+      isChoose.value=false
+      isLink.value=true
+      isAW.value = false;
+      isGlobal.value = false;
+      isExclusiveGateway.value = false;
+      linkData.value.isCondition = false;
     }
 
     // 判断是否选择了模板，没选择则不打开link
-    if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
+    // if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
       lv_id = linkView.model.id + "";
       // await queryName()
-      isAW.value = false;
-      isLink.value = true;
-      isChoose.value = false;
-      isGlobal.value = false;
+      // isAW.value = false;
+      // isLink.value = true;
+      // isChoose.value = false;
+      // isGlobal.value = false;
+      // isExclusiveGateway.value=true
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
         // console.log(templinkData);
@@ -1760,18 +1787,20 @@ onMounted(() => {
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      }
+      // }
       // console.log('cacheprops for link dblclick:',cacheprops)
       // console.log('currentLinkMap',currentLinkMap);
       showDrawer(linkView);
-    } else {
-      showDrawer(linkView);
-      isChoose.value = true;
-      isAW.value = false;
-      isLink.value = false;
-      isGlobal.value = false;
-      console.log(isChoose.value);
-    }
+    } 
+    showDrawer(linkView);
+    // else {
+    //   showDrawer(linkView);
+    //   isChoose.value = true;
+    //   isAW.value = false;
+    //   isLink.value = false;
+    //   isGlobal.value = false;
+    //   console.log(isChoose.value);
+    // }
   });
 
   modeler.paper.on(
@@ -2168,7 +2197,9 @@ const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
   // modeler.paper.options.width=`${100*value1.value}%`;
   // modeler.paper.options.height=`${100*value1.value}%`;
-  Object.assign(modeler.paper.options,{overflow:'auto'})
+  console.log(modeler.paper.options);
+  // canvas.value.style.overflow='auto'
+  // Object.assign(modeler.paper.options,{overflow:'scroll'})
   modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
   paperscale.value = value;
   // zoomStyle.value=value1.value*100%;
@@ -2444,10 +2475,15 @@ let searchPreview=reactive({
 })
 let previewData=ref()
 async function querycode(){
-  let rst=await request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview})
+  request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
+  
   if(rst){
     previewData.value=rst
   }
+  }).catch((err)=>{
+    message.error("Model configuration error")
+  })
+  
 }
 const preview=async (data:any)=>{
   
@@ -2563,7 +2599,7 @@ const softwrap=true
     >
       <a-row
         type="flex"
-        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; padding: 0rem !important"
+        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; min-width: 100%; padding: 0rem !important"
       >
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>

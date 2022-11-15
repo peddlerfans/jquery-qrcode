@@ -65,7 +65,10 @@ async function query(id?: any) {
       ...e, editing: false, inputVisible: false, inputValue: ''
     }
   })
-  finalModel.constraint=finalResult.model.constraint
+  if(finalResult.model.constraint){
+    finalModel.constraint=conditionData(finalResult.model.constraint)
+  }
+  
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
@@ -469,7 +472,7 @@ const rulesChange=(datas: any,key:string)=>{
 
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
-  
+  const keys=ref<any>()
 // 点击保存时触发数据填充表格
 const  conditionsend=()=>{
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
@@ -482,7 +485,9 @@ const  conditionsend=()=>{
       }
 
       let truerow={if:rulesData.value,then:{...thenObj.value}}
-      if (keys.value) {
+      console.log(keys.value);
+      
+      if (keys.value>=0) {
         
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
@@ -555,7 +560,7 @@ const conditionshow=computed(()=>{
 })
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
-const keys=ref<any>()
+
 const formDatas=ifNameOpetions
 const valueData=ref()
 let childrelation="AND"
