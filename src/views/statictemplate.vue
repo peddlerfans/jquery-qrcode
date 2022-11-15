@@ -10,6 +10,7 @@ import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
 const { t } = useI18n()
+let tableloading=ref(false)
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
@@ -35,7 +36,7 @@ const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editi
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
  console.log(rst.data);
- 
+ pagination.value.total=rst.total
  tableData.value=arr(rst.data)
 }
 onMounted(()=>{
@@ -57,8 +58,8 @@ let pagination=ref( {
 const onPageChange = async(page: number, pageSize: any) => {
   pagination.value.pageNo = page
   pagination.value.pageSize=pageSize
-  // searchobj.page= page
-  // searchobj.perPage = pageSize
+  searchobj.page= page
+  searchobj.perPage = pageSize
   if (formState.search) {
     searchobj.search=formState.search
   } else {
@@ -70,8 +71,8 @@ const onPageChange = async(page: number, pageSize: any) => {
 const onSizeChange =async (current: any, pageSize: number) => {
         pagination.value.pageNo = current
         pagination.value.pageSize=pageSize
-      //  searchobj.page= current
-  // searchobj.perPage = pageSize
+       searchobj.page= current
+  searchobj.perPage = pageSize
       if (formState.search) {
     searchobj.search=formState.search
       } else {
@@ -135,12 +136,15 @@ let refFormdec=ref()
 const save = (record:any) => {
   unref(refForm).validate('name').then(async (res:any) => {
     unref(refFormdec).validate().then(async (res:any) => {
-
+      tableloading.value=true
       record.editing = false
     if(record._id){
     await updMeta(record)
   }else{  
-    await request.post("/api/templates",record)
+   let rst= await request.post("/api/templates", record)
+      let tableindex = tableData.value.indexOf(record)
+    tableData.value[tableindex]._id=rst._id
+    tableloading.value=false
     }
   clearFactorState()
   showAddFactorBtn.value=true
@@ -155,7 +159,7 @@ const createMeta=()=>{
   tableData.value.unshift({
     name:'',
     description:'',
-    category:'meta',
+    category:'static',
     tags:[],
     editing: true,
     inputVisible: true,
@@ -330,7 +334,9 @@ let rules:Record<string,Rule[]>={
       </a-row>
       </header>
       
-      <a-table :columns="columns" :data-source="tableData" bordered>
+      <a-table :columns="columns" :data-source="tableData" bordered
+      :pagination="pagination"
+      :loading="tableloading">
         <template #headerCell="{ column }">
           <span>{{ $t(column.title) }}</span>
         </template>
@@ -348,7 +354,7 @@ let rules:Record<string,Rule[]>={
           </a-form>
 
           <template v-else>
-            <a :href="'/#/metaModeler/'+record._id+'/'+record.name">{{text}}</a>
+            <a :href="'/#/staticModeler/'+record._id+'/'+record.name">{{text}}</a>
           </template>
         </div>
         </template>
