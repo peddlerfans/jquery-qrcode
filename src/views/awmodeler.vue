@@ -38,7 +38,7 @@ async function query(data?: any) {
   if (path !== treeSelectTitle) return
   let res = rst.data
   if (res.data) {
-    pagination.value.total = rst.total
+    pagination.value.total = res.total
     pagination.value.pageNo = 1
     tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
@@ -240,25 +240,25 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:180
+    width:400
   },
   {
     title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
-    width:100
+    // width:80
   },
   {
     title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
-    width:180
+    // width:180
   },
   {
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:100
+    // width:100
   }
 ]
 // 添加params的enu
@@ -301,12 +301,6 @@ let checkName = async (_rule: Rule, value: string) => {
         // modelstates.value.name=""
         return Promise.reject(t('component.message.depName'))
       }else{
-        if(modelstates.value.description && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
-        disable.value=false
         return Promise.resolve();
 
       }
@@ -328,11 +322,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
         return Promise.reject(t('component.message.dupDescription'))
       }else{
-        if(modelstates.value.name && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
+       
     return Promise.resolve();
       }
     // }
@@ -346,11 +336,6 @@ let checktem = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
   }else{
-    if(modelstates.value.name && modelstates.value.description){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
@@ -364,7 +349,8 @@ let rules: Record<string, Rule[]> = {
 }
 let refForm=ref()
 const handleOk = (data: any) => {
-  unref(refForm).validate('description').then(async()=>{
+  refForm.value.validate().then(async()=>{
+    delete data._id
   await saveAw(data)
   clear()
 })
@@ -897,10 +883,11 @@ const confirmtree =async (key:any,title:string) => {
         if (delNode[i].title==nowNode.title) {
           delNode.splice(i, 1);
         }
-    }
- let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+  }
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
+ await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+
   // queryTree()
 }
 // 右键展开菜单项
@@ -1069,11 +1056,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    :width="700"
+    :width="900"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)"  type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
