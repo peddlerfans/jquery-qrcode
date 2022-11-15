@@ -65,7 +65,10 @@ async function query(id?: any) {
       ...e, editing: false, inputVisible: false, inputValue: ''
     }
   })
-  finalModel.constraint=finalResult.model.constraint
+  if(finalResult.model.constraint){
+    finalModel.constraint=conditionData(finalResult.model.constraint)
+  }
+  
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
@@ -469,7 +472,7 @@ const rulesChange=(datas: any,key:string)=>{
 
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
-  
+  const keys=ref<any>()
 // 点击保存时触发数据填充表格
 const  conditionsend=()=>{
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
@@ -482,7 +485,9 @@ const  conditionsend=()=>{
       }
 
       let truerow={if:rulesData.value,then:{...thenObj.value}}
-      if (keys.value) {
+      console.log(keys.value);
+      
+      if (keys.value>=0) {
         
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
@@ -555,7 +560,7 @@ const conditionshow=computed(()=>{
 })
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
-const keys=ref<any>()
+
 const formDatas=ifNameOpetions
 const valueData=ref()
 let childrelation="AND"
@@ -578,7 +583,7 @@ let prev=ref<boolean>(false);
 let columnPreview=ref<any>()
 let modelDataPreview=ref<any>()
 let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
-
+let activeKey=ref("1")
 const previewModel = async () => {
   let rst = await request.post('/api/templates'+`/${ids}/preview`)
 
@@ -748,7 +753,8 @@ const previewModel = async () => {
       <template  #bodyCell="{ column, text, record }">
         <template v-if="column.key==='then'">
 
-          <span>{{`[${record.then.thenName}] ${record.then.thenOperator} ${record.then.thenValue}`}}</span>
+          <span v-show="typeof record.then.thenValue=='number'">{{`[${record.then.thenName}] ${record.then.thenOperator} ${record.then.thenValue}`}}</span>
+          <span v-show="typeof record.then.thenValue=='string'">{{`[${record.then.thenName}] ${record.then.thenOperator} "${record.then.thenValue}"`}}</span>
         
         </template>
         <template v-if="column.key=='action'">
@@ -818,24 +824,36 @@ const previewModel = async () => {
 
 <!-- Model meta info -->
 
-<h2>Data</h2>
-
-<a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-  <template #bodyCell="{ column, text, record }">
+<a-tabs v-model:activeKey="activeKey">
+  <a-tab-pane key="1" tab="Data">
+          <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        <template #bodyCell="{ column, text, record }">
+      <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+          {{ text }}
+        </template>
+      </a-table>
+  </a-tab-pane>
+  <a-tab-pane key="2" tab="Model" >
+    <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+  </a-tab-pane>
+</a-tabs>
+<!-- <h2>Data</h2> -->
+<!-- <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+  <template #bodyCell="{ column, text, record }"> -->
 <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
 <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
 <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-    {{ text }}
+    <!-- {{ text }}
   </template>
-</a-table>
-
-<template #footer>
+</a-table> -->
+<!-- <template #footer> -->
 <!--        <a-button @click="closeModel">Cancel</a-button>-->
-</template>
+<!-- </template> -->
 
-<h2>Model</h2>
-<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-
+<!-- <h2>Model</h2>
+<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre> -->
 </a-modal>
 
     <!-- <header class="block shadow">

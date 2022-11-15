@@ -287,7 +287,7 @@ const chooseTemplateFunc = () => {
     }
    
   });
-  chooseTemplate.value=false
+  chooseTemplate.value=true
   updateTable();
 };
 </script>
