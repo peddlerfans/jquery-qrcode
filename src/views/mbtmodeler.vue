@@ -28,7 +28,7 @@ import {
   PlusSquareFilled,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
-import $, { param } from "jquery";
+import $, { data, param } from "jquery";
 import {
   red,
   volcano,
@@ -44,27 +44,17 @@ import {
   grey,
 } from "@ant-design/colors";
 import VueForm from "@lljj/vue3-form-ant";
-import {
-  tableSearch,
-  FormState,
-  paramsobj,
-  ModelState,
-  statesTs,
-} from "./componentTS/awmodeler";
+import {tableSearch,FormState,paramsobj,ModelState,statesTs,} from "./componentTS/awmodeler";
 import _, { transform } from "lodash";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
 import { StorageSerializers, useCurrentElement } from "@vueuse/core";
-
 import { computed, defineComponent } from "vue";
-
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { booleanLiteral, stringLiteral } from "@babel/types";
-import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
-import { nextTick } from "process";
 
 const { t } = useI18n();
 
@@ -482,7 +472,7 @@ interface LinkFormData {
 }
 let linkFormData: LinkFormData = {
   _id: "",
-  label: undefined,
+  label: '',
   editable: false,
   isCondition: false,
   // loopcount: 1,
@@ -529,12 +519,12 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
   },
 });
@@ -573,15 +563,6 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-
-// linkData
-// "ui:hidden": "{{linkData.loop === false}}"
-const uischema = {
-  label: {
-    // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
-    "ui:widget": CreateRule,
-  },
-};
 let isExclusiveGateway = ref(false);
 const linkschema = ref({
   title: "LINK",
@@ -856,15 +837,39 @@ function awhandlerSubmit() {
   message.success(t("component.message.saveSuccess"));
 }
 
+
+
+const subAttributes=(data:any)=>{
+  
+  globalformData.value.codegen_text=data.value.codegen_text
+  globalformData.value.codegen_script=data.value.codegen_script
+  mbtCache["attributes"]= mbtCache["attributes"] || {}
+  mbtCache["attributes"].codegen_text=globalformData.value.codegen_text
+  mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
+  // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
+  // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
+  onCloseDrawer();
+  console.log(globalformData.value);
+  
+  let metaObj = {};
+  Object.assign(metaObj, { schema: tempschema.value });
+  Object.assign(metaObj, { data: metatemplatedetailtableData.value });
+  cacheDataDefinition.meta = metaObj;
+}
+
+
 /**
  * todo
  */
-function globalhandlerSubmit() {
+function globalhandlerSubmit(data?:any) {
+  // console.log(data);
+  
   // console.log(tempschema,metatemplatedetailtableData);
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
+  
   onCloseDrawer();
   message.success(t("component.message.saveSuccess"));
 }
@@ -1219,28 +1224,36 @@ function reloadMBT(route: any) {
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
-      console.log(cacheprops);
-      
-      tempdata.then((aws) => {
-      const awById=_.groupBy(aws,"_id")
-      newData.forEach((obj:any)=>{
-        obj.aw=awById[obj.data._id][0]
-      })
+      // console.log(tempdata);
       console.log(newData,"+++++",cells);
+      tempdata.then((aws) => {
+        const awById = _.groupBy(aws, "_id")
+        console.log(awById)
+      newData.forEach((obj:any)=>{
+        if (awById[obj.data._id]) {
+          obj.aw=awById[obj.data._id][0]
+        }
+        
+      })
+      
       cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
-        
-        let aw=awById[cell.id][0]
+        let aw:any={template:"",description:""}
+        if (awById[cell.id]) {
+           aw=awById[cell.id][0]
+        }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
                   attrName,
                   joint.util.breakText(
-                    showheadtext,
+                    showheadtext?showheadtext:"Please select Aw",
                     {
                       width: 160,
+                      // borderColor:"red"
                     },
-                    { "font-size": 16 }
+                    { "font-size": 16 },
+                    
                   )
                 );
       })
@@ -1299,6 +1312,7 @@ onMounted(() => {
    
     
     res = mbtquery(mbtId);
+    console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -1307,11 +1321,14 @@ onMounted(() => {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {
-              codegennames.value.push(rec.name);
+            rst.forEach((rec: any) => {      
+              // console.log(rec);
+                      
+              codegennames.value.push({title:rec.name,const:rec._id});
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
+            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -1594,6 +1611,7 @@ onMounted(() => {
       flyShape.remove();
       $("#flyPaper").remove();
       if (aw.length > 0) showDrawer(undefined, aw, cellid); //First param used when clicking an element or a link. Undefined means not clicking
+      isLink.value=false
     });
   });
 
@@ -1696,10 +1714,7 @@ onMounted(() => {
       // console.log('other    ....',cell.attributes);
     }
     */
-  });
-  modeler.paper.on("link:mouseout", async function (linkView: any) {
-    console.log(123);
-  });
+  }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
     // console.log('11111111111cell  ',linkView.model.id);
@@ -1735,7 +1750,7 @@ onMounted(() => {
         linkData.value._id = linkView.model.id;
       } else {
         // todo link props
-        message.warning("Select a template first");
+        // message.warning("Select a template first");
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
@@ -1885,15 +1900,26 @@ function showGlobalInfo() {
   globalformData.value._id =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
   // globalformData.value.tags = "";
+  console.log(mbtCache);
+  
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
     globalformData.value.descriptions = mbtCache["description"];
-    // if (_.isArray(mbtCache["tags"])) {
-    //   _.forEach(mbtCache["tags"], function (value, key) {
-    //     globalformData.value.tags += value + " ";
+    if (mbtCache['attributes']) {
+       globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+    globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
+    }
+   
+    // if (_.isArray(mbtCache["codegen_text"])) {
+    //   _.forEach(mbtCache["codegen_text"], function (value, key) {
+    //     globalformData.value.codegen_text += value + " ";
     //   });
     // }
-    // globalformData.value.tags = mbtCache['tags'];
+  //   globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+  // }else if(_.isArray(mbtCache["codegen_script"])){
+  //   _.forEach(mbtCache["codegen_script"], function (value, key) {
+  //       globalformData.value.codegen_script += value + " ";
+  //     });
   }
 }
 
@@ -1996,7 +2022,7 @@ function showAWExpectedInfo(rowobj: any) {
 const activeKey = ref("2");
 const metaActiveKey = ref(["1"]);
 const awActiveKey = ref("1");
-
+ 
 interface columnDefinition {
   title: string;
   dataIndex: string;
@@ -2087,7 +2113,7 @@ const resourcesedit = (key: string) => {
 };
 const resourcessave = (key: string) => {
   Object.assign(
-    resourcesdataSource.value.filter((item) => key === item.key)[0],
+    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
     resourceseditableData[key]
   );
   delete resourceseditableData[key];
@@ -2098,7 +2124,7 @@ const resourcescancel = (key: string) => {
 
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item) => item.key !== key
+    (item: { key: string; }) => item.key !== key
   );
 };
 const resourceshandleAdd = () => {
@@ -2402,6 +2428,38 @@ const routerAw = (awData: any) => {
     },
   });
 };
+
+// preciew
+const visiblepreciew=ref(false)
+const previewActiveKey=ref("1")
+let searchPreview=reactive({
+  mode:""
+})
+let previewData=ref()
+async function querycode(){
+  let rst=await request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview})
+  if(rst){
+    previewData.value=rst
+  }
+}
+const preview=async (data:any)=>{
+  
+  searchPreview.mode="text"
+  await querycode()
+  visiblepreciew.value=true
+}
+const switchPut=async (val:any)=>{
+  if(val=="2"){
+    searchPreview.mode="script"
+    
+  }else{
+    searchPreview.mode="text"
+  }
+  await querycode()
+}
+const handleOk=()=>{
+  visiblepreciew.value=false
+}
 </script>
 
 <template>
@@ -2417,11 +2475,38 @@ const routerAw = (awData: any) => {
               {{ $t("common.saveText") }}
             </a-button>
             <span style="margin-left: 5px">
+              <a-button type="primary" @click="preview(route)">
+                preview
+              </a-button>
+            </span>
+            <span style="margin-left: 5px">
               <a-button danger @click="reloadMBT(route)">
                 {{ $t("layout.multipleTab.reload") }}
               </a-button>
             </span>
           </a-button-group>
+          <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
+            <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
+              <a-tab-pane key="1" tab="Test cases">
+                <a-card >
+                  <a-card-grid
+                  v-for="(item,index) in previewData"
+                  :key="index"
+                   style="width: 25%; text-align: center"
+                   :hoverable="false">{{item.data}}</a-card-grid>
+                </a-card>
+              </a-tab-pane>
+              <a-tab-pane key="2" tab="Test script" force-render>
+                <a-card >
+                  <a-card-grid
+                  v-for="(item,index) in previewData"
+                  :key="index"
+                   style="width: 25%; text-align: center"
+                   :hoverable="false">{{item.data}}</a-card-grid>
+                </a-card>
+              </a-tab-pane>
+            </a-tabs>
+          </a-modal>
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
@@ -2590,7 +2675,7 @@ const routerAw = (awData: any) => {
                     </a-table>
                   </a-row>
                 </div>
-                <div style="margin: 5px; width: 80%">
+                <div style="margin: 5px; width: 80%" class="awconfig">
                   <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
@@ -2602,11 +2687,6 @@ const routerAw = (awData: any) => {
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
                         <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
                       <!-- </span> -->
-                      <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit()"
-                          >{{ $t('common.submitText') }}</a-button
-                        >
-                      </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()">{{
                           $t("common.submitText")
@@ -2774,15 +2854,31 @@ const routerAw = (awData: any) => {
                 @submit="linkhandlerSubmit"
                 @cancel="onCloseDrawer"
               >
-              <div slot-scope="{linkData}">
-                <create-rule v-if="conditionalValue.length>0" :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="rulesData" @rulesChange="rulesChange"></create-rule>
-              <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
-              <div style="margin-top:1.625rem">
-                <a-button @click="linkhandlerSubmit" type="primary" style="margin-right:0.625rem">{{ $t('common.close') }}</a-button>
-              <a-button @click="onCloseDrawer">{{ $t('common.cancelText') }}</a-button>
-              </div>
-              </div>
-            </VueForm>
+              <div v-if="isExclusiveGateway" slot-scope="{ linkData }">
+                  <create-rule
+                    v-if="conditionalValue.length > 0"
+                    :keys="keys"
+                    :formDatas="formDatas"
+                    :valueData="valueData"
+                    :rulesData="rulesData"
+                    @rulesChange="rulesChange"
+                  ></create-rule>
+                  </div>
+                  <!-- <a-button @click="saveConditional">Add conditional</a-button> -->
+                  <div style="margin-top: 1.625rem">
+                    <a-button
+                      @click="linkhandlerSubmit"
+                      type="primary"
+                      style="margin-right: 0.625rem"
+                      >{{ $t("common.close") }}</a-button
+                    >
+                    <a-button @click="onCloseDrawer">{{
+                      $t("common.cancelText")
+                    }}</a-button>
+                  
+                </div>
+              </VueForm>
+
             </div>
           </div>
 
@@ -2815,11 +2911,11 @@ const routerAw = (awData: any) => {
               </a-tab-pane>
               <a-tab-pane key="2" tab="Attributes" force-render>
                 <a-card style="overflow-y: auto">
-                  <div style="padding: 5px">
+                  <div style="padding: 5px" class="attrconfig">
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      @submit="globalhandlerSubmit"
+                      @submit="subAttributes"
                       @cancel="onCloseDrawer"
                       v-if="isGlobal"
                     >
@@ -3013,6 +3109,7 @@ header {
 .found-kw {
   color: red !important;
   font-weight: 600;
+  
 }
 
 /* .ant-table-tbody > tr > td {
@@ -3047,7 +3144,8 @@ header {
 }
 </style>
 <style lang="less">
-.__pathRoot_name {
+.awconfig{
+  .__pathRoot_name {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
@@ -3056,6 +3154,32 @@ header {
     }
   }
   .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
+}
+.awconfig{
+  .__pathRoot_description {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
+        color: red !important;
+      }
+    }
+  }
+}
+.ant-form-item-control {
     .ant-form-item-control-input {
       .ant-form-item-control-input-content {
         #form_item_description {
@@ -3070,25 +3194,47 @@ header {
     }
   }
 }
-.__pathRoot_description {
+.attrconfig{
+  .__pathRoot_name {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
         color: red !important;
+      }
+    }
+  }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
       }
     }
   }
 }
-.__pathRoot_template {
-  .ant-form-item-label {
-    .ant-form-item-no-colon {
-      span {
-        color: red !important;
+.ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_name {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
       }
     }
   }
 }
-.__pathRoot_tags {
+.awconfig{
+  .__pathRoot_template {
   .ant-form-item-label {
     .ant-form-item-no-colon {
       span {
@@ -3096,5 +3242,45 @@ header {
       }
     }
   }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_template {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
+}
+.awconfig{
+  .__pathRoot_tags {
+  .ant-form-item-label {
+    .ant-form-item-no-colon {
+      span {
+        color: red !important;
+      }
+    }
+  }
+  .ant-form-item-control {
+    .ant-form-item-control-input {
+      .ant-form-item-control-input-content {
+        #form_item_tags {
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: #f5f5f5 !important;
+          border-color: #d9d9d9 !important;
+          box-shadow: none !important;
+          cursor: not-allowed !important;
+          opacity: 1 !important;
+        }
+      }
+    }
+  }
+}
 }
 </style>

@@ -98,6 +98,7 @@ interface DynamicModel {
 }
 declare module 'axios' {
     interface ResponseData<T> {
+        config: any;
         // model(model: any): any;
         hlfs?:number,
         template_codegen?:number,
