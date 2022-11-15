@@ -25,6 +25,7 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   response => {
+
     const { code, msg } = response.data
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)
@@ -35,7 +36,7 @@ request.interceptors.response.use(
     }
   },
   error => {
-    console.error(error)
+    // if(error.constructor && error.constructor.name==="Cancel"){}
     // message.error(error.message, 5)
     return Promise.reject(error)
   }

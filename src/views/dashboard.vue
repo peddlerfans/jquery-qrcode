@@ -155,23 +155,24 @@ async function query(){
   
   if(rst){
     sendXdata.value=rst.map((item:any)=>{
-      
       return TimeTrans(item.key_as_string)
     })
+
      cpu.value=rst.map((item:any)=>{
-      return item.cpu.value*10000
+      return item.cpu.value*1000
     })
-    cpuData.value.push({data:cpu.value,type:"line",name:"cpu(%)"})
-    console.log(cpuData.value);
+    cpuData.value=[{data:cpu.value,type:"line",name:"cpu(%)"}]
     
      neicun.value=rst.map((item:any)=>{
       return item.memory_free.value/1024/1024/1024
     })
-    memory.value.push({data:neicun.value,type:"line",name:"memory(GB)"})
+    memory.value=[{data:neicun.value,type:"line",name:"memory(GB)"}]
+
     let requestData=rst.map((item:any)=>{
         return item.terms
       })      
       lineDatas.value=lineData(requestData)
+
      tuntuliang.value=rst.map((item:any)=>{
       if(search.interval=="1m"){
         return item.transations.value
@@ -181,8 +182,11 @@ async function query(){
         return item.transations.value/1440
       }
     })
-    throughput.value.push({data:tuntuliang.value,type:"line",name:"throughput(tps)"})
+    throughput.value=[{data:tuntuliang.value,type:"line",name:"throughput(tps)"}]
   }
+
+  
+  
 }
 onMounted(()=>{
   querys()
@@ -197,7 +201,12 @@ const options=ref([
   {label:"Last 30 day",value:"Last 30 days"},
 ])
 const choseData:any=ref("Last 7 days")
-const datachange=async (value:SelectValue)=>{  
+const datachange=async (value:SelectValue)=>{
+  // sendXdata.value=[]
+  // cpuData.value=[]
+  // memory.value=[]
+  // lineDatas.value=[]
+  // throughput.value=[]
   choseData.value=value
   if(value=="Last 30 minutes"){
     search.start=timeFormat(endDate,30,"minutes")
@@ -217,6 +226,7 @@ const datachange=async (value:SelectValue)=>{
     search.interval="1d"
   }
   await query()
+  console.log(sendXdata.value,cpuData.value,memory.value,lineDatas.value,throughput.value);
 }
 
 
@@ -355,7 +365,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
     <a-row style="height:19.75rem;display: flex; justify-content: space-around;margin-top: 20px;">
       <a-col :span="11" >
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 || lineDatas.length>0 " 
           :sendXdata="sendXdata"
           :cpuData="cpuData"
           :chartstype="cpuCharts"
@@ -367,7 +377,7 @@ const dataZoom=(val1:any,val2:any)=>{
           <div v-else class="noData">{{ $t('component.message.nocpuData') }}</div>
       </a-col>
       <a-col :span="11" >
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0  || lineDatas.length>0 "
           :sendXdata="sendXdata"
           :cpuData="memory"
           :chartstype="memorycharts"
@@ -382,7 +392,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
     <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
       <a-col :span="11">
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0"
           :sendXdata="sendXdata"
           :cpuData="lineDatas"
           :chartstype="lineCharts"
@@ -394,7 +404,7 @@ const dataZoom=(val1:any,val2:any)=>{
           <div v-else class="noData">{{ $t('component.message.noLatencyData') }}</div>
         </a-col>
       <a-col :span="11">
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0 "
           :sendXdata="sendXdata"
           :cpuData="throughput"
           :chartstype="throughputTitle"

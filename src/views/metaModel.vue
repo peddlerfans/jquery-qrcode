@@ -24,7 +24,7 @@ async function query (data?:any){
    recordobj.value=rst   
           
           recordobj.value.model=rst.model
-          if(rst.model){
+          if(rst.model.length>0){
             tableData.value=arr(rst.model)
           }
       ;
@@ -101,7 +101,7 @@ const save =async (obj:any) => {
   obj.editing=false
   await updMeta(tableData.value)
   
-}
+} 
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
