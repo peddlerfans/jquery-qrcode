@@ -472,9 +472,11 @@ const rulesChange=(datas: any,key:string)=>{
 
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
-  const keys=ref<any>()
+  const keys=ref<any>(-1)
 // 点击保存时触发数据填充表格
-const  conditionsend=()=>{
+const conditionsend = () => {
+      console.log(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue);
+      
     if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
       let thencondition
       if(typeof thenObj.value.thenValue=="number"){
@@ -485,30 +487,34 @@ const  conditionsend=()=>{
       }
 
       let truerow={if:rulesData.value,then:{...thenObj.value}}
-      console.log(keys.value);
+      
       
       if (keys.value>=0) {
+        // console.log(1);
         
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
         condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
       } else {
+        // console.log(2);
         condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
         finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
-        
+        // console.log(condata.value);
       }
- 
+        // console.log(keys.value);
+        keys.value=-1
       saveModel()
-      cancelbulid()
+      
       // condata.value=conditionData(condata.value)
-    }
+  }
+  cancelbulid()
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  keys.value=''
+  keys.value=-1
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"AND",
     id:1,
@@ -531,7 +537,7 @@ const cancelbulid=()=>{
 // 点击修改的值
 const editCon=(obj:any)=>{
   keys.value=obj.keys
-  
+  showAddConstraintBtn.value=false
 if(finalModel.constraint.length>0){
     rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
@@ -541,7 +547,10 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{  
+const deleteconstraint = (obj: any) => {  
+  if (childComponent.value) {
+    return message.warning(t('templateManager.dynamicDelText'))
+  }
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
@@ -578,7 +587,7 @@ const rulesData=ref(
       children:[]}
   ]
 )
-
+let previewErrorMsg=ref("")
 let prev=ref<boolean>(false);
 let columnPreview=ref<any>()
 let modelDataPreview=ref<any>()
@@ -586,6 +595,12 @@ let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
 let activeKey=ref("1")
 const previewModel = async () => {
   let rst = await request.post('/api/templates'+`/${ids}/preview`)
+  if (rst.error) {
+  previewErrorMsg.value=rst.error
+  } else {
+  previewErrorMsg.value=""
+  }
+console.log(previewErrorMsg.value,rst);
 
   modelDataPreview.value=rst
   columnPreview.value=rst.model?.parameters.map((e:any)=>{
@@ -762,11 +777,12 @@ const previewModel = async () => {
             <a @click="editCon(record)">{{ $t('common.editText') }}</a>
               <a-divider type="vertical" />
               <a-popconfirm
+              
                   :title="$t('templateManager.delConstraint')"
                   :ok-text="$t('common.yesText')"
                   :cancel-text="$t('common.noText')"
                   @confirm="deleteconstraint(record)" @cancel="cancel">
-                <a>{{ $t('common.delText') }}</a>
+                <a >{{ $t('common.delText') }}</a>
               </a-popconfirm>
           </span>
         </template>
@@ -826,14 +842,18 @@ const previewModel = async () => {
 
 <a-tabs v-model:activeKey="activeKey">
   <a-tab-pane key="1" tab="Data">
-          <a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        <template #bodyCell="{ column, text, record }">
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        
+        
+        
+            <template #bodyCell="{ column, text, record }">
       <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
       <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
       <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
           {{ text }}
         </template>
       </a-table>
+      <p v-else style="color:#ff4d4f;">{{previewErrorMsg}}</p>
   </a-tab-pane>
   <a-tab-pane key="2" tab="Model" >
     <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>

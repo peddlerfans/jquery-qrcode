@@ -91,6 +91,7 @@ async function query(data?: any) {
   rst = await request.get(url, { params: data || searchobj });
 
   if (rst.data) {
+    pagination.total=rst.total
     dataSource.value = rst.data;
     return rst.data;
   }

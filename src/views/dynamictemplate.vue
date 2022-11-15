@@ -243,7 +243,7 @@ const closeModel = () => {
   visibleModel.value = false;
   clearModelState()
 
-  query()
+  // query()
   // console.log(modelstates);
 }
 
@@ -306,6 +306,9 @@ const saveModel = async () => {
   }
   unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
     let rst = await request.post(url, model)
+    if (rst) {
+      tableData.value.unshift(rst)
+    }
     message.success(t('templateManager.createModelSuccess'))
   closeModel()
   })

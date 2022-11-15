@@ -161,28 +161,43 @@ const showDrawer = (
     ev_id = id;
 
     awformdata.value._id = "";
-
     awformdata.value.description = "";
     awformdata.value.name = "";
-
     awformdata.value.tags = "";
     awformdata.value.template = "";
     // handlerCancel()
-
     hasAWInfo.value = false;
 
     awquery();
     awquery("", true);
-  } else if (typeof el == "undefined") {
-    // console.log('click blank')
-  } else if (el!.hasOwnProperty("path")) {
-    // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-    //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
-  } else if (el && _.isObject(el)) {
-    // console.log('click element')
-  } else {
-    // console.log('click blank')
+  } else if(typeof el == "undefined" && aw == "awmodel" && id) {
+    awschema.value.properties._id!=null
+    awschema.value.properties.name.readOnly=false
+    awschema.value.properties.description.readOnly=false
+    awschema.value.properties.template.readOnly=false
+    awschema.value.properties.tags != null
+    isAW.value = true;
+    hasAWInfo.value = false;
+    awformdata.value._id = "";
+    awformdata.value.description = "";
+    awformdata.value.name = "";
+    awformdata.value.tags = "";
+    awformdata.value.template = "";
+    // handlerCancel()
+    hasAWInfo.value = false;
   }
+   
+
+  //   if (typeof el == "undefined") {
+  //   // console.log('click blank')
+  // } else if (el!.hasOwnProperty("path")) {
+  //   // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
+  //   //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
+  // } else if (el && _.isObject(el)) {
+  //   // console.log('click element')
+  // } else {
+  //   // console.log('click blank')
+  // }
 };
 
 const isMetaTemplateEmpty = ref(true);
@@ -612,6 +627,7 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
+  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -666,9 +682,14 @@ function awhandlerSubmit() {
       //   currentElementMap.get(ev_id).props.expectedprops
       // );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+      console.log(tempexpected);
+      
     } else {
       let tempawformdata2Expected = generateObj(awformdataExpected);
       let tempawschemaExpected = generateObj(awschemaExpected);
+      console.log(tempawformdata2Expected,awformdataExpected.value);
+      
+      // awformdataExpected.value!=tempawformdata2Expected
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
@@ -681,10 +702,13 @@ function awhandlerSubmit() {
           expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
+awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
+awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     }
     // console.log(" 2/1-1 : tempexpected", tempexpected);
     // console.log('cacheprops set.....2/2', cacheprops)
     if (typeof tempexpected != "undefined") {
+      console.log( awformdataExpected.value);
       let tempawschemaExpected = tempexpected.schema;
       let tempformdata2Expected = tempexpected.data;
       // console.log(
@@ -697,15 +721,20 @@ function awhandlerSubmit() {
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+          expectedprops: { schema: tempawschemaExpected, data: awformdataExpected.value },
         },
       });
       cacheprops.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+          expectedprops: { data: awformdataExpected.value, schema: tempawschemaExpected },
         },
       });
+awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
+      awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
+      
+      
+
     } //未设置expected，只存primary
     else {
       // console.log("correct");
@@ -1303,7 +1332,8 @@ let dataFrom = ref("");
 let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
-
+// 判断是否自由编辑aw模式
+let isAwModel=ref(true)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
@@ -1612,7 +1642,11 @@ onMounted(() => {
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
-      if (aw.length > 0) showDrawer(undefined, aw, cellid); //First param used when clicking an element or a link. Undefined means not clicking
+      if (aw.length > 0 && !isAwModel.value) {
+        showDrawer(undefined, aw, cellid)
+      } else {
+        
+      }; //First param used when clicking an element or a link. Undefined means not clicking
       isLink.value=false
     });
   });
@@ -2015,23 +2049,131 @@ function showAWInfo(rowobj: any) {
   }
 }
 function handlerConfirmExpected() {
-  let tempawschemaExpected = generateObj(awschemaExpected);
-  let tempformdata2Expected = generateObj(awformdataExpected);
+    isAW.value = true;
+  isLink.value = false;
+  isGlobal.value = false;
+  // let tempawschemaExpected = generateObj(awschemaExpected);
+  // let tempformdata2Expected = generateObj(awformdataExpected);
 
   let tempawschema = generateObj(awschema);
   let tempformdata2 = generateObj(awformdata);
-  currentElementMap.set(ev_id, {
-    props: {
-      primaryprops: { data: tempformdata2, schema: tempawschema },
-      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-    },
-  });
-  cacheprops.set(ev_id, {
-    props: {
-      primaryprops: { data: tempformdata2, schema: tempawschema },
-      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-    },
-  });
+
+
+    //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
+  if (currentElementMap.size == 0) {
+    if (
+      cacheprops.get(ev_id) != null &&
+      cacheprops.get(ev_id).props &&
+      cacheprops.get(ev_id).props.primaryprops &&
+      cacheprops.get(ev_id).props.primaryprops.data &&
+      cacheprops.get(ev_id).props.primaryprops.data.name &&
+      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
+    ) {
+      // console.log("cacheprops set.....1/1", cacheprops);
+      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
+      // awformdata.value = awformData.props;
+      awformdata.value = awformData;
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      hasAWInfo.value = true;
+    } //新的aw拖入modeler
+    else {
+      // console.log("cacheprops set.....2/2", cacheprops);
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      // console.log("cacheprops set.....2/3    .....", cacheprops);
+      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
+    }
+  } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
+  else {
+    //获取epected的
+    // console.log("cacheprops set.....3/3", cacheprops);
+    let tempexpected;
+
+    if (
+      currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.expectedprops &&
+      currentElementMap.get(ev_id).props.expectedprops.data
+    ) {
+      // console.log(
+      //   "expected in handler:",
+      //   currentElementMap.get(ev_id).props.expectedprops
+      // );
+      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+    } else {
+      let tempawformdata2Expected = generateObj(awformdataExpected);
+      let tempawschemaExpected = generateObj(awschemaExpected);
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+    }
+    // console.log(" 2/1-1 : tempexpected", tempexpected);
+    // console.log('cacheprops set.....2/2', cacheprops)
+    if (typeof tempexpected != "undefined") {
+      let tempawschemaExpected = tempexpected.schema;
+      let tempformdata2Expected = tempexpected.data;
+      // console.log(
+      //   "awschemaexpected:",
+      //   awschemaExpected,
+      //   "tempformdata2Expected ",
+      //   tempformdata2Expected
+      // );
+
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+    } //未设置expected，只存primary
+    else {
+      // console.log("correct");
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+    }
+  }
+
+
+  // console.log(tempawschemaExpected,tempformdata2Expected);
+  
+  // currentElementMap.set(ev_id, {
+  //   props: {
+  //     primaryprops: { data: tempformdata2, schema: tempawschema },
+  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+  //   },
+  // });
+  // cacheprops.set(ev_id, {
+  //   props: {
+  //     primaryprops: { data: tempformdata2, schema: tempawschema },
+  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+  //   },
+  // });
+
 }
 function showAWExpectedInfo(rowobj: any) {
   hasAWExpectedInfo.value = true;
@@ -2513,7 +2655,7 @@ const softwrap=true
       style="padding: 0rem !important;"
     >
       <a-row>
-        <a-col span="18">
+        <a-col span="16">
           <a-button-group>
             <a-button type="primary" @click="saveMBT(route)">
               {{ $t("common.saveText") }}
@@ -2569,6 +2711,14 @@ const softwrap=true
               </a-tab-pane>
             </a-tabs>
           </a-modal>
+        </a-col>
+        <a-col span="2" class="isSwitch">
+          <div >
+            <a-switch v-model:checked="isAwModel" 
+            checked-children="自由模式" 
+            un-checked-children="标准模式" />
+          </div>
+          
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
@@ -2884,7 +3034,7 @@ const softwrap=true
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerConfirmExpected()"
+                        <a-button type="primary" @click="awhandlerSubmit()"
                           >Confirm</a-button
                         >
                       </span>
@@ -3177,6 +3327,10 @@ header {
 /* .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
  } */
+ .isSwitch{
+  display: flex;
+  align-items: center;
+ }
 
 .icon-wrapper {
   position: relative;

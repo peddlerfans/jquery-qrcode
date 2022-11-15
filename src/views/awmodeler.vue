@@ -34,8 +34,8 @@ let treeSelectTitle = '/'
 
 async function query(data?: any) {
   const rst = await http.get("/api/hlfs", { params: data || searchobj })
-  let path = (rst.config.params?.q || '').slice(6) || '/'
-  if (path !== treeSelectTitle) return
+  // let path = (rst.config.params?.q || '').slice(6) || '/'
+  // if (path !== treeSelectTitle) return
   let res = rst.data
   if (res.data) {
     pagination.value.total = res.total
@@ -142,7 +142,7 @@ async function saveAw(data: any) {
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
       deleteId=rst._id
-      tableData.value.push(data)
+      tableData.value.unshift(data)
       message.success(t('component.message.addText'))
     }
     }

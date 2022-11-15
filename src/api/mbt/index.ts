@@ -9,8 +9,8 @@ import { object } from 'vue-types';
 export const arr = (dataArr: any) =>
   dataArr.map((item: any, index: string) => ({ ...item, key: index }));
 export interface IJSONSchema {
-  type?:string,
-  properties?:object
+  type?: string,
+  properties?: object
 }
 export interface IColumn {
   title?: string;
@@ -19,14 +19,14 @@ export interface IColumn {
   width?: number;
 }
 
-export function transfer2Table(data:any[]){
-  let result =[];
-  if(_.isArray(data) && data.length>0){
-    let columns:any[] = [];
-    
-    Object.keys(data[0]).forEach(key=>{
+export function transfer2Table(data: any[]) {
+  let result = [];
+  if (_.isArray(data) && data.length > 0) {
+    let columns: any[] = [];
+
+    Object.keys(data[0]).forEach(key => {
       let column = {};
-      Object.assign(column,{title:key,dataIndex:key,key:key,width:key.length*3})
+      Object.assign(column, { title: key, dataIndex: key, key: key, width: key.length * 3 })
       columns.push(column);
     })
     result = columns;
@@ -35,67 +35,67 @@ export function transfer2Table(data:any[]){
 
   }
   return result;
-  
+
 }
 
 // post https://mbt-dev.oppo.itealab.net/api/templates/634ad42c6e00af5756729ac5/preview
 
-export async function getTemplatePreview(templateId:string){
-  let templatetableData:any ={}   
-    let strsql = `/api/templates/${templateId}/preview`;
-    let rst: [] = [];
-    await request
+export async function getTemplatePreview(templateId: string) {
+  let templatetableData: any = {}
+  let strsql = `/api/templates/${templateId}/preview`;
+  let rst: [] = [];
+  await request
     .post(strsql)
     .then((record: any) => {
-      
+
       rst = record.data;
       console.log(rst);
-      
+
       if (rst.length > 0) {
-      templatetableData = arr(rst);
+        templatetableData = arr(rst);
       }
     })
   return templatetableData;
 
 }
-export async function getAllTemplatesByCategory(category:string){
-  let templatetableData:any[] =[]   
-    let strsql = `/api/templates?q=category:${category}&search=`;
-    let rst: [] = [];
+export async function getAllTemplatesByCategory(category: string) {
+  let templatetableData: any[] = []
+  let strsql = `/api/templates?q=category:${category}&search=`;
+  let rst: [] = [];
 
-    await request
-      .get(strsql)
-      .then((record: any) => {
-        rst = record.data;
-        if (rst.length > 0) {
+  await request
+    .get(strsql)
+    .then((record: any) => {
+      rst = record.data;
+      if (rst.length > 0) {
         templatetableData = arr(rst);
-        }
-      })
-    return templatetableData;
+      }
+    })
+  return templatetableData;
 }
 
-export async function getTemplate(metaId:string,category:string){
+export async function getTemplate(metaId: string, category: string) {
   let currentschema = {
     type: "object",
     properties: {},
   };
   // let metatemplaterecordobj = ref();  
-    let rst1 = await request.get(`/api/templates/${metaId}`, {
-      params: { q: "category:${category}", search: "" },
-    });
-    // metatemplaterecordobj.value = rst1;
-    if (rst1.model) {
-      // metatemplaterecordobj.value.model = rst1.model;  
-      let temparr = rst1.model;     
-      if (_.isArray(temparr)) {
-        let schemafileds = generateSchema(temparr);
-        schemafileds.forEach((schemafield: any) => {
-          Object.assign(currentschema.properties, schemafield);
-        });      
-      }
+  let rst1 = await request.get(`/api/templates/${metaId}`, {
+    params: { q: `category:${category}`, search: "" },
+  });
+  // metatemplaterecordobj.value = rst1;
+  if (rst1.model) {
+    // metatemplaterecordobj.value.model = rst1.model;  
+    let temparr = rst1.model;
+    if (_.isArray(temparr)) {
+      let schemafileds = generateSchema(temparr);
+      schemafileds.forEach((schemafield: any) => {
+        Object.assign(currentschema.properties, schemafield);
+      });
     }
-    console.log('result of schema:',currentschema);
-    return currentschema; 
+  }
+  console.log('result of schema:', currentschema);
+  return currentschema;
 }
 
 /**
@@ -143,13 +143,13 @@ export async function getTemplate(metaId:string,category:string){
 //     return metatemplatetableData;
 // }
 
-export function getMBTList() {    
-    
-    const data = requestGet<{ data: any[], total: number }>(`/api/test-models`)
-    
-    return data;
-   
-  }
+export function getMBTList() {
+
+  const data = requestGet<{ data: any[], total: number }>(`/api/test-models`)
+
+  return data;
+
+}
 // export function updateAccountInfo(data: any) {
 //   return request<BaseResponse<any>>({
 //     url: 'account/update',
@@ -186,4 +186,4 @@ export function getMBTList() {
 //     method: 'post',
 //   });
 // }
-export {}
+export { }
