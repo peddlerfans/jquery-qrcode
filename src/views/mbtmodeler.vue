@@ -57,7 +57,7 @@ import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
 import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
-
+import "./componentTS/ace-config";
 const { t } = useI18n();
 
 window.joint = joint;
@@ -634,7 +634,7 @@ function awhandlerSubmit() {
 
   let tempformdata2 = generateObj(awformdata);
   let tempawschema = generateObj(awschema);
-
+  debugger
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
     if (
@@ -647,20 +647,21 @@ function awhandlerSubmit() {
     ) {
       // console.log("cacheprops set.....1/1", cacheprops);
       let awformData = cacheprops.get(ev_id).props.primaryprops.data;
+      let props=cacheprops.get(ev_id).props.primaryprops
       // awformdata.value = awformData.props;
       awformdata.value = awformData;
       currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
       });
       hasAWInfo.value = true;
     } //新的aw拖入modeler
     else {
       // console.log("cacheprops set.....2/2", cacheprops);
       currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {aw:tempformdata2 ,data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
       });
       // console.log("cacheprops set.....2/3    .....", cacheprops);
       // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
@@ -670,35 +671,36 @@ function awhandlerSubmit() {
     //获取epected的
     // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
-
+    
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
     ) {
+      
       // console.log(
       //   "expected in handler:",
       //   currentElementMap.get(ev_id).props.expectedprops
       // );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
-      console.log(tempexpected);
+      // console.log(tempexpected);
       
     } else {
       let tempawformdata2Expected = generateObj(awformdataExpected);
       let tempawschemaExpected = generateObj(awschemaExpected);
       console.log(tempawformdata2Expected,awformdataExpected.value);
-      
+      let props=cacheprops.get(ev_id).props.primaryprops
       // awformdataExpected.value!=tempawformdata2Expected
       currentElementMap.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
+          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
           expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
+          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
           expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
@@ -717,17 +719,17 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
       //   "tempformdata2Expected ",
       //   tempformdata2Expected
       // );
-
+      let props=cacheprops.get(ev_id).props.expectedprops
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: awformdataExpected.value },
+          expectedprops: {...props, schema: tempawschemaExpected, data: awformdataExpected.value },
         },
       });
       cacheprops.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: awformdataExpected.value, schema: tempawschemaExpected },
+          expectedprops: {...props, data: awformdataExpected.value, schema: tempawschemaExpected },
         },
       });
 awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
@@ -737,12 +739,13 @@ awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
 
     } //未设置expected，只存primary
     else {
+      let props=cacheprops.get(ev_id).props.primaryprops
       // console.log("correct");
       currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
       });
     }
   }
@@ -1900,7 +1903,7 @@ onMounted(() => {
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
             let tempawschemaExpected = generateObj(awschemaExpected);
             let tempformdata2Expected = generateObj(awformdataExpected);
-
+            let props=cacheprops.get(ev_id).props.expectedprops
             isDisabled.value = false;
             // awformdata.value = awformdataExpected;
             hasAWExpectedInfo.value = true;
@@ -1908,18 +1911,24 @@ onMounted(() => {
               props: {
                 primaryprops: { data: tempformdata2, schema: tempawschema },
                 expectedprops: {
+                  ...props,
                   data: tempformdata2Expected,
                   schema: tempawschemaExpected,
                 },
               },
             });
           } else {
+            let props=cacheprops.get(ev_id).props.primaryprops
+            // console.log(props);
+            
             cacheprops.set(ev_id, {
-              props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
             });
             currentElementMap.set(ev_id, {
-              props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
             });
+            // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
+            
           }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
@@ -2612,15 +2621,42 @@ const routerAw = (awData: any) => {
 const visiblepreciew=ref(false)
 const previewActiveKey = ref("1")
 const casesKey=ref("1")
+let previewcol:any=ref([])
+const previewData:any=ref([])
+let previewScript=ref("")
 let searchPreview=reactive({
   mode:""
 })
-let previewData=ref()
+let outLang=ref()
+// let previewData=ref()
 async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
   
-  if(rst){
-    previewData.value=rst
+  if(rst && rst.results && rst.results.length>0){
+    console.log(rst);
+    
+    outLang.value=rst.outputLang
+    Object.keys(rst.results[0].json).forEach((obj)=>{
+      let objJson={
+        title:obj,
+        dataIndex:obj,
+        key:obj,
+        width:50
+      }
+      // if(obj=="test_steps" || obj=="expected_results"){
+      //   objJson.width=50
+      // }
+      previewcol.value.push(objJson)
+    })
+    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+    previewData.value=rst.results.map((item:any)=>{
+      if(item.script){
+        Object.assign(item.json,{script:item.script})
+      }
+      return item.json
+    })
+    console.log(previewData.value,previewcol.value);
+    
   }
   }).catch((err)=>{
     message.error("Model configuration error")
@@ -2629,27 +2665,35 @@ async function querycode(){
 }
 const preview=async (data:any)=>{
   
-  searchPreview.mode="text"
+  searchPreview.mode="all"
   await querycode()
   visiblepreciew.value=true
 }
-const switchPut=async (val:any)=>{
-  if(val=="2"){
-    searchPreview.mode="script"
-    
-  }else{
-    searchPreview.mode="text"
-  }
-  await querycode()
+
+// const tableclick={(record:any)=>{
+//   return {
+//     onclick:()=>{
+//       console.log(record);
+//       previewScript.value=record.script
+//     }}
+// }
+// }
+const openPreview=(record:any)=>{
+  previewScript.value=record.script
 }
+
 const handleOk=()=>{
   visiblepreciew.value=false
+  previewData.value=[]
+}
+const cencelpreview=()=>{
+  previewData.value=[]
 }
 const softwrap=true
 </script>
 
 <template>
-  <main>
+  <main style="overflow: hidden;">
     <header
       class="block shadow"
       style="padding: 0rem !important;"
@@ -2671,8 +2715,16 @@ const softwrap=true
               </a-button>
             </span>
           </a-button-group>
-          <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
-            <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
+          <a-modal v-model:visible="visiblepreciew" 
+          title="Preview Modal" @ok="handleOk" 
+          :footer="null"
+          :keyboard="true"
+          :mask-closable="true"
+          width="1280"
+          class="previewModel"
+          @cancel="cencelpreview"
+          >
+            <!-- <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
               <a-tab-pane key="1" tab="Test cases">
                 <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
                   <a-tab-pane v-for="(item,index) in previewData"
@@ -2709,7 +2761,37 @@ const softwrap=true
                   </a-tab-pane>
                 </a-tabs>
               </a-tab-pane>
-            </a-tabs>
+            </a-tabs> -->
+          <a-table :columns="previewcol" 
+          :data-source="previewData" 
+          :pagination="{pageSize:5}"
+          bordered
+          :rowKey="record => record.id"
+          >
+        <template #bodyCell="{column,record}">
+           <template v-if="column.key=='can_be_automated'">
+            <p >{{record.can_be_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_implemented_automated'">
+            <p >{{record.is_implemented_automated}}</p>
+          </template>
+          <template v-if="column.key=='action'">
+            <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
+          </template>
+        </template>
+        </a-table>
+          <!-- <div > -->
+            <VAceEditor
+            v-if="previewScript"
+                          v-model:value="previewScript"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          :lang="outLang"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+          <!-- </div> -->
           </a-modal>
         </a-col>
         <a-col span="2" class="isSwitch">
@@ -2948,12 +3030,7 @@ const softwrap=true
                     :pagination="paginationExpected"
                   >
                     <template #headerCell="{ column }">
-                      <template v-if="column.key === 'name'">
-                        <span>
-                          <smile-outlined />
-                          Name
-                        </span>
-                      </template>
+                      <span>{{ $t(column.title) }}</span>
                     </template>
                     <template #bodyCell="{ column, text, record }">
                       <template v-if="column.key === 'name'">
@@ -3260,7 +3337,6 @@ const softwrap=true
 }
 
 main {
-  overflow: hidden;
   height: 100%;
 }
 
@@ -3272,7 +3348,7 @@ header {
 .canvas {
   margin: 10px;
 }
-
+.ant-model-content
 .infoPanel {
   /* height: 100%; */
   /* overflow: hidden; */
@@ -3324,6 +3400,7 @@ header {
   
 }
 
+
 /* .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
  } */
@@ -3360,13 +3437,25 @@ header {
 }
 </style>
 <style lang="less">
-.ace-result{
-  flex: 1;
-  margin-top: 15px;
-  font-size: 18px;
-  border: 1px solid;
-  height: 35rem;
+.previewModel{
+  height: 35vw;
+  .ant-modal-content{
+    height: 100%;
+    .ant-modal-body{
+      height: 100%;
+      display: flex;
+      .ace-result{
+      flex: 1;
+      // margin-top: 15px;
+      font-size: 18px;
+      border: 1px solid;
+      height: 72%;
+      width:31.25rem
 }
+    }
+  }
+}
+
 .awconfig{
   .__pathRoot_name {
   .ant-form-item-label {
