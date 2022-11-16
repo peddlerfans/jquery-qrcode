@@ -185,9 +185,7 @@ async function saveMBT(data: any) {
 let disable=ref(false)
 const handleOk = (modelstates:any) => {
   modelstates.tags = states.tags;
-  refForm.value.validate().then(()=>{
-    console.log(123);
-    
+  refForm.value.validate().then(()=>{    
   // disable.value=false
   // 判断修改或添加
   if (modelstates.name && modelstates.description) {
