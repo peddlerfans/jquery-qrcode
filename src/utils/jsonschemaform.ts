@@ -156,7 +156,6 @@ const generateObj = (refObj: any) => {
     })
 
   }
-
   return obj;
 }
 export { generateSchema, generateObj };
