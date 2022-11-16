@@ -3,7 +3,7 @@
 // Read more: https://github.com/vuejs/core/pull/3399
 import '@vue/runtime-core'
 
-export { }
+export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
@@ -51,6 +51,7 @@ declare module '@vue/runtime-core' {
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyLink: typeof import('ant-design-vue/es')['TypographyLink']
+    ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     DynamicTable: typeof import('./src/components/dynamicTable.vue')['default']
