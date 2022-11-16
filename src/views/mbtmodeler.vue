@@ -2672,12 +2672,7 @@ const routerAw = (awData: any) => {
                     :pagination="paginationExpected"
                   >
                     <template #headerCell="{ column }">
-                      <template v-if="column.key === 'name'">
-                        <span>
-                          <smile-outlined />
-                          Name
-                        </span>
-                      </template>
+                      <span>{{ $t(column.title) }}</span>
                     </template>
                     <template #bodyCell="{ column, text, record }">
                       <template v-if="column.key === 'name'">
