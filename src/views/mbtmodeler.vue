@@ -2726,9 +2726,11 @@ const openPreview=(record:any)=>{
 const handleOk=()=>{
   visiblepreciew.value=false
   previewData.value=[]
+  previewcol.value=[]
 }
 const cencelpreview=()=>{
   previewData.value=[]
+  previewcol.value=[]
 }
 const softwrap=true
 </script>
