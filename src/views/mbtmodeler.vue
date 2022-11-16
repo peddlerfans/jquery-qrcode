@@ -2808,6 +2808,7 @@ const softwrap=true
           :pagination="{pageSize:5}"
           bordered
           :rowKey="record => record.id"
+          class="previewclass"
           >
         <template #bodyCell="{column,record}">
            <template v-if="column.key=='can_be_automated'">
@@ -2815,6 +2816,12 @@ const softwrap=true
           </template>
           <template v-if="column.key=='is_implemented_automated'">
             <p >{{record.is_implemented_automated}}</p>
+          </template>
+          <template v-if="column.key=='test_steps'">
+            <pre >{{record.test_steps}}</pre>
+          </template>
+          <template v-if="column.key=='expected_results'">
+            <pre >{{record.expected_results}}</pre>
           </template>
           <template v-if="column.key=='action'">
             <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
@@ -3478,8 +3485,11 @@ header {
 }
 </style>
 <style lang="less">
+  .previewclass .ant-table-tbody > tr > td{
+  padding: 0px;
+}
 .previewModel{
-  height: 35vw;
+  height: 50vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
