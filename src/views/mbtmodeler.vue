@@ -2769,6 +2769,12 @@ const softwrap=true
           :rowKey="record => record.id"
           >
         <template #bodyCell="{column,record}">
+           <template v-if="column.key=='can_be_automated'">
+            <p >{{record.can_be_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_implemented_automated'">
+            <p >{{record.is_implemented_automated}}</p>
+          </template>
           <template v-if="column.key=='action'">
             <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
           </template>
