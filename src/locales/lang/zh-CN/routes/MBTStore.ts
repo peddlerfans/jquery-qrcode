@@ -1,7 +1,7 @@
 export default {
     saveTitle: '保存测试建模',
     updateTitle: '更新测试建模',
-    searchText: '请输入测试建模名称',
+    searchText: "输入{'@'}搜索标签，输入名称搜索测试建模名称",
     tip1: '重复的名称或描述',
     tip2: '请填写名称和描述',
     tip3: '删除成功',
@@ -10,6 +10,10 @@ export default {
 
     // MBTModeler
     reloadTip: '测试建模已重新加载',
+    start: '开始',
+    end: '结束',
+    concurrency: '并发',
+    branch: '分支',
     // MBTModeler detail
     primary: '主要数据',
     expected: '预期结果',

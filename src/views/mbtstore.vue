@@ -91,6 +91,7 @@ async function query(data?: any) {
   rst = await request.get(url, { params: data || searchobj });
 
   if (rst.data) {
+    pagination.total=rst.total
     dataSource.value = rst.data;
     return rst.data;
   }
@@ -129,7 +130,7 @@ async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data);
   // console.log(rst);
 }
-let refForm = ref(null);
+let refForm = ref();
 // 清除模态窗数据
 const clear = () => {
   (modelstates.value = {
@@ -181,24 +182,27 @@ async function saveMBT(data: any) {
       });
   });
 }
-
-const onFinishForm = async (modelstates: any) => {
-  modelstates.value.tags = states.tags;
-
+let disable=ref(false)
+const handleOk = (modelstates:any) => {
+  modelstates.tags = states.tags;
+  refForm.value.validate().then(()=>{
+    console.log(123);
+    
+  // disable.value=false
   // 判断修改或添加
-  if (modelstates.value.name && modelstates.value.description) {
-    if (modelstates.value._id) {
-      mbtId.value = modelstates.value._id;
-      updateMBT(url + `/${modelstates.value._id}`, modelstates.value).then((res: any) => {
+  if (modelstates.name && modelstates.description) {
+    if (modelstates._id) {
+      mbtId.value = modelstates._id;
+      updateMBT(url + `/${modelstates._id}`, modelstates).then((res: any) => {
         let fetchUrl = `${url}/${mbtId.value}`;
 
         updateTable({ fetchUrl: fetchUrl });
       });
       message.success(t('component.message.modifiedText'));
     } else {
-
-      delete modelstates.value._id
-      saveMBT(modelstates.value);
+    
+      delete modelstates._id
+      saveMBT(modelstates);
 
       message.success('component.message.addText');
     }
@@ -207,16 +211,18 @@ const onFinishForm = async (modelstates: any) => {
   } else {
     return message.error(t('MBTStore.tip2'));
   }
+}).catch(()=>{
+  // disable.value=true
+})
+  // onFinishForm(modelstates);
 };
+const onFinishForm =  (modelstates: any) => {};
 
 /**
  * Create a new model and jump to moderler
  */
-const handleOk = () => {
-  visible.value = false;
 
-  onFinishForm(modelstates);
-};
+
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
@@ -239,14 +245,28 @@ const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-// 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject(t('component.message.emptyName'));
-  } else {
-    return Promise.resolve();
+    return Promise.reject(t('component.message.emptyName'))
+  }else if(modelstates.value.name==value){
+    return Promise.resolve()
+  }else if(!reg.test(value) && !reg1.test(value)){
+      return Promise.reject(t('component.message.hefaName'))
+  }else{
+    let rst=await request.get(url,{params:{q:`name:${modelstates.value.name}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+
+        return Promise.reject(t('component.message.depName'))
+      }else{
+        return Promise.resolve();
+      
+      }
   }
-};
+}
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
@@ -335,13 +355,11 @@ const handleInputConfirm = () => {
       <a-modal
         v-model:visible="visible"
         :title="modelstates._id ? $t('MBTStore.updateTitle') : $t('MBTStore.saveTitle')"
-        @cancel="closemodel"
-        @ok="handleOk"
         :width="700"
       >
         <template #footer>
           <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="handleOk" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+          <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
         </template>
         <a-form
           ref="refForm"
@@ -351,8 +369,6 @@ const handleInputConfirm = () => {
           :label-col="{ span: 6 }"
           :wrapper-col="{ span: 16 }"
           autocomplete="off"
-          @finish="onFinishForm"
-          @finishFailed="onFinishFailedForm"
         >
           <a-form-item :label="$t('component.table.name')" name="name">
             <a-input v-model:value="modelstates.name" />

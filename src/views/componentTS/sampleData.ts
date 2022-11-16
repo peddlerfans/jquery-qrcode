@@ -1,4 +1,5 @@
 export const data = {
+    "__case_id":0,
     "data": [
         {
             "step": {

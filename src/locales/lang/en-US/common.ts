@@ -12,7 +12,7 @@ export default {
   queryText: 'Search',
   updateText: 'Update',
   yesText: 'Yes',
-  NoText: 'No',
+  noText: 'No',
   loadText: 'Load',
   prev: 'Previous',
   next: 'Next',

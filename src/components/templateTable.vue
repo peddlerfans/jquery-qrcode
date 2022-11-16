@@ -16,7 +16,7 @@ import {
   onUpdated,
   nextTick,
 } from "vue";
-import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import { FormProps, message, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import { tableSearch, FormState } from "@/views/componentTS/mbtmodeler";
 
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
@@ -228,6 +228,8 @@ function showDetailInfo(data: any) {
       columnsOrigin.value = cust_columns;
       dataSource.value = dat;
       // columnsOrigin.value = dat.model.schema;
+    }).catch(()=>{
+      message.warning("Please configure this template first")
     });
   } else if (data && data._id && data.category == "static") {
     // console.log(data.model)
@@ -235,7 +237,7 @@ function showDetailInfo(data: any) {
       dataSource.value = data.model.data;
       columnsOrigin.value = data.model.schema;
     } else {
-      console.log("Pleaes define the params in static template.");
+      message.warning("Pleaes define the params in static template.");
     }
   }
 }
@@ -287,6 +289,7 @@ const chooseTemplateFunc = () => {
     }
    
   });
+  chooseTemplate.value=true
   updateTable();
 };
 </script>
@@ -341,13 +344,13 @@ const chooseTemplateFunc = () => {
       >
 
       <a-button
-        v-if="chooseTemplate || !hasData"
+        v-if="chooseTemplate"
         style="margin-right: 5px"
         type="link"
         @click="chooseTemplateFunc()"
         >Choose A Template</a-button
       >
-
+      
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
       > -->

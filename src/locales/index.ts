@@ -19,7 +19,6 @@ function createI18nOptions() {
 
   return {
     locale,
-    // legacy: false,
     fallbackLocale: localeMap.zh_CN, // set fallback locale
     messages: {
       zh_CN: Zh_CN,
