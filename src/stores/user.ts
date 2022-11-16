@@ -4,14 +4,17 @@ import request from "@/utils/request"
 import { message } from "ant-design-vue"
 import { Stores } from "types/stores"
 
+const DEFAULT_AVATAR='https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg'
+const DEFAULT_EMAIL='example@oppo.com'
 export const userStore = defineStore('user', {
+
   state: (): Stores.user => ({
     name: '',
     age: null,
     sex: 'unknown',
     token: '',
-    email: 'example@oppo.com',
-    avatar_url: 'https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg',
+    email: '',
+    avatar_url: '',
   }),
   actions: {
     async login(username: string, password: string) {
@@ -25,6 +28,8 @@ export const userStore = defineStore('user', {
             this.name = data.name
             this.age = data.age
             this.sex = data.sex
+            this.email = data.email || DEFAULT_EMAIL
+            this.avatar_url = data.avatar_url || DEFAULT_AVATAR
             this.token = `${username}Token`
             setCookie('token', this.token)
             resolve(msg)

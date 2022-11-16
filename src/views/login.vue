@@ -37,6 +37,7 @@ function login() {
   })
 }
 
+const redirect_url=location.origin+"/#/dashboard"
 // const redirect=encodeURIComponent('http://127.0.0.1:7777/#/dashboard')
 </script>
 
@@ -70,10 +71,10 @@ function login() {
         <AButton style="width: 100%;" size="large">Register</AButton>
 
           <a-divider style="height: 2px;"/>
-        <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian?redirect=${encodeURIComponent('http://localhost:7777/#/dashboard')}`">
+        <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian?redirect=${encodeURIComponent(redirect_url)}`">
           <font-awesome-icon icon="fa-brands fa-atlassian"/> Log in with Atlassian
         </a-button>
-        <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" :href="`/api/auth/gitlab?redirect=${encodeURIComponent('http://localhost:7777/#/dashboard')}`">
+        <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" :href="`/api/auth/gitlab?redirect=${encodeURIComponent(redirect_url)}`">
           <font-awesome-icon icon="fa-brands fa-gitlab" /> Log in with GitLab
         </a-button>
       </AForm>

@@ -1,15 +1,24 @@
 <script setup lang="ts">
 import { MenuFoldOutlined, LogoutOutlined, UserOutlined} from "@ant-design/icons-vue";
 import type { Layout } from 'types/layout'
-import { inject } from 'vue'
+import {inject, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '../stores/user'
 import BreadCrumb from './BreadCrumb.vue'
+import request from "@/utils/request";
 
 const sidebarRelated = inject<Layout.SidebarRelated>('sidebarRelated')
 const loading = inject<Layout.Loading>('loading')
 const user = userStore()
 const router = useRouter()
+
+let prev=ref<boolean>(false);
+
+const viewProfile =  () => {
+
+  prev.value=true
+
+}
 
 function logout() {
   if (loading) loading.logout = true
@@ -17,6 +26,7 @@ function logout() {
     router.replace('/login')
   })
 }
+
 </script>
 
 <template>
@@ -26,6 +36,16 @@ function logout() {
         @click="sidebarRelated && (sidebarRelated.collapsed = !sidebarRelated.collapsed)" />
       <BreadCrumb :withIcons="true"></BreadCrumb>
     </section>
+
+    <a-modal v-model:visible="prev" title="View profile" :width="900">
+
+      <!-- Model meta info -->
+      <h3>Name:</h3> {{user.name}}
+      <h3 style="margin-top: 20px;">Email:</h3> {{user.email}}
+
+    </a-modal>
+
+
     <section>
       <a-dropdown>
         <a class="ant-dropdown-link" @click.prevent>
@@ -39,10 +59,7 @@ function logout() {
           <a-menu>
 
             <a-menu-item>
-              <a href="javascript:;">View Profile</a>
-            </a-menu-item>
-            <a-menu-item>
-              <a href="javascript:;">Edit Profile</a>
+              <a @click="viewProfile">View Profile</a>
             </a-menu-item>
             <a-menu-item>
               <a :loading="loading?.logout" @click="logout">Logout</a>
