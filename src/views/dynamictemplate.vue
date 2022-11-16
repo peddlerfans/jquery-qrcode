@@ -527,13 +527,17 @@ onMounted(() => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-input
-                  v-model:value="formState.search"
-                  :placeholder="$t('templateManager.dynamicSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
-              </a-input>
+              <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+              
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions>
             </a-col>
 
             <a-col :span="4">

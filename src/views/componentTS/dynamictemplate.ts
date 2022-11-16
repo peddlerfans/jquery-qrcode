@@ -32,25 +32,25 @@ export interface Factor {
 }
 
 export interface Constraint {
-    if:any
-    then:thenobj
-    keys?:string
+    if: any
+    then: any
+    keys?: string
 }
 export interface Constraintif {
-    if:any
-    then:string
-    keys?:number
+    if: any
+    then: any
+    keys?: number
 }
-export interface thenobj{
-    thenName:string
-    thenOperator:string
-    thenValue:string
-}
-export interface Model{
+// export interface thenobj {
+//     thenName: string
+//     thenOperator: string
+//     thenValue: string
+// }
+export interface Model {
     option: any,
     factor: Array<Factor>,
     constraint: Array<Constraint>
-    constraintif:Array<Constraintif>
+    constraintif: Array<Constraintif>
 }
 
 // 添加的表单tags

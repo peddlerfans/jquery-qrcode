@@ -433,6 +433,9 @@ onMounted(() => {
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
+                 <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
               </a-mentions>
             </a-col>
 

@@ -24,6 +24,12 @@ const handleFinish: FormProps['onFinish'] = async (values: any) => {
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
+
+// const queryData = (e: any) => {
+//   setTimeout(() => {
+//     handleFinish(e)
+//   },2500)
+// }
 // 表格的数据
 let tableData= ref<Array<any>>([])
 let searchobj: tableSearch = reactive({
@@ -35,7 +41,6 @@ let searchobj: tableSearch = reactive({
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
- console.log(rst.data);
  pagination.value.total=rst.total
  tableData.value=arr(rst.data)
 }
@@ -310,13 +315,17 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-input
-                  v-model:value="formState.search"
-                  :placeholder="$t('templateManager.staticSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
-              </a-input>
+              <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+               
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions>
             </a-col>
 
             <a-col :span="4">

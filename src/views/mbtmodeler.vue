@@ -9,7 +9,7 @@ import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch } from "vue";
 import type { Ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
@@ -628,13 +628,27 @@ const onExpectedAW = () => {
 
 function awhandlerSubmit() {
   
+  
+  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
 
-  let tempformdata2 = generateObj(awformdata);
-  let tempawschema = generateObj(awschema);
-  debugger
+  let tempformdata2: any = generateObj(awformdata);
+  
+  let tempawschema: any = generateObj(awschema);
+  
+  
+  let formdataKeys=Object.keys(tempformdata2)
+  Object.keys(tempawschema.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempformdata2[item]=""
+    }
+  })
+  console.log(tempformdata2, tempawschema);
+  let tempawformdata=tempawschema.properties
+
+
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
     if (
@@ -645,6 +659,8 @@ function awhandlerSubmit() {
       cacheprops.get(ev_id).props.primaryprops.data.name &&
       cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
     ) {
+
+      
       // console.log("cacheprops set.....1/1", cacheprops);
       let awformData = cacheprops.get(ev_id).props.primaryprops.data;
       let props=cacheprops.get(ev_id).props.primaryprops
@@ -1041,6 +1057,9 @@ return setarr
             "mbt_" + route.params.name,
             JSON.stringify(route.params.name)
           );
+
+let encatch:any=null
+      
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1052,6 +1071,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
+        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1060,9 +1080,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             );
             // let cells = response.modelDefinition.cellsinfo.cells
             cacheprops = propsMap;
-          } else {
-            // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
-          }
+          } 
           if (
             response.dataDefinition &&
             typeof response.dataDefinition.data != "undefined"
@@ -1080,6 +1098,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             //read resources info from backend, todo
           }
           mbtCache = response; //should work on here
+          console.log(123);
+          
+          encatch=response
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1090,7 +1111,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             JSON.stringify(response)
           );
 
-          return mbtCache;
+          return mbtCache;  
         }
       })
       .catch((err) => console.log(err));
@@ -1098,7 +1119,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
     // console.log(rst);
-
+    encatch=rst
     if (rst && rst.dataDefinition && rst.dataDefinition.data) {
       if (rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData) {
         // showAddConditional.value=true
@@ -1158,8 +1179,9 @@ let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
 
-async function saveMBT(route?: any) {
-  let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
+
+function getmbtData() {
+    let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
 
   let tempdata: modelDefinition = {};
   // console.log(modeler.graph);
@@ -1184,7 +1206,6 @@ async function saveMBT(route?: any) {
       }
     }
   });
-
   /*Delete unused or not found*/
   // console.log('graphids:', graphIds)
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
@@ -1205,9 +1226,15 @@ async function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
+  return mbtCache
+}
+
+
+async function saveMBT(route?: any) {
+  
   // console.log(mbtCache);
 
-  await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
+  await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData());
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -1335,6 +1362,20 @@ let dataFrom = ref("");
 let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
+
+
+// 离开路由时判断
+onBeforeRouteLeave(() => {
+  console.log(encatch,getmbtData());
+  
+  if (encatch!==getmbtData()) {
+    message.warning(t('MBTModeler.sureleaveText'))
+    return false
+  } 
+})
+
+
+
 // 判断是否自由编辑aw模式
 let isAwModel=ref(true)
 onMounted(() => {
