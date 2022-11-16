@@ -821,7 +821,8 @@ console.log(previewErrorMsg.value,rst);
                     <a-select :options="ifOperatorOptions" v-model:value="thenObj.thenOperator"></a-select>
                 </a-form-item>
                 <a-form-item :label="$t('component.table.values')">
-                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue"></a-select>
+                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue" v-if="thenObj.thenOperator !=='IN'"></a-select>
+                    <a-select :options="ifValueOpetions" mode="multiple" v-model:value="thenObj.thenValue" v-else></a-select>
                 </a-form-item>
                 
             </a-form>

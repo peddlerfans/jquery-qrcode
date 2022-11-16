@@ -192,6 +192,7 @@ const handleInputConfirm = () => {
     inputValue: '',
  });
 }
+let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
 let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id")
 let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
@@ -199,19 +200,24 @@ let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 async function updateAw(url:string,data:any) {
   delete data._id
   let rst = await request.put(url, data)
-  console.log(JSON.parse(getupdate));
-  if(rst && JSON.parse(getupdate)=="awmodeler"){
-    message.success(t('component.message.modifiedText'))
-            router.push("/awmodeler/index")
-    }else if(rst && JSON.parse(getupdate)=="mbtAW"){
-      router.push({
-        name:"mbtmodeler",
-        params:{
-          _id:getmbtId,
-          name:JSON.parse(getmbtname!)
-        }
-      })
-    }
+  // console.log(JSON.parse(getupdate));
+  if(rst){
+    console.log(123);
+    
+    canEdit.value=false
+  }
+  // if(rst && JSON.parse(getupdate)=="awmodeler"){
+  //   message.success(t('component.message.modifiedText'))
+  //           router.push("/awmodeler/index")
+  //   }else if(rst && JSON.parse(getupdate)=="mbtAW"){
+  //     router.push({
+  //       name:"mbtmodeler",
+  //       params:{
+  //         _id:getmbtId,
+  //         name:JSON.parse(getmbtname!)
+  //       }
+  //     })
+  //   }
 }
 
 let refForm=ref()
@@ -221,7 +227,7 @@ const onFinishForm = () => {
 
   refForm.value.validate().then(async (res:any)=>{
     modelstates.value.tags=states.tags
-     await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
+     await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
 

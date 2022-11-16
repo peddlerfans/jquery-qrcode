@@ -136,22 +136,25 @@ const generateSchema = (inputArr: Array<Object>) => {
 // let ss = ref(true)
 
 const generateObj = (refObj: any) => {
+  console.log(refObj);
   
   let obj={};
   if(typeof refObj=='object' && refObj.hasOwnProperty('_rawValue') && refObj.hasOwnProperty('_value')){
     _.keys(refObj['_value']).forEach((k:string)=>{
       
       
-        // console.log('kkkkkkkk   ',refObj['_value'][k]);
+        console.log('kkkkkkkk   ',[k],refObj['_value'][k]);
         let tempobj = {
         [k]:refObj['_value'][k]
         }
+        
         Object.assign(obj,tempobj);
       
 
     })
     
   }
+  console.log(obj);
   
   return obj;
 }
