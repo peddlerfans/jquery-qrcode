@@ -98,6 +98,8 @@ interface DynamicModel {
 }
 declare module 'axios' {
     interface ResponseData<T> {
+outputLang: any;
+        results: any;
         error: any;
         config: any;
         // model(model: any): any;
