@@ -2649,7 +2649,7 @@ const softwrap=true
 </script>
 
 <template>
-  <main>
+  <main style="overflow: hidden;">
     <header
       class="block shadow"
       style="padding: 0rem !important;"
@@ -3255,7 +3255,6 @@ const softwrap=true
 }
 
 main {
-  overflow: hidden;
   height: 100%;
 }
 
