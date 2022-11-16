@@ -95,6 +95,12 @@ const showModal = () => {
   visible.value = true;      
 };
 
+// const queryData = (e: any) => {
+//   setTimeout(() => {
+//     handleFinish(e)
+//   },2500)
+// }
+
 let disable=ref(true)
 
 // 关闭模态窗触发事件
@@ -759,16 +765,16 @@ const updTree = (key: any) => {
 const pushSubtree =async (key: any,title:any) => {
   // 获取当前添加节点的对象
   let nowNode=getTreeDataByItem(treeData.value,key)
-  getloop(treeData.value,key)
+  getloop(treeData.value,key,nowNode.children.length)
   treeData.value = [...treeData.value]
   let expandKey=queryKey(treeData.value,key)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
-  str=str.substring(1,str.length)
+  str = str.substring(1, str.length)
   let pushPath
-  if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
+  if(title=="/"){pushPath="/childNode"}else{pushPath=str+'/'+'childNode'}
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
   expandedKeys.value = [key];
@@ -791,13 +797,13 @@ const queryKey=(arr:any,key:string)=>{
   return expandKey
 }
  //找到需要添加的节点并添加下级
-const getloop=(arr:Array<any>, key:string)=> {
+const getloop=(arr:Array<any>, key:string,lenght:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'childNode',
+            title: length?`childNode${length}`:'childNode0',
             key: uuid(),
             children:[],
             showEdit: false,
@@ -812,19 +818,19 @@ const getloop=(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          getloop(arr[s].children, key);
+          getloop(arr[s].children, key,length);
         } else {
           continue;
         }
       }
 }
-const pushSib=async(arr:Array<any>, key:string)=> {
+const pushSib=async(arr:Array<any>, key:string,length:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: `NewNode`,
+            title: `NewNode${length}`,
             key: uuid(),
             children:[],
             showEdit: false,
@@ -840,7 +846,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          pushSib(arr[s].children, key);
+          pushSib(arr[s].children, key,length);
         } else {
           continue;
         }
@@ -850,20 +856,27 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
-  let nowNode=getTreeDataByItem(treeData.value,key)
+  let nowNode = getTreeDataByItem(treeData.value, key)
+  let parentNode=getTreeParentChilds(treeData.value,key)
+  
+  
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
-  let str=getPath(nowNode.title,treeData.value)
-  str=str.substring(1,str.length)
-  if(str.indexOf('/')){
+  let str = getPath(nowNode.title, treeData.value)
+  str = str.substring(1, str.length)
+  console.log(str.indexOf('/'));
+  
+  
+  if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
-  let pathnew=newStr+'NewNode'
+    let pathnew = newStr + `NewNode${parentNode.length}`
+  console.log(pathnew);
     await request.post("/api/hlfs?isFolder=true",{path:pathnew})
   }else{
-    await request.post("/api/hlfs?isFolder=true",{path:'NewNode'})
+    await request.post("/api/hlfs?isFolder=true",{path:'/NewNode'})
   }
-  pushSib(treeData.value,key)
+  pushSib(treeData.value,key,parentNode.length)
   // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
@@ -1029,19 +1042,21 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-<!--              <a-mentions v-model:value="formState.search" v-if="checked" split=""-->
-<!--                :placeholder="$t('awModeler.inputSearch1')">-->
-<!--                <a-mentions-option value="tags:" >-->
-<!--                  tags:              -->
-<!--                </a-mentions-option>-->
-<!--                <a-mentions-option value="name:" >-->
-<!--                  name:              -->
-<!--                </a-mentions-option>-->
-<!--              </a-mentions>-->
-              <a-input
+             <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+                
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions>
+              <!-- <a-input
                   :placeholder="$t('awModeler.inputSearch1')"
                   v-model:value="formState.search"
-              ></a-input>
+              ></a-input> -->
               </a-col>
                 <a-col :span="4">
                 <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
