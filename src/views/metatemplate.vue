@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
+let tableloading=ref(false)
 const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -34,7 +35,7 @@ let searchobj: tableSearch = reactive({
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
- 
+ pagination.value.total=rst.total
  tableData.value=arr(rst.data)
 }
 onMounted(()=>{
@@ -56,8 +57,8 @@ let pagination=ref( {
 const onPageChange = async(page: number, pageSize: any) => {
   pagination.value.pageNo = page
   pagination.value.pageSize=pageSize
-  // searchobj.page= page
-  // searchobj.perPage = pageSize
+  searchobj.page= page
+  searchobj.perPage = pageSize
   if (formState.search) {
     searchobj.search=formState.search
   } else {
@@ -69,8 +70,8 @@ const onPageChange = async(page: number, pageSize: any) => {
 const onSizeChange =async (current: any, pageSize: number) => {
         pagination.value.pageNo = current
         pagination.value.pageSize=pageSize
-      //  searchobj.page= current
-  // searchobj.perPage = pageSize
+       searchobj.page= current
+  searchobj.perPage = pageSize
       if (formState.search) {
     searchobj.search=formState.search
       } else {
@@ -133,14 +134,21 @@ let refFormdec=ref()
 // 点击save触发的函数
 const save = (record: any) => {
   unref(refForm).validate().then(async (res:any) => {
-    unref(refFormdec).validate().then(async (res:any) => {
+    unref(refFormdec).validate().then(async (res: any) => {
+      tableloading.value=true
       record.editing = false
     showAddFactorBtn.value=true
     if(record._id){
     await updMeta(record)
   }else{  
-    await request.post("/api/templates",record)
-    }
+     let rst= await request.post("/api/templates", record)
+      let tableindex = tableData.value.indexOf(record)
+    tableData.value[tableindex]._id=rst._id
+    tableloading.value=false
+      }
+   
+      
+    
   clearFactorState()
     })
   })
@@ -279,12 +287,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
 
     return Promise.reject(t('templateManager.description'))
-  }else{
-
   }
-  // else if(!reg.test(value)){
-  //     return Promise.reject('The AW name is not standardized')
-  // }
 }
 
 let rules:Record<string,Rule[]>={
@@ -327,7 +330,9 @@ let rules:Record<string,Rule[]>={
       </a-row>
       </header>
       
-      <a-table :columns="columns" :data-source="tableData" bordered>
+      <a-table :columns="columns" :data-source="tableData"
+      :pagination="pagination"
+      bordered :loading="tableloading">
         <template #headerCell="{ column }">
           <span>{{ $t(column.title) }}</span>
         </template>

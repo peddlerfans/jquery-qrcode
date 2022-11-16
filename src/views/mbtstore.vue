@@ -91,6 +91,7 @@ async function query(data?: any) {
   rst = await request.get(url, { params: data || searchobj });
 
   if (rst.data) {
+    pagination.total=rst.total
     dataSource.value = rst.data;
     return rst.data;
   }
@@ -184,9 +185,7 @@ async function saveMBT(data: any) {
 let disable=ref(false)
 const handleOk = (modelstates:any) => {
   modelstates.tags = states.tags;
-  refForm.value.validate().then(()=>{
-    console.log(123);
-    
+  refForm.value.validate().then(()=>{    
   // disable.value=false
   // 判断修改或添加
   if (modelstates.name && modelstates.description) {
