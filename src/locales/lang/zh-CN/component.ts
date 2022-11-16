@@ -41,10 +41,10 @@ export default {
     params: '参数',
     paramsName: '参数名',
     type: '类型',
-    enum: '举例',
+    enum: '枚举',
     values: '值',
-    if: '如果',
-    then: '因此',
+    if: '因子',
+    then: '则',
     operator: '关系',
 
     pageTip: '当前显示第{head}-{tail}条，共{total}条'
@@ -63,6 +63,7 @@ export default {
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
+    hefaName:"名称格式不正确",
 
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',

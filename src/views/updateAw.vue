@@ -23,8 +23,8 @@ let route=useRoute()
 let router=useRouter()
 
 // 判断是否是详情还是编辑操作
-let canEdit = !router.currentRoute.value.query?.canEdit
-console.log(canEdit)
+let canEdit = ref(!router.currentRoute.value.query?.canEdit)
+// console.log(canEdit)
 
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
@@ -46,7 +46,7 @@ let modelstates = ref<ModelState>({
   name: '',
   description: '',
   template: "",
-  template_en:"", 
+  template_en:"",
   _id: "",
   params:[],
   tags:[],
@@ -74,14 +74,14 @@ const paramsColum = [
     dataIndex: 'enum',
     key: 'enum',
     width:180
-  },
-  {
-    title: 'component.table.action',
-    dataIndex: 'action',
-    key: 'action',
-    width:100
   }
 ]
+if (canEdit) paramsColum.push( {
+  title: 'component.table.action',
+  dataIndex: 'action',
+  key: 'action',
+  width:100
+})
 // 新添加一条params数据
 const addNewParams = () => {
   modelstates.value.params.push({
@@ -91,7 +91,7 @@ const addNewParams = () => {
     editing: true,
     inputVisible: true,
     inputValue: ''
-  })  
+  })
 }
 // 添加params的enu
 const handleCloseTag = (record: any, removedTag: string) => {
@@ -117,7 +117,7 @@ const cancelparams = (record:any) => {
   }else{
     record.name = obj.value.name
     record.type = obj.value.type
-    record.enum=obj.value.enum
+    states.tags=obj.value.enum
     record.editing = false
   }
   clearFactorState()
@@ -148,7 +148,7 @@ const saveparams = async (record: any) => {
 }
 // 点击修改params触发的函数
 const editparams = (record:any) => {
-  if (!canEdit) return
+  if (!canEdit.value) return
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -169,7 +169,7 @@ let states = reactive<statesTs>({
 });
 
 const handleClose = (removedTag: string) => {
-  
+
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
   states.tags = tags;
 };
@@ -190,13 +190,14 @@ const handleInputConfirm = () => {
     tags,
     inputVisible: false,
     inputValue: '',
- });  
+ });
 }
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
 let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id")
 let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 // 修改函数
 async function updateAw(url:string,data:any) {
+  delete data._id
   let rst = await request.put(url, data)
   console.log(JSON.parse(getupdate));
   if(rst && JSON.parse(getupdate)=="awmodeler"){
@@ -215,23 +216,19 @@ async function updateAw(url:string,data:any) {
 
 let refForm=ref()
 // const validator = new Schema(descriptor);
-const onFinishForm =  () => {  
+const onFinishForm = () => {
+  // console.log(modelstates.value);
+
   refForm.value.validate().then(async (res:any)=>{
+    modelstates.value.tags=states.tags
      await updateAw(`/api/hlfs/${modelstates.value._id}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
-    
+
   })
 
-modelstates.value.tags=states.tags
-    // if (modelstates._id) {
-        
-       
-        
-        
-        // let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.update)
-       
-    } 
+
+    }
   const onFinishFailedForm = (errorInfo: any) => {
     if(JSON.parse(getupdate)=="awmodeler"){
         router.push("/awmodeler/index")
@@ -254,7 +251,7 @@ const optiones = ref<SelectProps['options']>([
       {
         value: 'float',
         label: 'float',
-      },  
+      },
       {
         value: 'boolean',
         label: 'boolean',
@@ -271,12 +268,16 @@ const optiones = ref<SelectProps['options']>([
       value: 'SUT',
         label:'SUT'
       }
-    ]);
-
-
+]);
+const editAw = () => {
+  // if (canEdit) {
+    canEdit.value=true
+  // }
+}
+    
+ 
 let disable=ref(false)
-let rst=JSON.parse(sessionStorage.getItem("awData"+route.params._id)!)
-console.log(rst);
+let rst:any=route.params.name
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -285,27 +286,27 @@ let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
     disable.value=true
     return Promise.reject(t('component.message.emptyName'))
-  }else if(rst.name==value){
-    
+  }else if(rst==value){
+
     disable.value=false
     return Promise.resolve();
   }else  if(!reg.test(value)  && !reg1.test(value)){
     disable.value=true
-      return Promise.reject('The AW name is not standardized')
+      return Promise.reject(t('component.message.hefaName'))
     }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
         disable.value=true
-        return Promise.reject("Duplicate name")
+        return Promise.reject(t('component.message.depName'))
       }else{
         disable.value=false
         return Promise.resolve();
-      
+
       }
   }
-  
+
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
@@ -321,8 +322,8 @@ let checkDesc = async (_rule: Rule, value: string) => {
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
-      
-      if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
+
+      if(rst.data && rst.data.length>0 && rst.data[0].description==value){
         disable.value=true
         return Promise.reject(t('component.message.dupDescription'))
       }
@@ -331,9 +332,9 @@ let checkDesc = async (_rule: Rule, value: string) => {
     disable.value=false
     return Promise.resolve();
   }
-  
-} 
-let checktem = async (_rule: Rule, value: string) => { 
+
+}
+let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     disable.value=true
@@ -345,7 +346,7 @@ let checktem = async (_rule: Rule, value: string) => {
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
   // }
-  
+
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
@@ -363,15 +364,13 @@ let rules: Record<string, Rule[]> = {
       :label-col="{ span: 2 }"
       :wrapper-col="{ span: 12 }"
       autocomplete="off"
-      @finish="onFinishForm"
-      @finishFailed="onFinishFailedForm"
       >
       <a-form-item
         :label="$t('component.table.name')"
         name="name"
       >
       <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
-       
+
         <a-input v-model:value="modelstates.name" v-if="canEdit" />
         <span v-else>{{ modelstates.name }}</span>
         <!-- <span v-else>{{modelstates.name}}</span> -->
@@ -413,7 +412,7 @@ let rules: Record<string, Rule[]> = {
         <a-tag v-else-if="tag.length==0"></a-tag>
         <a-tag v-else :closable="canEdit" @close="handleClose(tag)">
           {{tag}}
-        </a-tag>  
+        </a-tag>
       </template>
           <a-input
             v-show="states.inputVisible"
@@ -501,16 +500,14 @@ let rules: Record<string, Rule[]> = {
             <a @click="cancelparams(record)">{{$t('common.cancelText') }}</a>
             </span>
             <span v-else>
-              <a @click="editparams(record)">{{ $t('component.table.edit') }}</a>
+              <a-button type="link" @click="editparams(record)" :disabled="!canEdit">{{ $t('component.table.edit') }}</a-button>
               <a-divider type="vertical" />
               <a-popconfirm
-                  :disabled="!canEdit"
                   :title="$t('component.message.sureDel')"
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
                   :ok-text="$t('common.okText')">
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
-              <a style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="canEdit">{{ $t('common.delText') }}</a>
+              <a-button type="link"  style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="!canEdit">{{ $t('common.delText') }}</a-button>
             </a-popconfirm>
             </span>
           </div>
@@ -518,6 +515,7 @@ let rules: Record<string, Rule[]> = {
             </template>
         </a-table>
         <div>
+          <a-button typr="primary" @click="editAw" v-if="!canEdit">Edit</a-button>
             <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">Save</a-button>
             <a-button @click="onFinishFailedForm">Cancel</a-button>
         </div>

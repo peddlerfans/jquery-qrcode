@@ -52,11 +52,11 @@ import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
 import { booleanLiteral, stringLiteral } from "@babel/types";
-import { array, func } from "vue-types";
 import CreateRule from "@/components/CreateRule.vue";
 import { propsToAttrMap } from "@vue/shared";
 import { useI18n } from "vue-i18n";
-import { nextTick } from "process";
+import { VAceEditor } from 'vue3-ace-editor';
+import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 
 const { t } = useI18n();
 
@@ -161,28 +161,43 @@ const showDrawer = (
     ev_id = id;
 
     awformdata.value._id = "";
-
     awformdata.value.description = "";
     awformdata.value.name = "";
-
     awformdata.value.tags = "";
     awformdata.value.template = "";
     // handlerCancel()
-
     hasAWInfo.value = false;
 
     awquery();
     awquery("", true);
-  } else if (typeof el == "undefined") {
-    // console.log('click blank')
-  } else if (el!.hasOwnProperty("path")) {
-    // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-    //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
-  } else if (el && _.isObject(el)) {
-    // console.log('click element')
-  } else {
-    // console.log('click blank')
+  } else if(typeof el == "undefined" && aw == "awmodel" && id) {
+    awschema.value.properties._id!=null
+    awschema.value.properties.name.readOnly=false
+    awschema.value.properties.description.readOnly=false
+    awschema.value.properties.template.readOnly=false
+    awschema.value.properties.tags != null
+    isAW.value = true;
+    hasAWInfo.value = false;
+    awformdata.value._id = "";
+    awformdata.value.description = "";
+    awformdata.value.name = "";
+    awformdata.value.tags = "";
+    awformdata.value.template = "";
+    // handlerCancel()
+    hasAWInfo.value = false;
   }
+   
+
+  //   if (typeof el == "undefined") {
+  //   // console.log('click blank')
+  // } else if (el!.hasOwnProperty("path")) {
+  //   // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
+  //   //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
+  // } else if (el && _.isObject(el)) {
+  //   // console.log('click element')
+  // } else {
+  //   // console.log('click blank')
+  // }
 };
 
 const isMetaTemplateEmpty = ref(true);
@@ -474,7 +489,7 @@ interface LinkFormData {
 }
 let linkFormData: LinkFormData = {
   _id: "",
-  label: undefined,
+  label: '',
   editable: false,
   isCondition: false,
   // loopcount: 1,
@@ -521,12 +536,12 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
   },
 });
@@ -565,15 +580,6 @@ const awschema = ref({
   },
 });
 let awschemaExpected = _.cloneDeep(awschema);
-
-// linkData
-// "ui:hidden": "{{linkData.loop === false}}"
-const uischema = {
-  label: {
-    // 配置组件构造函数或者直接配置全局组件名，比如 'el-input'
-    "ui:widget": CreateRule,
-  },
-};
 let isExclusiveGateway = ref(false);
 const linkschema = ref({
   title: "LINK",
@@ -621,6 +627,7 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
+  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -675,9 +682,14 @@ function awhandlerSubmit() {
       //   currentElementMap.get(ev_id).props.expectedprops
       // );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+      console.log(tempexpected);
+      
     } else {
       let tempawformdata2Expected = generateObj(awformdataExpected);
       let tempawschemaExpected = generateObj(awschemaExpected);
+      console.log(tempawformdata2Expected,awformdataExpected.value);
+      
+      // awformdataExpected.value!=tempawformdata2Expected
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
@@ -690,10 +702,13 @@ function awhandlerSubmit() {
           expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
+awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
+awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     }
     // console.log(" 2/1-1 : tempexpected", tempexpected);
     // console.log('cacheprops set.....2/2', cacheprops)
     if (typeof tempexpected != "undefined") {
+      console.log( awformdataExpected.value);
       let tempawschemaExpected = tempexpected.schema;
       let tempformdata2Expected = tempexpected.data;
       // console.log(
@@ -706,15 +721,20 @@ function awhandlerSubmit() {
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+          expectedprops: { schema: tempawschemaExpected, data: awformdataExpected.value },
         },
       });
       cacheprops.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+          expectedprops: { data: awformdataExpected.value, schema: tempawschemaExpected },
         },
       });
+awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
+      awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
+      
+      
+
     } //未设置expected，只存primary
     else {
       // console.log("correct");
@@ -852,13 +872,16 @@ function awhandlerSubmit() {
 
 const subAttributes=(data:any)=>{
   
-  
   globalformData.value.codegen_text=data.value.codegen_text
   globalformData.value.codegen_script=data.value.codegen_script
-  Object.assign(mbtCache,{codegen_text:globalformData.value.codegen_text})
-  Object.assign(mbtCache,{codegen_script:globalformData.value.codegen_script})
-  console.log(mbtCache);
+  mbtCache["attributes"]= mbtCache["attributes"] || {}
+  mbtCache["attributes"].codegen_text=globalformData.value.codegen_text
+  mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
+  // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
+  // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
+  console.log(globalformData.value);
+  
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
@@ -1232,28 +1255,36 @@ function reloadMBT(route: any) {
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
-      console.log(cacheprops);
-      
-      tempdata.then((aws) => {
-      const awById=_.groupBy(aws,"_id")
-      newData.forEach((obj:any)=>{
-        obj.aw=awById[obj.data._id][0]
-      })
+      // console.log(tempdata);
       console.log(newData,"+++++",cells);
+      tempdata.then((aws) => {
+        const awById = _.groupBy(aws, "_id")
+        console.log(awById)
+      newData.forEach((obj:any)=>{
+        if (awById[obj.data._id]) {
+          obj.aw=awById[obj.data._id][0]
+        }
+        
+      })
+      
       cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
-        
-        let aw=awById[cell.id][0]
+        let aw:any={template:"",description:""}
+        if (awById[cell.id]) {
+           aw=awById[cell.id][0]
+        }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
                   attrName,
                   joint.util.breakText(
-                    showheadtext,
+                    showheadtext?showheadtext:"Please select Aw",
                     {
                       width: 160,
+                      // borderColor:"red"
                     },
-                    { "font-size": 16 }
+                    { "font-size": 16 },
+                    
                   )
                 );
       })
@@ -1301,7 +1332,8 @@ let dataFrom = ref("");
 let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
-
+// 判断是否自由编辑aw模式
+let isAwModel=ref(true)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
@@ -1321,11 +1353,14 @@ onMounted(() => {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {
-              codegennames.value.push(rec.name);
+            rst.forEach((rec: any) => {      
+              // console.log(rec);
+                      
+              codegennames.value.push({title:rec.name,const:rec._id});
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
+            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -1607,7 +1642,11 @@ onMounted(() => {
       $("body").off("mousemove.fly").off("mouseup.fly");
       flyShape.remove();
       $("#flyPaper").remove();
-      if (aw.length > 0) showDrawer(undefined, aw, cellid); //First param used when clicking an element or a link. Undefined means not clicking
+      if (aw.length > 0 && !isAwModel.value) {
+        showDrawer(undefined, aw, cellid)
+      } else {
+        
+      }; //First param used when clicking an element or a link. Undefined means not clicking
       isLink.value=false
     });
   });
@@ -1631,15 +1670,18 @@ onMounted(() => {
   function setLinkType(el: any, cell: any) {
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
+        
         let linksource = modeler.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "standard.Polygon") {
+          
           if (linksource.attributes.attrs.label.text == "x") {
             // console.log(' source exclusive gateway    ',linksource.id)
             Object.assign(cell, { linktype: "exclusivegateway" });
             console.log("exclusive link", cell);
           } else {
             Object.assign(cell, { linktype: "parallelgateway" });
+            console.log("exclusive link", cell);
           }
         }
       } catch (e) {
@@ -1650,8 +1692,12 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
+        
+        
         let cell = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
+          console.log(el, cell);
+          
           setLinkType(el, cell);
         } else if (
           cell.attributes.type == "standard.Polygon" &&
@@ -1711,28 +1757,49 @@ onMounted(() => {
       // console.log('other    ....',cell.attributes);
     }
     */
-  });
-  modeler.paper.on("link:mouseout", async function (linkView: any) {
-    console.log(123);
-  });
+  }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-    // console.log('11111111111cell  ',linkView.model.id);
-    isExclusiveGateway.value = false;
-    linkData.value.isCondition = false;
+          console.log(linkView.model);
+    // isExclusiveGateway.value = false;
+    // isChoose.value=false
+    // linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
-      isExclusiveGateway.value = true;
-      linkData.value.isCondition = true;
+        if(condataName.value.length == 0 && conditionalValue.value.length == 0){
+          isLink.value=false
+          isExclusiveGateway.value = false;
+          isGlobal.value = false;
+          isChoose.value=true
+          isAW.value = false;
+          linkData.value.isCondition = false;
+        }else{
+          // console.log(123);
+          isLink.value=true
+          isExclusiveGateway.value = true;
+          isGlobal.value = false;
+          isChoose.value=false
+          isAW.value = false;
+          linkData.value.isCondition = true;
+        }
+    }else{
+      // console.log(123);
+      isChoose.value=false
+      isLink.value=true
+      isAW.value = false;
+      isGlobal.value = false;
+      isExclusiveGateway.value = false;
+      linkData.value.isCondition = false;
     }
 
     // 判断是否选择了模板，没选择则不打开link
-    if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
+    // if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
       lv_id = linkView.model.id + "";
       // await queryName()
-      isAW.value = false;
-      isLink.value = true;
-      isChoose.value = false;
-      isGlobal.value = false;
+      // isAW.value = false;
+      // isLink.value = true;
+      // isChoose.value = false;
+      // isGlobal.value = false;
+      // isExclusiveGateway.value=true
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
         // console.log(templinkData);
@@ -1754,18 +1821,20 @@ onMounted(() => {
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      }
+      // }
       // console.log('cacheprops for link dblclick:',cacheprops)
       // console.log('currentLinkMap',currentLinkMap);
       showDrawer(linkView);
-    } else {
-      showDrawer(linkView);
-      isChoose.value = true;
-      isAW.value = false;
-      isLink.value = false;
-      isGlobal.value = false;
-      console.log(isChoose.value);
-    }
+    } 
+    showDrawer(linkView);
+    // else {
+    //   showDrawer(linkView);
+    //   isChoose.value = true;
+    //   isAW.value = false;
+    //   isLink.value = false;
+    //   isGlobal.value = false;
+    //   console.log(isChoose.value);
+    // }
   });
 
   modeler.paper.on(
@@ -1905,16 +1974,21 @@ function showGlobalInfo() {
   if (mbtCache && mbtCache && mbtCache.hasOwnProperty("name")) {
     globalformData.value.name = mbtCache["name"];
     globalformData.value.descriptions = mbtCache["description"];
-    if (_.isArray(mbtCache["codegen_text"])) {
-      _.forEach(mbtCache["codegen_text"], function (value, key) {
-        globalformData.value.codegen_text += value + " ";
-      });
+    if (mbtCache['attributes']) {
+       globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+    globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
     }
-    globalformData.value.codegen_text = mbtCache['codegen_text'];
-  }else if(_.isArray(mbtCache["codegen_script"])){
-    _.forEach(mbtCache["codegen_script"], function (value, key) {
-        globalformData.value.codegen_script += value + " ";
-      });
+   
+    // if (_.isArray(mbtCache["codegen_text"])) {
+    //   _.forEach(mbtCache["codegen_text"], function (value, key) {
+    //     globalformData.value.codegen_text += value + " ";
+    //   });
+    // }
+  //   globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
+  // }else if(_.isArray(mbtCache["codegen_script"])){
+  //   _.forEach(mbtCache["codegen_script"], function (value, key) {
+  //       globalformData.value.codegen_script += value + " ";
+  //     });
   }
 }
 
@@ -1975,23 +2049,131 @@ function showAWInfo(rowobj: any) {
   }
 }
 function handlerConfirmExpected() {
-  let tempawschemaExpected = generateObj(awschemaExpected);
-  let tempformdata2Expected = generateObj(awformdataExpected);
+    isAW.value = true;
+  isLink.value = false;
+  isGlobal.value = false;
+  // let tempawschemaExpected = generateObj(awschemaExpected);
+  // let tempformdata2Expected = generateObj(awformdataExpected);
 
   let tempawschema = generateObj(awschema);
   let tempformdata2 = generateObj(awformdata);
-  currentElementMap.set(ev_id, {
-    props: {
-      primaryprops: { data: tempformdata2, schema: tempawschema },
-      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-    },
-  });
-  cacheprops.set(ev_id, {
-    props: {
-      primaryprops: { data: tempformdata2, schema: tempawschema },
-      expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-    },
-  });
+
+
+    //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
+  if (currentElementMap.size == 0) {
+    if (
+      cacheprops.get(ev_id) != null &&
+      cacheprops.get(ev_id).props &&
+      cacheprops.get(ev_id).props.primaryprops &&
+      cacheprops.get(ev_id).props.primaryprops.data &&
+      cacheprops.get(ev_id).props.primaryprops.data.name &&
+      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
+    ) {
+      // console.log("cacheprops set.....1/1", cacheprops);
+      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
+      // awformdata.value = awformData.props;
+      awformdata.value = awformData;
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      hasAWInfo.value = true;
+    } //新的aw拖入modeler
+    else {
+      // console.log("cacheprops set.....2/2", cacheprops);
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      // console.log("cacheprops set.....2/3    .....", cacheprops);
+      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
+    }
+  } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
+  else {
+    //获取epected的
+    // console.log("cacheprops set.....3/3", cacheprops);
+    let tempexpected;
+
+    if (
+      currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.expectedprops &&
+      currentElementMap.get(ev_id).props.expectedprops.data
+    ) {
+      // console.log(
+      //   "expected in handler:",
+      //   currentElementMap.get(ev_id).props.expectedprops
+      // );
+      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+    } else {
+      let tempawformdata2Expected = generateObj(awformdataExpected);
+      let tempawschemaExpected = generateObj(awschemaExpected);
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+    }
+    // console.log(" 2/1-1 : tempexpected", tempexpected);
+    // console.log('cacheprops set.....2/2', cacheprops)
+    if (typeof tempexpected != "undefined") {
+      let tempawschemaExpected = tempexpected.schema;
+      let tempformdata2Expected = tempexpected.data;
+      // console.log(
+      //   "awschemaexpected:",
+      //   awschemaExpected,
+      //   "tempformdata2Expected ",
+      //   tempformdata2Expected
+      // );
+
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+    } //未设置expected，只存primary
+    else {
+      // console.log("correct");
+      currentElementMap.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+      cacheprops.set(ev_id, {
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      });
+    }
+  }
+
+
+  // console.log(tempawschemaExpected,tempformdata2Expected);
+  
+  // currentElementMap.set(ev_id, {
+  //   props: {
+  //     primaryprops: { data: tempformdata2, schema: tempawschema },
+  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+  //   },
+  // });
+  // cacheprops.set(ev_id, {
+  //   props: {
+  //     primaryprops: { data: tempformdata2, schema: tempawschema },
+  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+  //   },
+  // });
+
 }
 function showAWExpectedInfo(rowobj: any) {
   hasAWExpectedInfo.value = true;
@@ -2017,7 +2199,7 @@ function showAWExpectedInfo(rowobj: any) {
 const activeKey = ref("2");
 const metaActiveKey = ref(["1"]);
 const awActiveKey = ref("1");
-
+ 
 interface columnDefinition {
   title: string;
   dataIndex: string;
@@ -2157,7 +2339,9 @@ const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
   // modeler.paper.options.width=`${100*value1.value}%`;
   // modeler.paper.options.height=`${100*value1.value}%`;
-  Object.assign(modeler.paper.options,{overflow:'auto'})
+  console.log(modeler.paper.options);
+  // canvas.value.style.overflow='auto'
+  // Object.assign(modeler.paper.options,{overflow:'scroll'})
   modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
   paperscale.value = value;
   // zoomStyle.value=value1.value*100%;
@@ -2423,6 +2607,45 @@ const routerAw = (awData: any) => {
     },
   });
 };
+
+// preciew
+const visiblepreciew=ref(false)
+const previewActiveKey = ref("1")
+const casesKey=ref("1")
+let searchPreview=reactive({
+  mode:""
+})
+let previewData=ref()
+async function querycode(){
+  request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
+  
+  if(rst){
+    previewData.value=rst
+  }
+  }).catch((err)=>{
+    message.error("Model configuration error")
+  })
+  
+}
+const preview=async (data:any)=>{
+  
+  searchPreview.mode="text"
+  await querycode()
+  visiblepreciew.value=true
+}
+const switchPut=async (val:any)=>{
+  if(val=="2"){
+    searchPreview.mode="script"
+    
+  }else{
+    searchPreview.mode="text"
+  }
+  await querycode()
+}
+const handleOk=()=>{
+  visiblepreciew.value=false
+}
+const softwrap=true
 </script>
 
 <template>
@@ -2432,17 +2655,70 @@ const routerAw = (awData: any) => {
       style="padding: 0rem !important;"
     >
       <a-row>
-        <a-col span="18">
+        <a-col span="16">
           <a-button-group>
             <a-button type="primary" @click="saveMBT(route)">
               {{ $t("common.saveText") }}
             </a-button>
+            <span style="margin-left: 5px">
+              <a-button type="primary" @click="preview(route)">
+                preview
+              </a-button>
+            </span>
             <span style="margin-left: 5px">
               <a-button danger @click="reloadMBT(route)">
                 {{ $t("layout.multipleTab.reload") }}
               </a-button>
             </span>
           </a-button-group>
+          <a-modal :width="1100" v-model:visible="visiblepreciew" title="Preview Modal" @ok="handleOk" :keyboard="true">
+            <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
+              <a-tab-pane key="1" tab="Test cases">
+                <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
+                  <a-tab-pane v-for="(item,index) in previewData"
+                  :key="index+1"
+                  :tab=index
+                  >
+                       <VAceEditor
+                          v-model:value="item.data"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          lang="python"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+                  </a-tab-pane>
+                </a-tabs>
+              </a-tab-pane>
+              <a-tab-pane key="2" tab="Test script" force-render>
+                 <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
+                  <a-tab-pane v-for="(item,index) in previewData"
+                  :key="index+1"
+                  :tab=index
+                  >
+                       <VAceEditor
+                          v-model:value="item.data"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          lang="python"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+                  </a-tab-pane>
+                </a-tabs>
+              </a-tab-pane>
+            </a-tabs>
+          </a-modal>
+        </a-col>
+        <a-col span="2" class="isSwitch">
+          <div >
+            <a-switch v-model:checked="isAwModel" 
+            checked-children="自由模式" 
+            un-checked-children="标准模式" />
+          </div>
+          
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
@@ -2473,7 +2749,7 @@ const routerAw = (awData: any) => {
     >
       <a-row
         type="flex"
-        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; padding: 0rem !important"
+        style="width: 100%;overflow: auto; height: 100%; min-height: 100%; min-width: 100%; padding: 0rem !important"
       >
         <a-col :span="1" style="padding: 0rem !important">
           <div class="stencil" ref="stencilcanvas"></div>
@@ -2753,7 +3029,7 @@ const routerAw = (awData: any) => {
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerConfirmExpected()"
+                        <a-button type="primary" @click="awhandlerSubmit()"
                           >Confirm</a-button
                         >
                       </span>
@@ -3046,6 +3322,10 @@ header {
 /* .ant-table-tbody > tr > td {
   padding: 3px 6px !important;
  } */
+ .isSwitch{
+  display: flex;
+  align-items: center;
+ }
 
 .icon-wrapper {
   position: relative;
@@ -3075,6 +3355,13 @@ header {
 }
 </style>
 <style lang="less">
+.ace-result{
+  flex: 1;
+  margin-top: 15px;
+  font-size: 18px;
+  border: 1px solid;
+  height: 35rem;
+}
 .awconfig{
   .__pathRoot_name {
   .ant-form-item-label {

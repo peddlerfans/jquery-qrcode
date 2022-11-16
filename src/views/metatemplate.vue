@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 // import { FormState } from './componentTS/awmodeler';
+let tableloading=ref(false)
 const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -34,7 +35,7 @@ let searchobj: tableSearch = reactive({
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 async function query(data?:any){
  let rst= await request.get("/api/templates",{params:data || searchobj})
- 
+ pagination.value.total=rst.total
  tableData.value=arr(rst.data)
 }
 onMounted(()=>{
@@ -56,8 +57,8 @@ let pagination=ref( {
 const onPageChange = async(page: number, pageSize: any) => {
   pagination.value.pageNo = page
   pagination.value.pageSize=pageSize
-  // searchobj.page= page
-  // searchobj.perPage = pageSize
+  searchobj.page= page
+  searchobj.perPage = pageSize
   if (formState.search) {
     searchobj.search=formState.search
   } else {
@@ -69,8 +70,8 @@ const onPageChange = async(page: number, pageSize: any) => {
 const onSizeChange =async (current: any, pageSize: number) => {
         pagination.value.pageNo = current
         pagination.value.pageSize=pageSize
-      //  searchobj.page= current
-  // searchobj.perPage = pageSize
+       searchobj.page= current
+  searchobj.perPage = pageSize
       if (formState.search) {
     searchobj.search=formState.search
       } else {
@@ -129,34 +130,29 @@ const clearFactorState = () => {
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 let refForm=ref()
-
+let refFormdec=ref()
 // 点击save触发的函数
 const save = (record: any) => {
-  unref(refForm).validate('name').then(async (res:any) => {
-    console.log(res);
-    record.editing = false
+  unref(refForm).validate().then(async (res:any) => {
+    unref(refFormdec).validate().then(async (res: any) => {
+      tableloading.value=true
+      record.editing = false
+    showAddFactorBtn.value=true
     if(record._id){
     await updMeta(record)
   }else{  
-    await request.post("/api/templates",record)
-    }
+     let rst= await request.post("/api/templates", record)
+      let tableindex = tableData.value.indexOf(record)
+    tableData.value[tableindex]._id=rst._id
+    tableloading.value=false
+      }
+   
+      
+    
   clearFactorState()
-  showAddFactorBtn.value=true
+    })
   })
   }
-  // 
-  // refForm.value.validate().then(async()=>{
-  // if(record._id){
-  //   await updMeta(record)
-  // }else{  
-  //   await request.post("/api/templates",record)
-  // }
-  // })
-
-  
-
-
-
 const createMeta=()=>{
   showAddFactorBtn.value=false
   tableData.value.unshift({
@@ -259,35 +255,44 @@ const handleClose = (record:any,removedTag: string) => {
       record.tags = tags;
 };
 
-let disable=ref(false)
+
 let checkName=async (_rule:Rule,value:string)=>{
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
-    disable.value=true
-    return Promise.reject("place input your name")
+   
+    return Promise.reject(t('templateManager.nameinput'))
   }else if(editData._id && editData.name==value){
-    disable.value=false
+
     return Promise.resolve()
   }else if(!reg.test(value) && !reg1.test(value)){
-    disable.value=true
-    return Promise.reject("The name is not standardized")
+
+    return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
-        disable.value=true
-        return Promise.reject("Duplicate name")
+
+        return Promise.reject(t('templateManager.duplicate'))
       }else{
-        disable.value=false
+
         return Promise.resolve();
       
       }
   }
 }
+let checkDesc = async (_rule: Rule, value: string) => { 
+  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
+  if (!value) {
+
+    return Promise.reject(t('templateManager.description'))
+  }
+}
+
 let rules:Record<string,Rule[]>={
-  name:[{required:true,validator:checkName,trigger:'blur'}]
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
 
 
@@ -325,7 +330,9 @@ let rules:Record<string,Rule[]>={
       </a-row>
       </header>
       
-      <a-table :columns="columns" :data-source="tableData" bordered>
+      <a-table :columns="columns" :data-source="tableData"
+      :pagination="pagination"
+      bordered :loading="tableloading">
         <template #headerCell="{ column }">
           <span>{{ $t(column.title) }}</span>
         </template>
@@ -335,9 +342,9 @@ let rules:Record<string,Rule[]>={
           <a-form :model="record" ref="refForm" v-if="record.editing" :rules="rules">
             <a-form-item name="name">
               <a-input
-              placeholder="Meta Name"
+              :placeholder="$t('templateManager.metaName')"
               v-model:value="record.name"
-              style="margin: -5px 0"
+              style="margin: -5px 0" 
               />
             </a-form-item>
           </a-form>
@@ -349,10 +356,10 @@ let rules:Record<string,Rule[]>={
         </template>
         <template v-if='column.key==="description"'>
         <div>
-          <a-form v-if="record.editing" :model="record" :rules="rules">
+          <a-form v-if="record.editing" :model="record" ref="refFormdec" :rules="rules">
             <a-form-item name="description">
               <a-input
-
+              :placeholder="$t('templateManager.metaDescription')"
             v-model:value="record.description"
             style="margin: -5px 0"
           />
@@ -406,7 +413,7 @@ let rules:Record<string,Rule[]>={
           <template v-else-if="column.dataIndex === 'action'">
         <div class="editable-row-operations">
           <span v-if="record.editing">
-            <a-button type="link" :disabled="disable" style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a-button>
+            <a-button type="link" style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a-button>
 
             <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
 
