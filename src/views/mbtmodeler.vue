@@ -2725,10 +2725,12 @@ const openPreview=(record:any)=>{
 
 const handleOk=()=>{
   visiblepreciew.value=false
-  previewData.value=[]
+  previewData.value = []
+previewcol.value=[]  
 }
 const cencelpreview=()=>{
-  previewData.value=[]
+  previewData.value = []
+  previewcol.value=[]
 }
 const softwrap=true
 </script>
@@ -2765,49 +2767,13 @@ const softwrap=true
           class="previewModel"
           @cancel="cencelpreview"
           >
-            <!-- <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
-              <a-tab-pane key="1" tab="Test cases">
-                <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
-                  <a-tab-pane v-for="(item,index) in previewData"
-                  :key="index+1"
-                  :tab=index
-                  >
-                       <VAceEditor
-                          v-model:value="item.data"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          lang="python"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
-                  </a-tab-pane>
-                </a-tabs>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Test script" force-render>
-                 <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
-                  <a-tab-pane v-for="(item,index) in previewData"
-                  :key="index+1"
-                  :tab=index
-                  >
-                       <VAceEditor
-                          v-model:value="item.data"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          lang="python"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
-                  </a-tab-pane>
-                </a-tabs>
-              </a-tab-pane>
-            </a-tabs> -->
+
           <a-table :columns="previewcol" 
           :data-source="previewData" 
           :pagination="{pageSize:5}"
           bordered
           :rowKey="record => record.id"
+          class="previewclass"
           >
         <template #bodyCell="{column,record}">
            <template v-if="column.key=='can_be_automated'">
@@ -2815,6 +2781,12 @@ const softwrap=true
           </template>
           <template v-if="column.key=='is_implemented_automated'">
             <p >{{record.is_implemented_automated}}</p>
+          </template>
+          <template v-if="column.key=='test_steps'">
+            <pre >{{record.test_steps}}</pre>
+          </template>
+          <template v-if="column.key=='expected_results'">
+            <pre >{{record.expected_results}}</pre>
           </template>
           <template v-if="column.key=='action'">
             <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
@@ -3478,8 +3450,11 @@ header {
 }
 </style>
 <style lang="less">
+.previewclass .ant-table-tbody > tr > td{
+  padding: 0px;
+}
 .previewModel{
-  height: 35vw;
+  height: 50vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
