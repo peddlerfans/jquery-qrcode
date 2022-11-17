@@ -361,7 +361,7 @@ const optiones = ref<SelectProps['options']>([
             <a-divider type="vertical" />
               <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
               <a-divider type="vertical" />
-              <a-switch checked-children="必填" un-checked-children="非必填" v-model:checked="record.requerd" @change="(checked:boolean)=>record.requerd=checked"></a-switch>
+              <a-switch checked-children="必填" un-checked-children="非必填" v-model:checked="record.requerd" @change="(checked:any)=>record.requerd=checked"></a-switch>
             </span>
             <span v-else>
               <a @click="edit(record)">{{ $t('common.editText') }}</a>
