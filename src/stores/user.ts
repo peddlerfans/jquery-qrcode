@@ -1,8 +1,11 @@
 import {getCookie, removeCookie, setCookie} from "@/utils"
+import {useRouter} from "vue-router";
 import { defineStore } from "pinia"
 import request from "@/utils/request"
 import { message } from "ant-design-vue"
 import { Stores } from "types/stores"
+
+const router=useRouter()
 
 const DEFAULT_AVATAR='https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg'
 const DEFAULT_EMAIL='example@oppo.com'
@@ -83,10 +86,11 @@ export const userStore = defineStore('user', {
             setCookie('token', this.token)
             console.log(getCookie('token'))
             resolve('Login successful')
-
           } else {
             reject(res.error)
           }
+        }).catch((res:any)=>{
+          router.push('/login')
         })
       })
     }
