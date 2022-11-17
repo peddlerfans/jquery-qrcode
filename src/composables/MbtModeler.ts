@@ -3,7 +3,6 @@ import { dia, shapes ,g } from "jointjs";
 // import { join } from "path";
 import { Ref, ref } from "vue";
 import { Stencil } from "@/composables/stencil";
-import { setupI18n } from "@/locales";
 import _ from 'lodash';
 import { PaperClipOutlined } from "@ant-design/icons-vue";
 window.joint = joint
@@ -112,8 +111,8 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
       drawGrid: true,
       cellViewNamespace: this.namespace ,
       defaultLink: new joint.shapes.standard.Link({
-        router: { name: "manhattan" },
-        connector: { name: "rounded" },
+        router: { name: "normal" },
+        connector: { name: "curve" },
         attrs: {
           line: {
             stroke: "#333333",
@@ -124,7 +123,7 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
     });
  
   
-  this.paper.on('element:pointerclick', (elementView: dia.ElementView) => {
+  this.paper.on('element:contextmenu', (elementView: dia.ElementView) => {
 
     this.paper.removeTools(); 
 
@@ -133,11 +132,9 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
       
     }
       elementView.showTools();
-
-
   });
 
-  this.paper.on('link:mouseenter', (linkView: any) => {
+  this.paper.on('link:contextmenu', (linkView: any) => {
 
     this.paper.removeTools();
     
@@ -149,7 +146,7 @@ sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
 
   });
 ;
-  this.paper.on('blank:pointerclick', () => {
+  this.paper.on('blank:contextmenu', () => {
     this.paper.removeTools();
   });
 }

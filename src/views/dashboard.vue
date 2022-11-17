@@ -3,16 +3,45 @@ export default {name: 'Dashboard'}
 </script>
 
 <script setup lang="ts">
-import { h, onMounted, reactive, ref } from 'vue';
+import {  onMounted, ref } from 'vue';
 import EchartsModel from '@/components/EchartsModel.vue'
 import { message } from 'ant-design-vue';
 import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
-import { QuestionCircleFilled } from '@ant-design/icons-vue';
+// import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
+import { SelectValue } from 'ant-design-vue/lib/select';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n()
 
 interface FormState {
   'range-time-picker': [string, string];
 }
+
+function lineData(arr:any){
+  let buckets:any = {}
+arr.forEach((a: { buckets: any[]; }) => a.buckets.forEach(b => buckets[b.key] = {name:b.key,doc_count:"",data:[],type:"line"} ))
+arr.forEach((a: { buckets: any[]; }) => {
+    Object.keys(buckets).forEach(k => {
+        // console.log(a.bucket)
+        let data = a.buckets.find(t => t&&t.key === k);
+        if (data) {
+          if(buckets[k].doc_count<data.doc_count){
+            buckets[k].doc_count=data.doc_count
+          }
+           
+            buckets[k].data.push(data.duration.value/1000000)
+            
+        } else {
+            buckets[k].data.push(0)
+        }        
+    })
+})
+let arrdata=Object.values(buckets).sort((a:any,b:any)=>b.doc_count-a.doc_count).filter((item,index)=>{if(index<5){return item}})
+
+return arrdata
+}
+
 // 格式化时间的函数
 function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"minutes"|"weeks"|"month"="days") {
   const unitmapping:any={
@@ -23,8 +52,6 @@ function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"
     month:30*24* 60 * 60 * 1000
   }
   let state = new Date(new Date().getTime() - hour * 60 * 60 * 1000)
-  
-  
   if(unit=="days"){
     state=new Date(new Date().getTime() - hour*unitmapping.days)
   }else if(unit=="hours"){
@@ -36,31 +63,25 @@ function timeFormat(endDate:Date,hour: number |string |any,unit:"days"|"hours"|"
   }else if(unit=="month"){
     state=new Date(new Date().getTime() - hour*unitmapping.month)
   }
-  // minutes < 0 ? minutes = Number(`0${minutes}`) : minutes = minutes
-  //转换格式
-  // return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${minutes}`
   return state.toISOString()
 }
 let endDate=new Date()
 // console.log(timeFormat(endDate,7,"days"));
-let 	minutes = endDate.getMinutes()
-  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
 const search={
-  start:timeFormat(endDate,7,"hours"),
+  start:timeFormat(endDate,7,"days"),
   end:endDate.toISOString(),
-  interval:'1h',
+  interval:'1d',
   aggs: {
         transaction_duration: {
             avg: {
                 field: "transaction.duration.us",
-                missing: 0
+                missing: 0 //无数据时默认显示0
             }
         },
         terms: {
             terms: {
                 field: "transaction.name",
-                size: 10
-
+                size: 10 //接收条数限制
             }, 
             aggs: {
                 duration: {
@@ -75,35 +96,180 @@ const search={
             value_count: {
             field: "transaction.id"
             }
+        },
+        cpu:{
+          avg:{
+            field:"system.process.cpu.total.norm.pct",
+
+          }
+        },
+        memory_total:{
+          avg:{
+            field:"system.memory.total"
+          }
+        },
+        memory_free:{
+          avg:{
+            field:"system.memory.actual.free"
+          }
         }
+        //Latency  Throughput   tpm
+
+        // 处理duration 纳秒转秒
     }
 }
-console.log(search);
+// 发送子组件的数据
+// 识别展示的数据类型
+let cpuCharts:string="cpu(%)" 
+let cpuColor="#EE6666"
+let cpuData:any=ref([])
+let cpu=ref([])
+let memorycharts:string="memory(GB)"
+let memoryColor="#5470C6"
+let memory:any=ref([])
+let neicun=ref([])
+let throughputTitle:string="throughput(tps)"
+let throughputColor="#97CC71"
+let throughput:any=ref([])
+let tuntuliang=ref([])
+let sendXdata=ref([])
+let lineCharts:string="latency(seconds)"
+let lineColors:any=ref(["#EE6666","#5470C6","#97CC71","#8FD5F3","#F6DC7D"])
+let lineDatas:any=ref([])
+function TimeTrans(timestamp: string | number | Date){
+
+      let date:any=new Date(new Date(timestamp).getTime() + 8 * 3600 * 1000)
+
+      date=date.toJSON();
+
+      date=date.substring(0,19).replace('T',' ')
+
+    return date.substring(5,16)
+
+}
 
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
-  let rst=await request.post(dashboradUrl,search)
+  let rst:any=await request.post(dashboradUrl,search)
+  console.log(rst);
+  
+  if(rst){
+    sendXdata.value=rst.map((item:any)=>{
+      return TimeTrans(item.key_as_string)
+    })
+
+     cpu.value=rst.map((item:any)=>{
+      return item.cpu.value*1000
+    })
+    cpuData.value=[{data:cpu.value,type:"line",name:"cpu(%)"}]
+    
+     neicun.value=rst.map((item:any)=>{
+      return item.memory_free.value/1024/1024/1024
+    })
+    memory.value=[{data:neicun.value,type:"line",name:"memory(GB)"}]
+
+    let requestData=rst.map((item:any)=>{
+        return item.terms
+      })      
+      lineDatas.value=lineData(requestData)
+
+     tuntuliang.value=rst.map((item:any)=>{
+      if(search.interval=="1m"){
+        return item.transations.value
+      }else if(search.interval=="1h"){
+        return item.transations.value/60
+      }else if(search.interval=="1d"){
+        return item.transations.value/1440
+      }
+    })
+    throughput.value=[{data:tuntuliang.value,type:"line",name:"throughput(tps)"}]
+  }
+
+  
+  
 }
 onMounted(()=>{
+  querys()
   query()
+
 })
-const formState = reactive({} as FormState);
 const options=ref([
   {label:"Last 30 minutes",value:"Last 30 minutes"  },
-  {label:"Last 1 hour",value:"Last 1 hour"},
-  {label:"Last 24 hour",value:"Last 24 hour"},
-  {label:"Last 7 day",value:"Last 7 day"},
-  {label:"Last 30 day",value:"Last 30 day"},
+  {label:"Last 1 hour",value:"Last 1 hours"},
+  {label:"Last 24 hour",value:"Last 24 hours"},
+  {label:"Last 7 day",value:"Last 7 days"},
+  {label:"Last 30 day",value:"Last 30 days"},
 ])
-const choseData=ref("")
-const datachange=(value:string)=>{
+const choseData:any=ref("Last 7 days")
+const datachange=async (value:SelectValue)=>{
+  // sendXdata.value=[]
+  // cpuData.value=[]
+  // memory.value=[]
+  // lineDatas.value=[]
+  // throughput.value=[]
   choseData.value=value
-  if(value=="today"){
-    // search.start=timeFormat(24)
+  if(value=="Last 30 minutes"){
+    search.start=timeFormat(endDate,30,"minutes")
+    search.interval='1m'
     // search.interval=
+  }else if(value=="Last 1 hours"){
+    search.start=timeFormat(endDate,1,"hours")
+    search.interval="1m"
+  }else if(value=="Last 24 hours"){
+    search.start=timeFormat(endDate,24,"hours")
+    search.interval="1h"
+  }else if(value=="Last 7 days"){
+    search.start=timeFormat(endDate,7,"days")
+    search.interval="1d"
+  }else if(value=="Last 30 days"){
+    search.start=timeFormat(endDate,30,"days")
+    search.interval="1d"
   }
+  await query()
+  console.log(sendXdata.value,cpuData.value,memory.value,lineDatas.value,throughput.value);
 }
 
+
+let 	minutes = endDate.getMinutes()
+  minutes < 10 ? minutes = Number(`0${minutes}`) : minutes = minutes
+
+const steps=ref<any>([
+  {
+    title: 'Step 1',
+    description: 'dashboard.defineAW',
+    content: 'dashboard.step1Content',
+    name: 'dashboard.AWUnit',
+    number: 0
+  },
+  {
+    title: 'Step 2',
+    description: 'dashboard.defineMBT',
+    content: 'dashboard.step2Content',
+    name: 'dashboard.metaTemp',
+    number: 0
+  },
+  {
+    title: 'Step 3',
+    description: 'dashboard.defineData',
+    content: 'dashboard.step3Content',
+    name: ['dashboard.staticData','dashboard.dynamicData'],
+    number: [0,0]
+  },
+  {
+    title: 'Step 4',
+    description: 'dashboard.defineTest',
+    content: 'dashboard.step4Content',
+    name: 'dashboard.MBTTemp',
+    number: 0
+  },
+  {
+    title: 'Step 5',
+    description: 'dashboard.generateMBT',
+    content: 'dashboard.step5Content',
+    name: 'dashboard.codegenTemp',
+    number: 0
+  },
+])
 
 const current = ref<number>(0);
 const next = () => {
@@ -112,124 +278,182 @@ const next = () => {
 const prev = () => {
   current.value--;
 };
-const steps=[
-  {
-    title: 'Step 1',
-    description: '定义AW',
-    content: '<h4>Step 1: 定义可重复利用的测试步骤抽象:</h4><ul>' +
-        '<li>name：通常为脚本函数/方法名</li>' +
-        '<li>description：步骤简要说明</li>' +
-        '<li>template：中文步骤模版，模版作为文本步骤生成格式化内容</li>' +
-        '<li>template_en：英文步骤模版\n</li>' +
-        '<li>params：步骤参数，用于自动化脚本或文本步骤内容替换</li>' +
-        '<li>returnType定义AW返回数据类型，用于结果判断（第一阶段未包含）\n</li>' +
-        '<li>name_hash：用户不可见，当前对name直接进行hash，意味着name全局不可重复，可以调整为path+name\n</li>'+
-        '<li>description_hasn：用户不可见，当前对description 进行NLP处理，提取top 20单词进行hash\n</li>'+
-        '</ul><a href="/#/awmodeler">进入 >></a>',
-  },
-  {
-    title: 'Step 2',
-    description: '定义用例元模型',
-    content: '<h4>Step 2: 定义一组用例共享的元模型，每个字段的类型、枚举等</h4><p>测试模型可以引用用例元模型模版，这样可以方便用户定义最终用例生成所需要的字段用例或者脚本生成的时候会根据模版定义内容来生成相关用例、脚本字段。</p><a href="/#/templatemanager/meta">进入 >></a>',
-  },
-  {
-    title: 'Step 3',
-    description: '定义数据模型',
-    content: '<h4>Step 3: 定义测试模型所需的相关数据</h4><p>数据原则上会影响业务模型的最终输出，也是测试设计的重要考虑因素。数据模型可以是静态的或者动态的：</p><ul>' +
-        '<li><b>静态数据</b> 是一组定义的数据列表，用户可以根据自己的需求手动配置。和动态数据相比，静态数据模型可以跨业务模型共享。<a href="/#/templatemanager/static">进入 >></a></li>'+
-        '<li><b>动态数据</b> 是定义数据规则和策略（比如pairwise、全排列、随机等）通过算法生成相关数据列表。当前主要还是pairwise策略，整体参考微软的PICT语法定义，我们主要是提供向导式建模。业务模型中引用的时候会从模型中动态生成导入。<a href="/#/templatemanager/dynamic">进入 >></a></li></ul>',
-  },
-  {
-    title: 'Step 4',
-    description: '定义测试模型',
-    content: '<h4>Step 4: 定义测试模型</h4><p>通过调用之前定义好的模型来设计整个测试流程。其中包括以下步骤：</p><ul>' +
-        '<li>起始节点</li>'+
-        '<li>结束节点</li>'+
-        '<li>步骤节点：1个操作步骤，可选一个预期结果</li>'+
-        '<li>并行网关，分支路径都需要覆盖</li>'+
-        '<li>条件网关，分支路径根据条件进行选择0~N</li></ul>',
-  },
-  {
-    title: 'Step 5',
-    description: 'MBT用例生成',
-    content: '<h4>Step 5: 生成MBT用例</h4><p>根据需要生成相应的测试代码或测试文本。</p><ul><li>支持EJS，FreeMarker模板引擎</li><li>支持输出Python, JAVA测试代码，或YAML格式的文本用例</li></ul><a href="/#/mbtstore">进入 >></a>',
-  },
-]
+
+// 需要的参数 start   end   interval（x轴时间间隔）
+async function querys(){
+  try {
+    // let res = await request.get(`/api/statistics`)
+    let res:any = await request.get(`/api/statistics`)
+    steps.value[0].number=res.hlfs
+    steps.value[1].number=res.template_meta
+    steps.value[2].number[0]=res.template_static
+    steps.value[2].number[1]=res.template_dynamic
+    steps.value[3].number=res.test_model
+    steps.value[4].number=res.template_codegen
+
+    // let statistics={}
+    // res.map((obj: any)=> {
+    //   statistics={...obj}
+    // })
+    // steps.value[3].number=res[0].test_model
+  } catch (e) {
+    message.error("Query failed!")
+  }
+}
+let zoomin=ref(0)
+let zoomout=ref(100)
+const dataZoom=(val1:any,val2:any)=>{
+  zoomout.value=val1
+  zoomin.value=val2
+  
+}
+
+
+
+
 </script>
 
 <template>
-  <section class="block shadow flex-start" style="width: 100%; height: 100%; color: var(--gray); flex-direction: column;" >
-    <a-row style="width:100%; height: 55%;">
+  <section class="block shadow flex-start" style="width: 100%;  color: var(--gray); flex-direction: column;" >
+    <a-row style="width:100%; height: 31.75rem;">
       <div class="steps-div">
-        <h2>使用向导</h2>
+        <h2>{{ $t('dashboard.guide') }}</h2>
         <a-steps v-model:current="current">
-          <a-step v-for="item in steps" :key="item.title" :title="item.title" :description="item.description" />
+          <a-step v-for="item in steps" :key="item.title" :title="item.title" :description="$t(item.description)" />
         </a-steps>
-        <div class="steps-content" v-html="steps[current].content"></div>
+        <div class="steps-content">
+          <a-row type="flex" justify="center" align="top">
+            <a-col :span="21">
+              <div v-html="$t(steps[current].content)"></div>
+            </a-col>
+
+            <a-col :span="3">
+              <div style="text-align: right;">
+
+                <div v-if="current==2">
+                  <h4>{{ $t(steps[current].name[0]) }}: <a-badge :count="steps[current].number[0]" :number-style="{ backgroundColor: '#52c41a' }" /></h4>
+                  <h4>{{ $t(steps[current].name[1]) }}: <a-badge :count="steps[current].number[1]" :number-style="{ backgroundColor: '#52c41a' }" /></h4>
+                </div>
+                <div v-else>
+                  <h4>{{ $t(steps[current].name) }}: <a-badge :count="steps[current].number" :number-style="{ backgroundColor: '#52c41a' }" /></h4>
+                </div>
+              </div>
+            </a-col>
+          </a-row>
+
+
+
+        </div>
         <div class="steps-action">
-          <a-button v-if="current < steps.length - 1" type="primary" @click="next">Next</a-button>
-          <!--          <a-button-->
-          <!--              v-if="current == steps.length - 1"-->
-          <!--              type="primary"-->
-          <!--              @click="message.success('Processing complete!')"-->
-          <!--          >-->
-          <!--            Done-->
-          <!--          </a-button>-->
-          <a-button v-if="current > 0" style="margin-left: 8px" @click="prev">Previous</a-button>
+          <a-button :disabled="current == 0" style="margin-right: 8px" @click="prev">{{ $t('common.prev') }}</a-button>
+          <a-button :disabled="current >= steps.length - 1" type="primary" @click="next">{{ $t('common.next') }}</a-button>
+
         </div>
       </div>
     </a-row>
 
-      <a-row style="margin-top:2.25rem">
+      <a-row style="margin-top:2.25rem; ">
       <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
       <a-col :span="5" style="display:flex">
-        
-          <a-select 
+          <a-select
           :options="options"
           v-model:value="choseData"
+          @change="datachange"
           ></a-select>
-          <!-- <a-range-picker
-            v-model:value="formState['range-time-picker']"
-            show-time
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-          /> -->
-          <a-button type="primary">search</a-button>
-
+          <a-button type="primary">{{ $t('common.searchText') }}</a-button>
       </a-col>
     </a-row>
-    <a-row style="height:32%;display: flex; justify-content: space-between;margin-top: 1.25rem;">
-      <a-col :span="10" style="backgroundColor:origin ; border:1px solid red">
-        <echarts-model :sendtime="search.start"></echarts-model>
+    <a-row style="height:19.75rem;display: flex; justify-content: space-around;margin-top: 20px;">
+      <a-col :span="11" >
+        <echarts-model v-if="sendXdata.length>0 || lineDatas.length>0 " 
+          :sendXdata="sendXdata"
+          :cpuData="cpuData"
+          :chartstype="cpuCharts"
+          :datacolor="cpuColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
+          ></echarts-model>
+          <div v-else class="noData">{{ $t('component.message.nocpuData') }}</div>
       </a-col>
-      <a-col :span="10" style="backgroundColor:origin">Line Chart2</a-col>
-    </a-row>
+      <a-col :span="11" >
+        <echarts-model v-if="sendXdata.length>0  || lineDatas.length>0 "
+          :sendXdata="sendXdata"
+          :cpuData="memory"
+          :chartstype="memorycharts"
+          :datacolor="memoryColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
+          ></echarts-model>
+          <div v-else class="noData">{{ $t('component.message.nomemoryData') }}</div>
+      </a-col>
 
+    </a-row>
+    <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
+      <a-col :span="11">
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0"
+          :sendXdata="sendXdata"
+          :cpuData="lineDatas"
+          :chartstype="lineCharts"
+          :datacolor="lineColors"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
+          ></echarts-model>
+          <div v-else class="noData">{{ $t('component.message.noLatencyData') }}</div>
+        </a-col>
+      <a-col :span="11">
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0 "
+          :sendXdata="sendXdata"
+          :cpuData="throughput"
+          :chartstype="throughputTitle"
+          :datacolor="throughputColor"
+          @dataZoom="dataZoom"
+          :zoomin="zoomin"
+          :zoomout="zoomout"
+          ></echarts-model>
+          <div v-else class="noData">{{ $t('component.message.nothroughputData') }}</div>
+      </a-col>
+    </a-row>
   </section>
 </template>
 
-<style>
+<style lang="less">
 .steps-div{
   width:100%;
-  padding: 30px 20px 0px 20px;
+  padding: 1.875rem 1.25rem 0rem 1.25rem;
 }
 .steps-content {
-  margin-top: 16px;
-  border: 1px dashed #e9e9e9;
-  border-radius: 6px;
+  margin-top: 1rem;
+  border: .0625rem dashed #e9e9e9;
+  border-radius: .375rem;
   background-color: #fafafa;
-  min-height: 200px;
+  height: 300px;
   /*text-align: center;*/
-  padding: 20px 20px 20px 50px;
+  padding: 1.25rem 1.25rem 1.25rem 3.125rem;
 }
 
 .steps-action {
-  margin-top: 24px;
+  margin-top: 1.5rem;
 }
 #left{float:left;}
 #right{float:right;}
 [data-theme='dark'] .steps-content {
   background-color: #2f2f2f;
-  border: 1px dashed #404040;
+  border: .0625rem dashed #404040;
+}
+.ant-select{
+  width: 13.5rem !important;
+}
+.noData{
+  width: 100%;
+  height: 100%;
+  background-color: rgb(237, 237, 237);
+  line-height: 19.75rem;
+  text-align: center;
+  border-radius: .625rem;
+  font-size: 2.25rem;
+  font-weight: 700;
 }
 </style>

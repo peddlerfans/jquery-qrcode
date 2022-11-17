@@ -7,8 +7,11 @@ import { userStore } from './stores/user'
 import { message } from 'ant-design-vue'
 import request from "@/utils/request";
 import {Stores} from "../types/stores";
+import {i18n} from '@/locales'
 
 NProgress.configure({ showSpinner: false })
+
+const { t } = i18n.global
 
 const whitelist: string[] = ['/login', '/404']
 let scrollTimeout: any | null = null
@@ -17,7 +20,7 @@ let contentWindowDom: HTMLElement | null = null
 router.beforeEach(async (to, from, next) => {
   NProgress.start()
   // 设置页面标题
-  document.title = `${to.meta.title}-${appTitle}`
+  document.title = `${t(to.meta.title as string)}-${appTitle}`
   // 路径命中白名单，放行通过
   if (whitelist.includes(to.path)) next()
   else {

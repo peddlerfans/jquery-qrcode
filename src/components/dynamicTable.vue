@@ -152,11 +152,21 @@ const cancelRow = (key: string) => {
 const editableHeaderData: UnwrapRef<Record<string, ColumnItem>> = reactive({});
 
 const addCol = () => {
-  const newcolumn = {
+  console.log(tablecolcount.value);
+  
+  let newcolumn = {
     title: `Property${tablecolcount.value}`,
     dataIndex: `Property${tablecolcount.value}`,
     key: `Property${tablecolcount.value}`,
   };
+  if(tablecolcount.value=="undefined"){
+    newcolumn = {
+    title: "Property1",
+    dataIndex: "Property1",
+    key: "Property1",
+  };
+  }
+  
   const actionColumn = {
     title: "action",
     dataIndex: "action",
@@ -283,7 +293,7 @@ const saveCol = (key: string) => {
         </template>
       </a-table>
     </div>
-    <a-button type="primary" @click="HandleSubmit()">Save1</a-button>
+    <a-button type="primary" @click="HandleSubmit()">Save</a-button>
   </main>
 </template>
 

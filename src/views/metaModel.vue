@@ -6,10 +6,11 @@ import { cloneDeep } from 'lodash-es';
 import { message, SelectProps } from 'ant-design-vue';
 import { PlusSquareFilled,DeleteTwoTone,CheckCircleTwoTone,PlusOutlined} from '@ant-design/icons-vue'
 import { any } from 'vue-types';
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n()
+
 let route=useRoute()
-console.log(route);
-
-
 sessionStorage.setItem('meta_'+route.params._id,JSON.stringify(route.params._id))
 // sessionStorage.setItem('meta_'+route.params.name,JSON.stringify(route.params.name))
 // 获取当前数据并赋值
@@ -18,12 +19,12 @@ let recordobj=ref()
 async function query (data?:any){
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
-   console.log(rst);
+    
    route.params.name=rst.name
    recordobj.value=rst   
           
           recordobj.value.model=rst.model
-          if(rst.model){
+          if(rst.model && rst.model.length>0){
             tableData.value=arr(rst.model)
           }
       ;
@@ -37,6 +38,7 @@ console.log(JSON.parse(getId));
   
     query(JSON.parse(getId))
 })
+
 // 表格的数据
 let tableData=ref<Array<any>>([])
 interface DataItem {
@@ -56,15 +58,23 @@ let editData=reactive<DataItem>({
   enum:[],
   editing:true,
   inputVisible:false,
-  inputValue:""
+  inputValue: ""
+  
 })
+let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
 const updMeta=async (data:any)=>{
+  // console.log(data.value);
+  
   if(data.__v){
     delete data.__v
-  }
-  let rst=await request.put(`/api/templates/${data._id}`,data)
+  }else{
+    let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,{model:data})
   message.success('Modification succeeded')
+  showAddFactorBtn.value=true
+  clearFactorState()
+  }
+
 }
 let showAddFactorBtn=ref(true)
 const edit = (record: any) => {
@@ -91,21 +101,20 @@ const clearFactorState = () => {
 // 点击save触发的函数
 const save =async (obj:any) => {
   obj.editing=false
+  await updMeta(tableData.value)
   
-  await updMeta(obj.value)
-  
-}
+} 
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
-  tableData.value=tableData.value.filter((item:any)=>item==obj)
+  tableData.value=tableData.value.filter((item:any)=>item !==obj)
   console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
   if(recordobj.value.__v){
     delete recordobj.value.__v
   }
-  let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
-  query()
+  let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,recordobj.value)
+  // query()
   
 };
 // 点击取消的函数
@@ -120,7 +129,7 @@ const cancel=(record:any)=>{
     record.editing = false
   }
   showAddFactorBtn.value=true
-
+  clearFactorState()
 }
 // 点击添加数据
 const saveModel=()=>{
@@ -131,7 +140,8 @@ const saveModel=()=>{
     enum:"",
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+    requerd:false
   })
 }
 // 定义属性判断输入框该输入的数据类型
@@ -156,7 +166,7 @@ const changeType=(value:any)=>{
 }
 
 // 获取新建tags的dom
-let inputRef = ref();
+
 // 添加的表单tags
 let state = reactive<statesTs>({
   inputVisible: false,
@@ -169,6 +179,7 @@ interface statesTs {
   inputVisible: Boolean;
   inputValue: string
 }
+let inputRef = ref();
 // 点击添加标签的方法
 const showInput = (record:any) => {
   record.inputVisible = true;
@@ -178,15 +189,19 @@ const showInput = (record:any) => {
 };
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = (record:any) => {
-  let tags = record.enum;
-  if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
-    tags = [...tags, record.inputValue];
+  let values = record.enum;
+  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+    values = [...values, record.inputValue];
+    console.log(values);
+    
   }
   Object.assign(record, {
-    enum:tags,
+    enum:values,
     inputVisible: false,
     inputValue: '',
  });
+ console.log(record);
+ 
 }
 // 移除tags
 const handleCloseTag = (record:any,removedTag: string) => {
@@ -198,31 +213,31 @@ const handleCloseTag = (record:any,removedTag: string) => {
 const columns=reactive<Object[]>(
   [
   {
-    title: 'name',
+    title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
     width:180
   },
   {
-    title:'description',
+    title: 'component.table.description',
     dataIndex:'description',
     key:'description',
     width:180
   },
   {
-    title: 'type',
+    title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
     width:180
     },
     {
-    title: 'enum',
+    title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
     width:180
     },
 {
-    title:'action',
+    title:'component.table.action',
     dataIndex:'action',
     key:'action',
     width:100
@@ -262,9 +277,9 @@ const optiones = ref<SelectProps['options']>([
 <template>
    <main style="height:100%;overflow-x: hidden!important;">      
     <a-table :columns="columns" :data-source="tableData" bordered>
-      <template #headerCell="{column}">
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
         <template v-if="column.key==='action'">
-          <span>action</span>
           <span class="iconsave" style="color:#1890ff;" @click="saveModel" v-if="showAddFactorBtn">
             <plus-square-filled />
           </span>
@@ -297,7 +312,7 @@ const optiones = ref<SelectProps['options']>([
           </template>
           <template v-if='column.key==="type"'>
           <div>
-            <a-select v-if="record.editing" 
+            <a-select v-if="record.editing"
             :options="optiones"
             v-model:value="record.type"
             ></a-select>
@@ -320,15 +335,15 @@ const optiones = ref<SelectProps['options']>([
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="state.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="state.inputValue" type="text"
+            <a-input v-if="record.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
                      @keyup.enter="handleInputConfirm(record)" />
-            <a-input-number v-else-if="state.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="state.inputValue" type="text"
+            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
             size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
             @keyup.enter="handleInputConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput(record)">
               <plus-outlined />
-              New Value
+              {{ $t('common.newValue') }}
             </a-tag>
           </template>
 
@@ -342,15 +357,24 @@ const optiones = ref<SelectProps['options']>([
             <template v-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a style="color:red" @click="save(record)">save </a>
-            <a style="margin-left:0.625rem;" @click="cancel(record)">cancel</a>
-          </span>
+              <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
+            <a-divider type="vertical" />
+              <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+              <a-divider type="vertical" />
+              <a-switch checked-children="必填" un-checked-children="非必填" v-model:checked="record.requerd" @change="(checked:boolean)=>record.requerd=checked"></a-switch>
+            </span>
             <span v-else>
-              <a @click="edit(record)">Edit</a>
-              <a-popconfirm title="Sure to delete?" @confirm="delmodel(record)">
-              <a style="margin-left:0.625rem;">delete</a>
+              <a @click="edit(record)">{{ $t('common.editText') }}</a>
+               
+              <a-popconfirm
+                   :title="$t('component.message.sureDel')"
+                   :ok-text="$t('common.yesText')"
+                   :cancel-text="$t('common.noText')"
+                   @confirm="delmodel(record)">
+              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
+            
           </div>
         </template>
       </template>

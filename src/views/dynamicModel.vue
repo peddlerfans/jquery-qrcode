@@ -40,7 +40,9 @@ import {
   valueStatesTs,
 } from "./componentTS/dynamictemplate"; 
 import CreateRule from '@/components/CreateRule.vue'
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n()
 // Specify the api for dynamic template data CRUD
 let url = templateUrl;
 let route = useRoute()
@@ -63,44 +65,40 @@ async function query(id?: any) {
       ...e, editing: false, inputVisible: false, inputValue: ''
     }
   })
-  finalModel.constraint=finalResult.model.constraint
+  if(finalResult.model.constraint){
+    finalModel.constraint=conditionData(finalResult.model.constraint)
+  }
+  
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
-  
+
   condata.value = finalModel.constraint.map((e: any,index:number) => {
-    return {if:ifdata(e.if),then:{...e.then},keys:index}
+    return {if:ifdata(e.if),then:ifdata(e.then),keys:index}
   })
   valueData.value=finalModel.factor
-  console.log('finalModel')
-  console.log(finalResult)
-  console.log(finalModel)
 }
 let modelId: any
 onMounted(() => {
   modelId = sessionStorage.getItem('dynamic_' + route.params._id)
-  console.log('onMounted');
-  console.log(JSON.parse(modelId));
-
   query(JSON.parse(modelId))
 }) 
 
 
 const saveModel = async () => {
-  console.log('saveModel');
   if (showAddFactorBtn.value ){
     if (finalModel.factor.length<2){
-      message.warning('It is requires at least TWO factors in a model')
+      message.warning(t('templateManager.saveModelTip'))
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
       if(rst){
          query(finalResult._id)
       }
       
-      message.success('Model is saved successfully')
+      message.success(t('templateManager.saveModelSuccess'))
     }
   }else{
-    message.warning('Please save all the editing fields first')
+    message.warning(t('templateManager.saveTip'))
   }
 
 
@@ -115,10 +113,12 @@ const orderOptions = ref<SelectProps['options']>([
   {
     value: 'fullcombination',
     label: 'Full Combination',
+    disabled: true
   },
   {
     value: 'random',
     label: 'Random',
+    disabled: true
   }
 ])
 
@@ -145,24 +145,24 @@ let factorState = reactive<Factor>({
 
 const factorColumns = [ // Setup the header of columns
   {
-    title: 'Name',
+    title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
     // width: 40
   },
   {
-    title: 'Type',
+    title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
     // width: 120
   },
   {
-    title: 'Values',
+    title: 'component.table.values',
     dataIndex: 'values',
     key: 'values',
   },
   {
-    title: 'Action',
+    title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
     // width: 100
@@ -187,16 +187,10 @@ const addNewFactor = () => {
 }
 
 const editFactor = (record: Factor) => {
-  console.log('editFactor')
-  console.log(record)
-
   factorState.name = record.name
   factorState.type = record.type
   factorState.values = record.values
   showAddFactorBtn.value=false
-
-  console.log(factorState)
-
   record.editing = true
 
 }
@@ -212,13 +206,11 @@ const saveFactor = async (record: Factor) => {
 
 const deleteFactor = (record: Factor) => {
   const index= finalModel.factor.findIndex(e => e === record)
-  console.log('deleteFactorByName')
-  console.log(index)
   finalModel.factor.splice(index,1);
-  message.success('Delete Successfully!');
+  message.success(t('component.message.delText'));
 }
 const cancelFactor = (record: Factor) => {
-  
+
   if (factorState.name === ''){
     const index= finalModel.factor.findIndex(e => e === record)
     finalModel.factor.splice(index,1);
@@ -246,11 +238,8 @@ const clearFactorState = () => {
 
 // Handel Tags in modal form
 const handleCloseTag = (record: Factor, removedTag: string) => {
-  console.log('close tags');
-  console.log(record.values);
   const tags = record.values.filter((tag: string) => tag !== removedTag);
   record.values = tags;
-  console.log(record.values);
 
 };
 let inputRef = ref();
@@ -265,8 +254,6 @@ const handleFactorValueConfirm = (record: Factor) => {
     inputVisible: false,
     inputValue: '',
   });
-  console.log(JSON.stringify(record.values));
-  
 }
 
 const newFactorValueInput = (record: Factor) => {
@@ -365,12 +352,8 @@ let conditional=ref()
 const addNewConstraint = () => {
   childComponent.value=!childComponent.value
   conditional.value=finalModel.factor
-  console.log('addNewConstraint')
   // clearConstraintState()
   showAddConstraintBtn.value = false;
-
-  console.log(finalModel)
-  // console.log(constraintState)
 }
 
 
@@ -378,29 +361,26 @@ const addNewConstraint = () => {
 const instance = getCurrentInstance()
 
 const cancel = (e: MouseEvent) => {
-  console.log(e);
 };
 
 const focus = () => {
-  console.log('focus');
-  // console.log(constraintState);
 };
 
 const columns=[
 {
-    title: 'IF',
+    title: 'component.table.if',
     dataIndex: 'if',
     key: 'if',
     width: 120
   },
   {
-    title: 'Then',
+    title: 'component.table.then',
     dataIndex: 'then',
     key: 'then',
     width: 120
   },
   {
-    title:'action',
+    title: 'component.table.action',
     dataIndex:'action',
     key:'action',
     width:60
@@ -426,15 +406,8 @@ function ifdata(arr:any){
       // finditem=conditionstr(item.conditions)+' '+item.relation
       finditem=`${conditionstr(item.conditions)} ${item.relation} `
     }
-    console.log(finditem);
-    
     if(item.children.length>0){
-      
-      
       finditem+=ifdata(item.children)
-      
-      
-      // if
     }else{
       break
     }
@@ -445,7 +418,6 @@ function ifdata(arr:any){
       if(finditem.substring(findlength-4,findlength)=="AND " || finditem.substring(findlength-3,findlength)=="OR "){
         finditem= finditem.substring(0,findlength-4)
       }
-    console.log(finditem);
     return finditem
   }
   
@@ -491,54 +463,64 @@ const conditionstr=(arr:any)=>{
         return `[${item.name}] ${item.operator} ${selectvalue(item.value)} `
       }    
   })
-  console.log(ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4));
-  
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 
 const rulesChange=(datas: any,key:string)=>{
-  console.log(key);
-  
-    rulesData.value=datas//输出的条件对象 
+  rulesData.value = datas//输出的条件对象 
+    
 }
+const thenrulesChange=(datas: any,key:string)=>{
+  thenrulesData.value = datas//输出的条件对象 
+  
+}
+
 
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
-  
+  const keys=ref<any>(-1)
 // 点击保存时触发数据填充表格
-const  conditionsend=()=>{
-    if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
+const conditionsend = () => {
+      // console.log(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue);
       
-      let thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
-      console.log(rulesData.value);
+    if(rulesData.value && thenrulesData.value){
+      // let thencondition
+      // if(typeof thenObj.value.thenValue=="number"){
+      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
+      // }else{
+      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} "${thenObj.value.thenValue}"`
+      //   // console.log(thencondition);
+      // }
+
+      let truerow={if:rulesData.value,then:thenrulesData.value}
       
-      let truerow={if:rulesData.value,then:{...thenObj.value}}
-      console.log(truerow);
       
-      if(keys.value>=0){
+      if (keys.value>=0) {
+        // console.log(1);
+        
         finalModel.constraint[keys.value]={...truerow}
-        finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
-        condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
-        console.log(finalModel.constraintif);
-  console.log(condata.value[keys.value]);
-      }else{
-        condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
+        finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
+        condata.value[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
+      } else {
+        // console.log(2);
+        condata.value.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
-        finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
-        // console.log(finalModel.constraint);
-        
+        finalModel.constraintif.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
+        // console.log(condata.value);
       }
-      cancelbulid() 
+        // console.log(keys.value);
+        keys.value=-1
       saveModel()
+      
       // condata.value=conditionData(condata.value)
-    }
+  }
+  cancelbulid()
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  console.log(condata.value);
-  keys.value=''
+  keys.value=-1
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"AND",
     id:1,
@@ -561,8 +543,7 @@ const cancelbulid=()=>{
 // 点击修改的值
 const editCon=(obj:any)=>{
   keys.value=obj.keys
-  console.log( obj,keys.value);
-  
+  showAddConstraintBtn.value=false
 if(finalModel.constraint.length>0){
     rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
@@ -572,7 +553,10 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{  
+const deleteconstraint = (obj: any) => {  
+  if (childComponent.value) {
+    return message.warning(t('templateManager.dynamicDelText'))
+  }
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
@@ -591,7 +575,7 @@ const conditionshow=computed(()=>{
 })
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
-const keys=ref<any>()
+
 const formDatas=ifNameOpetions
 const valueData=ref()
 let childrelation="AND"
@@ -609,14 +593,33 @@ const rulesData=ref(
       children:[]}
   ]
 )
-
+const thenrulesData=ref(
+  [//初始化条件对象或者，已保存的条件对象
+      {relation:childrelation,
+      id:1,
+      conditions:[{
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }],
+      children:[]}
+  ]
+)
+let previewErrorMsg=ref("")
 let prev=ref<boolean>(false);
 let columnPreview=ref<any>()
 let modelDataPreview=ref<any>()
 let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
-
+let activeKey=ref("1")
 const previewModel = async () => {
   let rst = await request.post('/api/templates'+`/${ids}/preview`)
+  if (rst.error) {
+  previewErrorMsg.value=rst.error
+  } else {
+  previewErrorMsg.value=""
+  }
+console.log(previewErrorMsg.value,rst);
 
   modelDataPreview.value=rst
   columnPreview.value=rst.model?.parameters.map((e:any)=>{
@@ -644,13 +647,13 @@ const previewModel = async () => {
     <!-- ############ -->
 
     <div>
-      <h2>Option (required)</h2>
+      <h2>{{ $t('templateManager.optionLabel') }}</h2>
       <a-form
           name="basic"
           :wrapper-col="{ span: 2 }"
           autocomplete="off"
       >
-        <a-form-item label="Strategy">
+        <a-form-item :label="$t('templateManager.strategyLabel')">
           <a-select v-model:value="finalModel.option.strategy" :options="orderOptions"></a-select>
         </a-form-item>
       </a-form>
@@ -662,15 +665,19 @@ const previewModel = async () => {
     <!-- Factors info -->
     <!-- ############ -->
 
-    <div style="margin: 30px 0px 8px 0px;">
-      <h2 style="display: inline;">Factors (required)</h2>
-      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">Add a
-        New Factor</a-button>
+    <div style="margin: 30px 0 8px 0;">
+      <h2 style="display: inline;">{{ $t('templateManager.factorsLabel') }}</h2>
+      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">
+        {{ $t('templateManager.newFactor') }}
+      </a-button>
 
     </div>
 
 
     <a-table v-if="finalModel.factor.length>0" :columns="factorColumns" :data-source="finalModel.factor" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template #bodyCell="{ column, text, record }">
 
         <template v-if='column.key==="name"'>
@@ -712,15 +719,20 @@ const previewModel = async () => {
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="record.inputVisible && record.type=='string'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
-                     size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-                     @keyup.enter="handleFactorValueConfirm(record)" />
+            <a-input
+                v-if="record.inputVisible && record.type=='string'"
+                ref="inputRef"
+                v-model:value.trim="record.inputValue"
+                type="text"
+                size="small" :style="{ width: '78px' }"
+                @blur="handleFactorValueConfirm(record)"
+                @keyup.enter="handleFactorValueConfirm(record)" />
             <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
             size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
             @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
+            <a-tag v-show="!record.inputVisible" style="background: #fff; border-style: dashed; cursor: pointer;" @click="newFactorValueInput(record)">
               <plus-outlined />
-              Add a New Value
+              {{ $t('common.newValue') }}
             </a-tag>
           </template>
 
@@ -733,18 +745,21 @@ const previewModel = async () => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
-              <a-typography-link type="danger" @click="saveFactor(record)">Save</a-typography-link>
+              <a-typography-link type="danger" @click="saveFactor(record)">{{ $t('common.saveText') }}</a-typography-link>
               <a-divider type="vertical" />
 
-                <a @click="cancelFactor(record)">Cancel</a>
+                <a @click="cancelFactor(record)">{{ $t('common.cancelText') }}</a>
             </span>
 
             <span v-else>
-              <a @click="editFactor(record)">Edit</a>
+              <a @click="editFactor(record)">{{ $t('component.table.edit') }}</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                            @confirm="deleteFactor(record)" @cancel="cancel">
-                <a>Delete</a>
+              <a-popconfirm
+                  :title="$t('templateManager.delFactor')"
+                  :ok-text="$t('common.yesText')"
+                  :cancel-text="$t('common.noText')"
+                  @confirm="deleteFactor(record)" @cancel="cancel">
+                <a>{{ $t('common.delText') }}</a>
               </a-popconfirm>
             </span>
 
@@ -761,23 +776,26 @@ const previewModel = async () => {
     <!-- ################ -->
 
     <div style="margin: 30px 0px 8px 0px;">
-      <h2 style="display: inline;">Constraint (optional)</h2>
+      <h2 style="display: inline;">{{ $t('templateManager.constraintLabel') }}</h2>
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
-                style="margin-left: 12px;">Add a New Constraint</a-button>
+                style="margin-left: 12px;">{{ $t('templateManager.newConstraint' )}}</a-button>
     </div>
     <a-table :columns="columns" :data-source="condata" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
       <template  #bodyCell="{ column, text, record }">
-        <template v-if="column.key==='then'">
-          <span>{{'['+record.then.thenName+']'+' '+record.then.thenOperator+' '+record.then.thenValue}}</span>
-        
-        </template>
         <template v-if="column.key=='action'">
           <span>
-            <a @click="editCon(record)">Edit</a>
+            <a @click="editCon(record)">{{ $t('common.editText') }}</a>
               <a-divider type="vertical" />
-              <a-popconfirm title="Are you sure to delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-                            @confirm="deleteconstraint(record)" @cancel="cancel">
-                <a>Delete</a>
+              <a-popconfirm
+              
+                  :title="$t('templateManager.delConstraint')"
+                  :ok-text="$t('common.yesText')"
+                  :cancel-text="$t('common.noText')"
+                  @confirm="deleteconstraint(record)" @cancel="cancel">
+                <a >{{ $t('common.delText') }}</a>
               </a-popconfirm>
           </span>
         </template>
@@ -788,7 +806,7 @@ const previewModel = async () => {
       <!-- <condition :factorsconditional="conditional" @parentdata="ondata"></condition> -->
     <a-row style="backgroundColor:white">
       <a-col :span="12" style="padding-top: 10px;">
-        <h2 style="display: flex; align-items: center;">IF
+        <h2 style="display: flex; align-items: center;">{{ $t('component.table.if') }}
           <div style="font-size: 14px; margin-left: .625rem;">{{conditionshow}}</div>
         </h2>
         <hr/>
@@ -798,28 +816,29 @@ const previewModel = async () => {
       </a-col>
       <a-divider type="vertical" />
       <a-col :span="11" style="margin-left: .625rem; padding-top: .625rem;">
-        <h2 style="display: flex; justify-content: space-between;">Then
+        <h2 style="display: flex; justify-content: space-between;">{{ $t('component.table.then') }}
           <div style="display: flex;">
-                    <a-button type="primary" @click='conditionsend'>save</a-button>
-                    <a-button @click="cancelbulid">cancel</a-button>
+                    <a-button type="primary" @click='conditionsend'>{{ $t('common.saveText') }}</a-button>
+                    <a-button @click="cancelbulid">{{ $t('common.cancelText') }}</a-button>
                 </div>
         </h2>
         
         <hr/>
         <div style="margin-top: .625rem;">
           
-                <a-form layout="inline" style="margin-top:1.25rem;">
-                <a-form-item label="Name">
+            <!-- <a-form layout="inline" style="margin-top:1.25rem;">
+                <a-form-item :label="$t('component.table.name')">
                     <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
                 </a-form-item>
-                <a-form-item label="Operator">
+                <a-form-item :label="$t('component.table.operator')">
                     <a-select :options="ifOperatorOptions" v-model:value="thenObj.thenOperator"></a-select>
                 </a-form-item>
-                <a-form-item label="Value">
-                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue"></a-select>
+                <a-form-item :label="$t('component.table.values')">
+                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue" v-if="thenObj.thenOperator !=='IN'"></a-select>
+                    <a-select :options="ifValueOpetions" mode="multiple" v-model:value="thenObj.thenValue" v-else></a-select>
                 </a-form-item>
-                
-            </a-form>
+            </a-form> -->
+        <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="thenrulesData" @rulesChange="thenrulesChange"></create-rule>
                 
         </div>
       </a-col>
@@ -828,170 +847,34 @@ const previewModel = async () => {
     </div>
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
-                style="margin-bottom: 8px">Save Model</a-button>
-                <a-button @click="previewModel()">preview</a-button>
+                style="margin-bottom: 8px">{{ $t('templateManager.saveModel') }}</a-button>
+                <a-button @click="previewModel()">{{ $t('common.preview') }}</a-button>
     </div>
     <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">
 
 <!-- Model meta info -->
 
-<h2>Data</h2>
-
-<a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-  <template #bodyCell="{ column, text, record }">
-<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-    {{ text }}
-  </template>
-</a-table>
-
-<template #footer>
-<!--        <a-button @click="closeModel">Cancel</a-button>-->
-</template>
-
-<h2>Model</h2>
-<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-
+<a-tabs v-model:activeKey="activeKey">
+  <a-tab-pane key="1" tab="Data">
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        
+        
+        
+            <template #bodyCell="{ column, text, record }">
+      <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+          {{ text }}
+        </template>
+      </a-table>
+      <p v-else style="color:#ff4d4f;">{{previewErrorMsg}}</p>
+  </a-tab-pane>
+  <a-tab-pane key="2" tab="Model" >
+    <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+  </a-tab-pane>
+</a-tabs>
 </a-modal>
 
-    <!-- <header class="block shadow">
-      <a-row>
-        <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-              <a-mentions v-model:value="formState.search"
-                placeholder="input @ to search tags, input name to search Dynamic Templates">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-              </a-mentions>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-col>
-
-          </AForm>
-        </a-col>
-        <a-col :span="4">
-          <a-button type="primary" @click="showModal">
-            <template #icon>
-              <plus-outlined />
-            </template>
-          </a-button>
-        </a-col>
-      </a-row>
-    </header> -->
-
-
-    <!-- 模态窗 -->
-
-    <!-- <div>
-      <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
-        @ok="handleOk" :width="900">
-
-
-        <h2>Model</h2>
-
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item label="Name" name="name">
-            <a-input v-model:value="modelState.name" />
-          </a-form-item>
-
-          <a-form-item label="Description" name="description">
-            <a-input v-model:value="modelState.description" />
-          </a-form-item>
-
-          <a-form-item label="Tag" name="tags">
-            <template v-for="(tag) in modelState.tags" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
-              <plus-outlined />
-              Add a New Tag
-            </a-tag>
-          </a-form-item>
-        </a-form>
-
-        <template #footer>
-          <a-button @click="closeModel">Cancel</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
-        </template>
-
-
-      </a-modal>
-    </div> -->
-
-
-
-
-    <!-- ######################### -->
-    <!-- List of dynamic templates -->
-    <!-- ######################### -->
-
-    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
-      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
-      <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
-          <span>
-            <edit-outlined />
-            Name
-          </span>
-        </template>
-      </template>
-
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'name'">
-
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
-        </template>
-
-        <template v-else-if="column.key === 'description'">
-
-          {{ record.description }}
-
-        </template>
-        <template v-else-if="column.key === 'tags'">
-          <span>
-            <a-tag v-for="tag in record.tags" :key="tag"
-              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
-              {{ tag.toUpperCase() }}
-            </a-tag>
-          </span>
-        </template>
-
-        <template v-else-if="column.key === 'action'">
-          <span>
-            <a @click="editModel(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-              @confirm="deleteModel(record._id)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-
-
-    </ATable> -->
-    <!-- </section> -->
   </main>
 </template>
 

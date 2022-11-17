@@ -16,40 +16,11 @@ export const dashboardRoute: RouteRecordRaw = {
       path: 'dashboard',
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
-      meta: { title: 'Dashboard', icon: HomeOutlined },
-      beforeEnter(to,form,next){
+      meta: { title: 'component.route.dashboard', icon: HomeOutlined }
 
-        if(to.params._id && to.params.name){
-          to.meta.title=`MetaModel ${to.params.name}`
-        }
-        next()
-      }
     }
   ]
 }
-
-
-export const authRoute: any={
-  name: 'auth',
-  path: '/auth',
-  children: [
-    {
-      path: '/atlassian',
-      name: 'atlassian',
-      query: {
-        redirect: encodeURIComponent('http://127.0.0.1:7777/#/dashboard'),
-        error_redirect: FieldBinaryOutlined,
-        keepAlive: true
-      }
-    },
-    {
-      path: '/gitlab',
-      name: 'gitlab',
-      query: { redirect: 'Static Template', error_redirect: LineChartOutlined, keepAlive: true }
-    }
-  ]
-}
-
 
 const constantRoutes: RouteRecordRaw[] = [
   {
@@ -82,35 +53,38 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/views/login.vue'),
     meta: { hidden: true, title: '登录' }
   },
+
+
   {
     path: '/awmodeler',
     name: 'Awmodeler',
     component: Layout,
     redirect: { name: 'awmodeler' },
-    meta: { title: 'AWModeler',icon: ApiOutlined },
+    meta: { title: 'component.route.awModeler', icon: ApiOutlined },
     children: [
       {
         path: 'index',
         name: 'awmodeler',
         component: () => import('@/views/awmodeler.vue'),
-        meta: { title: 'AWModeler',icon: ApiOutlined }
+        meta: { title: 'component.route.awModeler', icon: ApiOutlined, keepAlive: true }
       }
     ]
   }
   ,
+
 
   {
     path: '/mbtstore',
     name: 'Mbtstore',
     component: Layout,
     redirect: { name: 'mbtstore' },
-    meta: { title: 'MBTStore',icon: AppstoreAddOutlined},
+    meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined },
     children: [
       {
         path: 'index',
         name: 'mbtstore',
         component: () => import('@/views/mbtstore.vue'),
-        meta: { title: 'MBTStore', icon: AppstoreAddOutlined, keepAlive: true }
+        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ]
 
@@ -120,36 +94,36 @@ export const routes: RouteRecordRaw[] = [
     name: 'templatemanager',
     component: Layout,
     redirect: { name: 'staticTemplate' },
-    meta: { title:'Template Manager',icon:ExportOutlined },
+    meta: { title: 'component.route.templateManager', icon: ExportOutlined },
     children: [
       {
         path: 'meta',
         name: 'metaTemplate',
         component: () => import('@/views/metatemplate.vue'),
-        meta: { title: 'Meta Template', icon: FieldBinaryOutlined, keepAlive: true }
+        meta: { title: 'component.route.metaTemplate', icon: FieldBinaryOutlined, keepAlive: true }
       },
       {
         path: 'static',
         name: 'staticTemplate',
         component: () => import('@/views/statictemplate.vue'),
-        meta: { title: 'Static Template', icon: LineChartOutlined, keepAlive: true }
-      },{
+        meta: { title: 'component.route.staticTemplate', icon: LineChartOutlined, keepAlive: true }
+      }, {
         path: 'dynamic',
         name: 'pairwiseTemplate',
         component: () => import('@/views/dynamictemplate.vue'),
-        meta: { title: 'Dynamic Template', icon: FireOutlined, keepAlive: true }
-      },{
+        meta: { title: 'component.route.dynamicTemplate', icon: FireOutlined, keepAlive: true }
+      }, {
         path: 'codegen',
         name: 'codegenTemplate',
         component: () => import('@/views/codegentemplate.vue'),
-        meta: { title: 'Codegen Template', icon: CodeOutlined, keepAlive: true }
+        meta: { title: 'component.route.codegenTemplate', icon: CodeOutlined, keepAlive: true }
       }
 
     ]
   }
 
   ,
-  
+
 
   {
     path: '/account',
@@ -162,41 +136,64 @@ export const routes: RouteRecordRaw[] = [
         path: 'index',
         name: 'account',
         component: () => import('@/views/account.vue'),
-        meta: { title: 'Account', icon: ApartmentOutlined, keepAlive: true }
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
   }
   ,
   {
+    path: '/awupdate',
+    name: 'AWupdate',
+    component: Layout,
+    redirect: { name: 'awupdate' },
+    meta: { hidden: true },
+    children: [
+      {
+        path: ':_id/:name/:awupdate/:mbtid?/:mbtname?',
+        name: 'awupdate',
+        component: () => import('@/views/updateAw.vue'),
+        meta: { title: 'UpdateAw', icon: AppstoreAddOutlined, keepAlive: true }
+      }
+    ],
+    beforeEnter(to, form, next) {
+      if (to.params.awupdate == "mbtAW") {
+        to.meta.title = `MbtUpdateAw-${to.params.name}`
+      } else if (to.params.awupdate == "awmodeler") {
+        to.meta.title = `AwUpdate-${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
     path: '/mbtmodeler',
     name: 'Mbtmodeler',
     component: Layout,
-    redirect: { name: 'mbtmodeler' },  
-    meta: { hidden: true}, 
+    redirect: { name: 'mbtmodeler' },
+    meta: { hidden: true },
     children: [
       {
         path: ':_id/:name',
         name: 'mbtmodeler',
-        component: () => import('@/views/mbtmodeler.vue'),        
-        meta: { title: 'MBTStore',icon: AppstoreAddOutlined, keepAlive: true}
+        component: () => import('@/views/mbtmodeler.vue'),
+        meta: { title: 'mbtModel', icon: AppstoreAddOutlined, keepAlive: true }
       }
-    ], 
-    beforeEnter(to,form,next){
-      let pathname =`${to.params.name}`;
-      if(to.path==`/mbtmodeler/${to.params._id}/`+encodeURIComponent(pathname)){
-          
-        to.meta.title=pathname
-       
-        }
-        next()
+    ],
+    beforeEnter(to, form, next) {
+      let pathname = `${to.params.name}`;
+      if (to.params._id) {
+
+        to.meta.title = pathname
+
       }
+      next()
+    }
   },
   {
     path: '/metaModeler',
     name: 'MetaModeler',
     component: Layout,
-    redirect: { name: 'metaModeler' },    
-    meta: { hidden: true}, 
+    redirect: { name: 'metaModeler' },
+    meta: { hidden: true },
     children: [
       {
         path: ':_id/:name',
@@ -205,9 +202,9 @@ export const routes: RouteRecordRaw[] = [
         meta: { hidden: true, title: 'MetaModel', icon: LayoutOutlined }
       }
     ],
-    beforeEnter(to,form,next){
-    if(to.params._id && to.params.name){
-      to.meta.title=`MetaModel ${to.params.name}`
+    beforeEnter(to, form, next) {
+      if (to.params._id && to.params.name) {
+        to.meta.title = `MetaModel ${to.params.name}`
       }
       next()
     }
@@ -217,7 +214,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'DynamicModeler',
     component: Layout,
     redirect: { name: 'dynamicModeler' },
-    meta: { hidden: true},
+    meta: { hidden: true },
     children: [
       {
         path: ':_id/:name',
@@ -226,9 +223,9 @@ export const routes: RouteRecordRaw[] = [
         meta: { hidden: true, title: 'DynamicModeler', icon: LayoutOutlined }
       }
     ],
-    beforeEnter(to,form,next){
-      if(to.params._id && to.params.name){
-        to.meta.title=`${to.params.name}`
+    beforeEnter(to, form, next) {
+      if (to.params._id && to.params.name) {
+        to.meta.title = `${to.params.name}`
       }
       next()
     }
@@ -237,8 +234,8 @@ export const routes: RouteRecordRaw[] = [
     path: '/staticModeler',
     name: 'staticmodeler',
     component: Layout,
-    redirect: { name: 'staticmodeler' },  
-    meta: { hidden: true},  
+    redirect: { name: 'staticmodeler' },
+    meta: { hidden: true },
     children: [
       {
         path: ':_id/:name',
@@ -246,34 +243,13 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/statictemplateModeler.vue'),
         meta: { hidden: true, title: 'Static Template Modeler', icon: LayoutOutlined }
       }
-    ], 
-    beforeEnter(to,form,next){
-      let pathname =`${to.params.name}`;
-      if(to.path==`/staticModeler/${to.params._id}/`+encodeURIComponent(pathname)){
-          
-        to.meta.title=`Static `+pathname
-       
-        }
-        next()
-      }
-  },
-  {
-    path: '/codegenModeler',
-    name: 'CodegenModeler',
-    component: Layout,
-    redirect: { name: 'codegenModeler' },
-    meta: { hidden: true},
-    children: [
-      {
-        path: ':_id/:name',
-        name: 'codegenModeler',
-        component: () => import('@/views/codegenModel.vue'),
-        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
-      }
     ],
-    beforeEnter(to,form,next){
-      if(to.params._id && to.params.name){
-        to.meta.title=`${to.params.name}`
+    beforeEnter(to, form, next) {
+      let pathname = `${to.params.name}`;
+      if (to.path == `/staticModeler/${to.params._id}/` + encodeURIComponent(pathname)) {
+
+        to.meta.title = `Static ` + pathname
+
       }
       next()
     }
@@ -283,7 +259,7 @@ export const routes: RouteRecordRaw[] = [
     name: 'CodegenModeler',
     component: Layout,
     redirect: { name: 'codegenModeler' },
-    meta: { hidden: true},
+    meta: { hidden: true },
     children: [
       {
         path: ':_id/:name',
@@ -292,9 +268,30 @@ export const routes: RouteRecordRaw[] = [
         meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
       }
     ],
-    beforeEnter(to,form,next){
-      if(to.params._id && to.params.name){
-        to.meta.title=`${to.params.name}`
+    beforeEnter(to, form, next) {
+      if (to.params._id && to.params.name) {
+        to.meta.title = `${to.params.name}`
+      }
+      next()
+    }
+  },
+  {
+    path: '/codegenModeler',
+    name: 'CodegenModeler',
+    component: Layout,
+    redirect: { name: 'codegenModeler' },
+    meta: { hidden: true },
+    children: [
+      {
+        path: ':_id/:name',
+        name: 'codegenModeler',
+        component: () => import('@/views/codegenModel.vue'),
+        meta: { hidden: true, title: 'CodegenModeler', icon: LayoutOutlined }
+      }
+    ],
+    beforeEnter(to, form, next) {
+      if (to.params._id && to.params.name) {
+        to.meta.title = `${to.params.name}`
       }
       next()
     }

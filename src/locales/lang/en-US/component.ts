@@ -24,5 +24,58 @@ export default {
     settingBordered: 'Bordered',
     index: 'Index',
     total: 'total of {total}',
+
+    name: 'Name',
+    description: 'Description',
+    tags: 'Tags',
+    url: 'Url',
+    action: 'Action',
+    detail: 'Detail',
+    edit: 'Edit',
+    template: 'Template',
+    template_en: 'Template_en',
+    params: 'Params',
+    paramsName: 'ParamsName',
+    type: 'Type',
+    enum: 'Enum',
+    values: 'Values',
+    if: 'IF',
+    then: 'Then',
+    operator: 'Operator',
+
+    pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
+
+  message: {
+    modifiedText: 'Modified successfully',
+    addText: 'Added successfully',
+    delText: 'Delete Successfully',
+    emptyTip: 'Please enter required items',
+    sureDel: 'Sure to delete?',
+    sureCancel: 'Sure to cancel?',
+    saveSuccess: 'Saved successfully',
+
+    dupDescription: 'Duplicate description',
+    emptyDescription: 'Please input your description',
+    emptyName: 'Please input your name',
+    depName: 'Duplicate name',
+    hefaName:"The AW name is not standardized",
+
+    nocpuData: 'No CPU Data',
+    nomemoryData: 'No Memory Data',
+    noLatencyData: 'No Latency Data',
+    nothroughputData: 'No Throughput Data',
+  },
+
+  route: {
+    dashboard: 'Dashboard',
+    awModeler: 'AW Store',
+    mtbStore: 'MBT Store',
+    templateManager: 'TemplateManager',
+    metaTemplate: 'Meta',
+    staticTemplate: 'Static',
+    dynamicTemplate: 'Dynamic',
+    codegenTemplate: 'Codegen',
+    account: 'Account'
+  }
 };

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import request from "@/utils/request";
 import useTable from "@/composables/useTable";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
@@ -28,6 +29,7 @@ const url = realMBTUrl;
 const route = useRoute();
 const router = useRouter();
 const tableRef = ref();
+const { t } = useI18n()
 let searchobj: tableSearch = reactive({
   search: "",
   size: 20,
@@ -54,10 +56,10 @@ const {
 } = useTable({
   table: tableRef,
   columns: [
-    { title: "name", dataIndex: "name", key: "name", width: 40 },
-    { title: "description", dataIndex: "description", key: "description", width: 120 },
+    { title: 'component.table.name', dataIndex: "name", key: "name", width: 40 },
+    { title: 'component.table.description', dataIndex: "description", key: "description", width: 120 },
     {
-      title: "tags",
+      title: 'component.table.tags',
       dataIndex: "tags",
       key: "tags",
       width: 100,
@@ -67,7 +69,7 @@ const {
         } else return opt.value;
       },
     },
-    { title: "Action", dataIndex: "action", key: "action", width: 100 },
+    { title: 'component.table.action', dataIndex: "action", key: "action", width: 100 },
   ],
   updateTableOptions: {
     fetchUrl: url,
@@ -89,6 +91,7 @@ async function query(data?: any) {
   rst = await request.get(url, { params: data || searchobj });
 
   if (rst.data) {
+    pagination.total=rst.total
     dataSource.value = rst.data;
     return rst.data;
   }
@@ -127,7 +130,7 @@ async function updateMBT(url: string, data: any) {
   let rst = await request.put(url, data);
   // console.log(rst);
 }
-let refForm = ref(null);
+let refForm = ref();
 // 清除模态窗数据
 const clear = () => {
   (modelstates.value = {
@@ -150,8 +153,10 @@ let states = reactive<statesTs>({
 });
 
 // 修改的函数
+let editName=""
 const edit = (rowobj: any) => {
   showModal();
+  editName=rowobj.name
   modelstates.value.name = rowobj.name;
   modelstates.value.description = rowobj.description;
   modelstates.value._id = rowobj._id;
@@ -169,7 +174,7 @@ async function saveMBT(data: any) {
       })
       .catch(function (error) {
         if (error.response.status == 409) {
-          message.error("Duplicate name or description");
+          message.error(t('MBTStore.tip1'));
         }
       })
       .finally(() => {
@@ -179,42 +184,45 @@ async function saveMBT(data: any) {
       });
   });
 }
-
-const onFinishForm = async (modelstates: any) => {
-  modelstates.value.tags = states.tags;
-
+let disable=ref(false)
+const handleOk = (modelstates:any) => {
+  modelstates.tags = states.tags;
+  refForm.value.validate().then(()=>{    
+  // disable.value=false
   // 判断修改或添加
-  if (modelstates.value.name && modelstates.value.description) {
-    if (modelstates.value._id) {
-      mbtId.value = modelstates.value._id;
-      updateMBT(url + `/${modelstates.value._id}`, modelstates.value).then((res: any) => {
+  if (modelstates.name && modelstates.description) {
+    if (modelstates._id) {
+      mbtId.value = modelstates._id;
+      updateMBT(url + `/${modelstates._id}`, modelstates).then((res: any) => {
         let fetchUrl = `${url}/${mbtId.value}`;
 
         updateTable({ fetchUrl: fetchUrl });
       });
-      message.success("Modified successfully");
+      message.success(t('component.message.modifiedText'));
     } else {
-      
-      delete modelstates.value._id
-      saveMBT(modelstates.value);
+    
+      delete modelstates._id
+      saveMBT(modelstates);
 
-      message.success("Added successfully");
+      message.success('component.message.addText');
     }
     // }
     visible.value = false;
   } else {
-    return message.error("name and descript is required");
+    return message.error(t('MBTStore.tip2'));
   }
+}).catch(()=>{
+  // disable.value=true
+})
+  // onFinishForm(modelstates);
 };
+const onFinishForm =  (modelstates: any) => {};
 
 /**
  * Create a new model and jump to moderler
  */
-const handleOk = () => {
-  visible.value = false;
 
-  onFinishForm(modelstates);
-};
+
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
@@ -230,25 +238,40 @@ async function delmbt(key: any) {
 const confirm = (e: MouseEvent) => {
   delmbt(e);
   query();
-  message.success("Delete on Successed");
+  message.success(t('MBTStore.tip3'));
 };
 
 const cancel = (e: MouseEvent) => {
   console.log(e);
 };
 
-// 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg = /^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1 = /^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject("Please input your name!");
+    return Promise.reject(t('component.message.emptyName'))
+  } else if (!reg.test(value) && !reg1.test(value)) {
+    return Promise.reject(t('component.message.hefaName'))
   } else {
-    return Promise.resolve();
+    if (editName && editName == value) {
+      return Promise.resolve();
+    } else {
+      let rst = await request.get(url, { params: { q: `name:${value}`, search: '' } })
+      if (rst.data && rst.data.length > 0 && rst.data[0].name == value) {
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+
+        return Promise.reject(t('component.message.depName'))
+      } else {
+        return Promise.resolve();
+      }
+    }
   }
-};
+}
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject("Please input your name!");
+    return Promise.reject(t('MBTStore.tip5'));
   } else {
     return Promise.resolve();
   }
@@ -301,21 +324,24 @@ const handleInputConfirm = () => {
             :wrapper-col="{ span: 24 }"
           >
             <a-col :span="20">
-              <a-input
+              <!-- <a-input
                 v-model:value="formState.search"
                 split=""
-                placeholder="Input name to search MBT"
-              ></a-input>
-              <!-- <a-mentions v-model:value="formState.search" split=""
+                :placeholder="$t('MBTStore.searchText')"
+              ></a-input> -->
+              <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
-              </a-mentions> -->
+                 <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+              </a-mentions>
             </a-col>
 
             <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
+              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
             </a-col>
           </AForm>
         </a-col>
@@ -332,14 +358,12 @@ const handleInputConfirm = () => {
     <div>
       <a-modal
         v-model:visible="visible"
-        :title="modelstates._id ? 'Update MBT' : 'Save MBT'"
-        @cancel="closemodel"
-        @ok="handleOk"
+        :title="modelstates._id ? $t('MBTStore.updateTitle') : $t('MBTStore.saveTitle')"
         :width="700"
       >
         <template #footer>
-          <a-button @click="closemodel">cancel</a-button>
-          <a-button @click="handleOk" type="primary" class="btn_ok">Ok</a-button>
+          <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
+          <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
         </template>
         <a-form
           ref="refForm"
@@ -349,19 +373,17 @@ const handleInputConfirm = () => {
           :label-col="{ span: 6 }"
           :wrapper-col="{ span: 16 }"
           autocomplete="off"
-          @finish="onFinishForm"
-          @finishFailed="onFinishFailedForm"
         >
-          <a-form-item label="name" name="name">
+          <a-form-item :label="$t('component.table.name')" name="name">
             <a-input v-model:value="modelstates.name" />
           </a-form-item>
 
-          <a-form-item label="description" name="description">
+          <a-form-item :label="$t('component.table.description')" name="description">
             <a-input v-model:value="modelstates.description" />
           </a-form-item>
 
           <!-- tags标签 -->
-          <a-form-item label="tags" name="tags">
+          <a-form-item :label="$t('component.table.tags')" name="tags">
             <template v-for="(tag, index) in states.tags" :key="tag">
               <a-tooltip v-if="tag.length > 20" :title="tag">
                 <a-tag :closable="true" @close="handleClose(tag)">
@@ -389,7 +411,7 @@ const handleInputConfirm = () => {
               @click="showInput"
             >
               <plus-outlined />
-              New Tag
+              {{ $t('common.newTag') }}
             </a-tag>
           </a-form-item>
         </a-form>
@@ -409,12 +431,7 @@ const handleInputConfirm = () => {
       >
         >
         <template #headerCell="{ column }">
-          <template v-if="column.key === 'name'">
-            <span>
-              <edit-outlined />
-              Name
-            </span>
-          </template>
+          <span>{{ $t(column.title) }}</span>
         </template>
 
         <template #bodyCell="{ column, record }">
@@ -441,18 +458,18 @@ const handleInputConfirm = () => {
 
           <template v-else-if="column.key === 'action'">
             <span>
-              <a @click="edit(record)">Edit</a>
+              <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
               <a-divider type="vertical" />
               <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
                 <a-divider type="vertical" /> -->
               <a-popconfirm
-                title="Are you sure delete this task?"
-                ok-text="Yes"
-                cancel-text="No"
+                :title="$t('MBTStore.tip6')"
+                :ok-text="$t('common.yesText')"
+                :cancel-text="$t('common.noText')"
                 @confirm="confirm(record)"
                 @cancel="cancel"
               >
-                <a>Delete</a>
+                <a>{{ $t('common.delText') }}</a>
               </a-popconfirm>
             </span>
           </template>

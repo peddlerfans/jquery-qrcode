@@ -67,6 +67,11 @@ const onImportFromMetaTemplate = () => {
 
   if (tempschema && tempschema.value) tempschema.value.properties = {};
 };
+
+// const backFormMetaTemplate=()=>{
+//   isFormVisible.value=true
+// }
+
 </script>
 <template>
   <div style="margin: 5px; padding: 5px">
@@ -79,7 +84,7 @@ const onImportFromMetaTemplate = () => {
     >
     </VueForm>
   </div>
-  <a-space :size="10">
+  <!-- <a-space :size="10">
     <a-button
       style="margin-right: 10px"
       v-if="isFormVisible"
@@ -87,7 +92,7 @@ const onImportFromMetaTemplate = () => {
       @click="onImportFromMetaTemplate"
       >Choose A Template</a-button
     >
-  </a-space>
+  </a-space> -->
   <a-table
     v-if="!isFormVisible"
     :columns="metatemplatecolumns"
@@ -117,5 +122,19 @@ const onImportFromMetaTemplate = () => {
       Jump to Meta Template
     </a>
     <a-button type="primary" @click="submitTemplate">Save</a-button>
+    <!-- <div> -->
+      <a-button
+      style="margin-right: 10px"
+      v-if="isFormVisible"
+      type="link"
+      @click="onImportFromMetaTemplate"
+      >Choose A Template</a-button>
+      <!-- <a-button
+      style="margin-right: 10px"
+      v-if="!isFormVisible"
+      danger
+      @click="backFormMetaTemplate"
+      >Back</a-button> -->
+    <!-- </div> -->
   </div>
 </template>
