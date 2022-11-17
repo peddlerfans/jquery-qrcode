@@ -521,9 +521,9 @@ let rules: Record<string, Rule[]> = {
             </template>
         </a-table>
         <div>
-          <a-button typr="primary" @click="editAw" v-if="!canEdit">Edit</a-button>
-            <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">Save</a-button>
-            <a-button @click="onFinishFailedForm">Cancel</a-button>
+          <a-button typr="primary" @click="editAw" v-if="!canEdit">{{$t("common.editText")}}</a-button>
+            <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">{{$t("common.saveText")}}</a-button>
+            <a-button @click="onFinishFailedForm">{{$t("common.back")}}</a-button>
         </div>
     </div>
 </template>

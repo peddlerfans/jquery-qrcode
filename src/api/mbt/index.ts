@@ -87,6 +87,8 @@ export async function getTemplate(metaId: string, category: string) {
   if (rst1.model) {
     // metatemplaterecordobj.value.model = rst1.model;  
     let temparr = rst1.model;
+    let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
+    Object.assign(currentschema, { required: required })
     if (_.isArray(temparr)) {
       let schemafileds = generateSchema(temparr);
       schemafileds.forEach((schemafield: any) => {

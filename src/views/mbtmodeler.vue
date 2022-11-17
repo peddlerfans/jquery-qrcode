@@ -9,7 +9,7 @@ import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch } from "vue";
 import type { Ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
@@ -188,16 +188,6 @@ const showDrawer = (
   }
    
 
-  //   if (typeof el == "undefined") {
-  //   // console.log('click blank')
-  // } else if (el!.hasOwnProperty("path")) {
-  //   // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-  //   //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
-  // } else if (el && _.isObject(el)) {
-  //   // console.log('click element')
-  // } else {
-  //   // console.log('click blank')
-  // }
 };
 
 const isMetaTemplateEmpty = ref(true);
@@ -227,6 +217,23 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
+  rulesData.value=[
+  //初始化条件对象或者，已保存的条件对象
+  {
+    relation: childrelation,
+    id: 1,
+    conditions: [
+      {
+        name: "name",
+        operator: "=",
+        value: undefined,
+        selectvalues: childselectvalue,
+      },
+    ],
+    children: [],
+  },
+]
+  linkData.value.label=""
   visible.value = false;
 };
 
@@ -608,7 +615,7 @@ const linkschema = ref({
     label: {
       title: "Condition",
       type: "string",
-      // default:condition
+      default:""
       // readOnly: true,
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
@@ -628,13 +635,27 @@ const onExpectedAW = () => {
 
 function awhandlerSubmit() {
   
+  
+  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
 
-  let tempformdata2 = generateObj(awformdata);
-  let tempawschema = generateObj(awschema);
-  debugger
+  let tempformdata2: any = generateObj(awformdata);
+  
+  let tempawschema: any = generateObj(awschema);
+  
+  
+  let formdataKeys=Object.keys(tempformdata2)
+  Object.keys(tempawschema.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempformdata2[item]=""
+    }
+  })
+  console.log(tempformdata2, tempawschema);
+  let tempawformdata=tempawschema.properties
+
+
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
     if (
@@ -645,6 +666,8 @@ function awhandlerSubmit() {
       cacheprops.get(ev_id).props.primaryprops.data.name &&
       cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
     ) {
+
+      
       // console.log("cacheprops set.....1/1", cacheprops);
       let awformData = cacheprops.get(ev_id).props.primaryprops.data;
       let props=cacheprops.get(ev_id).props.primaryprops
@@ -927,6 +950,8 @@ function linkhandlerSubmit() {
   // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
+  
+  
   // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -940,6 +965,7 @@ function linkhandlerSubmit() {
       },
     },
   });
+  // console.log(modeler.graph.getCell(lv_id));
   //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
   //   linkFormData.label += ` Loop : ${loopcount1}`;
   // } else {
@@ -1041,6 +1067,9 @@ return setarr
             "mbt_" + route.params.name,
             JSON.stringify(route.params.name)
           );
+
+let encatch:any=null
+      
 async function mbtquery(id?: any, reLoad?: boolean) {
   // console.log('mbtq:', id)
   let rst;
@@ -1060,9 +1089,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             );
             // let cells = response.modelDefinition.cellsinfo.cells
             cacheprops = propsMap;
-          } else {
-            // console.log('no response.modelDefinition:', response.modelDefinition, idstr);
-          }
+          } 
           if (
             response.dataDefinition &&
             typeof response.dataDefinition.data != "undefined"
@@ -1080,6 +1107,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             //read resources info from backend, todo
           }
           mbtCache = response; //should work on here
+          console.log(123);
+          
+          encatch=response
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1090,7 +1120,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             JSON.stringify(response)
           );
 
-          return mbtCache;
+          return mbtCache;  
         }
       })
       .catch((err) => console.log(err));
@@ -1098,7 +1128,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
     // console.log(rst);
-
+    encatch=rst
     if (rst && rst.dataDefinition && rst.dataDefinition.data) {
       if (rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData) {
         // showAddConditional.value=true
@@ -1158,8 +1188,9 @@ let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
 let stencil: Stencil;
 
-async function saveMBT(route?: any) {
-  let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
+
+function getmbtData() {
+    let graphIds: string[] = []; //Save ids for all elements,links,etc on the paper. If cacheprops don't find it, remove them
 
   let tempdata: modelDefinition = {};
   // console.log(modeler.graph);
@@ -1184,7 +1215,6 @@ async function saveMBT(route?: any) {
       }
     }
   });
-
   /*Delete unused or not found*/
   // console.log('graphids:', graphIds)
   // console.log('saveMBT, if not found ......cacheprops/', cacheprops)
@@ -1205,9 +1235,15 @@ async function saveMBT(route?: any) {
 
   // console.log("savembt meta and data:", cacheDataDefinition);
   mbtCache["dataDefinition"] = cacheDataDefinition;
+  return mbtCache
+}
+
+
+async function saveMBT(route?: any) {
+  
   // console.log(mbtCache);
 
-  await updateMBT(url + `/${mbtCache["_id"]}`, mbtCache);
+  await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData());
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -1335,6 +1371,20 @@ let dataFrom = ref("");
 let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
+
+
+// 离开路由时判断
+onBeforeRouteLeave(() => {
+  // console.log(encatch,getmbtData());
+  
+  if (encatch!==getmbtData()) {
+    message.warning(t('MBTModeler.sureleaveText'))
+    return false
+  } 
+})
+
+
+
 // 判断是否自由编辑aw模式
 let isAwModel=ref(true)
 onMounted(() => {
@@ -1660,7 +1710,6 @@ onMounted(() => {
   let linktype = "exclusivegateway";
   function getLinkType(linkView: any): string {
     if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
-      console.log("11111111111cell  ", linkView.model.id);
 
       if (modeler.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
         console.log(linkView.model.linktype);
@@ -1721,60 +1770,23 @@ onMounted(() => {
         console.log("error:", e);
       }
     }
-
-    /*
-    var cell = modeler.graph.getCell(el.id);
-    // console.log('0000,',cell)
-    if (cell.isLink()) {
-      // console.log('cell.attributes.type    ',cell.attributes.type,'    source:',el.attributes.source.id);
-      let linksource = modeler.graph.getCell(el.attributes.source.id);
-      // console.log('type:',linksource.attributes.type)
-      if (
-        linksource.attributes.type == "standard.Polygon" &&
-        linksource.attributes.attrs.label.text == "x"
-      ) {
-        // console.log(' source exclusive gateway    ',linksource.id)
-        Object.assign(cell, { linktype: "exclusivegateway" });
-        console.log("exclusive link", cell);
-      } else if (
-        linksource.attributes.type == "standard.Polygon" &&
-        linksource.attributes.attrs.label.text == "+"
-      ) {
-        // console.log('source parallel gateway    ',linksource.id);
-        Object.assign(cell, { linktype: "parallelgateway" });
-        console.log("parallel link", cell);
-      }
-    } else if (
-      cell.attributes.type == "standard.Polygon" &&
-      cell.attributes.attrs.label.text == "x"
-    ) {
-      // console.log('exclusive gateway    ');
-    } else if (
-      cell.attributes.type == "standard.Polygon" &&
-      cell.attributes.attrs.label.text == "+"
-    ) {
-      // console.log('parallel gateway    ');
-    } else if (cell.attributes.type == "standard.HeaderedRectangle") {
-      // console.log('aw    ....',cell.attributes);
-    } else {
-      // console.log('other    ....',cell.attributes);
-    }
-    */
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(linkView.model);
+          console.log(modeler.graph.getCell(linkView.model.id));
     // isExclusiveGateway.value = false;
     // isChoose.value=false
     // linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
+          
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
           isChoose.value=true
           isAW.value = false;
           linkData.value.isCondition = false;
+          // showDrawer(linkView);
         }else{
           // console.log(123);
           isLink.value=true
@@ -1783,9 +1795,10 @@ onMounted(() => {
           isChoose.value=false
           isAW.value = false;
           linkData.value.isCondition = true;
+          // showDrawer(linkView);
         }
     }else{
-      // console.log(123);
+      // console.log(321);
       isChoose.value=false
       isLink.value=true
       isAW.value = false;
@@ -1803,17 +1816,17 @@ onMounted(() => {
       // isChoose.value = false;
       // isGlobal.value = false;
       // isExclusiveGateway.value=true
+      console.log(cacheprops.has(linkView.model.id));
+      
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
-        // console.log(templinkData);
+        console.log(templinkData.props);
         linkData.value = templinkData.props;
 
         if (templinkData.props.ruleData && templinkData.props.ruleData.length > 0) {
           rulesData.value = templinkData.props.ruleData;
         }
 
-        if (linkData.value.editable) {
-        }
         // linkData.value.label=condition
         currentLinkMap.set(lv_id, { props: templinkData });
 
@@ -1824,20 +1837,9 @@ onMounted(() => {
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      // }
-      // console.log('cacheprops for link dblclick:',cacheprops)
-      // console.log('currentLinkMap',currentLinkMap);
-      showDrawer(linkView);
+      // showDrawer(linkView);
     } 
     showDrawer(linkView);
-    // else {
-    //   showDrawer(linkView);
-    //   isChoose.value = true;
-    //   isAW.value = false;
-    //   isLink.value = false;
-    //   isGlobal.value = false;
-    //   console.log(isChoose.value);
-    // }
   });
 
   modeler.paper.on(
@@ -2593,7 +2595,7 @@ watch(
       linkData.value.label = ifdata(newvalue)!;
     }
   },
-  { deep: true, immediate: true }
+  { deep: true }
 );
 let router = useRouter();
 // 点击跳转Aw修改
@@ -2633,7 +2635,6 @@ async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
   
   if(rst && rst.results && rst.results.length>0){
-    console.log(rst);
     
     outLang.value=rst.outputLang
     Object.keys(rst.results[0].json).forEach((obj)=>{
@@ -2643,9 +2644,6 @@ async function querycode(){
         key:obj,
         width:50
       }
-      // if(obj=="test_steps" || obj=="expected_results"){
-      //   objJson.width=50
-      // }
       previewcol.value.push(objJson)
     })
     previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
@@ -2670,21 +2668,14 @@ const preview=async (data:any)=>{
   visiblepreciew.value=true
 }
 
-// const tableclick={(record:any)=>{
-//   return {
-//     onclick:()=>{
-//       console.log(record);
-//       previewScript.value=record.script
-//     }}
-// }
-// }
-const openPreview=(record:any)=>{
+const openPreview = (record:any)=>{
   previewScript.value=record.script
 }
 
-const handleOk=()=>{
+const handleOk = () =>{
   visiblepreciew.value=false
   previewData.value=[]
+  previewcol.value=[]
 }
 const cencelpreview=()=>{
   previewData.value=[]
@@ -2730,19 +2721,25 @@ const softwrap=true
           :pagination="{pageSize:5}"
           bordered
           :rowKey="record => record.id"
+          class="previewclass"
           >
         <template #bodyCell="{column,record}">
-          <template v-if="column.key=='can_be_automated'">
+           <template v-if="column.key=='can_be_automated'">
             <p >{{record.can_be_automated}}</p>
           </template>
           <template v-if="column.key=='is_implemented_automated'">
             <p >{{record.is_implemented_automated}}</p>
           </template>
-          
+          <template v-if="column.key=='test_steps'">
+            <pre >{{record.test_steps}}</pre>
+          </template>
+          <template v-if="column.key=='expected_results'">
+            <pre >{{record.expected_results}}</pre>
+          </template>
           <template v-if="column.key=='action'">
             <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
           </template>
-        </template>
+          </template>
         </a-table>
           <!-- <div > -->
             <VAceEditor
@@ -3401,8 +3398,11 @@ header {
 }
 </style>
 <style lang="less">
+  .previewclass .ant-table-tbody > tr > td{
+  padding: 0px;
+}
 .previewModel{
-  height: 35vw;
+  height: 50vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
