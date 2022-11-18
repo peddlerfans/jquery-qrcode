@@ -21,6 +21,8 @@ import { Key } from 'ant-design-vue/es/_util/type';
 import awModeler from "@/locales/lang/zh-CN/routes/awModeler";
 
 const { t } = useI18n()
+let tableLoading = ref(false)
+
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -33,6 +35,7 @@ let searchobj: tableSearch = reactive({
 let treeSelectTitle = '/'
 
 async function query(data?: any) {
+  tableLoading.value = true
   const rst = await http.get("/api/hlfs", { params: data || searchobj })
   // let path = (rst.config.params?.q || '').slice(6) || '/'
   // if (path !== treeSelectTitle) return
@@ -42,6 +45,7 @@ async function query(data?: any) {
     pagination.value.pageNo = 1
     tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
+  tableLoading.value = false
   return rst
 }
 let treeData:any = ref([])
@@ -141,6 +145,7 @@ let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputV
 // 添加功能的函数
 let deleteId=""
 async function saveAw(data: any) {
+  tableLoading.value = true
   visible.value = false;
   if(clickKey){
     data={...data,path:clickKey.path}
@@ -148,9 +153,10 @@ async function saveAw(data: any) {
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
       deleteId=rst._id
-      tableData.value.unshift(data)
+      tableData.value.unshift(rst)
       message.success(t('component.message.addText'))
     }
+    tableLoading.value = false
     }
 let modelstates = ref<ModelState>({
   key:0,
@@ -382,8 +388,8 @@ let refForm=ref()
 const handleOk = (data: any) => {
   refForm.value.validate().then(async()=>{
     delete data._id
-  await saveAw(data)
-  clear()
+    await saveAw(data)
+    clear()
 })
 // onFinishForm(modelstates)
 };
@@ -1263,8 +1269,9 @@ let awupdate=ref("awmodeler")
     <a-table bordered
     :row-selection="rowSelection"
     :row-key="(record: any) => record"
+      :loading="tableLoading"
       :columns="columns" 
-      :data-source="tableData" 
+      :data-source="tableData"
       class="components-table-demo-nested"
       :pagination="pagination"
       @expand="expend"
