@@ -1094,6 +1094,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
+        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
