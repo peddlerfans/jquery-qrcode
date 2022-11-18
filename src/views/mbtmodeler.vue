@@ -188,16 +188,6 @@ const showDrawer = (
   }
    
 
-  //   if (typeof el == "undefined") {
-  //   // console.log('click blank')
-  // } else if (el!.hasOwnProperty("path")) {
-  //   // if (el!.model!.attributes.attrs.label && el!.model!.attributes.attrs.label.text && el!.model!.attributes.attrs.label.text.text)
-  //   //   linkData.value.label = el!.model!.attributes.attrs.label.text.text || '';
-  // } else if (el && _.isObject(el)) {
-  //   // console.log('click element')
-  // } else {
-  //   // console.log('click blank')
-  // }
 };
 
 const isMetaTemplateEmpty = ref(true);
@@ -227,6 +217,23 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
+  rulesData.value=[
+  //初始化条件对象或者，已保存的条件对象
+  {
+    relation: childrelation,
+    id: 1,
+    conditions: [
+      {
+        name: "name",
+        operator: "=",
+        value: undefined,
+        selectvalues: childselectvalue,
+      },
+    ],
+    children: [],
+  },
+]
+  linkData.value.label=""
   visible.value = false;
 };
 
@@ -608,7 +615,7 @@ const linkschema = ref({
     label: {
       title: "Condition",
       type: "string",
-      // default:condition
+      default:""
       // readOnly: true,
       // "ui:hidden": "{{parentFormData.loop === true}}"
       // "ui:widget": CreateRule,
@@ -645,7 +652,6 @@ function awhandlerSubmit() {
       tempformdata2[item]=""
     }
   })
-  console.log(tempformdata2, tempawschema);
   let tempawformdata=tempawschema.properties
 
 
@@ -703,8 +709,15 @@ function awhandlerSubmit() {
       // console.log(tempexpected);
       
     } else {
-      let tempawformdata2Expected = generateObj(awformdataExpected);
-      let tempawschemaExpected = generateObj(awschemaExpected);
+      let tempawformdata2Expected:any = generateObj(awformdataExpected);
+      let tempawschemaExpected:any = generateObj(awschemaExpected);
+
+          let formdataKeys  = Object.keys(tempawformdata2Expected)
+  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempawformdata2Expected[item]=""
+    }
+  })
       console.log(tempawformdata2Expected,awformdataExpected.value);
       let props=cacheprops.get(ev_id).props.primaryprops
       // awformdataExpected.value!=tempawformdata2Expected
@@ -727,8 +740,14 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     // console.log('cacheprops set.....2/2', cacheprops)
     if (typeof tempexpected != "undefined") {
       console.log( awformdataExpected.value);
-      let tempawschemaExpected = tempexpected.schema;
-      let tempformdata2Expected = tempexpected.data;
+      let tempawschemaExpected : any = tempexpected.schema;
+      let tempformdataExpected2: any = generateObj(awformdataExpected);
+       let formdataKeys=Object.keys(tempformdata2)
+  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempformdata2[item]=""
+    }
+  })
       // console.log(
       //   "awschemaexpected:",
       //   awschemaExpected,
@@ -739,18 +758,15 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
       currentElementMap.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, schema: tempawschemaExpected, data: awformdataExpected.value },
+          expectedprops: {...props, schema: tempawschemaExpected, data:tempformdataExpected2 },
         },
       });
       cacheprops.set(ev_id, {
         props: {
           primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: awformdataExpected.value, schema: tempawschemaExpected },
+          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
         },
-      });
-awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-      awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-      
+      }); 
       
 
     } //未设置expected，只存primary
@@ -943,6 +959,8 @@ function linkhandlerSubmit() {
   // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
+  
+  
   // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -956,6 +974,7 @@ function linkhandlerSubmit() {
       },
     },
   });
+  // console.log(modeler.graph.getCell(lv_id));
   //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
   //   linkFormData.label += ` Loop : ${loopcount1}`;
   // } else {
@@ -1071,7 +1090,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
-        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1366,7 +1384,7 @@ let tableColumnsDynamic = ref();
 
 // 离开路由时判断
 onBeforeRouteLeave(() => {
-  console.log(encatch,getmbtData());
+  // console.log(encatch,getmbtData());
   
   if (encatch!==getmbtData()) {
     message.warning(t('MBTModeler.sureleaveText'))
@@ -1701,7 +1719,6 @@ onMounted(() => {
   let linktype = "exclusivegateway";
   function getLinkType(linkView: any): string {
     if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
-      console.log("11111111111cell  ", linkView.model.id);
 
       if (modeler.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
         console.log(linkView.model.linktype);
@@ -1762,60 +1779,23 @@ onMounted(() => {
         console.log("error:", e);
       }
     }
-
-    /*
-    var cell = modeler.graph.getCell(el.id);
-    // console.log('0000,',cell)
-    if (cell.isLink()) {
-      // console.log('cell.attributes.type    ',cell.attributes.type,'    source:',el.attributes.source.id);
-      let linksource = modeler.graph.getCell(el.attributes.source.id);
-      // console.log('type:',linksource.attributes.type)
-      if (
-        linksource.attributes.type == "standard.Polygon" &&
-        linksource.attributes.attrs.label.text == "x"
-      ) {
-        // console.log(' source exclusive gateway    ',linksource.id)
-        Object.assign(cell, { linktype: "exclusivegateway" });
-        console.log("exclusive link", cell);
-      } else if (
-        linksource.attributes.type == "standard.Polygon" &&
-        linksource.attributes.attrs.label.text == "+"
-      ) {
-        // console.log('source parallel gateway    ',linksource.id);
-        Object.assign(cell, { linktype: "parallelgateway" });
-        console.log("parallel link", cell);
-      }
-    } else if (
-      cell.attributes.type == "standard.Polygon" &&
-      cell.attributes.attrs.label.text == "x"
-    ) {
-      // console.log('exclusive gateway    ');
-    } else if (
-      cell.attributes.type == "standard.Polygon" &&
-      cell.attributes.attrs.label.text == "+"
-    ) {
-      // console.log('parallel gateway    ');
-    } else if (cell.attributes.type == "standard.HeaderedRectangle") {
-      // console.log('aw    ....',cell.attributes);
-    } else {
-      // console.log('other    ....',cell.attributes);
-    }
-    */
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(linkView.model);
+          console.log(modeler.graph.getCell(linkView.model.id));
     // isExclusiveGateway.value = false;
     // isChoose.value=false
     // linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
+          
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
           isChoose.value=true
           isAW.value = false;
           linkData.value.isCondition = false;
+          // showDrawer(linkView);
         }else{
           // console.log(123);
           isLink.value=true
@@ -1824,9 +1804,10 @@ onMounted(() => {
           isChoose.value=false
           isAW.value = false;
           linkData.value.isCondition = true;
+          // showDrawer(linkView);
         }
     }else{
-      // console.log(123);
+      // console.log(321);
       isChoose.value=false
       isLink.value=true
       isAW.value = false;
@@ -1844,17 +1825,17 @@ onMounted(() => {
       // isChoose.value = false;
       // isGlobal.value = false;
       // isExclusiveGateway.value=true
+      console.log(cacheprops.has(linkView.model.id));
+      
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
-        // console.log(templinkData);
+        console.log(templinkData.props);
         linkData.value = templinkData.props;
 
         if (templinkData.props.ruleData && templinkData.props.ruleData.length > 0) {
           rulesData.value = templinkData.props.ruleData;
         }
 
-        if (linkData.value.editable) {
-        }
         // linkData.value.label=condition
         currentLinkMap.set(lv_id, { props: templinkData });
 
@@ -1865,20 +1846,9 @@ onMounted(() => {
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      // }
-      // console.log('cacheprops for link dblclick:',cacheprops)
-      // console.log('currentLinkMap',currentLinkMap);
-      showDrawer(linkView);
+      // showDrawer(linkView);
     } 
     showDrawer(linkView);
-    // else {
-    //   showDrawer(linkView);
-    //   isChoose.value = true;
-    //   isAW.value = false;
-    //   isLink.value = false;
-    //   isGlobal.value = false;
-    //   console.log(isChoose.value);
-    // }
   });
 
   modeler.paper.on(
@@ -2102,12 +2072,26 @@ function handlerConfirmExpected() {
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
+    debugger
   // let tempawschemaExpected = generateObj(awschemaExpected);
   // let tempformdata2Expected = generateObj(awformdataExpected);
-
-  let tempawschema = generateObj(awschema);
-  let tempformdata2 = generateObj(awformdata);
-
+  
+  let tempawschema:any = generateObj(awschema);
+  let tempformdata2: any = generateObj(awformdata);
+  let tempawschemaExpected : any = generateObj(awschemaExpected);
+  let tempformdataExpected2: any = generateObj(awformdataExpected);
+  let expectedformdataKeys=Object.keys(tempformdataExpected2)
+  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+    if (!expectedformdataKeys.includes(item)) {
+      tempformdataExpected2[item]=""
+    }
+  })
+    let formdataKeys=Object.keys(tempformdata2)
+  Object.keys(tempawschema.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempformdata2[item]=""
+    }
+  })
 
     //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
@@ -2121,6 +2105,7 @@ function handlerConfirmExpected() {
     ) {
       // console.log("cacheprops set.....1/1", cacheprops);
       let awformData = cacheprops.get(ev_id).props.primaryprops.data;
+      let props=cacheprops.get(ev_id).props.primaryprops
       // awformdata.value = awformData.props;
       awformdata.value = awformData;
       currentElementMap.set(ev_id, {
@@ -2131,10 +2116,16 @@ function handlerConfirmExpected() {
     else {
       // console.log("cacheprops set.....2/2", cacheprops);
       currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: { data: tempformdata2, schema: tempawschema },
+        expectedprops: { schema: tempawschemaExpected, data: tempformdataExpected2 }
+
+        },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { data: tempformdata2, schema: tempawschema },
+          expectedprops: { schema: tempawschemaExpected, data: tempformdataExpected2 }
+        },
       });
       // console.log("cacheprops set.....2/3    .....", cacheprops);
       // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
@@ -2157,17 +2148,25 @@ function handlerConfirmExpected() {
       // );
       tempexpected = currentElementMap.get(ev_id).props.expectedprops;
     } else {
-      let tempawformdata2Expected = generateObj(awformdataExpected);
-      let tempawschemaExpected = generateObj(awschemaExpected);
+    let tempawformdata2Expected:any = generateObj(awformdataExpected);
+      let tempawschemaExpected:any = generateObj(awschemaExpected);
+
+          let formdataKeys  = Object.keys(tempawformdata2Expected)
+  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempawformdata2Expected[item]=""
+    }
+  })
+  let props=cacheprops.get(ev_id).props.primaryprops
       currentElementMap.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
+          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
           expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
+          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
           expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
@@ -2175,55 +2174,153 @@ function handlerConfirmExpected() {
     // console.log(" 2/1-1 : tempexpected", tempexpected);
     // console.log('cacheprops set.....2/2', cacheprops)
     if (typeof tempexpected != "undefined") {
-      let tempawschemaExpected = tempexpected.schema;
-      let tempformdata2Expected = tempexpected.data;
-      // console.log(
-      //   "awschemaexpected:",
-      //   awschemaExpected,
-      //   "tempformdata2Expected ",
-      //   tempformdata2Expected
-      // );
-
+   let props=cacheprops.get(ev_id).props.expectedprops
+   let propsPrimary=cacheprops.get(ev_id).props.primaryprops
       currentElementMap.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempformdata2Expected },
+          primaryprops: {...propsPrimary, data: tempformdata2, schema: tempawschema },
+          expectedprops: {...props, schema: tempawschemaExpected, data: tempformdataExpected2 },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
+          primaryprops: {...propsPrimary, data: tempformdata2, schema: tempawschema },
+          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
         },
       });
     } //未设置expected，只存primary
     else {
       // console.log("correct");
+      let props=cacheprops.get(ev_id).props.expectedprops
+         let propsPrimary=cacheprops.get(ev_id).props.primaryprops
       currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { ...propsPrimary, data: tempformdata2, schema: tempawschema },
+          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
+        },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { ...propsPrimary, data: tempformdata2, schema: tempawschema },
+          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
+          },
       });
     }
   }
 
-
-  // console.log(tempawschemaExpected,tempformdata2Expected);
+  console.log(currentElementMap.get(ev_id).props.expectedprops);
   
-  // currentElementMap.set(ev_id, {
-  //   props: {
-  //     primaryprops: { data: tempformdata2, schema: tempawschema },
-  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-  //   },
-  // });
-  // cacheprops.set(ev_id, {
-  //   props: {
-  //     primaryprops: { data: tempformdata2, schema: tempawschema },
-  //     expectedprops: { data: tempformdata2Expected, schema: tempawschemaExpected },
-  //   },
-  // });
+    let tempaw = {};
+  let maxX = 180;
+  let maxY = 150;
+  // let breaklineHeight = 120;
+  // let breaklineHeightExpected = 0;
+  let showheadtext = "";
+  let showbodytext = "";
+  let cell = modeler.graph.getCell(ev_id);
+  let isOneAW = true;
+     for (const [key, value] of Object.entries(
+    currentElementMap.get(ev_id).props.primaryprops.data
+  )) {
+    let obj = JSON.parse(`{"${key}":"${value}"}`);
+    Object.assign(tempaw, obj);
+    if (key == "template" || key == "description") {
+      showheadtext =
+        cacheprops.get(ev_id).props.primaryprops.data.template ||
+        cacheprops.get(ev_id).props.primaryprops.data.description;
 
+      if (showheadtext.length > 45) {
+        showheadtext = showheadtext.slice(0, 42) + " ...";
+      }
+      let sizeX = showheadtext.length * 2.5;
+
+      if (sizeX < 100 || sizeX > 150) sizeX = 160;
+      let sizeY = cacheprops.get(ev_id).props.primaryprops.data.description.length * 2.5;
+      // breaklineHeight = sizeY;
+      if (sizeY < 45) sizeY = 45;
+      if (sizeY > 135) sizeY = 150;
+
+      // console.log('sizex:', sizeX, '  sizey:', sizeY, ' , breaklineheight:', breaklineHeight);
+      maxX = maxX > sizeX ? maxX : sizeX;
+      maxY = maxY > sizeY ? maxX : sizeY;
+      break;
+    }
+  }
+  if (
+    currentElementMap.get(ev_id) &&
+    currentElementMap.get(ev_id).props &&
+    currentElementMap.get(ev_id).props.expectedprops
+  ) {
+    // console.log(" expected ");
+    isOneAW = false;
+    for (const [key, value] of Object.entries(
+      currentElementMap.get(ev_id).props.expectedprops.data
+    )) {
+      let obj = JSON.parse(`{"${key}":"${value}"}`);
+      Object.assign(tempaw, obj);
+      if (key == "template" || key == "description") {
+        showbodytext =
+          cacheprops.get(ev_id).props.expectedprops.data.template ||
+          cacheprops.get(ev_id).props.expectedprops.data.description;
+        let sizeX = showbodytext.length * 2.5;
+        if (showbodytext.length > 45) {
+          showbodytext = showbodytext.slice(0, 42) + " ...";
+        }
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY =
+          cacheprops.get(ev_id).props.expectedprops.data.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 150;
+        // breaklineHeightExpected = sizeY;
+        maxX = maxX > sizeX ? maxX : sizeX;
+        maxY = maxY > sizeY ? maxX : sizeY;
+        break;
+      }
+    }
+  } else {
+    // console.log("last else");
+    isOneAW = true;
+    showbodytext = "";
+  }
+    cell.attr(
+    "headerText/text",
+    joint.util.breakText(
+      showheadtext,
+      {
+        width: maxX,
+      },
+      { "font-size": 16 }
+    )
+  );
+
+  if (showbodytext.length > 0)
+    cell.attr(
+      "bodyText/text",
+      joint.util.breakText(
+        showbodytext,
+        {
+          width: maxX,
+        },
+        { "font-size": 16 }
+      )
+    );
+
+  if (isOneAW) {
+    cell.attr("header", { width: maxX, height: maxY * 0.5 });
+    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("bodyText/text", "");
+    cell.attr("body").transform = "matrix(0,0,0,0,0,0)";
+    cell.resize(maxX, maxY * 0.5 - 20);
+  } // For both primary and expected
+  else {
+    cell.attr("header", { width: maxX, height: maxY * 0.5 });
+    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
+    cell.resize(maxX, maxY - 10);
+  }
+      currentElementMap.clear();
+  onCloseDrawer();
+  message.success(t("component.message.saveSuccess"));
 }
 function showAWExpectedInfo(rowobj: any) {
   hasAWExpectedInfo.value = true;
@@ -2244,6 +2341,8 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
+  
+  
 }
 
 const activeKey = ref("2");
@@ -2634,7 +2733,7 @@ watch(
       linkData.value.label = ifdata(newvalue)!;
     }
   },
-  { deep: true, immediate: true }
+  { deep: true }
 );
 let router = useRouter();
 // 点击跳转Aw修改
@@ -2674,7 +2773,6 @@ async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
   
   if(rst && rst.results && rst.results.length>0){
-    console.log(rst);
     
     outLang.value=rst.outputLang
     Object.keys(rst.results[0].json).forEach((obj)=>{
@@ -2684,9 +2782,6 @@ async function querycode(){
         key:obj,
         width:50
       }
-      // if(obj=="test_steps" || obj=="expected_results"){
-      //   objJson.width=50
-      // }
       previewcol.value.push(objJson)
     })
     previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
@@ -2711,19 +2806,11 @@ const preview=async (data:any)=>{
   visiblepreciew.value=true
 }
 
-// const tableclick={(record:any)=>{
-//   return {
-//     onclick:()=>{
-//       console.log(record);
-//       previewScript.value=record.script
-//     }}
-// }
-// }
-const openPreview=(record:any)=>{
+const openPreview = (record:any)=>{
   previewScript.value=record.script
 }
 
-const handleOk=()=>{
+const handleOk = () =>{
   visiblepreciew.value=false
   previewData.value=[]
   previewcol.value=[]
@@ -2767,44 +2854,6 @@ const softwrap=true
           class="previewModel"
           @cancel="cencelpreview"
           >
-            <!-- <a-tabs v-model:activeKey="previewActiveKey" @change="switchPut">
-              <a-tab-pane key="1" tab="Test cases">
-                <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
-                  <a-tab-pane v-for="(item,index) in previewData"
-                  :key="index+1"
-                  :tab=index
-                  >
-                       <VAceEditor
-                          v-model:value="item.data"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          lang="python"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
-                  </a-tab-pane>
-                </a-tabs>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Test script" force-render>
-                 <a-tabs tab-position="left" animated v-model:activeKey="casesKey" >
-                  <a-tab-pane v-for="(item,index) in previewData"
-                  :key="index+1"
-                  :tab=index
-                  >
-                       <VAceEditor
-                          v-model:value="item.data"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          lang="python"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
-                  </a-tab-pane>
-                </a-tabs>
-              </a-tab-pane>
-            </a-tabs> -->
           <a-table :columns="previewcol" 
           :data-source="previewData" 
           :pagination="{pageSize:5}"
@@ -2828,7 +2877,7 @@ const softwrap=true
           <template v-if="column.key=='action'">
             <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
           </template>
-        </template>
+          </template>
         </a-table>
           <!-- <div > -->
             <VAceEditor
@@ -3161,7 +3210,7 @@ const softwrap=true
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit()"
+                        <a-button type="primary" @click="handlerConfirmExpected()"
                           >Confirm</a-button
                         >
                       </span>
