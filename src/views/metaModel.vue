@@ -213,6 +213,12 @@ const handleCloseTag = (record:any,removedTag: string) => {
 const columns=reactive<Object[]>(
   [
   {
+    title: 'component.table.required',
+    dataIndex: 'required',
+    key: 'required',
+    width:10
+  },
+  {
     title: 'component.table.name',
     dataIndex: 'name',
     key: 'name',
@@ -286,6 +292,9 @@ const optiones = ref<SelectProps['options']>([
         </template>
       </template>
       <template #bodyCell="{ column, text, record }">
+        <template v-if='column.key==="required"'>
+          <a-checkbox @change="(checked:any)=>record.requerd=checked"></a-checkbox>
+        </template>
         <template v-if='column.key==="name"'>
           <div>
             <a-input
@@ -361,7 +370,7 @@ const optiones = ref<SelectProps['options']>([
             <a-divider type="vertical" />
               <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
               <a-divider type="vertical" />
-              <a-switch checked-children="必填" un-checked-children="非必填" v-model:checked="record.requerd" @change="(checked:boolean)=>record.requerd=checked"></a-switch>
+              
             </span>
             <span v-else>
               <a @click="edit(record)">{{ $t('common.editText') }}</a>

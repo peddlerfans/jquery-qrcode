@@ -28,7 +28,7 @@ export default {
     index: '序号',
 
     total: '共 {total} 条数据',
-
+    required: "必填",
     name: '名称',
     description: '描述',
     tags: '标签',
