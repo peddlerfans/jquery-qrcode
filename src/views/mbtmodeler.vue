@@ -7,10 +7,10 @@ import templateTable from "@/components/templateTable.vue";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode } from "vue";
 import type { Ref } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
@@ -26,6 +26,7 @@ import {
   MinusCircleOutlined,
   PlusCircleOutlined,
   PlusSquareFilled,
+ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { data, param } from "jquery";
@@ -93,6 +94,9 @@ const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElemen
 // const templateOptions = ["Dynamic Template", "Static Template", "Input directly"];
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
+const leaveRouter=ref(false)
+const isLeaveRouter=ref(false)
+let saveMbtData:any = null
 const handleRadioChange: any = (v: any) => {
   templateCategory.value = v;
 };
@@ -1090,6 +1094,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
+        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1118,7 +1123,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           mbtCache = response; //should work on here
           console.log(123);
           
-          encatch=response
+          
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1128,7 +1133,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
           );
-
+          encatch = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name)!)
           return mbtCache;  
         }
       })
@@ -1137,7 +1142,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     // 后台请求数据地方
     rst = await request.get(url + "/" + id);
     // console.log(rst);
-    encatch=rst
     if (rst && rst.dataDefinition && rst.dataDefinition.data) {
       if (rst.dataDefinition?.data.tableColumns && rst.dataDefinition?.data.tableData) {
         // showAddConditional.value=true
@@ -1156,6 +1160,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         "mbt_" + route.params._id + route.params.name,
         JSON.stringify(rst)
       );
+      encatch = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name)!)
     }
   } else {
     // console.log('reloadfunc, no id no reload......cacheprops/', cacheprops)
@@ -1187,7 +1192,9 @@ let currentLinkMap = new Map();
  * Global elements in the component
  */
 async function updateMBT(url: string, data: any) {
-  await request.put(url, data);
+  await request.put(url, data).then((res:any)=>{
+    saveMbtData={...res}
+  })
 }
 
 const canvas:any = ref(HTMLElement);
@@ -1252,7 +1259,7 @@ async function saveMBT(route?: any) {
   
   // console.log(mbtCache);
 
-  await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData());
+    await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData())
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -1336,40 +1343,6 @@ function reloadMBT(route: any) {
                   )
                 );
       })
-
-        // aws.forEach((aw: Stores.aw) => {
-        //   for (let [key, val] of cacheprops) {
-        //     //update cacheprops
-        //     if (val.props._id == aw._id) {
-        //       // val.aw=aw
-        //       val.props.description = aw.description;
-        //       val.props.template = aw.template;
-        //     }
-        //     //update aw details in value.modelDefinition.cellsinfo
-        //     //rendering using updated cellsinfo
-        //     tempcellsinfo.cells.forEach((cell: any) => {
-        //       if (cell.type == "standard.HeaderedRectangle" && cell.id == key) {
-        //         // cell.attrs.label.text = aw.template || aw.description;
-        //         // value.modelDefinition.props[key]
-        //         let showheadtext = aw.template || aw.description;
-        //         let cellonpaper = modeler.graph.getCell(cell.id);
-        //         cellonpaper.attr(
-        //           "headerText/text",
-        //           joint.util.breakText(
-        //             showheadtext,
-        //             {
-        //               width: 160,
-        //             },
-        //             { "font-size": 16 }
-        //           )
-        //         );
-        //       }
-        //     });
-        //   }
-        // });
-        // console.log('tempcellsinfo:', tempcellsinfo,'cacheprops:', cacheprops)
-        // let tempstr = JSON.stringify(tempcellsinfo);
-        // modeler.graph.fromJSON(JSON.parse(tempstr)); //Loading data from backend
       });
     }
   });
@@ -1381,16 +1354,55 @@ let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
 
-
 // 离开路由时判断
-onBeforeRouteLeave(() => {
-  // console.log(encatch,getmbtData());
-  
-  if (encatch!==getmbtData()) {
-    message.warning(t('MBTModeler.sureleaveText'))
-    return false
-  } 
-})
+// onBeforeRouteLeave((to,form,next) => {
+//   console.log(saveMbtData,getmbtData());
+//   // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
+//   if(saveMbtData){
+    
+    
+//     if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
+//       Modal.confirm({
+//         // title: 'Do you want to delete these items?',
+//         icon: createVNode(ExclamationCircleOutlined),
+//         content: t("MBTStore.leaveRouter"),
+//         onOk() {
+//           return new Promise<void>((resolve, reject) => {
+//             next()
+//             resolve()
+//           }).catch(() => console.log('Oops errors!'));
+//         },
+//         // eslint-disable-next-line @typescript-eslint/no-empty-function
+//         onCancel() {
+//           next(false)
+//         },
+//       });
+//     }else{
+//       next()
+//     }
+//   }else{
+//     if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
+    
+//       Modal.confirm({
+//         // title: 'Do you want to delete these items?',
+//         icon: createVNode(ExclamationCircleOutlined),
+//         content: t("MBTStore.leaveRouter"),
+//         onOk() {
+//           return new Promise<void>((resolve, reject) => {
+//             next()
+//             resolve()
+//           }).catch(() => console.log('Oops errors!'));
+//         },
+//         // eslint-disable-next-line @typescript-eslint/no-empty-function
+//         onCancel() {
+//           next(false)
+//         },
+//       });
+
+//   } 
+//   }
+
+// })
 
 
 
@@ -1783,9 +1795,6 @@ onMounted(() => {
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
           console.log(modeler.graph.getCell(linkView.model.id));
-    // isExclusiveGateway.value = false;
-    // isChoose.value=false
-    // linkData.value.isCondition = false;
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
           
@@ -1816,15 +1825,8 @@ onMounted(() => {
       linkData.value.isCondition = false;
     }
 
-    // 判断是否选择了模板，没选择则不打开link
-    // if (condataName.value.length > 0 && conditionalValue.value.length > 0) {
       lv_id = linkView.model.id + "";
-      // await queryName()
-      // isAW.value = false;
-      // isLink.value = true;
-      // isChoose.value = false;
-      // isGlobal.value = false;
-      // isExclusiveGateway.value=true
+
       console.log(cacheprops.has(linkView.model.id));
       
       if (cacheprops.has(linkView.model.id)) {
@@ -1998,17 +2000,6 @@ function showGlobalInfo() {
        globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
     globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
     }
-   
-    // if (_.isArray(mbtCache["codegen_text"])) {
-    //   _.forEach(mbtCache["codegen_text"], function (value, key) {
-    //     globalformData.value.codegen_text += value + " ";
-    //   });
-    // }
-  //   globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
-  // }else if(_.isArray(mbtCache["codegen_script"])){
-  //   _.forEach(mbtCache["codegen_script"], function (value, key) {
-  //       globalformData.value.codegen_script += value + " ";
-  //     });
   }
 }
 
@@ -2729,7 +2720,10 @@ watch(
   rulesData,
   (newvalue: any) => {
     if (rulesData.value.length > 0) {
-      linkData.value.label = ifdata(newvalue)!;
+      if ( isExclusiveGateway.value && isLink.value ){
+        linkData.value.label = ifdata(newvalue)!;
+      }
+      
     }
   },
   { deep: true }
@@ -2867,6 +2861,9 @@ const softwrap=true
           <template v-if="column.key=='is_implemented_automated'">
             <p >{{record.is_implemented_automated}}</p>
           </template>
+          <template v-if="column.key=='is_in_project'">
+            <p >{{record.is_in_project}}</p>
+          </template>
           <template v-if="column.key=='test_steps'">
             <pre >{{record.test_steps}}</pre>
           </template>
@@ -2891,6 +2888,7 @@ const softwrap=true
                       />
           <!-- </div> -->
           </a-modal>
+         
         </a-col>
         <a-col span="2" class="isSwitch">
           <div >
@@ -2898,7 +2896,6 @@ const softwrap=true
             checked-children="自由模式" 
             un-checked-children="标准模式" />
           </div>
-          
         </a-col>
         <a-col span="4">
           <div class="icon-wrapper">
@@ -3075,10 +3072,10 @@ const softwrap=true
                     v-if="isAW && hasAWInfo"
                   >
                     <div slot-scope="{ awformdata }" style="position: relative;">
-                      <!-- <span style="position: absolute; left: 3rem;top: -27.5rem; "> -->
+                      <span style="position: absolute; left: 3rem;top: -27.5rem; ">
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
-                      <!-- </span> -->
+                        <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
+                      </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit()">{{
                           $t("common.submitText")
