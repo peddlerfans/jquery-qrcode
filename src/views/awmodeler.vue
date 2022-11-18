@@ -34,11 +34,11 @@ let treeSelectTitle = '/'
 
 async function query(data?: any) {
   const rst = await http.get("/api/hlfs", { params: data || searchobj })
-  let path = (rst.config.params?.q || '').slice(6) || '/'
-  if (path !== treeSelectTitle) return
+  // let path = (rst.config.params?.q || '').slice(6) || '/'
+  // if (path !== treeSelectTitle) return
   let res = rst.data
   if (res.data) {
-    pagination.value.total = rst.total
+    pagination.value.total = res.total
     pagination.value.pageNo = 1
     tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
@@ -95,6 +95,12 @@ const showModal = () => {
   visible.value = true;      
 };
 
+// const queryData = (e: any) => {
+//   setTimeout(() => {
+//     handleFinish(e)
+//   },2500)
+// }
+
 let disable=ref(true)
 
 // 关闭模态窗触发事件
@@ -142,7 +148,7 @@ async function saveAw(data: any) {
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
       deleteId=rst._id
-      tableData.value.push(data)
+      tableData.value.unshift(data)
       message.success(t('component.message.addText'))
     }
     }
@@ -240,25 +246,25 @@ const paramsColum = [
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:180
+    width:400
   },
   {
     title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
-    width:100
+    // width:80
   },
   {
     title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
-    width:180
+    // width:180
   },
   {
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:100
+    // width:100
   }
 ]
 // 添加params的enu
@@ -301,12 +307,6 @@ let checkName = async (_rule: Rule, value: string) => {
         // modelstates.value.name=""
         return Promise.reject(t('component.message.depName'))
       }else{
-        if(modelstates.value.description && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
-        disable.value=false
         return Promise.resolve();
 
       }
@@ -328,11 +328,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
         return Promise.reject(t('component.message.dupDescription'))
       }else{
-        if(modelstates.value.name && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
+       
     return Promise.resolve();
       }
     // }
@@ -346,11 +342,6 @@ let checktem = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
   }else{
-    if(modelstates.value.name && modelstates.value.description){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
@@ -364,7 +355,8 @@ let rules: Record<string, Rule[]> = {
 }
 let refForm=ref()
 const handleOk = (data: any) => {
-  unref(refForm).validate('description').then(async()=>{
+  refForm.value.validate().then(async()=>{
+    delete data._id
   await saveAw(data)
   clear()
 })
@@ -773,16 +765,16 @@ const updTree = (key: any) => {
 const pushSubtree =async (key: any,title:any) => {
   // 获取当前添加节点的对象
   let nowNode=getTreeDataByItem(treeData.value,key)
-  getloop(treeData.value,key)
+  getloop(treeData.value,key,nowNode.children.length)
   treeData.value = [...treeData.value]
   let expandKey=queryKey(treeData.value,key)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
-  str=str.substring(1,str.length)
+  str = str.substring(1, str.length)
   let pushPath
-  if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
+  if(title=="/"){pushPath="/childNode"}else{pushPath=str+'/'+'childNode'}
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
   expandedKeys.value = [key];
@@ -805,13 +797,13 @@ const queryKey=(arr:any,key:string)=>{
   return expandKey
 }
  //找到需要添加的节点并添加下级
-const getloop=(arr:Array<any>, key:string)=> {
+const getloop=(arr:Array<any>, key:string,lenght:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'childNode',
+            title: length?`childNode${length}`:'childNode0',
             key: uuid(),
             children:[],
             showEdit: false,
@@ -826,19 +818,19 @@ const getloop=(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          getloop(arr[s].children, key);
+          getloop(arr[s].children, key,length);
         } else {
           continue;
         }
       }
 }
-const pushSib=async(arr:Array<any>, key:string)=> {
+const pushSib=async(arr:Array<any>, key:string,length:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: `NewNode`,
+            title: `NewNode${length}`,
             key: uuid(),
             children:[],
             showEdit: false,
@@ -854,7 +846,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          pushSib(arr[s].children, key);
+          pushSib(arr[s].children, key,length);
         } else {
           continue;
         }
@@ -864,20 +856,27 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
-  let nowNode=getTreeDataByItem(treeData.value,key)
+  let nowNode = getTreeDataByItem(treeData.value, key)
+  let parentNode=getTreeParentChilds(treeData.value,key)
+  
+  
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
-  let str=getPath(nowNode.title,treeData.value)
-  str=str.substring(1,str.length)
-  if(str.indexOf('/')){
+  let str = getPath(nowNode.title, treeData.value)
+  str = str.substring(1, str.length)
+  console.log(str.indexOf('/'));
+  
+  
+  if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
-  let pathnew=newStr+'NewNode'
+    let pathnew = newStr + `NewNode${parentNode.length}`
+  console.log(pathnew);
     await request.post("/api/hlfs?isFolder=true",{path:pathnew})
   }else{
-    await request.post("/api/hlfs?isFolder=true",{path:'NewNode'})
+    await request.post("/api/hlfs?isFolder=true",{path:'/NewNode'})
   }
-  pushSib(treeData.value,key)
+  pushSib(treeData.value,key,parentNode.length)
   // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
@@ -897,10 +896,11 @@ const confirmtree =async (key:any,title:string) => {
         if (delNode[i].title==nowNode.title) {
           delNode.splice(i, 1);
         }
-    }
- let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+  }
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
+ await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+
   // queryTree()
 }
 // 右键展开菜单项
@@ -1042,19 +1042,21 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-<!--              <a-mentions v-model:value="formState.search" v-if="checked" split=""-->
-<!--                :placeholder="$t('awModeler.inputSearch1')">-->
-<!--                <a-mentions-option value="tags:" >-->
-<!--                  tags:              -->
-<!--                </a-mentions-option>-->
-<!--                <a-mentions-option value="name:" >-->
-<!--                  name:              -->
-<!--                </a-mentions-option>-->
-<!--              </a-mentions>-->
-              <a-input
+             <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+                
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions>
+              <!-- <a-input
                   :placeholder="$t('awModeler.inputSearch1')"
                   v-model:value="formState.search"
-              ></a-input>
+              ></a-input> -->
               </a-col>
                 <a-col :span="4">
                 <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
@@ -1069,11 +1071,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    :width="700"
+    :width="900"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)"  type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"

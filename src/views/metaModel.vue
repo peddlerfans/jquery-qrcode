@@ -19,12 +19,12 @@ let recordobj=ref()
 async function query (data?:any){
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
-   console.log(rst);
+    
    route.params.name=rst.name
    recordobj.value=rst   
           
           recordobj.value.model=rst.model
-          if(rst.model){
+          if(rst.model && rst.model.length>0){
             tableData.value=arr(rst.model)
           }
       ;
@@ -38,6 +38,7 @@ console.log(JSON.parse(getId));
   
     query(JSON.parse(getId))
 })
+
 // 表格的数据
 let tableData=ref<Array<any>>([])
 interface DataItem {
@@ -57,12 +58,13 @@ let editData=reactive<DataItem>({
   enum:[],
   editing:true,
   inputVisible:false,
-  inputValue:""
+  inputValue: ""
+  
 })
 let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
 const updMeta=async (data:any)=>{
-  console.log(data);
+  // console.log(data.value);
   
   if(data.__v){
     delete data.__v
@@ -105,14 +107,14 @@ const save =async (obj:any) => {
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
-  tableData.value=tableData.value.filter((item:any)=>item==obj)
+  tableData.value=tableData.value.filter((item:any)=>item !==obj)
   console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
   if(recordobj.value.__v){
     delete recordobj.value.__v
   }
-  let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
-  query()
+  let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,recordobj.value)
+  // query()
   
 };
 // 点击取消的函数
@@ -138,7 +140,8 @@ const saveModel=()=>{
     enum:"",
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+    requerd:false
   })
 }
 // 定义属性判断输入框该输入的数据类型
@@ -355,11 +358,15 @@ const optiones = ref<SelectProps['options']>([
           <div class="editable-row-operations">
             <span v-if="record.editing">
               <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
-            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
-          </span>
+            <a-divider type="vertical" />
+              <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+              <a-divider type="vertical" />
+              <a-switch checked-children="必填" un-checked-children="非必填" v-model:checked="record.requerd" @change="(checked:boolean)=>record.requerd=checked"></a-switch>
+            </span>
             <span v-else>
               <a @click="edit(record)">{{ $t('common.editText') }}</a>
-               <a-popconfirm
+               
+              <a-popconfirm
                    :title="$t('component.message.sureDel')"
                    :ok-text="$t('common.yesText')"
                    :cancel-text="$t('common.noText')"
@@ -367,6 +374,7 @@ const optiones = ref<SelectProps['options']>([
               <a style="margin-left:0.625rem;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
+            
           </div>
         </template>
       </template>

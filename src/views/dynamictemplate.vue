@@ -243,7 +243,7 @@ const closeModel = () => {
   visibleModel.value = false;
   clearModelState()
 
-  query()
+  // query()
   // console.log(modelstates);
 }
 
@@ -306,6 +306,9 @@ const saveModel = async () => {
   }
   unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
     let rst = await request.post(url, model)
+    if (rst) {
+      tableData.value.unshift(rst)
+    }
     message.success(t('templateManager.createModelSuccess'))
   closeModel()
   })
@@ -381,7 +384,7 @@ const previewModel = async (id: string) => {
 // ################################
 // ######## Model CRUD END ########
 // ################################
-let disable=ref(true)
+
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -396,13 +399,13 @@ let checkName = async (_rule: Rule, value: string) => {
       if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
-        disable.value=true
+ 
         return Promise.reject(t('templateManager.duplicate'))
       }else{
         if(modelState.description){
-          disable.value=false
+
         }else{
-          disable.value=true
+
         }
         return Promise.resolve();
       
@@ -414,11 +417,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('templateManager.description'))
   } else {
-    if(modelState.name){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
+   
     return Promise.resolve();
   }
 }
@@ -528,13 +527,17 @@ onMounted(() => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-input
-                  v-model:value="formState.search"
-                  :placeholder="$t('templateManager.dynamicSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
-              </a-input>
+              <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+              
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions>
             </a-col>
 
             <a-col :span="4">
@@ -600,7 +603,7 @@ onMounted(() => {
 
         <template #footer>
           <a-button @click="closeModel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="saveModel" type="primary" :disabled="disable" class="btn_ok">{{ $t('common.saveText') }}</a-button>
+          <a-button @click="saveModel" type="primary" class="btn_ok">{{ $t('common.saveText') }}</a-button>
         </template>
 
 
@@ -715,7 +718,7 @@ onMounted(() => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="modelState._id===record._id && modelState.editing">
-              <a-button type="link" :disabled="disable" style="color:red" @click="updateModel()">{{ $t('common.saveText') }}</a-button>
+              <a-button type="link" style="color:red" @click="updateModel()">{{ $t('common.saveText') }}</a-button>
               <a-divider type="vertical" />
               <!-- <a-popconfirm
                   :title="$t('component.message.sureCancel')"
