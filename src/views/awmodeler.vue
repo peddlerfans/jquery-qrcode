@@ -301,9 +301,6 @@ const isValidation=(record:any):any=>{
   }
 }
 const showValidationError=(record:any):any=>{
-  // let rowsDom:any = document.getElementsByClassName("ant-table-row");
-  // console.log(rowsDom);
-  
   return {
     
     onMouseenter:()=>{
