@@ -292,6 +292,34 @@ const newFactorValueInput = (record: any) => {
   })
 };
 
+// 当前行含有validation的类名
+const isValidation=(record:any):any=>{
+  if(record.validationError){
+    return 'validationError'
+  }else{
+    return ''
+  }
+}
+const showValidationError=(record:any):any=>{
+  // let rowsDom:any = document.getElementsByClassName("ant-table-row");
+  // console.log(rowsDom);
+  
+  return {
+    
+    onMouseenter:()=>{
+      // rowsDom.forEach((item:any)=>{
+        if(record.validationError){
+          // item.setAttribute("title",record.validationError)
+          // function onClose() {             }
+          return message.error(record.validationError,3)
+      }
+      // })
+      
+    }
+  }
+}
+
+
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
@@ -1140,6 +1168,7 @@ let awupdate=ref("awmodeler")
             :style="{ width: '78px' }"
             @blur="handleInputConfirm"
             @keyup.enter="handleInputConfirm"
+            
           />
         <a-tag v-else style="background: #fff; border-style: dashed" 
         @click="showInput">
@@ -1241,7 +1270,10 @@ let awupdate=ref("awmodeler")
       :data-source="tableData" 
       class="components-table-demo-nested"
       :pagination="pagination"
-      @expand="expend">
+      @expand="expend"
+      :rowClassName="isValidation"
+      :customRow="showValidationError"
+      >
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
@@ -1356,6 +1388,9 @@ let awupdate=ref("awmodeler")
  
    </style>
   <style lang="less">
+      .validationError{
+        background-color: bisque;
+      }
       .rightMenu{
         width: 5.8rem!important;
         height: 2.15rem!important;
