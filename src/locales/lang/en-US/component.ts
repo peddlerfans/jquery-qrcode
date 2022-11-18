@@ -25,6 +25,7 @@ export default {
     index: 'Index',
     total: 'total of {total}',
 
+    required: 'Required',
     name: 'Name',
     description: 'Description',
     tags: 'Tags',
