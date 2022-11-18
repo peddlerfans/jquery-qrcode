@@ -216,7 +216,7 @@ const columns=reactive<Object[]>(
     title: 'component.table.required',
     dataIndex: 'required',
     key: 'required',
-    width:180
+    width:10
   },
   {
     title: 'component.table.name',
@@ -293,7 +293,7 @@ const optiones = ref<SelectProps['options']>([
       </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="required"'>
-          <a-switch :checked-children= 't("compoent.table.required")'  :un-checked-children='t("compoent.table.unrequired")' v-model:checked="record.requerd" @change="(checked:any)=>record.requerd=checked"></a-switch>
+          <a-checkbox @change="(checked:any)=>record.requerd=checked"></a-checkbox>
         </template>
         <template v-if='column.key==="name"'>
           <div>
