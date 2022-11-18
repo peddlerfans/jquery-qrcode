@@ -75,11 +75,11 @@ const redirect_url=location.origin+"/#/dashboard"
 
           <a-divider style="height: 2px;"/>
         <a-button style="width: 100%;margin-bottom: 5px;background: #0437BA;color:#FFFFFF;" size="large" :href="`/api/auth/atlassian?redirect=${encodeURIComponent(redirect_url)}`">
-          <FontAwesomeIcon icon="fa-brands fa-atlassian"/>
+<!--          <FontAwesomeIcon icon="fa-brands fa-atlassian"/>-->
           Log in with Atlassian
         </a-button>
         <a-button style="width: 100%;background: #D12B1F;color:#FFFFFF;" size="large" :href="`/api/auth/gitlab?redirect=${encodeURIComponent(redirect_url)}`">
-          <FontAwesomeIcon icon="fa-brands fa-gitlab" />
+<!--          <FontAwesomeIcon icon="fa-brands fa-gitlab" />-->
           Log in with GitLab
         </a-button>
       </AForm>

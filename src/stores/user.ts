@@ -33,7 +33,8 @@ export const userStore = defineStore('user', {
             this.sex = data.sex
             this.email = data.email || DEFAULT_EMAIL
             this.avatar_url = data.avatar_url || DEFAULT_AVATAR
-            this.token = `${username}Token`
+            this.token = `${encodeURIComponent(username)}Token`
+
             setCookie('token', this.token)
             resolve(msg)
           } else {
@@ -82,9 +83,10 @@ export const userStore = defineStore('user', {
             this.name = res.name
             this.email = res.email
             this.avatar_url = res.avatar_url
-            this.token = `${res.name}Token`
+            this.token = `${encodeURIComponent(res.name)}Token`
             setCookie('token', this.token)
             console.log(getCookie('token'))
+
             resolve('Login successful')
           } else {
             reject(res.error)

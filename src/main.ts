@@ -17,10 +17,10 @@ import {i18n} from '@/locales'
 
 import {Form,Input,InputNumber,Button,Drawer,Switch,Slider,Select,SelectOption,Space,Radio} from 'ant-design-vue';
 
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faAtlassian, faGitlab } from '@fortawesome/free-brands-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-library.add(faAtlassian, faGitlab)
+// import { library } from '@fortawesome/fontawesome-svg-core'
+// import { faAtlassian, faGitlab } from '@fortawesome/free-brands-svg-icons'
+// import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+// library.add(faAtlassian, faGitlab)
 
 mockEnv.includes(import.meta.env.MODE as EnvType) && mock === 'on' && enableMock()
 
@@ -36,4 +36,5 @@ createApp(App).use(Form)
 .use(Drawer)
 .use(Radio)
 .use(i18n)
-.use(createPinia()).use(router).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
+.use(createPinia()).use(router).mount('#app')
+    // .use(createPinia()).use(router).component('font-awesome-icon', FontAwesomeIcon).mount('#app')
