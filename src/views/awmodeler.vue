@@ -4,7 +4,7 @@ export default { name: 'AWModeler'}
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance, computed, unref } from 'vue';
-import { FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
+import { CascaderProps, FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
 import {   CheckCircleTwoTone,PlusOutlined,ExclamationCircleTwoTone} from '@ant-design/icons-vue'
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
@@ -98,6 +98,52 @@ const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;      
 };
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/hlfs/_tags", { params: { q: "category:meta" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectAwChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
 
 // const queryData = (e: any) => {
 //   setTimeout(() => {
@@ -378,6 +424,31 @@ const newReturnType = (record: any) => {
     returnType.value.focus();
   })
 };
+
+// 当前行含有validation的类名
+const isValidation=(record:any):any=>{
+  if(record.validationError){
+    return 'validationError'
+  }else{
+    return ''
+  }
+}
+const showValidationError=(record:any):any=>{
+  return {
+    
+    onMouseenter:()=>{
+      // rowsDom.forEach((item:any)=>{
+        if(record.validationError){
+          // item.setAttribute("title",record.validationError)
+          // function onClose() {             }
+          return message.error(record.validationError,3)
+      }
+      // })
+      
+    }
+  }
+}
+
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -1129,21 +1200,20 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-             <a-mentions v-model:value="formState.search"  split=""
-               :placeholder="$t('awModeler.inputSearch1')"
-                
-               >
-               <a-mentions-option value="tags:" >
-                 tags:             
-               </a-mentions-option>
-               <a-mentions-option value="name:" >
-                 name:             
-               </a-mentions-option>
-             </a-mentions>
-              <!-- <a-input
-                  :placeholder="$t('awModeler.inputSearch1')"
-                  v-model:value="formState.search"
-              ></a-input> -->
+            <a-input v-model:value="formState.search"
+            :placeholder="$t('awModeler.inputSearch1')"
+            @change="inputChange"
+            ref="searchInput"
+            >
+            </a-input>
+            <a-cascader
+            v-if="cascder"
+            :load-data="loadData"
+            v-model:value="selectvalue"
+            placeholder="Please select"
+            :options="selectoptions"
+            @change="onSelectAwChange"
+            ></a-cascader>
               </a-col>
                 <a-col :span="4">
                 <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
@@ -1378,7 +1448,6 @@ let awupdate=ref("awmodeler")
       class="components-table-demo-nested"
       :pagination="pagination"
       @expand="expend"
-
       >
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>

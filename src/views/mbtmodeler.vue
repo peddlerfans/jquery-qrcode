@@ -2061,6 +2061,7 @@ function handlerConfirmExpected() {
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
+    debugger
   // let tempawschemaExpected = generateObj(awschemaExpected);
   // let tempformdata2Expected = generateObj(awformdataExpected);
   
