@@ -38,6 +38,7 @@ console.log(JSON.parse(getId));
   
     query(JSON.parse(getId))
 })
+
 // 表格的数据
 let tableData=ref<Array<any>>([])
 interface DataItem {
@@ -57,7 +58,8 @@ let editData=reactive<DataItem>({
   enum:[],
   editing:true,
   inputVisible:false,
-  inputValue:""
+  inputValue: ""
+  
 })
 let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
@@ -138,7 +140,8 @@ const saveModel=()=>{
     enum:"",
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+    requerd:false
   })
 }
 // 定义属性判断输入框该输入的数据类型
@@ -209,6 +212,12 @@ const handleCloseTag = (record:any,removedTag: string) => {
 // 表格的数据结构
 const columns=reactive<Object[]>(
   [
+  {
+    title: 'component.table.required',
+    dataIndex: 'required',
+    key: 'required',
+    width:10
+  },
   {
     title: 'component.table.name',
     dataIndex: 'name',
@@ -283,6 +292,9 @@ const optiones = ref<SelectProps['options']>([
         </template>
       </template>
       <template #bodyCell="{ column, text, record }">
+        <template v-if='column.key==="required"'>
+          <a-checkbox @change="(checked:any)=>record.requerd=checked"></a-checkbox>
+        </template>
         <template v-if='column.key==="name"'>
           <div>
             <a-input
@@ -355,11 +367,15 @@ const optiones = ref<SelectProps['options']>([
           <div class="editable-row-operations">
             <span v-if="record.editing">
               <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
-            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
-          </span>
+            <a-divider type="vertical" />
+              <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+              <a-divider type="vertical" />
+              
+            </span>
             <span v-else>
               <a @click="edit(record)">{{ $t('common.editText') }}</a>
-               <a-popconfirm
+               
+              <a-popconfirm
                    :title="$t('component.message.sureDel')"
                    :ok-text="$t('common.yesText')"
                    :cancel-text="$t('common.noText')"
@@ -367,6 +383,7 @@ const optiones = ref<SelectProps['options']>([
               <a style="margin-left:0.625rem;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
+            
           </div>
         </template>
       </template>

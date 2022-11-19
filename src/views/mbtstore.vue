@@ -153,8 +153,10 @@ let states = reactive<statesTs>({
 });
 
 // 修改的函数
+let editName=""
 const edit = (rowobj: any) => {
   showModal();
+  editName=rowobj.name
   modelstates.value.name = rowobj.name;
   modelstates.value.description = rowobj.description;
   modelstates.value._id = rowobj._id;
@@ -244,25 +246,26 @@ const cancel = (e: MouseEvent) => {
 };
 
 let checkName = async (_rule: Rule, value: string) => {
-  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
-  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+  let reg = /^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1 = /^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(modelstates.value.name==value){
-    return Promise.resolve()
-  }else if(!reg.test(value) && !reg1.test(value)){
-      return Promise.reject(t('component.message.hefaName'))
-  }else{
-    let rst=await request.get(url,{params:{q:`name:${modelstates.value.name}`,search:''}})
-      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+  } else if (!reg.test(value) && !reg1.test(value)) {
+    return Promise.reject(t('component.message.hefaName'))
+  } else {
+    if (editName && editName == value) {
+      return Promise.resolve();
+    } else {
+      let rst = await request.get(url, { params: { q: `name:${value}`, search: '' } })
+      if (rst.data && rst.data.length > 0 && rst.data[0].name == value) {
         // message.error("Duplicate name")
         // modelstates.value.name=""
 
         return Promise.reject(t('component.message.depName'))
-      }else{
+      } else {
         return Promise.resolve();
-      
       }
+    }
   }
 }
 
@@ -321,17 +324,20 @@ const handleInputConfirm = () => {
             :wrapper-col="{ span: 24 }"
           >
             <a-col :span="20">
-              <a-input
+              <!-- <a-input
                 v-model:value="formState.search"
                 split=""
                 :placeholder="$t('MBTStore.searchText')"
-              ></a-input>
-              <!-- <a-mentions v-model:value="formState.search" split=""
+              ></a-input> -->
+              <a-mentions v-model:value="formState.search" split=""
                 placeholder="input @ to search tags, input name to search MBT">
                 <a-mentions-option value="tags:">
                   tags:
                 </a-mentions-option>
-              </a-mentions> -->
+                 <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+              </a-mentions>
             </a-col>
 
             <a-col :span="4">
