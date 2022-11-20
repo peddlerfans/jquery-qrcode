@@ -42,6 +42,7 @@ console.log(JSON.parse(getId));
 // 表格的数据
 let tableData=ref<Array<any>>([])
 interface DataItem {
+  required:boolean
   name: string;
   description:string
   type: string;
@@ -55,7 +56,8 @@ let editData=reactive<DataItem>({
   name:"",
   description:"",
   type:"",
-  enum:[],
+  enum: [],
+  required:false,
   editing:true,
   inputVisible:false,
   inputValue: ""
@@ -82,6 +84,7 @@ const edit = (record: any) => {
   editData.description = record.description,
   editData.type = record.type
   editData.enum = record.enum
+  editData.required=record.required
   record.editing=true
   showAddFactorBtn.value=false
 
@@ -90,7 +93,8 @@ const clearFactorState = () => {
   editData.name = '',
   editData.description = '',
   editData.type = '',
-  editData.enum = []
+    editData.enum = []
+    editData.required=false
   editData.editing = true
   editData.inputVisible = false
   editData.inputValue = '';
@@ -99,7 +103,9 @@ const clearFactorState = () => {
 }
 
 // 点击save触发的函数
-const save =async (obj:any) => {
+const save = async (obj: any) => {
+  console.log(obj);
+  
   obj.editing=false
   await updMeta(tableData.value)
   
@@ -141,7 +147,7 @@ const saveModel=()=>{
     editing: true,
     inputVisible: true,
     inputValue: '',
-    requerd:false
+    required:false
   })
 }
 // 定义属性判断输入框该输入的数据类型
@@ -293,7 +299,9 @@ const optiones = ref<SelectProps['options']>([
       </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="required"'>
-          <a-checkbox @change="(checked:any)=>record.requerd=checked"></a-checkbox>
+          <a-checkbox v-if="record.editing" v-model:checked="record.required"></a-checkbox>
+          <a-checkbox v-else v-model:checked="record.required" :disabled="true"></a-checkbox>
+          
         </template>
         <template v-if='column.key==="name"'>
           <div>

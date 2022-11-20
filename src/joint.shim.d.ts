@@ -98,7 +98,9 @@ interface DynamicModel {
 }
 declare module 'axios' {
     interface ResponseData<T> {
-outputLang: any;
+        map: any;
+        length: number;
+        outputLang: any;
         results: any;
         error: any;
         config: any;

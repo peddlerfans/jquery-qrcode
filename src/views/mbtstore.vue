@@ -18,7 +18,7 @@ import {
   watch,
   getCurrentInstance,
 } from "vue";
-import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import type { CascaderProps, FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from "ant-design-vue/es/form";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
@@ -151,6 +151,53 @@ let states = reactive<statesTs>({
   inputVisible: false,
   inputValue: "",
 });
+
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/test-models/_tags", { params: { q: "category:meta" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
 
 // 修改的函数
 let editName=""
@@ -324,20 +371,20 @@ const handleInputConfirm = () => {
             :wrapper-col="{ span: 24 }"
           >
             <a-col :span="20">
-              <!-- <a-input
-                v-model:value="formState.search"
-                split=""
-                :placeholder="$t('MBTStore.searchText')"
-              ></a-input> -->
-              <a-mentions v-model:value="formState.search" split=""
-                placeholder="input @ to search tags, input name to search MBT">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-                 <a-mentions-option value="name:" >
-                 name:             
-               </a-mentions-option>
-              </a-mentions>
+            <a-input v-model:value="formState.search"
+            :placeholder="$t('awModeler.inputSearch1')"
+            @change="inputChange"
+            ref="searchInput"
+            >
+            </a-input>
+            <a-cascader
+            v-if="cascder"
+            :load-data="loadData"
+            v-model:value="selectvalue"
+            placeholder="Please select"
+            :options="selectoptions"
+            @change="onSelectChange"
+            ></a-cascader>
             </a-col>
 
             <a-col :span="4">
