@@ -950,7 +950,7 @@ function linkhandlerSubmit() {
   if (linkData.value.label) {
     linkFormData.label = linkData.value.label;
   } else {
-    linkFormData.label != undefined;
+    linkFormData.label = ''
   }
   
   linkFormData.ruleData = rulesData.value;
@@ -1192,9 +1192,7 @@ let currentLinkMap = new Map();
  * Global elements in the component
  */
 async function updateMBT(url: string, data: any) {
-  await request.put(url, data).then((res:any)=>{
-    saveMbtData={...res}
-  })
+  await request.put(url, data)
 }
 
 const canvas:any = ref(HTMLElement);
@@ -1258,7 +1256,7 @@ function getmbtData() {
 async function saveMBT(route?: any) {
   
   // console.log(mbtCache);
-
+    saveMbtData = getmbtData()
     await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData())
   message.success(t("component.message.saveSuccess"));
 }
@@ -1355,54 +1353,54 @@ let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
 
 // 离开路由时判断
-// onBeforeRouteLeave((to,form,next) => {
-//   console.log(saveMbtData,getmbtData());
-//   // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
-//   if(saveMbtData){
+onBeforeRouteLeave((to,form,next) => {
+  // console.log(saveMbtData,getmbtData());
+  // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
+  if(saveMbtData){
     
     
-//     if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
-//       Modal.confirm({
-//         // title: 'Do you want to delete these items?',
-//         icon: createVNode(ExclamationCircleOutlined),
-//         content: t("MBTStore.leaveRouter"),
-//         onOk() {
-//           return new Promise<void>((resolve, reject) => {
-//             next()
-//             resolve()
-//           }).catch(() => console.log('Oops errors!'));
-//         },
-//         // eslint-disable-next-line @typescript-eslint/no-empty-function
-//         onCancel() {
-//           next(false)
-//         },
-//       });
-//     }else{
-//       next()
-//     }
-//   }else{
-//     if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
+    if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
+      Modal.confirm({
+        // title: 'Do you want to delete these items?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("MBTStore.leaveRouter"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            next()
+            resolve()
+          }).catch(() => console.log('Oops errors!'));
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onCancel() {
+          next(false)
+        },
+      });
+    }else{
+      next()
+    }
+  }else{
+    if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
     
-//       Modal.confirm({
-//         // title: 'Do you want to delete these items?',
-//         icon: createVNode(ExclamationCircleOutlined),
-//         content: t("MBTStore.leaveRouter"),
-//         onOk() {
-//           return new Promise<void>((resolve, reject) => {
-//             next()
-//             resolve()
-//           }).catch(() => console.log('Oops errors!'));
-//         },
-//         // eslint-disable-next-line @typescript-eslint/no-empty-function
-//         onCancel() {
-//           next(false)
-//         },
-//       });
+      Modal.confirm({
+        // title: 'Do you want to delete these items?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("MBTStore.leaveRouter"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            next()
+            resolve()
+          }).catch(() => console.log('Oops errors!'));
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onCancel() {
+          next(false)
+        },
+      });
 
-//   } 
-//   }
+  } 
+  }
 
-// })
+})
 
 
 
@@ -2852,7 +2850,7 @@ const softwrap=true
           :data-source="previewData" 
           :pagination="{pageSize:5}"
           bordered
-          :rowKey="record => record.id"
+          :rowKey="(record:any) => record.id"
           class="previewclass"
           >
         <template #bodyCell="{column,record}">
