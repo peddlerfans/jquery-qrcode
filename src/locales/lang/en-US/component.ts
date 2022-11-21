@@ -44,6 +44,7 @@ export default {
     if: 'IF',
     then: 'Then',
     operator: 'Operator',
+    topics: 'Topics',
 
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
@@ -78,6 +79,7 @@ export default {
     staticTemplate: 'Static',
     dynamicTemplate: 'Dynamic',
     codegenTemplate: 'Codegen',
-    account: 'Account'
+    account: 'Account',
+    webHook: 'Web Hook'
   }
 };
