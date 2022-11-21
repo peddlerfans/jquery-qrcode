@@ -1,11 +1,9 @@
 import {getCookie, removeCookie, setCookie} from "@/utils"
-import {useRouter} from "vue-router";
 import { defineStore } from "pinia"
 import request from "@/utils/request"
 import { message } from "ant-design-vue"
 import { Stores } from "types/stores"
 
-const router=useRouter()
 
 const DEFAULT_AVATAR='https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg'
 const DEFAULT_EMAIL='example@oppo.com'
@@ -65,11 +63,12 @@ export const userStore = defineStore('user', {
         this.avatar_url = ''
         this.token = ''
         request.post<Stores.user>('/api/auth/logout').then((res:any) => {
-          const { msg } = res
-          // removeCookie('token')
-          message.success(msg)
-          resolve(msg)
-          router.push('/login')
+          // const { msg } = res
+          console.log(res)
+          removeCookie('redirect_url')
+          message.success("Logout successful")
+          resolve("Logout successful")
+          // router.push('/login')
         })
       })
     },
@@ -113,10 +112,7 @@ export const userStore = defineStore('user', {
           }
         }).catch((res:any)=>{
           console.log('catch')
-          console.log(res)
-          console.log(router)
-          reject(res.error)
-          // router.push('/login')
+          reject('User not logged, please login')
         })
       })
     }

@@ -25,22 +25,17 @@ router.beforeEach(async (to, from, next) => {
   if (whitelist.includes(to.path)){
     next()
   } else {
-    // 判断是否有token
-    debugger
-    const token = getCookie('token')
     const user = userStore()
 
     if (!user.name) {
-      console.log('no token')
-
       try {
         await user.getUserInfo()
         console.log(user)
         next()
       } catch (e) {
         console.log(e)
-        message.error('Invalid token, please login again')
-        removeCookie('token') // 清除cookie
+        // message.warning('User not logged, please login')
+        // removeCookie('token') // 清除cookie
         next('/login')
       }
     } else {

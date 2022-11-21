@@ -5,6 +5,7 @@ import { appTitle } from '@/appConfig'
 import { userStore } from '@/stores/user'
 import { message } from 'ant-design-vue/es'
 import { useRouter } from 'vue-router'
+import {getCookie} from "@/utils"
 
 // import { library } from '@fortawesome/fontawesome-svg-core'
 // import { faAtlassian, faGitlab } from '@fortawesome/free-brands-svg-icons'
@@ -40,7 +41,7 @@ function login() {
   })
 }
 
-const redirect_url=location.origin+"/#/dashboard"
+const redirect_url=getCookie('redirect_url') || location.origin+"/#/dashboard"
 // const redirect=encodeURIComponent('http://127.0.0.1:7777/#/dashboard')
 </script>
 

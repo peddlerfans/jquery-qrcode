@@ -1,6 +1,13 @@
 import { message } from 'ant-design-vue'
 import axios from 'axios'
-import { getCookie } from '.'
+import { getCookie, setCookie } from '.'
+import { useRouter } from "vue-router"
+
+const router=useRouter()
+
+const go2login=()=>{
+    router.push('/login')
+}
 
 const request = axios.create({
   // baseURL: import.meta.env.VITE_APP_BASE_API,
@@ -36,8 +43,12 @@ request.interceptors.response.use(
     }
   },
   error => {
-    // if(error.constructor && error.constructor.name==="Cancel"){}
-    // message.error(error.message, 5)
+
+      // if (error.response?.status == 401 && error.request?.custom.options.url == '/api/auth/login'){
+      //     console.log("401")
+      //     setCookie('redirect_url',window.location.href)
+      //     go2login()
+      // }
     return Promise.reject(error)
   }
 )
