@@ -4,8 +4,8 @@ export default { name: 'AWModeler'}
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { ref, reactive, defineComponent, UnwrapRef, onMounted, nextTick, watch, getCurrentInstance, computed, unref } from 'vue';
-import { FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
-import {  PlusSquareFilled, SmileOutlined, CheckCircleTwoTone,PlusOutlined,EditTwoTone ,DeleteTwoTone,PlusCircleTwoTone} from '@ant-design/icons-vue'
+import { CascaderProps, FormProps, SelectProps, Table, TableProps, TreeProps, } from 'ant-design-vue';
+import {   CheckCircleTwoTone,PlusOutlined,ExclamationCircleTwoTone} from '@ant-design/icons-vue'
 import { SplitPanel } from '@/components/basic/split-panel';
 import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
@@ -21,6 +21,8 @@ import { Key } from 'ant-design-vue/es/_util/type';
 import awModeler from "@/locales/lang/zh-CN/routes/awModeler";
 
 const { t } = useI18n()
+let tableLoading = ref(false)
+
 let tableData:any= ref([])
 let searchobj: tableSearch = reactive({
   search: "",
@@ -33,15 +35,17 @@ let searchobj: tableSearch = reactive({
 let treeSelectTitle = '/'
 
 async function query(data?: any) {
+  tableLoading.value = true
   const rst = await http.get("/api/hlfs", { params: data || searchobj })
-  let path = (rst.config.params?.q || '').slice(6) || '/'
-  if (path !== treeSelectTitle) return
+  // let path = (rst.config.params?.q || '').slice(6) || '/'
+  // if (path !== treeSelectTitle) return
   let res = rst.data
   if (res.data) {
-    pagination.value.total = rst.total
+    pagination.value.total = res.total
     pagination.value.pageNo = 1
     tableData.value = res.data.map((e:any,index:number)=>({...e,key:index}))
   }
+  tableLoading.value = false
   return rst
 }
 let treeData:any = ref([])
@@ -95,6 +99,58 @@ const showModal = () => {
   visible.value = true;      
 };
 
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/hlfs/_tags", { params: { q: "category:meta" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectAwChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
+
+// const queryData = (e: any) => {
+//   setTimeout(() => {
+//     handleFinish(e)
+//   },2500)
+// }
+
 let disable=ref(true)
 
 // 关闭模态窗触发事件
@@ -131,10 +187,23 @@ const closemodel = () => {
       }
     ]);
 // 点击添加params的函数
-let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputValue:'',editing:false})
+let obj = ref<paramsobj>({
+  required:false,
+  name: "",
+  description: "",
+  type: "",
+  returnType: [],
+  enum: [],
+  inputVisible: false,
+  inputValue: '',
+  editing: false,
+  returnTypeinput: "",
+  returnTypevisible : false
+})
 // 添加功能的函数
 let deleteId=""
 async function saveAw(data: any) {
+  tableLoading.value = true
   visible.value = false;
   if(clickKey){
     data={...data,path:clickKey.path}
@@ -142,9 +211,10 @@ async function saveAw(data: any) {
     let rst=await request.post("/api/hlfs", data)
     if(rst._id){
       deleteId=rst._id
-      tableData.value.push(data)
+      tableData.value.unshift(rst)
       message.success(t('component.message.addText'))
     }
+    tableLoading.value = false
     }
 let modelstates = ref<ModelState>({
   key:0,
@@ -169,12 +239,17 @@ const clear = () => {
     tags: []
   },
     obj.value = {
-    name: '',
-    type:'',
-    enum:[],
-    inputVisible:false,
-    inputValue:'',
-    editing:false
+    required:false,
+  name: "",
+  description: "",
+  type: "",
+  returnType: [],
+  enum: [],
+  inputVisible: false,
+  inputValue: '',
+    editing: false,
+    returnTypeinput: '',
+  returnTypevisible : false
   }
     states.tags = []; 
     
@@ -184,11 +259,17 @@ const clear = () => {
 // 清空赋值params单行的数据
 const clearFactorState = () => {
   obj.value.name = ''
+  obj.value.description = ''
+  obj.value.required = false,
+  obj.value.returnType = [],
   obj.value.type = ''
   obj.value.enum = []
   obj.value.editing = true
   obj.value.inputVisible = false
-  obj.value.inputValue = '';
+  obj.value.inputValue = ''
+  obj.value.returnTypeinput = ''
+  obj.value.returnTypevisible = false
+
 
   // (instance?.refs.refFactorForm as any).resetFields();
 }
@@ -208,16 +289,22 @@ const cancelparams = (record:any) => {
   if (obj.value.name === ''){
     const index= modelstates.value.params.findIndex(e => e === record)
     modelstates.value.params.splice(index,1);
-  }else{
+  } else {
+    record.description=obj.value.description
+    record.required=obj.value.required
+    record.returnType=obj.value.returnType
     record.name = obj.value.name
     record.type = obj.value.type
-    record.enum=obj.value.enum
+    states.tags=obj.value.enum
     record.editing = false
   }
   clearFactorState()
 }
 // 点击修改触发的函数
 const editparams = (record:any) => {
+  obj.value.description=record.description
+  obj.value.required=record.required
+  obj.value.returnType=record.returnType
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -225,40 +312,63 @@ const editparams = (record:any) => {
 }
 // 新添加一条params数据
 const addNewParams = () => {
-  modelstates.value.params.push({
+  modelstates.value.params.unshift({
+    required:false,
     name: '',
+    description: '',
     type: '',
     enum: [],
+    returnType:[],
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+     returnTypeinput: '',
+  returnTypevisible : false
   })  
 }
 // params的表格结构
 const paramsColum = [
+ {
+   title: 'component.table.required',
+    dataIndex: 'required',
+    key: 'required',
+    width:10
+},
 {
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:180
+    width:280
+  },
+   {
+    title: 'component.table.description',
+    dataIndex:'description',
+    key:'description',
+    width:100
+  },
+   {
+    title: 'component.table.returnType',
+    dataIndex:'returnType',
+    key:'returnType',
+    width:100
   },
   {
     title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
-    width:100
+    width:60
   },
   {
     title: 'component.table.enum',
     dataIndex: 'enum',
     key: 'enum',
-    width:180
+    width:100
   },
   {
     title: 'component.table.action',
     dataIndex: 'action',
     key: 'action',
-    width:100
+    width:20
   }
 ]
 // 添加params的enu
@@ -266,6 +376,12 @@ const handleCloseTag = (record: any, removedTag: string) => {
   const tags = record.enum.filter((tag: string) => tag !== removedTag);
   record.enum = tags;
 };
+
+const handleCloseReturnType = (record: any, removedTag: any) => {
+  const tags = record.returnType.filter((tag: any) => tag !== removedTag);
+  record.returnType = tags;
+};
+
 const handleFactorValueConfirm = (record: any) => {
   let values = record.enum;
   if (record.inputValue && values.indexOf(record.inputValue) === -1) {
@@ -277,7 +393,23 @@ const handleFactorValueConfirm = (record: any) => {
     inputValue: '',
   });
 }
-let inputRefs=ref()
+
+const handleReturnType = (record: any) => {
+  let values = record.returnType;
+  if (values && record.returnTypeinput && values.indexOf(record.returnTypeinput) === -1) {
+    
+    values = [...values, record.returnTypeinput];
+  }
+  Object.assign(record, {
+    returnType: values,
+      returnTypeinput: '',
+  returnTypevisible : false
+  });
+}
+
+
+let inputRefs = ref()
+let returnType = ref()
 const newFactorValueInput = (record: any) => {
   record.inputVisible = true;
 
@@ -285,6 +417,38 @@ const newFactorValueInput = (record: any) => {
     inputRefs.value.focus();
   })
 };
+const newReturnType = (record: any) => {
+  record.returnTypevisible = true;
+
+  nextTick(() => {
+    returnType.value.focus();
+  })
+};
+
+// 当前行含有validation的类名
+const isValidation=(record:any):any=>{
+  if(record.validationError){
+    return 'validationError'
+  }else{
+    return ''
+  }
+}
+const showValidationError=(record:any):any=>{
+  return {
+    
+    onMouseenter:()=>{
+      // rowsDom.forEach((item:any)=>{
+        if(record.validationError){
+          // item.setAttribute("title",record.validationError)
+          // function onClose() {             }
+          return message.error(record.validationError,3)
+      }
+      // })
+      
+    }
+  }
+}
+
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -301,12 +465,6 @@ let checkName = async (_rule: Rule, value: string) => {
         // modelstates.value.name=""
         return Promise.reject(t('component.message.depName'))
       }else{
-        if(modelstates.value.description && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
-        disable.value=false
         return Promise.resolve();
 
       }
@@ -328,11 +486,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
       if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
         return Promise.reject(t('component.message.dupDescription'))
       }else{
-        if(modelstates.value.name && modelstates.value.template){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
+       
     return Promise.resolve();
       }
     // }
@@ -346,11 +500,6 @@ let checktem = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
   }else{
-    if(modelstates.value.name && modelstates.value.description){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
   }
   // else if(!reg.test(value)){
   //     return Promise.reject('The AW name is not standardized')
@@ -364,9 +513,10 @@ let rules: Record<string, Rule[]> = {
 }
 let refForm=ref()
 const handleOk = (data: any) => {
-  unref(refForm).validate('description').then(async()=>{
-  // await saveAw(data)
-  clear()
+  refForm.value.validate().then(async()=>{
+    delete data._id
+    await saveAw(data)
+    clear()
 })
 // onFinishForm(modelstates)
 };
@@ -773,16 +923,16 @@ const updTree = (key: any) => {
 const pushSubtree =async (key: any,title:any) => {
   // 获取当前添加节点的对象
   let nowNode=getTreeDataByItem(treeData.value,key)
-  getloop(treeData.value,key)
+  getloop(treeData.value,key,nowNode.children.length)
   treeData.value = [...treeData.value]
   let expandKey=queryKey(treeData.value,key)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
-  str=str.substring(1,str.length)
+  str = str.substring(1, str.length)
   let pushPath
-  if(title=="/"){pushPath="childNode"}else{pushPath=str+'/'+'childNode'}
+  if(title=="/"){pushPath="/childNode"}else{pushPath=str+'/'+'childNode'}
 
  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
   expandedKeys.value = [key];
@@ -805,13 +955,13 @@ const queryKey=(arr:any,key:string)=>{
   return expandKey
 }
  //找到需要添加的节点并添加下级
-const getloop=(arr:Array<any>, key:string)=> {
+const getloop=(arr:Array<any>, key:string,lenght:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: 'childNode',
+            title: length?`childNode${length}`:'childNode0',
             key: uuid(),
             children:[],
             showEdit: false,
@@ -826,19 +976,19 @@ const getloop=(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          getloop(arr[s].children, key);
+          getloop(arr[s].children, key,length);
         } else {
           continue;
         }
       }
 }
-const pushSib=async(arr:Array<any>, key:string)=> {
+const pushSib=async(arr:Array<any>, key:string,length:any)=> {
       //首先循环arr最外层数据
       for (let s = 0; s < arr.length; s++) {
         //如果匹配到了arr最外层中的我需要修改的数据
         if (arr[s].key == key) {
           let obj = {
-            title: `NewNode`,
+            title: `NewNode${length}`,
             key: uuid(),
             children:[],
             showEdit: false,
@@ -854,7 +1004,7 @@ const pushSib=async(arr:Array<any>, key:string)=> {
           break;
         } else if (arr[s].children && arr[s].children.length > 0) {
           // 递归条件
-          pushSib(arr[s].children, key);
+          pushSib(arr[s].children, key,length);
         } else {
           continue;
         }
@@ -864,20 +1014,27 @@ const pushSib=async(arr:Array<any>, key:string)=> {
 // 添加顶级节点
 const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
-  let nowNode=getTreeDataByItem(treeData.value,key)
+  let nowNode = getTreeDataByItem(treeData.value, key)
+  let parentNode=getTreeParentChilds(treeData.value,key)
+  
+  
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
-  let str=getPath(nowNode.title,treeData.value)
-  str=str.substring(1,str.length)
-  if(str.indexOf('/')){
+  let str = getPath(nowNode.title, treeData.value)
+  str = str.substring(1, str.length)
+  console.log(str.indexOf('/'));
+  
+  
+  if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
-  let pathnew=newStr+'NewNode'
+    let pathnew = newStr + `NewNode${parentNode.length}`
+  console.log(pathnew);
     await request.post("/api/hlfs?isFolder=true",{path:pathnew})
   }else{
-    await request.post("/api/hlfs?isFolder=true",{path:'NewNode'})
+    await request.post("/api/hlfs?isFolder=true",{path:'/NewNode'})
   }
-  pushSib(treeData.value,key)
+  pushSib(treeData.value,key,parentNode.length)
   // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
@@ -897,10 +1054,11 @@ const confirmtree =async (key:any,title:string) => {
         if (delNode[i].title==nowNode.title) {
           delNode.splice(i, 1);
         }
-    }
- let rst=await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+  }
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
+ await request.post("/api/hlfs/_deleteFolder?force=true",{path:str})
+
   // queryTree()
 }
 // 右键展开菜单项
@@ -1042,19 +1200,20 @@ let awupdate=ref("awmodeler")
             @finishFailed="handleFinishFailed"
             :wrapperCol="wrapperCol">
             <a-col :span="20">
-<!--              <a-mentions v-model:value="formState.search" v-if="checked" split=""-->
-<!--                :placeholder="$t('awModeler.inputSearch1')">-->
-<!--                <a-mentions-option value="tags:" >-->
-<!--                  tags:              -->
-<!--                </a-mentions-option>-->
-<!--                <a-mentions-option value="name:" >-->
-<!--                  name:              -->
-<!--                </a-mentions-option>-->
-<!--              </a-mentions>-->
-              <a-input
-                  :placeholder="$t('awModeler.inputSearch1')"
-                  v-model:value="formState.search"
-              ></a-input>
+            <a-input v-model:value="formState.search"
+            :placeholder="$t('awModeler.inputSearch1')"
+            @change="inputChange"
+            ref="searchInput"
+            >
+            </a-input>
+            <a-cascader
+            v-if="cascder"
+            :load-data="loadData"
+            v-model:value="selectvalue"
+            placeholder="Please select"
+            :options="selectoptions"
+            @change="onSelectAwChange"
+            ></a-cascader>
               </a-col>
                 <a-col :span="4">
                 <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
@@ -1069,11 +1228,11 @@ let awupdate=ref("awmodeler")
            <div>
     <a-modal v-model:visible="visible" 
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
-    :width="700"
+    :width="1300"
     >
     <template #footer>
       <a-button @click="closemodel">{{ $t('common.cancelText') }}</a-button>
-      <a-button @click="handleOk(modelstates)" :disabled="disable" type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
+      <a-button @click="handleOk(modelstates)"  type="primary" class="btn_ok">{{ $t('common.okText') }}</a-button>
     </template>
         <a-form
         ref="refForm"
@@ -1138,6 +1297,7 @@ let awupdate=ref("awmodeler")
             :style="{ width: '78px' }"
             @blur="handleInputConfirm"
             @keyup.enter="handleInputConfirm"
+            
           />
         <a-tag v-else style="background: #fff; border-style: dashed" 
         @click="showInput">
@@ -1157,11 +1317,21 @@ let awupdate=ref("awmodeler")
             <span>{{ $t(column.title) }}</span>
           </template>
           <template #bodyCell="{column,text,record}">
+             <template v-if='column.key==="required"'>
+              <a-checkbox v-if="record.editing" v-model:checked="record.required"></a-checkbox>
+          <a-checkbox v-else v-model:checked="record.required" :disabled="true"></a-checkbox>
+          </template>
             <template v-if='column.key==="name"'>
               <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
             <template v-else>
               {{text}}
             </template>
+            </template>
+            <template v-if='column.key==="description"'>
+                <a-input v-if="record.editing" v-model:value.trim="record.description" style="margin: -5px 0" />
+              <template v-else>
+                {{text}}
+              </template>
             </template>
               <template v-if='column.key==="type"'>
                <div>
@@ -1205,6 +1375,43 @@ let awupdate=ref("awmodeler")
           </span>
         </div>
         </template>
+
+
+        <template v-if="column.key === 'returnType'">
+          <div>
+          <template v-if="record.editing">
+            <template v-for="(tag) in record.returnType" :key="tag">
+              <a-tooltip v-if="tag.length > 20" :title="tag">
+                <a-tag :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
+                  {{ `${tag.slice(0, 20)}...` }}
+                </a-tag>
+              </a-tooltip>
+              <a-tag v-else-if="tag.length==0"></a-tag>
+              <a-tag v-else :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
+                {{tag}}
+              </a-tag>
+            </template>
+            <a-input v-if="record.returnTypevisible || record.type=='string'" ref="returnType" v-model:value.trim="record.returnTypeinput" type="text"
+                     size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
+                     @keyup.enter="handleReturnType(record)" />
+            <a-input-number v-else-if="record.returnTypevisible && record.type=='number'" ref="returnType" v-model:value.number="record.returnTypeinput" type="text"
+            size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
+            @keyup.enter="handleReturnType(record)" />
+            <a-tag v-else style="background: #fff; border-style: dashed" @click="newReturnType(record)">
+              <plus-outlined />
+              {{ $t('common.newValue') }}
+            </a-tag>
+          </template>
+
+          <span v-else>
+            <a-tag v-for="tag in record.returnType" :key="tag" color="cyan">
+              {{ tag }}
+            </a-tag>
+          </span>
+        </div>
+        </template>
+
+
         <template v-if="column.key === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
@@ -1235,11 +1442,13 @@ let awupdate=ref("awmodeler")
     <a-table bordered
     :row-selection="rowSelection"
     :row-key="(record: any) => record"
+      :loading="tableLoading"
       :columns="columns" 
-      :data-source="tableData" 
+      :data-source="tableData"
       class="components-table-demo-nested"
       :pagination="pagination"
-      @expand="expend">
+      @expand="expend"
+      >
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
@@ -1248,14 +1457,21 @@ let awupdate=ref("awmodeler")
       <template v-if="column.key === 'Name'">
         <div v-if="record._highlight">
           <div v-if="record._highlight.name">
-            <a
-              v-for="item in record._highlight.name"
+            <a v-for="item in record._highlight.name"
               v-html="item"
               :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`"
             ></a>
           </div>
-          <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
+          <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else-if="record.validationError">
+            <exclamation-circle-two-tone two-tone-color="#FAAD14" style='fontSize: 16px;'/>
+            {{ record.name }}
+          </a>
+          <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else> {{ record.name }}    </a>
         </div>
+        <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else-if="record.validationError">
+            <exclamation-circle-two-tone two-tone-color="#FAAD14" style='fontSize: 16px;'/>
+            {{ record.name }}
+          </a>
         <a :href="`/#/awupdate/${record._id}/${record.name}/awmodeler?canEdit=true`" v-else>{{ record.name }}</a>
       </template>
       <template v-if="column.key === 'description'">
@@ -1354,6 +1570,9 @@ let awupdate=ref("awmodeler")
  
    </style>
   <style lang="less">
+      .validationError{
+        background-color: bisque;
+      }
       .rightMenu{
         width: 5.8rem!important;
         height: 2.15rem!important;

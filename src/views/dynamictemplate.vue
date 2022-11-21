@@ -23,6 +23,7 @@ import {
 import * as _ from 'lodash'
 import { cloneDeep } from 'lodash-es';
 import type {
+CascaderProps,
   FormProps,
   SelectProps,
 } from 'ant-design-vue';
@@ -166,8 +167,8 @@ async function query(data?: any) {
     rst = await request.get(url, { params: data || searchobj })
   }
 
-  console.log('query')
-  console.log(url)
+  // console.log('query')
+  // console.log(url)
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
@@ -221,6 +222,51 @@ let modelState = reactive<ModelState>({
   inputValue: '',
 });
 
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/templates/_tags", { params: { q: "category:dynamic" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
 // 清除模态窗数据
 const clearModelState = () => {
 
@@ -243,7 +289,7 @@ const closeModel = () => {
   visibleModel.value = false;
   clearModelState()
 
-  query()
+  // query()
   // console.log(modelstates);
 }
 
@@ -306,6 +352,9 @@ const saveModel = async () => {
   }
   unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
     let rst = await request.post(url, model)
+    if (rst) {
+      tableData.value.unshift(rst)
+    }
     message.success(t('templateManager.createModelSuccess'))
   closeModel()
   })
@@ -373,15 +422,9 @@ const previewModel = async (id: string) => {
       key: e.property,
     }
   })
-
   prev.value=true
 
 }
-
-// ################################
-// ######## Model CRUD END ########
-// ################################
-let disable=ref(true)
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
@@ -393,16 +436,10 @@ let checkName = async (_rule: Rule, value: string) => {
       return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:dynamic",search:`@name:${value}`}})
-      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
-        // message.error("Duplicate name")
-        // modelstates.value.name=""
-        disable.value=true
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){ 
         return Promise.reject(t('templateManager.duplicate'))
       }else{
         if(modelState.description){
-          disable.value=false
-        }else{
-          disable.value=true
         }
         return Promise.resolve();
       
@@ -414,11 +451,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('templateManager.description'))
   } else {
-    if(modelState.name){
-          disable.value=false
-        }else{
-          disable.value=true
-        }
+   
     return Promise.resolve();
   }
 }
@@ -431,61 +464,6 @@ let rules:Record<string,Rule[]>={
   name:[{required:true,validator:checkName,trigger:'blur'}],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
-
-// const handleOk = () => {
-//   onFinishForm(modelState)
-//
-//   clearModelState()
-//   query()
-// };
-
-
-// const onFinishForm = async (modelState: any) => {
-//   // 输入验证
-//
-//   const model = {
-//     name: modelState.name,
-//     description: modelState.description,
-//     tags: toRaw(modelState.tags),
-//     category: "dynamic",
-//     templateText: '',
-//     model: {
-//       option: {},
-//       factor: [],
-//       constraint: []
-//     }
-//   }
-//
-//   visibleModel.value = false;
-//
-//   // 判断修改或添加
-//   if (modelState._id) {
-//     let rst = await request.put(url + `/${modelState.value._id}`, model)
-//     // message.success("Modified successfully")
-//   } else {
-//     // delete modelState.value._id
-//     let rst = await request.post(url, model)
-//     console.log(rst)
-//     message.success("Added successfully")
-//   }
-//
-//   // showAddConstraint.value = false
-//   // showAddFactor.value = false
-//   // if (modelState.value.name && modelState.value.description) {
-//
-//   //   // }
-//   //   visible.value = false;
-//   //   clear()
-//   //   query()
-//   // } else {
-//   //   return message.error("name and descript is required")
-//   // }
-// };
-
-// const onFinishFailedForm = (errorInfo: any) => {
-//   console.log('Failed:', errorInfo);
-// };
-
 
 // Antdv select
 const focus = () => {
@@ -528,13 +506,32 @@ onMounted(() => {
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-input
-                  v-model:value="formState.search"
-                  :placeholder="$t('templateManager.dynamicSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
+                            <a-input v-model:value="formState.search"
+              :placeholder="$t('awModeler.inputSearch1')"
+              @change="inputChange"
+              ref="searchInput"
+              >
               </a-input>
+              <a-cascader
+              v-if="cascder"
+              :load-data="loadData"
+              v-model:value="selectvalue"
+              placeholder="Please select"
+              :options="selectoptions"
+              @change="onSelectChange"
+              ></a-cascader>
+
+              <!-- <a-mentions v-model:value="formState.search"  split=""
+               :placeholder="$t('awModeler.inputSearch1')"
+              
+               >
+               <a-mentions-option value="tags:" >
+                 tags:             
+               </a-mentions-option>
+               <a-mentions-option value="name:" >
+                 name:             
+               </a-mentions-option>
+             </a-mentions> -->
             </a-col>
 
             <a-col :span="4">
@@ -600,7 +597,7 @@ onMounted(() => {
 
         <template #footer>
           <a-button @click="closeModel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="saveModel" type="primary" :disabled="disable" class="btn_ok">{{ $t('common.saveText') }}</a-button>
+          <a-button @click="saveModel" type="primary" class="btn_ok">{{ $t('common.saveText') }}</a-button>
         </template>
 
 
@@ -715,7 +712,7 @@ onMounted(() => {
         <template v-else-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="modelState._id===record._id && modelState.editing">
-              <a-button type="link" :disabled="disable" style="color:red" @click="updateModel()">{{ $t('common.saveText') }}</a-button>
+              <a-button type="link" style="color:red" @click="updateModel()">{{ $t('common.saveText') }}</a-button>
               <a-divider type="vertical" />
               <!-- <a-popconfirm
                   :title="$t('component.message.sureCancel')"

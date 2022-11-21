@@ -65,13 +65,16 @@ async function query(id?: any) {
       ...e, editing: false, inputVisible: false, inputValue: ''
     }
   })
-  finalModel.constraint=finalResult.model.constraint
+  if(finalResult.model.constraint){
+    finalModel.constraint=conditionData(finalResult.model.constraint)
+  }
+  
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
 
   condata.value = finalModel.constraint.map((e: any,index:number) => {
-    return {if:ifdata(e.if),then:{...e.then},keys:index}
+    return {if:ifdata(e.if),then:ifdata(e.then),keys:index}
   })
   valueData.value=finalModel.factor
 }
@@ -464,44 +467,60 @@ const conditionstr=(arr:any)=>{
 }
 
 const rulesChange=(datas: any,key:string)=>{
-    rulesData.value=datas//输出的条件对象 
+  rulesData.value = datas//输出的条件对象 
+    
 }
+const thenrulesChange=(datas: any,key:string)=>{
+  thenrulesData.value = datas//输出的条件对象 
+  
+}
+
 
 // 定义Constraint (optional)的数据
 let condata=ref<Array<any>>([])
-  
+  const keys=ref<any>(-1)
 // 点击保存时触发数据填充表格
-const  conditionsend=()=>{
-    if(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue){
-      let thencondition
-      if(typeof thenObj.value.thenValue=="number"){
-        thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
-      }else{
-        thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} "${thenObj.value.thenValue}"`
-        // console.log(thencondition);
-      }
+const conditionsend = () => {
+      // console.log(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue);
+      
+    if(rulesData.value && thenrulesData.value){
+      // let thencondition
+      // if(typeof thenObj.value.thenValue=="number"){
+      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
+      // }else{
+      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} "${thenObj.value.thenValue}"`
+      //   // console.log(thencondition);
+      // }
 
-      let truerow={if:rulesData.value,then:{...thenObj.value}}
-      if(keys.value>=0){
+      let truerow={if:rulesData.value,then:thenrulesData.value}
+      
+      
+      if (keys.value>=0) {
+        // console.log(1);
+        
         finalModel.constraint[keys.value]={...truerow}
-        finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:thencondition,keys:keys.value}
-        condata.value[keys.value]={if:ifdata(rulesData.value),then:{...thenObj.value},keys:keys.value}
-      }else{
-        condata.value.push({if:ifdata(rulesData.value),then:{...thenObj.value},keys:condata.value.length})
+        finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
+        condata.value[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
+      } else {
+        // console.log(2);
+        condata.value.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
         // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
         // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
-        finalModel.constraintif.push({if:ifdata(rulesData.value),then:thencondition,keys:condata.value.length})
-        
+        finalModel.constraintif.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
+        // console.log(condata.value);
       }
-      cancelbulid() 
+        // console.log(keys.value);
+        keys.value=-1
       saveModel()
+      
       // condata.value=conditionData(condata.value)
-    }
+  }
+  cancelbulid()
 }
 // 点击取消时触发的函数
 const cancelbulid=()=>{
-  keys.value=''
+  keys.value=-1
   rulesData.value= [//初始化条件对象或者，已保存的条件对象
     {relation:"AND",
     id:1,
@@ -524,7 +543,7 @@ const cancelbulid=()=>{
 // 点击修改的值
 const editCon=(obj:any)=>{
   keys.value=obj.keys
-  
+  showAddConstraintBtn.value=false
 if(finalModel.constraint.length>0){
     rulesData.value=finalModel.constraint[obj.keys].if
   thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
@@ -534,7 +553,10 @@ if(finalModel.constraint.length>0){
   childComponent.value=true
 }
 // 点击删除触发的函数
-const deleteconstraint=(obj:any)=>{  
+const deleteconstraint = (obj: any) => {  
+  if (childComponent.value) {
+    return message.warning(t('templateManager.dynamicDelText'))
+  }
   condata.value.splice(obj.keys,1)
   finalModel.constraint.splice(obj.keys,1)
   finalModel.constraintif.splice(obj.keys,1)
@@ -553,7 +575,7 @@ const conditionshow=computed(()=>{
 })
 // 递归组件需要的数据
 // const enableDeleteChild=ref(false)
-const keys=ref<any>()
+
 const formDatas=ifNameOpetions
 const valueData=ref()
 let childrelation="AND"
@@ -571,14 +593,33 @@ const rulesData=ref(
       children:[]}
   ]
 )
-
+const thenrulesData=ref(
+  [//初始化条件对象或者，已保存的条件对象
+      {relation:childrelation,
+      id:1,
+      conditions:[{
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }],
+      children:[]}
+  ]
+)
+let previewErrorMsg=ref("")
 let prev=ref<boolean>(false);
 let columnPreview=ref<any>()
 let modelDataPreview=ref<any>()
 let ids=JSON.parse(sessionStorage.getItem('dynamic_' + route.params._id)!)
-
+let activeKey=ref("1")
 const previewModel = async () => {
   let rst = await request.post('/api/templates'+`/${ids}/preview`)
+  if (rst.error) {
+  previewErrorMsg.value=rst.error
+  } else {
+  previewErrorMsg.value=""
+  }
+console.log(previewErrorMsg.value,rst);
 
   modelDataPreview.value=rst
   columnPreview.value=rst.model?.parameters.map((e:any)=>{
@@ -744,21 +785,17 @@ const previewModel = async () => {
         <span>{{ $t(column.title) }}</span>
       </template>
       <template  #bodyCell="{ column, text, record }">
-        <template v-if="column.key==='then'">
-
-          <span>{{`[${record.then.thenName}] ${record.then.thenOperator} ${record.then.thenValue}`}}</span>
-        
-        </template>
         <template v-if="column.key=='action'">
           <span>
             <a @click="editCon(record)">{{ $t('common.editText') }}</a>
               <a-divider type="vertical" />
               <a-popconfirm
+              
                   :title="$t('templateManager.delConstraint')"
                   :ok-text="$t('common.yesText')"
                   :cancel-text="$t('common.noText')"
                   @confirm="deleteconstraint(record)" @cancel="cancel">
-                <a>{{ $t('common.delText') }}</a>
+                <a >{{ $t('common.delText') }}</a>
               </a-popconfirm>
           </span>
         </template>
@@ -789,7 +826,7 @@ const previewModel = async () => {
         <hr/>
         <div style="margin-top: .625rem;">
           
-                <a-form layout="inline" style="margin-top:1.25rem;">
+            <!-- <a-form layout="inline" style="margin-top:1.25rem;">
                 <a-form-item :label="$t('component.table.name')">
                     <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
                 </a-form-item>
@@ -797,10 +834,11 @@ const previewModel = async () => {
                     <a-select :options="ifOperatorOptions" v-model:value="thenObj.thenOperator"></a-select>
                 </a-form-item>
                 <a-form-item :label="$t('component.table.values')">
-                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue"></a-select>
+                    <a-select :options="ifValueOpetions" v-model:value="thenObj.thenValue" v-if="thenObj.thenOperator !=='IN'"></a-select>
+                    <a-select :options="ifValueOpetions" mode="multiple" v-model:value="thenObj.thenValue" v-else></a-select>
                 </a-form-item>
-                
-            </a-form>
+            </a-form> -->
+        <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="thenrulesData" @rulesChange="thenrulesChange"></create-rule>
                 
         </div>
       </a-col>
@@ -816,163 +854,27 @@ const previewModel = async () => {
 
 <!-- Model meta info -->
 
-<h2>Data</h2>
-
-<a-table :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-  <template #bodyCell="{ column, text, record }">
-<!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-<!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-    {{ text }}
-  </template>
-</a-table>
-
-<template #footer>
-<!--        <a-button @click="closeModel">Cancel</a-button>-->
-</template>
-
-<h2>Model</h2>
-<pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-
+<a-tabs v-model:activeKey="activeKey">
+  <a-tab-pane key="1" tab="Data">
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+        
+        
+        
+            <template #bodyCell="{ column, text, record }">
+      <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
+      <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
+          {{ text }}
+        </template>
+      </a-table>
+      <p v-else style="color:#ff4d4f;">{{previewErrorMsg}}</p>
+  </a-tab-pane>
+  <a-tab-pane key="2" tab="Model" >
+    <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+  </a-tab-pane>
+</a-tabs>
 </a-modal>
 
-    <!-- <header class="block shadow">
-      <a-row>
-        <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-              <a-mentions v-model:value="formState.search"
-                placeholder="input @ to search tags, input name to search Dynamic Templates">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-              </a-mentions>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">search</a-button>
-            </a-col>
-
-          </AForm>
-        </a-col>
-        <a-col :span="4">
-          <a-button type="primary" @click="showModal">
-            <template #icon>
-              <plus-outlined />
-            </template>
-          </a-button>
-        </a-col>
-      </a-row>
-    </header> -->
-
-
-    <!-- 模态窗 -->
-
-    <!-- <div>
-      <a-modal v-model:visible="visibleModel"
-        :title="modelState._id? 'Update a Dynamic Template':'Create a New Dynamic Template'" @cancel="closeModel"
-        @ok="handleOk" :width="900">
-
-
-        <h2>Model</h2>
-
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-          :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item label="Name" name="name">
-            <a-input v-model:value="modelState.name" />
-          </a-form-item>
-
-          <a-form-item label="Description" name="description">
-            <a-input v-model:value="modelState.description" />
-          </a-form-item>
-
-          <a-form-item label="Tag" name="tags">
-            <template v-for="(tag) in modelState.tags" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef" v-model:value="modelState.inputValue" type="text"
-              size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-              @keyup.enter="handleModelTagConfirm" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput">
-              <plus-outlined />
-              Add a New Tag
-            </a-tag>
-          </a-form-item>
-        </a-form>
-
-        <template #footer>
-          <a-button @click="closeModel">Cancel</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">Save</a-button>
-        </template>
-
-
-      </a-modal>
-    </div> -->
-
-
-
-
-    <!-- ######################### -->
-    <!-- List of dynamic templates -->
-    <!-- ######################### -->
-
-    <!-- <ATable ref="tableRef" class="table" rowKey="key" :dataSource="dataSource" :columns="columns"
-      :pagination="pagination" :loading="tableLoading" bordered @resizeColumn="tableResize"
-      :rowSelection="{ selectedRowKeys, onChange: onTableRowSelectChange }">
-      <template #headerCell="{ column }">
-        <template v-if="column.key === 'name'">
-          <span>
-            <edit-outlined />
-            Name
-          </span>
-        </template>
-      </template>
-
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'name'">
-
-          <a :href="'/#/mbtmodeler/'+ record.name">{{ record.name }}</a>
-        </template>
-
-        <template v-else-if="column.key === 'description'">
-
-          {{ record.description }}
-
-        </template>
-        <template v-else-if="column.key === 'tags'">
-          <span>
-            <a-tag v-for="tag in record.tags" :key="tag"
-              :color="tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'">
-              {{ tag.toUpperCase() }}
-            </a-tag>
-          </span>
-        </template>
-
-        <template v-else-if="column.key === 'action'">
-          <span>
-            <a @click="editModel(record)">Edit</a>
-            <a-divider type="vertical" />
-            <a-popconfirm title="Are you sure delete this Dynamic Template?" ok-text="Yes" cancel-text="No"
-              @confirm="deleteModel(record._id)" @cancel="cancel">
-              <a>Delete</a>
-            </a-popconfirm>
-          </span>
-        </template>
-      </template>
-
-
-    </ATable> -->
-    <!-- </section> -->
   </main>
 </template>
 

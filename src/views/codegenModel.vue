@@ -154,6 +154,7 @@ const states = reactive<AceState>({
   lang: 'json',
   result: '',
 });
+// console.log(states.theme);
 
 
 onMounted(() => {
@@ -254,10 +255,11 @@ const saveModel = async () => {
     anno.setAnnotations([])
 
     try {
-      console.log("Preview "+route.params._id)
-      console.log(toRaw(modelState.model.data))
+      // console.log("Preview "+route.params._id)
+      // console.log(toRaw(modelState.model.data))
       let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
-
+      // console.log(res);
+      
 
       states.result=res.data
       message.success("Preview successful!")

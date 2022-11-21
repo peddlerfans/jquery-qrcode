@@ -25,7 +25,9 @@ export default {
     index: 'Index',
     total: 'total of {total}',
 
+    required: 'Required',
     name: 'Name',
+    returnType: "returnType",
     description: 'Description',
     tags: 'Tags',
     url: 'Url',
@@ -59,7 +61,7 @@ export default {
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
-    hefaName:"The AW name is not standardized",
+    hefaName: "The AW name is not standardized",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',

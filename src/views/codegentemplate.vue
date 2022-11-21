@@ -9,7 +9,8 @@ import {
   onMounted,
   nextTick,
   toRaw,
-  getCurrentInstance
+  getCurrentInstance,
+unref
 } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -21,6 +22,7 @@ import {
 import * as _ from 'lodash'
 import { cloneDeep } from 'lodash-es';
 import type {
+CascaderProps,
   FormProps,
   SelectProps,
 } from 'ant-design-vue';
@@ -169,6 +171,7 @@ async function query(data?: any) {
   // If search successfully, it returns a new table and reassign to dataSource
   // Somehow the list table would be rerendered
   if (rst.data) {
+    pagination.total=rst.total
     dataSource.value = rst.data
     tableData.value = rst.data
 
@@ -212,6 +215,53 @@ let modelState = reactive<ModelState>({
   inputValue: '',
 });
 
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/templates/_tags", { params: { q: "category:codegen" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
+
 // 清除模态窗数据
 const clearModelState = () => {
 
@@ -234,7 +284,7 @@ const closeModel = () => {
   visibleModel.value = false;
   clearModelState()
 
-  query()
+  // query()
 }
 
 // Handel Tags in modal form
@@ -283,7 +333,7 @@ const editModel = (rowobj: any) => {
   modelState.editing = true
 
 }
-
+let refModelForm=ref()
 const saveModel = async () => {
   const model = {
     name: modelState.name,
@@ -293,12 +343,18 @@ const saveModel = async () => {
     templateText: '',
     model: initModelAttr
   }
-  let rst = await request.post(url, model)
-  message.success(t('templateManager.createModelSuccess'))
 
-  closeModel()
+  unref(refModelForm).validate('name', 'description').then(async (res: any) => { 
+    let rst = await request.post(url, model)
+    if (rst) {
+      tableData.value.unshift(rst)
+    }
+    message.success(t('templateManager.createModelSuccess'))
+    closeModel()
+  })
 }
-
+let refForm=ref()
+let refFormdec=ref()
 const updateModel = async () => {
   const model = {
     name: modelState.name,
@@ -307,8 +363,9 @@ const updateModel = async () => {
     category: "codegen",
     templateText: '',
   }
-
-  if (modelState._id) {
+unref(refForm).validate('name').then(async (res:any) => {
+    unref(refFormdec).validate().then(async (res:any) => {
+      if (modelState._id) {
     let rst = await request.put(url + `/${modelState._id}`, model)
     query()
     message.success(t('templateManager.updateModelSuccess'))
@@ -317,6 +374,9 @@ const updateModel = async () => {
     message.warning(t('templateManager.readModelErr'))
   }
   clearModelState()
+    })
+    
+  })
 }
 
 const deleteModel = async (id: string) => {
@@ -343,24 +403,37 @@ const cancelModel = () => {
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
+  let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    return Promise.reject(t('templateManager.nameRequire'))
-  } else {
-    return Promise.resolve();
+    return Promise.reject(t('templateManager.nameinput'))
+  } else if(!reg.test(value) && !reg1.test(value)){
+      return Promise.reject(t('templateManager.namehefa'))
+  }else{
+    let rst=await request.get("/api/templates",{params:{q:"category:codegen",search:`@name:${value}`}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+ 
+        return Promise.reject(t('templateManager.duplicate'))
+      }else{
+        return Promise.resolve();
+      
+      }
   }
 }
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject(t('templateManager.descriptionRequire'))
+    return Promise.reject(t('MBTStore.tip5'));
   } else {
     return Promise.resolve();
   }
-}
+};
 
-let modelRules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName }],
-  description: [{ required: true, validator: checkDesc }],
+let rules: Record<string, Rule[]> = {
+  name: [{ required: true, validator: checkName, trigger: "blur" }],
+  description: [{ required: true, validator: checkDesc, trigger: "blur" }],
 };
 
 
@@ -403,12 +476,20 @@ onMounted(() => {
                  @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"
-                          :placeholder="$t('templateManager.codegenSearchText')">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-              </a-mentions>
+               <a-input v-model:value="formState.search"
+              :placeholder="$t('awModeler.inputSearch1')"
+              @change="inputChange"
+              ref="searchInput"
+              >
+              </a-input>
+              <a-cascader
+              v-if="cascder"
+              :load-data="loadData"
+              v-model:value="selectvalue"
+              placeholder="Please select"
+              :options="selectoptions"
+              @change="onSelectChange"
+              ></a-cascader>
             </a-col>
 
             <a-col :span="4">
@@ -439,7 +520,7 @@ onMounted(() => {
 
         <h2>{{ $t('templateManager.template') }}</h2>
 
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
+        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="rules" name="basic"
                 :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
           <a-form-item :label="$t('component.table.name')" name="name">
             <a-input v-model:value="modelState.name" />
@@ -488,15 +569,21 @@ onMounted(() => {
     <!-- ######################### -->
     <!-- List of CodeGen templates -->
     <!-- ######################### -->
-    <a-table :columns="columns1" :data-source="tableData" bordered>
+    <a-table :columns="columns1" :data-source="tableData" bordered :pagination="pagination">
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
       <template #bodyCell="{ column, text, record }">
         <template v-if='column.key==="name"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.name"
-                     style="margin: -5px 0" />
+           <a-form v-if="modelState._id===record._id && modelState.editing" ref="refForm" :rules="rules"  :model="modelState" >
+              <a-form-item name="name">
+                <a-input
+                :placeholder="$t('templateManager.codegenName')"  
+                v-model:value.trim="modelState.name"
+              style="margin: -5px 0" />
+              </a-form-item>
+            </a-form>
             <template v-else>
               <!-- <a href="javascript:;" @click="viewModel(record._id)">{{text}}</a> -->
               <a :href="`/#/codegenModeler/${record._id}/${record.name}`">{{text}}</a>
@@ -505,8 +592,14 @@ onMounted(() => {
         </template>
         <template v-if='column.key==="description"'>
           <div>
-            <a-input v-if="modelState._id===record._id && modelState.editing" v-model:value="modelState.description"
-                     style="margin: -5px 0" />
+             <a-form v-if="modelState._id===record._id && modelState.editing" ref="refFormdec" :rules="rules"  :model="modelState" >
+              <a-form-item name="description">
+                <a-input
+                :placeholder="$t('templateManager.codegenDes')" 
+                v-model:value.trim="modelState.description"
+              style="margin: -5px 0" />
+              </a-form-item>
+            </a-form>
             <template v-else>
               {{ text }}
             </template>

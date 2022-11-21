@@ -4,7 +4,7 @@ export interface tableSearch {
     search: string
     page: number
     perPage: number
-    q:string
+    q: string
 }
 // 查询表单的数据
 export interface FormState {
@@ -12,23 +12,29 @@ export interface FormState {
 }
 // 模态窗表单
 export interface paramsobj {
-    inputVisible:boolean
+    inputVisible: boolean
     name: string,
     type: string;
-    enum:Array<any>
-    editing:boolean
-    inputValue:string
+    required: boolean
+    description: string
+    returnType: any
+    enum: Array<any>
+    editing: boolean
+    inputValue: any
+    returnTypeinput: any
+    returnTypevisible: boolean
 }
 export interface ModelState {
-    key?:number
+    key?: number
     name: string;
     description: string;
     template: string;
     template_en: string
     _id: string;
+    validationError?: string
     tags: Array<string>;
     params: Array<paramsobj>
-    path?:string
+    path?: string
 }
 // 添加的表单tags
 export interface statesTs {
