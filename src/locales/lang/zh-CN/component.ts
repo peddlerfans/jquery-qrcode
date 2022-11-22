@@ -48,6 +48,7 @@ export default {
     if: '因子',
     then: '则',
     operator: '关系',
+    topics: '大纲',
 
     pageTip: '当前显示第{head}-{tail}条，共{total}条'
   },
@@ -65,7 +66,7 @@ export default {
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
-    hefaName:"名称格式不正确",
+    hefaName: "名称格式不正确",
 
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',
@@ -82,6 +83,7 @@ export default {
     staticTemplate: '静态数据',
     dynamicTemplate: '动态数据',
     codegenTemplate: '代码生成',
-    account: '账户管理'
+    account: '账户管理',
+    webHook: '网络钩子'
   }
 };
