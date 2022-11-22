@@ -26,9 +26,11 @@ router.beforeEach(async (to, from, next) => {
     next()
   } else {
     const user = userStore()
-
+console.log("permission check")
+    console.log(user)
     if (!user.name) {
       try {
+        console.log("no user name")
         await user.getUserInfo()
         console.log(user)
         next()

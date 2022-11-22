@@ -32,29 +32,6 @@ export const userStore = defineStore('user', {
         console.log(e)
       }
 
-
-
-
-
-      // return new Promise((resolve, reject) => {
-      //   request.post<Stores.user>('/api/auth/login', {
-      //     email:username, password
-      //   }).then((res:any) => {
-      //     // const { data, msg } = res
-      //     if (res.success) {
-      //       // this.name = username
-      //       // this.email = data.email || DEFAULT_EMAIL
-      //       // this.avatar_url = data.avatar_url || DEFAULT_AVATAR
-      //       // this.token = `${encodeURIComponent(username)}Token`
-      //       //
-      //       // setCookie('token', this.token)
-      //       this.getOauthUserInfo().then()
-      //
-      //     } else {
-      //       reject('Login failed!')
-      //     }
-      //   })
-      // })
     },
     async logout() {
       return new Promise((resolve) => {
@@ -64,6 +41,7 @@ export const userStore = defineStore('user', {
         this.token = ''
         request.post<Stores.user>('/api/auth/logout').then((res:any) => {
           // const { msg } = res
+          console.log('logout')
           console.log(res)
           removeCookie('redirect_url')
           message.success("Logout successful")
@@ -72,27 +50,6 @@ export const userStore = defineStore('user', {
         })
       })
     },
-    // async getUserInfo(token: string): Promise<string> {
-    //   return new Promise((resolve, reject) => {
-    //     request.get<Stores.user>('/user/info', {
-    //       params: {
-    //         token: token
-    //       }
-    //     }).then((res:any) => {
-    //       const { data, msg } = res
-    //       if (data) {
-    //         this.name = data.name
-    //         this.age = data.age
-    //         this.sex = data.sex
-    //         this.token = token
-    //         setCookie('token', this.token)
-    //         resolve(msg)
-    //       } else {
-    //         reject(msg)
-    //       }
-    //     })
-    //   })
-    // },
     async getUserInfo(): Promise<string> {
       return new Promise((resolve, reject) => {
         request.get<Stores.user>('/api/user_profile').then((res:any) => {
@@ -103,8 +60,6 @@ export const userStore = defineStore('user', {
             this.email = res.email
             this.avatar_url = res.avatar_url || DEFAULT_AVATAR
             this.token = `${encodeURIComponent(res.name)}`
-            // setCookie('token', this.token)
-            // console.log(getCookie('token'))
 
             resolve('Login successful')
           } else {
@@ -112,6 +67,7 @@ export const userStore = defineStore('user', {
           }
         }).catch((res:any)=>{
           console.log('catch')
+          console.log(res)
           reject('User not logged, please login')
         })
       })

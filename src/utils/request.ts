@@ -1,14 +1,10 @@
 import { message } from 'ant-design-vue'
 import axios from 'axios'
 import { getCookie, setCookie } from '.'
-import { useRouter } from "vue-router"
+// import { useRoute, useRouter } from "vue-router";
+import router from '@/router'
 
-const router=useRouter()
-
-const go2login=()=>{
-    router.push('/login')
-}
-
+// const router = useRouter()
 const request = axios.create({
   // baseURL: import.meta.env.VITE_APP_BASE_API,
   // withCredentials: true,
@@ -43,12 +39,12 @@ request.interceptors.response.use(
     }
   },
   error => {
-
-      // if (error.response?.status == 401 && error.request?.custom.options.url == '/api/auth/login'){
-      //     console.log("401")
-      //     setCookie('redirect_url',window.location.href)
-      //     go2login()
-      // }
+        console.log('request-error')
+      // let router = useRouter()
+      if (error.response?.status == 401 && error.request?.custom.options.url != '/api/auth/login'){
+          console.log("401##"+error.request?.custom.options.url)
+          router.push({name:'Login', query:{redirect_url:window.location.href}})
+      }
     return Promise.reject(error)
   }
 )
