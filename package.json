@@ -27,7 +27,9 @@
     "ant-design-vue": "^3.2.13",
     "axios": "^0.27.2",
     "crypto-js": "^4.1.1",
+    "dagre": "^0.8.5",
     "echarts": "^5.4.0",
+    "graphlib": "^2.1.8",
     "jointjs": "^3.6.2",
     "jquery": "^3.6.1",
     "js-shortid": "^0.1.1",
@@ -51,6 +53,7 @@
   "devDependencies": {
     "@playwright/test": "^1.26.0",
     "@types/crypto-js": "^4.1.1",
+    "@types/dagre": "^0.7.48",
     "@types/jquery": "^3.5.14",
     "@types/jsdom": "^20.0.0",
     "@types/lodash": "4.14.184",

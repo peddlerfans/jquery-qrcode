@@ -26,7 +26,9 @@ export default {
     total: 'total of {total}',
 
     required: 'Required',
+    unrequired: 'Not required',
     name: 'Name',
+    returnType: "returnType",
     description: 'Description',
     tags: 'Tags',
     url: 'Url',
@@ -43,6 +45,7 @@ export default {
     if: 'IF',
     then: 'Then',
     operator: 'Operator',
+    topics: 'Topics',
 
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
@@ -60,7 +63,7 @@ export default {
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
-    hefaName:"The AW name is not standardized",
+    hefaName: "The AW name is not standardized",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',
@@ -77,6 +80,7 @@ export default {
     staticTemplate: 'Static',
     dynamicTemplate: 'Dynamic',
     codegenTemplate: 'Codegen',
-    account: 'Account'
+    account: 'Account',
+    webHook: 'Web Hook'
   }
 };

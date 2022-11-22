@@ -13,6 +13,8 @@ import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
+import  dagre from 'dagre';
+// import * as dagre from 'dagre';
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
 import {
   getTemplate,
@@ -62,6 +64,40 @@ import "./componentTS/ace-config";
 const { t } = useI18n();
 
 window.joint = joint;
+ const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
+         {
+            dagre: dagre,
+            graphlib: dagre.graphlib,
+            setVertices: true,
+            setLabels: true,
+            nodeSep: 50,
+            edgeSep: 80,
+            rankDir: 'TB'
+
+        };
+        // rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        // interface LayoutOptions {
+        //     dagre?: any;
+        //     graphlib?: any;
+        //     align?: 'UR' | 'UL' | 'DR' | 'DL';
+        //     rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        //     ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+        //     nodeSep?: number;
+        //     edgeSep?: number;
+        //     rankSep?: number;
+        //     marginX?: number;
+        //     marginY?: number;
+        //     resizeClusters?: boolean;
+        //     clusterPadding?: dia.Padding;
+        //     setPosition?: (element: dia.Element, position: dia.BBox) => void;
+        //     setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+        //     setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+        //     debugTiming?: boolean;
+        //     exportElement?: (element: dia.Element) => Node;
+        //     exportLink?: (link: dia.Link) => Edge;
+        //     // deprecated
+        //     setLinkVertices?: boolean;
+        // }
 
 const formFooter = {
   show: false, // 是否显示默认底部
@@ -631,6 +667,23 @@ const linkschema = ref({
     },
   },
 });
+// 清空awformData和awschema，，，的函数
+function clearAw(){
+  awformdata = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: ""
+  })
+  awformdataExpected = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: "",
+});
+}
 
 const onExpectedAW = () => {
   awActiveKey.value = "2";
@@ -638,151 +691,76 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
-  
-  
-  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-
+  debugger
   let tempformdata2: any = generateObj(awformdata);
-  
   let tempawschema: any = generateObj(awschema);
-  
-  
+  let tempawformdata2Expected:any = generateObj(awformdataExpected);
+  let tempawschemaExpected:any = generateObj(awschemaExpected);
   let formdataKeys=Object.keys(tempformdata2)
+  let ExpectedformdataKeys  = Object.keys(tempawformdata2Expected)
+        Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+          if (!ExpectedformdataKeys.includes(item)) {
+            tempawformdata2Expected[item]=""
+          }
+        })
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
     }
   })
-  let tempawformdata=tempawschema.properties
-
-
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if (
-      cacheprops.get(ev_id) != null &&
-      cacheprops.get(ev_id).props &&
-      cacheprops.get(ev_id).props.primaryprops &&
-      cacheprops.get(ev_id).props.primaryprops.data &&
-      cacheprops.get(ev_id).props.primaryprops.data.name &&
-      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
-    ) {
-
-      
-      // console.log("cacheprops set.....1/1", cacheprops);
-      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // awformdata.value = awformData.props;
-      awformdata.value = awformData;
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-      hasAWInfo.value = true;
-    } //新的aw拖入modeler
-    else {
-      // console.log("cacheprops set.....2/2", cacheprops);
-      currentElementMap.set(ev_id, {
+         currentElementMap.set(ev_id, {
         props: { primaryprops: {aw:tempformdata2 ,data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
         props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
       });
-      // console.log("cacheprops set.....2/3    .....", cacheprops);
-      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
-    }
+
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   else {
     //获取epected的
-    // console.log("cacheprops set.....3/3", cacheprops);
-    let tempexpected;
-    
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.primaryprops &&
+      currentElementMap.get(ev_id).props.primaryprops.data
+    ) {
+      if(
+        currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
-    ) {
-      
-      // console.log(
-      //   "expected in handler:",
-      //   currentElementMap.get(ev_id).props.expectedprops
-      // );
-      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
-      // console.log(tempexpected);
-      
-    } else {
-      let tempawformdata2Expected:any = generateObj(awformdataExpected);
-      let tempawschemaExpected:any = generateObj(awschemaExpected);
+      ){
 
-          let formdataKeys  = Object.keys(tempawformdata2Expected)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempawformdata2Expected[item]=""
-    }
-  })
+
+
       console.log(tempawformdata2Expected,awformdataExpected.value);
       let props=cacheprops.get(ev_id).props.primaryprops
       // awformdataExpected.value!=tempawformdata2Expected
       currentElementMap.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+          primaryprops: {aw:tempformdata2 , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawformdata2Expected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+          primaryprops: {aw:tempformdata2 , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawformdata2Expected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-    }
-    // console.log(" 2/1-1 : tempexpected", tempexpected);
-    // console.log('cacheprops set.....2/2', cacheprops)
-    if (typeof tempexpected != "undefined") {
-      console.log( awformdataExpected.value);
-      let tempawschemaExpected : any = tempexpected.schema;
-      let tempformdataExpected2: any = generateObj(awformdataExpected);
-       let formdataKeys=Object.keys(tempformdata2)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempformdata2[item]=""
-    }
-  })
-      // console.log(
-      //   "awschemaexpected:",
-      //   awschemaExpected,
-      //   "tempformdata2Expected ",
-      //   tempformdata2Expected
-      // );
-      let props=cacheprops.get(ev_id).props.expectedprops
-      currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, schema: tempawschemaExpected, data:tempformdataExpected2 },
-        },
+      }else{
+        currentElementMap.set(ev_id, {
+        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
-        props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
-        },
-      }); 
-      
-
-    } //未设置expected，只存primary
-    else {
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // console.log("correct");
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-      cacheprops.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
+        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
+      })
+      }
     }
   }
 
@@ -900,10 +878,9 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
     cell.resize(maxX, maxY - 10);
   }
-
-  // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
+  clearAw()
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -919,7 +896,6 @@ const subAttributes=(data:any)=>{
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
-  console.log(globalformData.value);
   
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -950,7 +926,7 @@ function linkhandlerSubmit() {
   if (linkData.value.label) {
     linkFormData.label = linkData.value.label;
   } else {
-    linkFormData.label != undefined;
+    linkFormData.label = ''
   }
   
   linkFormData.ruleData = rulesData.value;
@@ -963,8 +939,8 @@ function linkhandlerSubmit() {
   // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
-  
-  
+
+
   // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -1000,6 +976,8 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
+
+
   onCloseDrawer();
   // message.success(t('component.message.saveSuccess'));
 }
@@ -1094,7 +1072,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
-        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1123,7 +1100,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           mbtCache = response; //should work on here
           console.log(123);
           
-          
+
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1192,9 +1169,7 @@ let currentLinkMap = new Map();
  * Global elements in the component
  */
 async function updateMBT(url: string, data: any) {
-  await request.put(url, data).then((res:any)=>{
-    saveMbtData={...res}
-  })
+  await request.put(url, data)
 }
 
 const canvas:any = ref(HTMLElement);
@@ -1258,7 +1233,7 @@ function getmbtData() {
 async function saveMBT(route?: any) {
   
   // console.log(mbtCache);
-
+    saveMbtData = getmbtData()
     await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData())
   message.success(t("component.message.saveSuccess"));
 }
@@ -1355,54 +1330,57 @@ let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
 
 // 离开路由时判断
-// onBeforeRouteLeave((to,form,next) => {
-//   console.log(saveMbtData,getmbtData());
-//   // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
-//   if(saveMbtData){
-    
-    
-//     if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
-//       Modal.confirm({
-//         // title: 'Do you want to delete these items?',
-//         icon: createVNode(ExclamationCircleOutlined),
-//         content: t("MBTStore.leaveRouter"),
-//         onOk() {
-//           return new Promise<void>((resolve, reject) => {
-//             next()
-//             resolve()
-//           }).catch(() => console.log('Oops errors!'));
-//         },
-//         // eslint-disable-next-line @typescript-eslint/no-empty-function
-//         onCancel() {
-//           next(false)
-//         },
-//       });
-//     }else{
-//       next()
-//     }
-//   }else{
-//     if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
-    
-//       Modal.confirm({
-//         // title: 'Do you want to delete these items?',
-//         icon: createVNode(ExclamationCircleOutlined),
-//         content: t("MBTStore.leaveRouter"),
-//         onOk() {
-//           return new Promise<void>((resolve, reject) => {
-//             next()
-//             resolve()
-//           }).catch(() => console.log('Oops errors!'));
-//         },
-//         // eslint-disable-next-line @typescript-eslint/no-empty-function
-//         onCancel() {
-//           next(false)
-//         },
-//       });
+onBeforeRouteLeave((to,form,next) => {
+  // console.log(saveMbtData,getmbtData());
+  // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
+  if(saveMbtData){
 
-//   } 
-//   }
 
-// })
+    if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
+      Modal.confirm({
+        // title: 'Do you want to delete these items?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("MBTStore.leaveRouter"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            next()
+            resolve()
+          }).catch(() => console.log('Oops errors!'));
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onCancel() {
+          next(false)
+        },
+      });
+    }else{
+      next()
+    }
+  }else{
+    if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
+
+      Modal.confirm({
+        // title: 'Do you want to delete these items?',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("MBTStore.leaveRouter"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            next()
+            resolve()
+          }).catch(() => console.log('Oops errors!'));
+        },
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        onCancel() {
+          next(false)
+        },
+      });
+
+  } 
+  }
+
+})
+
+
+
 
 
 
@@ -1797,7 +1775,7 @@ onMounted(() => {
           console.log(modeler.graph.getCell(linkView.model.id));
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
-          
+
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
@@ -1828,7 +1806,7 @@ onMounted(() => {
       lv_id = linkView.model.id + "";
 
       console.log(cacheprops.has(linkView.model.id));
-      
+
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
         console.log(templinkData.props);
@@ -1849,7 +1827,7 @@ onMounted(() => {
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
       // showDrawer(linkView);
-    } 
+    }
     showDrawer(linkView);
   });
 
@@ -2063,10 +2041,9 @@ function handlerConfirmExpected() {
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-    debugger
   // let tempawschemaExpected = generateObj(awschemaExpected);
   // let tempformdata2Expected = generateObj(awformdataExpected);
-  
+
   let tempawschema:any = generateObj(awschema);
   let tempformdata2: any = generateObj(awformdata);
   let tempawschemaExpected : any = generateObj(awschemaExpected);
@@ -2200,7 +2177,7 @@ function handlerConfirmExpected() {
   }
 
   console.log(currentElementMap.get(ev_id).props.expectedprops);
-  
+
     let tempaw = {};
   let maxX = 180;
   let maxY = 150;
@@ -2332,8 +2309,8 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
-  
-  
+
+
 }
 
 const activeKey = ref("2");
@@ -2724,7 +2701,7 @@ watch(
       if ( isExclusiveGateway.value && isLink.value ){
         linkData.value.label = ifdata(newvalue)!;
       }
-      
+
     }
   },
   { deep: true }
@@ -2814,6 +2791,29 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 const softwrap=true
+
+
+function relayout(){
+  modeler.paper.freeze();
+
+        modeler.graph.getLinks().forEach(link=>{
+          link.router('normal');
+          link.connector('jumpover');
+
+
+        })
+
+
+        joint.layout.DirectedGraph.layout(modeler.graph, MBTLayoutOptions);
+
+        modeler.paper.fitToContent({
+            padding: 50,
+            allowNewOrigin: 'any',
+            useModelGeometry: true
+        });
+
+        modeler.paper.unfreeze();
+}
 </script>
 
 <template>
@@ -2838,6 +2838,11 @@ const softwrap=true
                 {{ $t("layout.multipleTab.reload") }}
               </a-button>
             </span>
+            <span style="margin-left: 5px">
+              <a-button danger @click="relayout()">
+               Re-Layout
+              </a-button>
+            </span>
           </a-button-group>
           <a-modal v-model:visible="visiblepreciew" 
           title="Preview Modal" @ok="handleOk" 
@@ -2852,7 +2857,7 @@ const softwrap=true
           :data-source="previewData" 
           :pagination="{pageSize:5}"
           bordered
-          :rowKey="record => record.id"
+          :rowKey="(record: any) => record.id"
           class="previewclass"
           >
         <template #bodyCell="{column,record}">
@@ -2889,7 +2894,7 @@ const softwrap=true
                       />
           <!-- </div> -->
           </a-modal>
-         
+
         </a-col>
         <a-col span="2" class="isSwitch">
           <div >

@@ -18,97 +18,63 @@ import {
   watch,
   getCurrentInstance,
 } from "vue";
-import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import type { CascaderProps, FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import { tableSearch, FormState, ModelState, statesTs } from "./componentTS/mbtmodeler";
 import { Rule } from "ant-design-vue/es/form";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
+import { CommonTable } from '@/components/basic/common-table'
+
+// 表格数据
+const column3 = [
+  { title: "name", width: 40, link: 'mbtmodeler' },
+  { title: "description", width: 120 },
+  { title: "tags", width: 100 },
+  { title: "action", width: 100, cbName: ['edit'], actionList: ['edit', 'delete']},
+]
+const MBTTableQuery = {
+  url: realMBTUrl,
+  searchText: '',
+  createParams: ''
+}
+
+let MBTTable = ref<any>(null)
+
 //Setting url for data fetching
-// const url=mockMBTUrl;
 const url = realMBTUrl;
 const route = useRoute();
 const router = useRouter();
-const tableRef = ref();
 const { t } = useI18n()
-let searchobj: tableSearch = reactive({
-  search: "",
-  size: 20,
-  page: 1,
-  perPage: 20,
-});
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: "",
 });
 
+watch(
+    () => formState.search,
+    (value: string) => {
+      MBTTableQuery.searchText = value
+    }
+)
+
 const instance = getCurrentInstance();
-
-const {
-  dataSource,
-  columns,
-  originColumns,
-  tableLoading,
-  pagination,
-  updateTable,
-  onTableRowSelectChange,
-  tableResize,
-  // selectedRowKeys,
-} = useTable({
-  table: tableRef,
-  columns: [
-    { title: 'component.table.name', dataIndex: "name", key: "name", width: 40 },
-    { title: 'component.table.description', dataIndex: "description", key: "description", width: 120 },
-    {
-      title: 'component.table.tags',
-      dataIndex: "tags",
-      key: "tags",
-      width: 100,
-      customRender: (opt) => {
-        if (_.isArray(opt.value)) {
-          return opt.value.toString();
-        } else return opt.value;
-      },
-    },
-    { title: 'component.table.action', dataIndex: "action", key: "action", width: 100 },
-  ],
-  updateTableOptions: {
-    fetchUrl: url,
-  },
-});
-
-onBeforeMount(() => {
-  updateTable();
-});
 
 const onFinishFailedForm = (errorInfo: any) => {
   console.log("Failed:", errorInfo);
 };
 
 let mbtId = ref("");
-async function query(data?: any) {
-  let rst;
-
-  rst = await request.get(url, { params: data || searchobj });
-
-  if (rst.data) {
-    pagination.total=rst.total
-    dataSource.value = rst.data;
-    return rst.data;
-  }
-}
 
 /**
  * Search the result
  */
 const handleFinish: FormProps["onFinish"] = (values: any) => {
-  let fetchUrl = url + `?search=` + formState.search;
-
-  updateTable({ fetchUrl: fetchUrl });
+  MBTTable.value.query(formState.search)
 };
 const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
   console.log(errors);
 };
-const wrapperCol = { span: 24, offset: 12 };
+
 // 模态窗数据
 const visible = ref<boolean>(false);
 const showModal = () => {
@@ -121,14 +87,11 @@ let modelstates = ref<ModelState>({
   _id: "",
   tags: [],
 });
-onMounted(() => {
-  query();
-});
+
 // 修改功能4
 // 修改函数
 async function updateMBT(url: string, data: any) {
-  let rst = await request.put(url, data);
-  // console.log(rst);
+  let rst = await request.put(url, data)
 }
 let refForm = ref();
 // 清除模态窗数据
@@ -152,6 +115,53 @@ let states = reactive<statesTs>({
   inputValue: "",
 });
 
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/test-models/_tags", { params: { q: "category:meta" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
+
 // 修改的函数
 let editName=""
 const edit = (rowobj: any) => {
@@ -169,8 +179,6 @@ async function saveMBT(data: any) {
       .post(url, data)
       .then((res: any) => {
         mbtId.value = res._id as string;
-        // let fetchUrl = `${url}/${mbtId.value}`;
-        // updateTable({ fetchUrl: fetchUrl });
       })
       .catch(function (error) {
         if (error.response.status == 409) {
@@ -187,7 +195,7 @@ async function saveMBT(data: any) {
 let disable=ref(false)
 const handleOk = (modelstates:any) => {
   modelstates.tags = states.tags;
-  refForm.value.validate().then(()=>{    
+  refForm.value.validate().then(()=>{
   // disable.value=false
   // 判断修改或添加
   if (modelstates.name && modelstates.description) {
@@ -195,54 +203,28 @@ const handleOk = (modelstates:any) => {
       mbtId.value = modelstates._id;
       updateMBT(url + `/${modelstates._id}`, modelstates).then((res: any) => {
         let fetchUrl = `${url}/${mbtId.value}`;
-
-        updateTable({ fetchUrl: fetchUrl });
       });
       message.success(t('component.message.modifiedText'));
     } else {
-    
       delete modelstates._id
       saveMBT(modelstates);
-
       message.success('component.message.addText');
     }
     // }
     visible.value = false;
-  } else {
-    return message.error(t('MBTStore.tip2'));
-  }
-}).catch(()=>{
-  // disable.value=true
-})
-  // onFinishForm(modelstates);
-};
-const onFinishForm =  (modelstates: any) => {};
+    } else {
+      return message.error(t('MBTStore.tip2'));
+    }
+  }).catch(()=>{})
+}
 
 /**
  * Create a new model and jump to moderler
  */
-
-
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
   visible.value = false;
-  // query()
-  // console.log(modelstates.value);
-};
-// 删除功能
-async function delmbt(key: any) {
-  let rst = await request.delete(url + `/${key._id}`);
-  updateTable();
-}
-const confirm = (e: MouseEvent) => {
-  delmbt(e);
-  query();
-  message.success(t('MBTStore.tip3'));
-};
-
-const cancel = (e: MouseEvent) => {
-  console.log(e);
 };
 
 let checkName = async (_rule: Rule, value: string) => {
@@ -324,20 +306,20 @@ const handleInputConfirm = () => {
             :wrapper-col="{ span: 24 }"
           >
             <a-col :span="20">
-              <!-- <a-input
-                v-model:value="formState.search"
-                split=""
-                :placeholder="$t('MBTStore.searchText')"
-              ></a-input> -->
-              <a-mentions v-model:value="formState.search" split=""
-                placeholder="input @ to search tags, input name to search MBT">
-                <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option>
-                 <a-mentions-option value="name:" >
-                 name:             
-               </a-mentions-option>
-              </a-mentions>
+            <a-input v-model:value="formState.search"
+            :placeholder="$t('awModeler.inputSearch1')"
+            @change="inputChange"
+            ref="searchInput"
+            >
+            </a-input>
+            <a-cascader
+            v-if="cascder"
+            :load-data="loadData"
+            v-model:value="selectvalue"
+            placeholder="Please select"
+            :options="selectoptions"
+            @change="onSelectChange"
+            ></a-cascader>
             </a-col>
 
             <a-col :span="4">
@@ -418,63 +400,13 @@ const handleInputConfirm = () => {
       </a-modal>
     </div>
     <div class="tableContainer">
-      <ATable
-        ref="tableRef"
-        class="table"
-        rowKey="key"
-        :dataSource="dataSource"
-        :columns="columns"
-        :pagination="pagination"
-        :loading="tableLoading"
-        bordered
-        @resizeColumn="tableResize"
-      >
-        >
-        <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
-            <a :href="`/#/mbtmodeler/${record._id}/${record.name}`">{{ record.name }}</a>
-          </template>
-
-          <template v-else-if="column.key === 'description'">
-            {{ record.description }}
-          </template>
-          <template v-else-if="column.key === 'tags'">
-            <span>
-              <a-tag
-                v-for="tag in record.tags"
-                :key="tag"
-                :color="
-                  tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'
-                "
-              >
-                {{ tag.toUpperCase() }}
-              </a-tag>
-            </span>
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <span>
-              <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
-              <a-divider type="vertical" />
-              <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
-                <a-divider type="vertical" /> -->
-              <a-popconfirm
-                :title="$t('MBTStore.tip6')"
-                :ok-text="$t('common.yesText')"
-                :cancel-text="$t('common.noText')"
-                @confirm="confirm(record)"
-                @cancel="cancel"
-              >
-                <a>{{ $t('common.delText') }}</a>
-              </a-popconfirm>
-            </span>
-          </template>
-        </template>
-      </ATable>
+      <common-table
+          :columns="column3"
+          :fetch-obj="MBTTableQuery"
+          tableRef="MBTTable"
+          ref="MBTTable"
+          @edit="edit"
+      ></common-table>
     </div>
     <!-- </section> -->
   </main>

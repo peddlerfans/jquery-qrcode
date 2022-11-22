@@ -47,4 +47,7 @@ export enum transitions {
  export const realMBTUrl= '/api/test-models'
 
 export const templateUrl = '/api/templates'
+
 export const dashboradUrl="/api/apm-report"
+
+export const settingsWebHook = '/api/webhooks'

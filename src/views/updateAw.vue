@@ -7,16 +7,17 @@ import { useI18n } from "vue-i18n";
 import {PlusOutlined} from '@ant-design/icons-vue'
 import { routerKey, useRoute, useRouter } from "vue-router";
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
+import { AnyKindOfDictionary } from "lodash";
 const { t } = useI18n()
 
 
 async function query(data?:any){
-    let rsts=await request.get(`/api/hlfs/${data}`)
-    if(rsts){
-        modelstates.value={...rsts} as any
-        states.tags=rsts.tags!
-        sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
-    }
+  let rsts=await request.get(`/api/hlfs/${data}`)
+  if(rsts){
+    modelstates.value={...rsts} as any
+    states.tags=rsts.tags!
+    sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
+  }
 }
 let route=useRoute()
 
@@ -28,10 +29,10 @@ let canEdit = ref(!router.currentRoute.value.query?.canEdit)
 
 if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
-sessionStorage.setItem('awupdate_'+route.params.awupdate,JSON.stringify(route.params.awupdate))
-let str:any=route.params.mbtid
-localStorage.setItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id", str)
-localStorage.setItem("mbt_" + route.params.mbtname+"aw" , JSON.stringify(route.params.mbtname))
+  sessionStorage.setItem('awupdate_'+route.params.awupdate,JSON.stringify(route.params.awupdate))
+  let str:any=route.params.mbtid
+  localStorage.setItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id", str)
+  localStorage.setItem("mbt_" + route.params.mbtname+"aw" , JSON.stringify(route.params.mbtname))
 
 }
 
@@ -46,28 +47,59 @@ let modelstates = ref<ModelState>({
   name: '',
   description: '',
   template: "",
-  template_en:"",
+  template_en: "",
+  validationError:"",
   _id: "",
   params:[],
   tags:[],
   path:""
 });
 // 点击添加params的函数
-let obj = ref<paramsobj>({ name: "", type: "" ,enum:[],inputVisible:false,inputValue:'',editing:false})
+let obj = ref<paramsobj>({
+  required:false,
+  name: "",
+  description: "",
+  type: "",
+  returnType: [],
+  enum: [],
+  inputVisible: false,
+  inputValue: '',
+  editing: false,
+  returnTypeinput: '',
+  returnTypevisible : false
+})
 
 // params的表格结构
 const paramsColum = [
-{
+  {
+    title: 'component.table.required',
+    dataIndex: 'required',
+    key: 'required',
+    width:10
+  },
+  {
     title: 'component.table.paramsName',
     dataIndex: 'name',
     key: 'name',
-    width:180
+    width:280
+  },
+  {
+    title: 'component.table.description',
+    dataIndex:'description',
+    key:'description',
+    width:100
+  },
+  {
+    title: 'component.table.returnType',
+    dataIndex:'returnType',
+    key:'returnType',
+    width:100
   },
   {
     title: 'component.table.type',
     dataIndex: 'type',
     key: 'type',
-    width:100
+    width:60
   },
   {
     title: 'component.table.enum',
@@ -84,23 +116,33 @@ if (canEdit) paramsColum.push( {
 })
 // 新添加一条params数据
 const addNewParams = () => {
-  modelstates.value.params.push({
-    name: '',
-    type: '',
-    enum: [],
+  modelstates.value.params.unshift({
+    required :false,
+    name : '',
+    description : '',
+    type : '',
+    enum : [],
+    returnType : [],
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+    returnTypeinput: '',
+    returnTypevisible : false
   })
 }
 // 添加params的enu
-const handleCloseTag = (record: any, removedTag: string) => {
-  const tags = record.enum.filter((tag: string) => tag !== removedTag);
+const handleCloseTag = (record: any, removedTag: any) => {
+  const tags = record.enum.filter((tag: AnyKindOfDictionary) => tag !== removedTag);
   record.enum = tags;
+};
+
+const handleCloseReturnType = (record: any, removedTag: any) => {
+  const tags = record.returnType.filter((tag: any) => tag !== removedTag);
+  record.returnType = tags;
 };
 const handleFactorValueConfirm = (record: any) => {
   let values = record.enum;
-  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+  if (values && record.inputValue && values.indexOf(record.inputValue) === -1) {
     values = [...values, record.inputValue];
   }
   Object.assign(record, {
@@ -109,12 +151,28 @@ const handleFactorValueConfirm = (record: any) => {
     inputValue: '',
   });
 }
+
+const handleReturnType = (record: any) => {
+  let values = record.returnType;
+  if (values && record.returnTypeinput && values.indexOf(record.returnTypeinput) === -1) {
+
+    values = [...values, record.returnTypeinput];
+  }
+  Object.assign(record, {
+    returnType: values,
+    returnTypeinput: '',
+    returnTypevisible : false
+  });
+}
 // 点击取消修改或添加params的函数
 const cancelparams = (record:any) => {
   if (obj.value.name === ''){
     const index= modelstates.value.params.findIndex(e => e === record)
     modelstates.value.params.splice(index,1);
-  }else{
+  } else {
+    record.description=obj.value.description
+    record.required=obj.value.required
+    record.returnType=obj.value.returnType
     record.name = obj.value.name
     record.type = obj.value.type
     states.tags=obj.value.enum
@@ -122,7 +180,8 @@ const cancelparams = (record:any) => {
   }
   clearFactorState()
 }
-let inputRefs=ref()
+let inputRefs = ref()
+let returnType = ref()
 const newFactorValueInput = (record: any) => {
   record.inputVisible = true;
 
@@ -130,14 +189,28 @@ const newFactorValueInput = (record: any) => {
     inputRefs.value.focus();
   })
 };
+const newReturnType = (record: any) => {
+  record.returnTypevisible = true;
+
+  nextTick(() => {
+    returnType.value.focus();
+  })
+};
+
+
 // 清空赋值params单行的数据
 const clearFactorState = () => {
   obj.value.name = ''
-  obj.value.type = ''
+  obj.value.description = ''
+  obj.value.required = false,
+      obj.value.returnType = [],
+      obj.value.type = ''
   obj.value.enum = []
   obj.value.editing = true
   obj.value.inputVisible = false
-  obj.value.inputValue = '';
+  obj.value.inputValue = ''
+  obj.value.returnTypeinput = ''
+  obj.value.returnTypevisible = false
 
   // (instance?.refs.refFactorForm as any).resetFields();
 }
@@ -147,8 +220,13 @@ const saveparams = async (record: any) => {
   clearFactorState()
 }
 // 点击修改params触发的函数
-const editparams = (record:any) => {
+const editparams = (record: any) => {
+  // console.log(record);
+
   if (!canEdit.value) return
+  obj.value.description=record.description
+  obj.value.required=record.required
+  obj.value.returnType=record.returnType
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -178,7 +256,7 @@ const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
     inputRef.value.focus();
-    })
+  })
 };
 
 const handleInputConfirm = () => {
@@ -190,7 +268,7 @@ const handleInputConfirm = () => {
     tags,
     inputVisible: false,
     inputValue: '',
- });
+  });
 }
 let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
@@ -203,21 +281,10 @@ async function updateAw(url:string,data:any) {
   // console.log(JSON.parse(getupdate));
   if(rst){
     console.log(123);
-    
+
     canEdit.value=false
   }
-  // if(rst && JSON.parse(getupdate)=="awmodeler"){
-  //   message.success(t('component.message.modifiedText'))
-  //           router.push("/awmodeler/index")
-  //   }else if(rst && JSON.parse(getupdate)=="mbtAW"){
-  //     router.push({
-  //       name:"mbtmodeler",
-  //       params:{
-  //         _id:getmbtId,
-  //         name:JSON.parse(getmbtname!)
-  //       }
-  //     })
-  //   }
+
 }
 
 let refForm=ref()
@@ -227,61 +294,61 @@ const onFinishForm = () => {
   
   refForm.value.validate().then(async (res:any)=>{
     modelstates.value.tags=states.tags
-     await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
+    await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
 
   })
 
 
-    }
-  const onFinishFailedForm = (errorInfo: any) => {
-    if(JSON.parse(getupdate)=="awmodeler"){
-        router.push("/awmodeler/index")
-    }else if(JSON.parse(getupdate)=="mbtAW"){
-      router.push({
-        name:"mbtmodeler",
-        params:{
-          _id:getmbtId,
-          name:JSON.parse(getmbtname!)
-        }
-      })
-    }
-  };
+}
+const onFinishFailedForm = (errorInfo: any) => {
+  if(JSON.parse(getupdate)=="awmodeler"){
+    router.push("/awmodeler/index")
+  }else if(JSON.parse(getupdate)=="mbtAW"){
+    router.push({
+      name:"mbtmodeler",
+      params:{
+        _id:getmbtId,
+        name:JSON.parse(getmbtname!)
+      }
+    })
+  }
+};
 // 模态窗表单
 const optiones = ref<SelectProps['options']>([
-      {
-        value: 'str',
-        label: 'str',
-      },
-      {
-        value: 'float',
-        label: 'float',
-      },
-      {
-        value: 'boolean',
-        label: 'boolean',
-    },
-      {
-        value: 'number',
-        label: 'number',
-    },
-    {
-        value: 'int',
-        label: 'int',
-    },
-    {
-      value: 'SUT',
-        label:'SUT'
-      }
+  {
+    value: 'str',
+    label: 'str',
+  },
+  {
+    value: 'float',
+    label: 'float',
+  },
+  {
+    value: 'boolean',
+    label: 'boolean',
+  },
+  {
+    value: 'number',
+    label: 'number',
+  },
+  {
+    value: 'int',
+    label: 'int',
+  },
+  {
+    value: 'SUT',
+    label:'SUT'
+  }
 ]);
 const editAw = () => {
   // if (canEdit) {
-    canEdit.value=true
+  canEdit.value=true
   // }
 }
-    
- 
+
+
 let disable=ref(false)
 let rst:any=route.params.name
 
@@ -290,41 +357,35 @@ let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
-    disable.value=true
     return Promise.reject(t('component.message.emptyName'))
   }else if(rst==value){
 
-    disable.value=false
+
     return Promise.resolve();
   }else  if(!reg.test(value)  && !reg1.test(value)){
-    disable.value=true
-      return Promise.reject(t('component.message.hefaName'))
-    }else{
+    return Promise.reject(t('component.message.hefaName'))
+  }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
-      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
-        // message.error("Duplicate name")
-        // modelstates.value.name=""
-        disable.value=true
-        return Promise.reject(t('component.message.depName'))
-      }else{
-        disable.value=false
-        return Promise.resolve();
+    if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+      // message.error("Duplicate name")
+      // modelstates.value.name=""
+      return Promise.reject(t('component.message.depName'))
+    }else{
+      return Promise.resolve();
 
-      }
+    }
   }
 
 }
 let checkDesc = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
-    disable.value=true
     return Promise.reject(t('component.message.emptyDescription'))
   }else  {
     // if(!reg.test(value)){
     //   return Promise.reject('The AW description is not standardized')
     // }else{
-      if(modelstates.value.description==value){
-        disable.value=false
+    if(modelstates.value.description==value){
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
@@ -335,7 +396,6 @@ let checkDesc = async (_rule: Rule, value: string) => {
       }
     }
     // }
-    disable.value=false
     return Promise.resolve();
   }
 
@@ -343,16 +403,10 @@ let checkDesc = async (_rule: Rule, value: string) => {
 let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
-    disable.value=true
     return Promise.reject(t('awModeler.emptyTemp'))
   }else{
-    disable.value=false
     return Promise.resolve()
   }
-  // else if(!reg.test(value)){
-  //     return Promise.reject('The AW name is not standardized')
-  // }
-
 }
 let rules: Record<string, Rule[]> = {
   name: [{ required: true, validator: checkName, trigger: 'blur' }],
@@ -361,21 +415,21 @@ let rules: Record<string, Rule[]> = {
 }
 </script>
 <template>
-    <div>
-        <a-form
+  <div>
+    <a-form
         ref="refForm"
-      :model="modelstates"
-      name="basic"
-      :rules="rules"
-      :label-col="{ span: 2 }"
-      :wrapper-col="{ span: 12 }"
-      autocomplete="off"
-      >
+        :model="modelstates"
+        name="basic"
+        :rules="rules"
+        :label-col="{ span: 2 }"
+        :wrapper-col="{ span: 12 }"
+        autocomplete="off"
+    >
       <a-form-item
-        :label="$t('component.table.name')"
-        name="name"
+          :label="$t('component.table.name')"
+          name="name"
       >
-      <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
+        <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
 
         <a-input v-model:value="modelstates.name" v-if="canEdit" />
         <span v-else>{{ modelstates.name }}</span>
@@ -384,7 +438,7 @@ let rules: Record<string, Rule[]> = {
 
       <a-form-item
           :label="$t('component.table.description')"
-        name="description"
+          name="description"
       >
         <a-input v-model:value="modelstates.description" v-if="canEdit" />
         <span v-else>{{ modelstates.description }}</span>
@@ -392,35 +446,35 @@ let rules: Record<string, Rule[]> = {
 
       <a-form-item
           :label="$t('component.table.template')"
-        name="template"
+          name="template"
       >
         <a-input v-model:value="modelstates.template" v-if="canEdit" />
         <span v-else>{{ modelstates.template }}</span>
       </a-form-item>
       <a-form-item
           :label="$t('component.table.template_en')"
-        name="template_en"
+          name="template_en"
       >
         <a-input v-model:value="modelstates.template_en" v-if="canEdit" />
         <span v-else>{{ modelstates.template_en }}</span>
       </a-form-item>
 
-<!-- tags标签 -->
+      <!-- tags标签 -->
       <a-form-item
-        :label="$t('component.table.tags')"
-        name="tags" >
-      <template v-for="(tag, index) in states.tags" :key="tag">
-        <a-tooltip v-if="tag.length > 20" :title="tag">
-          <a-tag :closable="true" @close="handleClose(tag)">
-            {{ `${tag.slice(0, 20)}...` }}
+          :label="$t('component.table.tags')"
+          name="tags" >
+        <template v-for="(tag, index) in states.tags" :key="tag">
+          <a-tooltip v-if="tag.length > 20" :title="tag">
+            <a-tag :closable="true" @close="handleClose(tag)">
+              {{ `${tag.slice(0, 20)}...` }}
+            </a-tag>
+          </a-tooltip>
+          <a-tag v-else-if="tag.length==0"></a-tag>
+          <a-tag v-else :closable="canEdit" @close="handleClose(tag)">
+            {{tag}}
           </a-tag>
-        </a-tooltip>
-        <a-tag v-else-if="tag.length==0"></a-tag>
-        <a-tag v-else :closable="canEdit" @close="handleClose(tag)">
-          {{tag}}
-        </a-tag>
-      </template>
-          <a-input
+        </template>
+        <a-input
             v-show="states.inputVisible"
             ref="inputRef"
             v-model:value="states.inputValue"
@@ -429,7 +483,7 @@ let rules: Record<string, Rule[]> = {
             :style="{ width: '78px' }"
             @blur="handleInputConfirm"
             @keyup.enter="handleInputConfirm"
-          />
+        />
         <a-tag
             v-show="!states.inputVisible && canEdit"
             style="background: #fff; border-style: dashed"
@@ -443,60 +497,104 @@ let rules: Record<string, Rule[]> = {
           name="params"  >
         <a-button @click="addNewParams" v-if="canEdit">{{$t('awModeler.addParams')}}</a-button>
       </a-form-item>
-      </a-form>
+    </a-form>
 
-        <a-table v-if="modelstates.params.length>0" :columns="paramsColum" :data-source="modelstates.params" bordered>
-          <template #headerCell="{ column }">
-            <span>{{ $t(column.title) }}</span>
+    <a-table v-if="modelstates.params.length>0" :columns="paramsColum" :data-source="modelstates.params" bordered>
+      <template #headerCell="{ column }">
+        <span>{{ $t(column.title) }}</span>
+      </template>
+      <template #bodyCell="{column,text,record}">
+        <template v-if='column.key==="required"'>
+          <a-checkbox v-if="record.editing" v-model:checked="record.required"></a-checkbox>
+          <a-checkbox v-else v-model:checked="record.required" :disabled="true"></a-checkbox>
+        </template>
+        <template v-if='column.key==="name"'>
+          <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
+          <template v-else>
+            {{text}}
           </template>
-          <template #bodyCell="{column,text,record}">
-            <template v-if='column.key==="name"'>
-              <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
+        </template>
+        <template v-if='column.key==="description"'>
+          <a-input v-if="record.editing" v-model:value.trim="record.description" style="margin: -5px 0" />
+          <template v-else>
+            {{text}}
+          </template>
+        </template>
+        <template v-if='column.key==="type"'>
+          <div>
+            <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="optiones"
+            ></a-select>
             <template v-else>
-              {{text}}
+              {{ text }}
             </template>
-            </template>
-              <template v-if='column.key==="type"'>
-               <div>
-                <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="optiones"
-                ></a-select>
-              <template v-else>
-                {{ text }}
-              </template>
-               </div>
-              </template>
-              <template v-if="column.key === 'enum'">
-                <div>
-          <template v-if="record.editing">
-            <template v-for="(tag) in record.enum" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
+          </div>
+        </template>
+        <template v-if="column.key === 'enum'">
+          <div>
+            <template v-if="record.editing">
+              <template v-for="(tag) in record.enum" :key="tag">
+                <a-tooltip v-if="tag.length > 20" :title="tag">
+                  <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                    {{ `${tag.slice(0, 20)}...` }}
+                  </a-tag>
+                </a-tooltip>
+                <a-tag v-else-if="tag.length==0"></a-tag>
+                <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
+                  {{tag}}
                 </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                {{tag}}
+              </template>
+              <a-input v-if="record.inputVisible || record.type=='string'" ref="inputRefs" v-model:value.trim="record.inputValue" type="text"
+                       size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+                       @keyup.enter="handleFactorValueConfirm(record)" />
+              <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRefs" v-model:value.number="record.inputValue" type="text"
+                              size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
+                              @keyup.enter="handleFactorValueConfirm(record)" />
+              <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
+                <plus-outlined />
+                {{ $t('common.newValue') }}
               </a-tag>
             </template>
-            <a-input v-if="record.inputVisible || record.type=='string'" ref="inputRefs" v-model:value.trim="record.inputValue" type="text"
-                     size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-                     @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRefs" v-model:value.number="record.inputValue" type="text"
-            size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-            @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
-              <plus-outlined />
-              {{ $t('common.newValue') }}
-            </a-tag>
-          </template>
 
-          <span v-else>
+            <span v-else>
             <a-tag v-for="tag in record.enum" :key="tag" color="cyan">
               {{ tag }}
             </a-tag>
           </span>
-        </div>
+          </div>
+        </template>
+
+        <template v-if="column.key === 'returnType'">
+          <div>
+            <template v-if="record.editing">
+              <template v-for="(tag) in record.returnType" :key="tag">
+                <a-tooltip v-if="tag.length > 20" :title="tag">
+                  <a-tag :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
+                    {{ `${tag.slice(0, 20)}...` }}
+                  </a-tag>
+                </a-tooltip>
+                <a-tag v-else-if="tag.length==0"></a-tag>
+                <a-tag v-else :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
+                  {{tag}}
+                </a-tag>
+              </template>
+              <a-input v-if="record.returnTypevisible || record.type=='string'" ref="returnType" v-model:value.trim="record.returnTypeinput" type="text"
+                       size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
+                       @keyup.enter="handleReturnType(record)" />
+              <a-input-number v-else-if="record.returnTypevisible && record.type=='number'" ref="returnType" v-model:value.number="record.returnTypeinput" type="text"
+                              size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
+                              @keyup.enter="handleReturnType(record)" />
+              <a-tag v-else style="background: #fff; border-style: dashed" @click="newReturnType(record)">
+                <plus-outlined />
+                {{ $t('common.newValue') }}
+              </a-tag>
+            </template>
+
+            <span v-else>
+            <a-tag v-for="tag in record.returnType" :key="tag" color="cyan">
+              {{ tag }}
+            </a-tag>
+          </span>
+          </div>
         </template>
         <template v-if="column.key === 'action'">
           <div class="editable-row-operations">
@@ -519,14 +617,17 @@ let rules: Record<string, Rule[]> = {
             </span>
           </div>
         </template>
-            </template>
-        </a-table>
-        <div>
-          <a-button typr="primary" @click="editAw" v-if="!canEdit">{{$t("common.editText")}}</a-button>
-            <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">{{$t("common.saveText")}}</a-button>
-            <a-button @click="onFinishFailedForm">{{$t("common.back")}}</a-button>
-        </div>
+      </template>
+    </a-table>
+    <div v-if="modelstates.validationError" style="color:red">
+      <p>{{modelstates.validationError}}</p>
     </div>
+    <div>
+      <a-button typr="primary" @click="editAw" v-if="!canEdit">{{$t("common.editText")}}</a-button>
+      <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">{{$t("common.saveText")}}</a-button>
+      <a-button @click="onFinishFailedForm">{{$t("common.back")}}</a-button>
+    </div>
+  </div>
 </template>
 
 
