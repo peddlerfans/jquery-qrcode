@@ -58,9 +58,9 @@ const queryTree=async ()=>{
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
   let treedatasss=addKey(treedatas)
-  topTreedata[0].children=[...treedatasss];
+
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
-  treeData.value=[...topTreedata]
+  treeData.value=treedatasss
   // rightClick()
   
 }
@@ -703,14 +703,19 @@ function objToArr(obj:Object) {
       if (_.isObject(obj)) {
         // let i: keyof any
         for (var i in obj) {
-          if(i==""){
-            i="1"
-          }
           var oo:any = {
             title: i,
             key:uuid(),
             children: objToArr(obj[i as keyof typeof objToArr])
           };
+          if(i==""){
+            i="/"
+            oo={
+            title: i,
+            key:uuid(),
+            children: objToArr(obj["" as keyof typeof objToArr])
+          }
+          }
           arr.push(oo);
         }
       }
