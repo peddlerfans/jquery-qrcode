@@ -667,6 +667,23 @@ const linkschema = ref({
     },
   },
 });
+// 清空awformData和awschema，，，的函数
+function clearAw(){
+  awformdata = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: ""
+  })
+  awformdataExpected = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: "",
+});
+}
 
 const onExpectedAW = () => {
   awActiveKey.value = "2";
@@ -674,152 +691,77 @@ const onExpectedAW = () => {
 };
 
 function awhandlerSubmit() {
-  
-  
-  
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-
+  debugger
   let tempformdata2: any = generateObj(awformdata);
-  
   let tempawschema: any = generateObj(awschema);
-  
-  
+  let tempawformdata2Expected:any = generateObj(awformdataExpected);
+  let tempawschemaExpected:any = generateObj(awschemaExpected);
   let formdataKeys=Object.keys(tempformdata2)
+  let ExpectedformdataKeys  = Object.keys(tempawformdata2Expected)
+        Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
+          if (!ExpectedformdataKeys.includes(item)) {
+            tempawformdata2Expected[item]=""
+          }
+        })
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
     }
   })
-  let tempawformdata=tempawschema.properties
-
-
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if (
-      cacheprops.get(ev_id) != null &&
-      cacheprops.get(ev_id).props &&
-      cacheprops.get(ev_id).props.primaryprops &&
-      cacheprops.get(ev_id).props.primaryprops.data &&
-      cacheprops.get(ev_id).props.primaryprops.data.name &&
-      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
-    ) {
-
-      
-      // console.log("cacheprops set.....1/1", cacheprops);
-      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // awformdata.value = awformData.props;
-      awformdata.value = awformData;
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-      hasAWInfo.value = true;
-    } //新的aw拖入modeler
-    else {
-      // console.log("cacheprops set.....2/2", cacheprops);
-      currentElementMap.set(ev_id, {
+         currentElementMap.set(ev_id, {
         props: { primaryprops: {aw:tempformdata2 ,data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
         props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
       });
-      // console.log("cacheprops set.....2/3    .....", cacheprops);
-      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
-    }
+    
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   else {
     //获取epected的
-    // console.log("cacheprops set.....3/3", cacheprops);
-    let tempexpected;
-    
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.primaryprops &&
+      currentElementMap.get(ev_id).props.primaryprops.data
+    ) {
+      if(
+        currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
-    ) {
-      
-      // console.log(
-      //   "expected in handler:",
-      //   currentElementMap.get(ev_id).props.expectedprops
-      // );
-      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
-      // console.log(tempexpected);
-      
-    } else {
-      let tempawformdata2Expected:any = generateObj(awformdataExpected);
-      let tempawschemaExpected:any = generateObj(awschemaExpected);
+      ){
 
-          let formdataKeys  = Object.keys(tempawformdata2Expected)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempawformdata2Expected[item]=""
-    }
-  })
+
+        
       console.log(tempawformdata2Expected,awformdataExpected.value);
       let props=cacheprops.get(ev_id).props.primaryprops
       // awformdataExpected.value!=tempawformdata2Expected
       currentElementMap.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+          primaryprops: {aw:tempformdata2 , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawformdata2Expected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+          primaryprops: {aw:tempformdata2 , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawformdata2Expected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-    }
-    // console.log(" 2/1-1 : tempexpected", tempexpected);
-    // console.log('cacheprops set.....2/2', cacheprops)
-    if (typeof tempexpected != "undefined") {
-      console.log( awformdataExpected.value);
-      let tempawschemaExpected : any = tempexpected.schema;
-      let tempformdataExpected2: any = generateObj(awformdataExpected);
-       let formdataKeys=Object.keys(tempformdata2)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempformdata2[item]=""
-    }
-  })
-      // console.log(
-      //   "awschemaexpected:",
-      //   awschemaExpected,
-      //   "tempformdata2Expected ",
-      //   tempformdata2Expected
-      // );
-      let props=cacheprops.get(ev_id).props.expectedprops
-      currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, schema: tempawschemaExpected, data:tempformdataExpected2 },
-        },
+      }else{
+        currentElementMap.set(ev_id, {
+        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
-        props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
-        },
-      }); 
-      
-
-    } //未设置expected，只存primary
-    else {
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // console.log("correct");
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-      cacheprops.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-    }
+        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
+      })
+      }
+    } 
   }
 
   //Draw
@@ -936,10 +878,9 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
     cell.resize(maxX, maxY - 10);
   }
-
-  // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
+  clearAw()
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -955,7 +896,6 @@ const subAttributes=(data:any)=>{
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
-  console.log(globalformData.value);
   
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -1036,6 +976,8 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
+
+  
   onCloseDrawer();
   // message.success(t('component.message.saveSuccess'));
 }
@@ -1130,7 +1072,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
-        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1437,6 +1378,9 @@ onBeforeRouteLeave((to,form,next) => {
   }
 
 })
+
+
+
 
 
 
@@ -2097,7 +2041,6 @@ function handlerConfirmExpected() {
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-    debugger
   // let tempawschemaExpected = generateObj(awschemaExpected);
   // let tempformdata2Expected = generateObj(awformdataExpected);
   

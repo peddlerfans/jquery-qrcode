@@ -30,6 +30,7 @@ export default {
     total: '共 {total} 条数据',
     required: "必填",
     returnType: "返回类型",
+    unrequired: '非必填',
     name: '名称',
     description: '描述',
     tags: '标签',

@@ -26,6 +26,7 @@ export default {
     total: 'total of {total}',
 
     required: 'Required',
+    unrequired: 'Not required',
     name: 'Name',
     returnType: "returnType",
     description: 'Description',
