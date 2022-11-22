@@ -52,15 +52,19 @@ let treeData:any = ref([])
 // 获取后台的树形数据
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
+console.log(rst);
 
 
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
+  console.log(treedatas);
+  
   let treedatasss=addKey(treedatas)
-  topTreedata[0].children=[...treedatasss];
+  // topTreedata[0].children=[...treedatasss];
   // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
-  treeData.value=[...topTreedata]
+  // treeData.value=[...topTreedata]
+  treeData.value=treedatasss
   // rightClick()
   
 }
@@ -703,14 +707,19 @@ function objToArr(obj:Object) {
       if (_.isObject(obj)) {
         // let i: keyof any
         for (var i in obj) {
-          if(i==""){
-            i="1"
-          }
           var oo:any = {
             title: i,
             key:uuid(),
             children: objToArr(obj[i as keyof typeof objToArr])
           };
+          if(i==""){
+            i="/"
+            oo={
+            title: i,
+            key:uuid(),
+            children: objToArr(obj["" as keyof typeof objToArr])
+          }
+          }
           arr.push(oo);
         }
       }
@@ -745,6 +754,8 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
     let str=getPath(info.node.dataRef.title,treeData.value)
   
   str=str.substring(1,str.length)
+  console.log(str);
+  
   clickKey.path=str
   clickKey.dataRef=info.node.dataRef
   if(info.node.dataRef.children.length==0){
