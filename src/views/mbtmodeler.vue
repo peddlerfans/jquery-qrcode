@@ -1305,7 +1305,7 @@ async function saveMBT(route?: any) {
 
 function reloadMBT(route: any) {
   // console.log('reloadMBT, if id not reload......cacheprops/', cacheprops)
-  console.log(modeler.graph.getCell("4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
+  console.log(modeler.graph.getCell("b5be8d0b-4e29-4330-b45d-87b558e914c6"),'MBT@@@@@@@');
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
@@ -1495,7 +1495,7 @@ onMounted(() => {
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
         console.log(modeler.graph.getCell("4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
-        debugger
+
         if (value.modelDefinition.hasOwnProperty("props")) {
           const map = new Map(
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
