@@ -7,6 +7,7 @@ import MBTStore from '@/locales/lang/zh-CN/routes/MBTStore'
 import templateManager from "@/locales/lang/zh-CN/routes/templateManager";
 import layout from "@/locales/lang/zh-CN/layout";
 import dashboard from "@/locales/lang/zh-CN/routes/dashboard";
+import settings from '@/locales/lang/zh-CN/routes/settings'
 
 // const modulesFiles = require.context('./zh-CN', true, /\.ts$/);
 
@@ -19,5 +20,6 @@ export default {
   awModeler,
   MBTStore,
   templateManager,
-  dashboard
+  dashboard,
+  settings
 };

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, UnwrapRef, onMounted, nextTick, unref } from 'vue';
-import { FormProps, message  } from 'ant-design-vue';
+import { CascaderProps, FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
@@ -110,6 +110,54 @@ let editData=reactive<DataItem>({
   inputVisible: false,
   inputValue: '',
 })
+
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue = ref("")
+let selectoptions:any = ref([
+   {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+    
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+    console.log(selectedOptions);
+      let rst = await request.get("/api/templates/_tags", { params: { q: "category:static" } })
+      const targetOption = selectedOptions[0];
+      targetOption.loading = true
+        if (rst.length > 0) {
+          rst = rst.map((item: any) => ({ value: item, label: item }))
+          targetOption.children = rst
+        }
+        targetOption.loading = false;
+        selectoptions.value = [...selectoptions.value];
+    };
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }  
+  selectvalue.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
+
+
   // 点击修改meta的方法
 const updMeta=async (data:any)=>{
   let rst=await request.put(`/api/templates/${data._id}`,data)
@@ -315,17 +363,21 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-mentions v-model:value="formState.search"  split=""
-               :placeholder="$t('awModeler.inputSearch1')"
-               
-               >
-               <a-mentions-option value="tags:" >
-                 tags:             
-               </a-mentions-option>
-               <a-mentions-option value="name:" >
-                 name:             
-               </a-mentions-option>
-             </a-mentions>
+
+              <a-input v-model:value="formState.search"
+              :placeholder="$t('awModeler.inputSearch1')"
+              @change="inputChange"
+              ref="searchInput"
+              >
+              </a-input>
+              <a-cascader
+              v-if="cascder"
+              :load-data="loadData"
+              v-model:value="selectvalue"
+              placeholder="Please select"
+              :options="selectoptions"
+              @change="onSelectChange"
+              ></a-cascader>
             </a-col>
 
             <a-col :span="4">
