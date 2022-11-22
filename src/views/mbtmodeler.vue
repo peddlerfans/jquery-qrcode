@@ -13,6 +13,8 @@ import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
+import  dagre from 'dagre';
+// import * as dagre from 'dagre';
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
 import {
   getTemplate,
@@ -62,7 +64,41 @@ import "./componentTS/ace-config";
 const { t } = useI18n();
 
 window.joint = joint;
+ const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions= 
+         {
+            dagre: dagre,
+            graphlib: dagre.graphlib,
+            setVertices: true,
+            setLabels: true,            
+            nodeSep: 50,
+            edgeSep: 80,
+            rankDir: 'TB'
 
+        };
+        // rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        // interface LayoutOptions {
+        //     dagre?: any;
+        //     graphlib?: any;
+        //     align?: 'UR' | 'UL' | 'DR' | 'DL';
+        //     rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        //     ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+        //     nodeSep?: number;
+        //     edgeSep?: number;
+        //     rankSep?: number;
+        //     marginX?: number;
+        //     marginY?: number;
+        //     resizeClusters?: boolean;
+        //     clusterPadding?: dia.Padding;
+        //     setPosition?: (element: dia.Element, position: dia.BBox) => void;
+        //     setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+        //     setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+        //     debugTiming?: boolean;
+        //     exportElement?: (element: dia.Element) => Node;
+        //     exportLink?: (link: dia.Link) => Edge;
+        //     // deprecated
+        //     setLinkVertices?: boolean;
+        // }
+        
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -2812,6 +2848,29 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 const softwrap=true
+
+
+function relayout(){
+  modeler.paper.freeze();
+
+        modeler.graph.getLinks().forEach(link=>{
+          link.router('normal');
+          link.connector('jumpover');
+
+          
+        })
+
+
+        joint.layout.DirectedGraph.layout(modeler.graph, MBTLayoutOptions);
+        
+        modeler.paper.fitToContent({
+            padding: 50,
+            allowNewOrigin: 'any',
+            useModelGeometry: true
+        });
+
+        modeler.paper.unfreeze();
+}
 </script>
 
 <template>
@@ -2834,6 +2893,11 @@ const softwrap=true
             <span style="margin-left: 5px">
               <a-button danger @click="reloadMBT(route)">
                 {{ $t("layout.multipleTab.reload") }}
+              </a-button>
+            </span>
+            <span style="margin-left: 5px">
+              <a-button danger @click="relayout()">
+               Re-Layout
               </a-button>
             </span>
           </a-button-group>
