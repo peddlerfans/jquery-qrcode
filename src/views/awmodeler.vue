@@ -52,17 +52,21 @@ let treeData:any = ref([])
 // 获取后台的树形数据
 const queryTree=async ()=>{
   let rst=await request.get('/api/hlfs/_tree')
+console.log(rst);
 
 
   //声明一个空数组，将后台的对象push
   let topTreedata=[{title:'/',key:0,children:<any>[],isLeaf:false}]
   let treedatas=objToArr(rst)
-  let treedatasss=addKey(treedatas)
-  topTreedata[0].children=[...treedatasss];
-  // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
-  treeData.value=[...topTreedata]
-  // rightClick()
+  console.log(treedatas);
   
+  let treedatasss=addKey(treedatas)
+  // topTreedata[0].children=[...treedatasss];
+  // topTreedata[0].children=JSON.parse(JSON.stringify(addKey(delNode(treedatas))));
+  // treeData.value=[...topTreedata]
+  treeData.value=treedatasss
+  // rightClick()
+
 }
 // 若树节点无数据增加点击事件
 // 获取左侧区域的dom
@@ -75,11 +79,11 @@ onMounted(() => {
   // let tbody=tabledom.value.childNodes[0].childNodes[0].childNodes[1].childNodes[1].childNodes[1].childNodes[0].childNodes[0].childNodes[2]
    query()
    queryTree()
-}) 
+})
 // 切换查询方式
 let checked=ref(false)
 const checkquery=()=>{
-  checked.value!=checked.value  
+  checked.value!=checked.value
 }
 const instance=getCurrentInstance()
 // 表单的数据
@@ -96,7 +100,7 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {};
 // 模态窗数据
 const visible = ref<boolean>(false);
 const showModal = () => {
-  visible.value = true;      
+  visible.value = true;
 };
 
 let searchInput = ref()
@@ -168,7 +172,7 @@ const closemodel = () => {
       {
         value: 'float',
         label: 'float',
-      },  
+      },
       {
         value: 'boolean',
         label: 'boolean',
@@ -221,7 +225,7 @@ let modelstates = ref<ModelState>({
   name: '',
   description: '',
   template: "",
-  template_en:"", 
+  template_en:"",
   _id: "",
   params:[],
   tags:[]
@@ -251,8 +255,8 @@ const clear = () => {
     returnTypeinput: '',
   returnTypevisible : false
   }
-    states.tags = []; 
-    
+    states.tags = [];
+
     (instance?.refs.refForm as any).resetFields()
 
 }
@@ -435,7 +439,7 @@ const isValidation=(record:any):any=>{
 }
 const showValidationError=(record:any):any=>{
   return {
-    
+
     onMouseenter:()=>{
       // rowsDom.forEach((item:any)=>{
         if(record.validationError){
@@ -444,7 +448,7 @@ const showValidationError=(record:any):any=>{
           return message.error(record.validationError,3)
       }
       // })
-      
+
     }
   }
 }
@@ -459,8 +463,8 @@ let checkName = async (_rule: Rule, value: string) => {
   }else if(!reg.test(value) && !reg1.test(value)){
       return Promise.reject(t('component.message.hefaName'))
   }else{
-    let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-      if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
         // message.error("Duplicate name")
         // modelstates.value.name=""
         return Promise.reject(t('component.message.depName'))
@@ -475,27 +479,21 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('component.message.emptyDescription'))
   }else  {
-    // if(!reg.test(value)){
-    //   return Promise.reject('The AW description is not standardized')
-    // }else{
-    //   if(modelstates.value._id){
-    //   return Promise.resolve()
-    // }else{
-      let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
-      
-      if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
+      let rst=await request.get("/api/hlfs",{params:{search:value}})
+
+      if(rst.data && rst.data.length>0 && rst.data[0].description==value){
         return Promise.reject(t('component.message.dupDescription'))
       }else{
-       
+
     return Promise.resolve();
       }
     // }
     // }
 
   }
-  
-} 
-let checktem = async (_rule: Rule, value: string) => { 
+
+}
+let checktem = async (_rule: Rule, value: string) => {
   // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
@@ -531,7 +529,7 @@ let states = reactive<statesTs>({
 });
 
 const handleClose = (removedTag: string) => {
-  
+
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
   states.tags = tags;
 };
@@ -552,7 +550,7 @@ const handleInputConfirm = () => {
     tags,
     inputVisible: false,
     inputValue: '',
- });  
+ });
 }
 
     // 删除功能
@@ -563,7 +561,7 @@ const confirm =async (obj:any) => {
   }else{
      await request.delete(`/api/hlfs/${deleteId}`)
   }
-  
+
   tableData.value.forEach((e:any,index:number,array:any)=>{
     if(e.name==obj.name){
       delete array[index]
@@ -703,14 +701,19 @@ function objToArr(obj:Object) {
       if (_.isObject(obj)) {
         // let i: keyof any
         for (var i in obj) {
-          if(i==""){
-            i="1"
-          }
           var oo:any = {
             title: i,
             key:uuid(),
             children: objToArr(obj[i as keyof typeof objToArr])
           };
+          if(i==""){
+            i="/"
+            oo={
+            title: i,
+            key:uuid(),
+            children: objToArr(obj["" as keyof typeof objToArr])
+          }
+          }
           arr.push(oo);
         }
       }
@@ -743,8 +746,10 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
     await query()
   }else{
     let str=getPath(info.node.dataRef.title,treeData.value)
-  
+
   str=str.substring(1,str.length)
+  console.log(str);
+  
   clickKey.path=str
   clickKey.dataRef=info.node.dataRef
   if(info.node.dataRef.children.length==0){
@@ -756,7 +761,7 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
   await query({q:`path:${str}`,search:''})
   }
   }
-  
+
 };
 
 // 获取点击所在节点的整个路径
@@ -807,7 +812,7 @@ const getchildKey = (childs: any, findKey: string): any => {
 }
 
 // 递归查询父节点children
-const getTreeParentChilds = (childs: any, findKey: any): any => {  
+const getTreeParentChilds = (childs: any, findKey: any): any => {
    let parentChilds = []
    for (let i = 0, len = childs.length; i < len; i++) {
      let item = childs[i]
@@ -846,7 +851,7 @@ const getTreeDataByItem=(childs:any, findKey: any):any=> {
 const expandedKeys = ref<(string | number)[]>([]);
  const autoExpandParent = ref<boolean>(false);
 const searchValues = ref<string>('');
-watch(searchValues, value => {  
+watch(searchValues, value => {
       if(value.length != 0){
         const expanded = treeData.value.map((item: any) => {
           if (item.title.indexOf(value) == -1) {
@@ -872,7 +877,7 @@ const onExpand = (keys: any) => {
 // 失去焦点，真正修改树节点的地方
 const onchangtitle =async (data: any) => {
   let nowNode=getTreeDataByItem(treeData.value,data)
-  
+
   let parentchild=getTreeParentChilds(treeData.value,data)
   if(updTreedata.value){
     let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
@@ -880,7 +885,7 @@ const onchangtitle =async (data: any) => {
     message.warning(`${t('awModeler.tip1')} ${updTreedata.value}`)
     return
   }else{
-    
+
     let str=getPath(nowNode.title,treeData.value)
   str=str.substring(1,str.length)
   // 将新输入的值拼接到newPath
@@ -889,7 +894,7 @@ const onchangtitle =async (data: any) => {
   let pathnew=newStr+updTreedata.value
   await request.post("/api/hlfs/_rename?force=true",{path:str,newPath:pathnew})
   nowNode.title=updTreedata.value
-  }  
+  }
   }else{
     nowNode.title=nowNode.title
   }
@@ -997,7 +1002,7 @@ const pushSib=async(arr:Array<any>, key:string,length:any)=> {
           if (arr[s].children == undefined) {
             arr[s].children = [];
             arr.push(obj);
-            
+
           } else {
             arr.push(obj);
           }
@@ -1016,15 +1021,15 @@ const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
   let nowNode = getTreeDataByItem(treeData.value, key)
   let parentNode=getTreeParentChilds(treeData.value,key)
-  
-  
+
+
   // let rst=getTreeParentChilds(treeData.value,key)
   // rst.push({...topTree.value})
   let str = getPath(nowNode.title, treeData.value)
   str = str.substring(1, str.length)
   console.log(str.indexOf('/'));
-  
-  
+
+
   if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
   let newStr=str.substring(0,newStrIndex+1)
@@ -1038,7 +1043,7 @@ const addSib=async(key:any)=>{
   // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
-  
+
   // queryTree()7
 }
 
@@ -1046,8 +1051,8 @@ const addSib=async(key:any)=>{
 const deltree = (key:string) => {}
 const confirmtree =async (key:any,title:string) => {
   let nowNode=getTreeDataByItem(treeData.value,key)
-  
-  let str=getPath(nowNode.title,treeData.value) 
+
+  let str=getPath(nowNode.title,treeData.value)
   str=str.substring(1,str.length)
   let delNode=getTreeParentChilds(treeData.value,key);
   for (var i = delNode.length - 1; i >= 0; i--) {
@@ -1105,9 +1110,51 @@ const addAwmodel= (key:any,title:string)=>{
 // 定义修改的变量
 let awupdate=ref("awmodeler")
 
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+}
+let copyData:any = ref ({
+  name:""
+})
+let copyVisible = ref<boolean>(false)
+const copyName = (record:any) => {
+    console.log(record);
+    
+    copyData.value.name = `${record.name}_clone`
+    copyData.value.description = `${record.description}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name,description:copyData.value.description}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    tableLoading.value=true
+    delete copyData.value._id
+    console.log(copyData.value);
+    
+   request.post('/api/hlfs',copyData.value).then((rst :any)=>{
+     tableData.value.push(copyData.value)
+    pagination.value.total +=1
+    let tableindex = tableData.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      tableData.value[tableindex]._id=rst._id
+      copyVisible.value = false
+      tableLoading.value=false
+    }
+
+   })
+   
+  })
+}
+
+
+
 </script>
 <template>
-  <main class="main"> 
+  <main class="main">
     <div ref="leftRef" style="height:100%" class="id">
       <SplitPanel>
         <template #left-content>
@@ -1146,14 +1193,14 @@ let awupdate=ref("awmodeler")
         </template>
         <a-dropdown :trigger="['contextmenu']" v-else>
           <template v-if="searchValues &&  title.includes(searchValues)">
-          <div style="color: #f50;"> 
+          <div style="color: #f50;">
             <span>{{title}}</span>
           </div>
         </template>
         <span v-else-if="!showEdit">{{ title }}</span>
         <a-input v-else="showEdit"
-              type="text" 
-              ref="updDom" 
+              type="text"
+              ref="updDom"
               v-model:value="updTreedata"
               @blur="onchangtitle(treeKey)"
               @keyup.enter="onchangtitle(treeKey)"
@@ -1180,7 +1227,7 @@ let awupdate=ref("awmodeler")
 
 
             <!-- </template> -->
-        
+
         <!-- </a-tooltip>   -->
       </template>
       </a-tree>
@@ -1192,7 +1239,7 @@ let awupdate=ref("awmodeler")
 <!--          <a-checkbox v-model:checked="checked" @change="checkquery"></a-checkbox>-->
 <!--        </a-col>-->
         <a-col :span="20">
-           <AForm  
+           <AForm
             layout="inline"
             class="search_form"
             :model="formState"
@@ -1226,7 +1273,7 @@ let awupdate=ref("awmodeler")
        </a-row>
           <!-- 模态窗 -->
            <div>
-    <a-modal v-model:visible="visible" 
+    <a-modal v-model:visible="visible"
     :title="modelstates._id? $t('common.updateText') : $t('common.saveText')"
     :width="1300"
     >
@@ -1248,7 +1295,7 @@ let awupdate=ref("awmodeler")
         name="name"
       >
       <!-- <template #suffix v-if="modelstates.name"><edit-outlined /></template> -->
-       
+
         <a-input v-model:value="modelstates.name"/>
         <!-- <span v-else>{{modelstates.name}}</span> -->
       </a-form-item>
@@ -1286,7 +1333,7 @@ let awupdate=ref("awmodeler")
         <a-tag v-else-if="tag.length==0"></a-tag>
         <a-tag v-else :closable="true" @close="handleClose(tag)">
           {{tag}}
-        </a-tag>  
+        </a-tag>
       </template>
           <a-input
             v-if="states.inputVisible"
@@ -1297,9 +1344,9 @@ let awupdate=ref("awmodeler")
             :style="{ width: '78px' }"
             @blur="handleInputConfirm"
             @keyup.enter="handleInputConfirm"
-            
+
           />
-        <a-tag v-else style="background: #fff; border-style: dashed" 
+        <a-tag v-else style="background: #fff; border-style: dashed"
         @click="showInput">
           <plus-outlined />
           {{ $t('common.newTag') }}
@@ -1443,7 +1490,7 @@ let awupdate=ref("awmodeler")
     :row-selection="rowSelection"
     :row-key="(record: any) => record"
       :loading="tableLoading"
-      :columns="columns" 
+      :columns="columns"
       :data-source="tableData"
       class="components-table-demo-nested"
       :pagination="pagination"
@@ -1512,7 +1559,7 @@ let awupdate=ref("awmodeler")
                 </a-tag>
               </span>
           </template>
-          
+
           <template v-else-if="column.key === 'action'">
               <span>
                   <a :href="'/#/awupdate/'+record._id+'/'+record.name+'/'+awupdate" >{{ $t('component.table.edit') }}</a>
@@ -1527,9 +1574,22 @@ let awupdate=ref("awmodeler")
                       <a >{{ $t('common.delText') }}</a>
                     </a-popconfirm>
                   </span>
+                  <span style="margin-left:0.625rem;" v-show="!record.editing">
+                    <a-button type="primary" size="small" @click="copyName(record)">{{ $t('component.table.clone') }}</a-button>
+                  </span>
           </template>
     </template>
       </a-table>
+        <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+          <a-form-item name="description" :label="$t('component.table.description')">
+            <a-input v-model:value="copyData.description"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
     </div>
         </template>
       </SplitPanel>
@@ -1562,12 +1622,12 @@ let awupdate=ref("awmodeler")
     display: flex;
     justify-content: center;
   margin-top: -1.25rem;
-      
+
   }
   .searchForm{
     margin-right: 0.75rem;
   }
- 
+
    </style>
   <style lang="less">
       .validationError{

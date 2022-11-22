@@ -26,6 +26,7 @@ export default {
     total: 'total of {total}',
 
     required: 'Required',
+    unrequired: 'Not required',
     name: 'Name',
     returnType: "returnType",
     description: 'Description',
@@ -44,7 +45,8 @@ export default {
     if: 'IF',
     then: 'Then',
     operator: 'Operator',
-
+    topics: 'Topics',
+    clone: 'clone',
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
 
@@ -78,6 +80,7 @@ export default {
     staticTemplate: 'Static',
     dynamicTemplate: 'Dynamic',
     codegenTemplate: 'Codegen',
-    account: 'Account'
+    account: 'Account',
+    webHook: 'Web Hook'
   }
 };

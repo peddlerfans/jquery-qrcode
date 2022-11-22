@@ -13,6 +13,8 @@ import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
 import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
+import  dagre from 'dagre';
+// import * as dagre from 'dagre';
 import { generateSchema, generateObj } from "@/utils/jsonschemaform";
 import {
   getTemplate,
@@ -59,10 +61,45 @@ import { useI18n } from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
 import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 import "./componentTS/ace-config";
+import { debug } from "console";
 const { t } = useI18n();
 
 window.joint = joint;
+ const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions= 
+         {
+            dagre: dagre,
+            graphlib: dagre.graphlib,
+            setVertices: true,
+            setLabels: true,            
+            nodeSep: 50,
+            edgeSep: 80,
+            rankDir: 'TB'
 
+        };
+        // rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        // interface LayoutOptions {
+        //     dagre?: any;
+        //     graphlib?: any;
+        //     align?: 'UR' | 'UL' | 'DR' | 'DL';
+        //     rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
+        //     ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+        //     nodeSep?: number;
+        //     edgeSep?: number;
+        //     rankSep?: number;
+        //     marginX?: number;
+        //     marginY?: number;
+        //     resizeClusters?: boolean;
+        //     clusterPadding?: dia.Padding;
+        //     setPosition?: (element: dia.Element, position: dia.BBox) => void;
+        //     setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+        //     setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+        //     debugTiming?: boolean;
+        //     exportElement?: (element: dia.Element) => Node;
+        //     exportLink?: (link: dia.Link) => Edge;
+        //     // deprecated
+        //     setLinkVertices?: boolean;
+        // }
+        
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -555,9 +592,7 @@ const globalschema = ref({
       anyOf: codegennames.value,
     },
   },
-});
-
-const awschema = ref({
+});let awschema = ref({
   title: "AW",
   description: "Configuration for the AW",
   type: "object",
@@ -631,159 +666,166 @@ const linkschema = ref({
     },
   },
 });
+// 清空awformData和awschema，，，的函数
+function clearAw(){
+
+  awschema = ref({
+  title: "AW",
+  description: "Configuration for the AW",
+  type: "object",
+  properties: {
+    _id: {
+      type: "string",
+      "ui:hidden": true,
+      required: true,
+    },
+    name: {
+      title: "AW Name",
+      type: "string",
+      readOnly: true,
+    },
+    description: {
+      title: "Description",
+      type: "string",
+      readOnly: true,
+      "ui:widget": "TextAreaWidget",
+    },
+    template: {
+      title: "Template",
+      type: "string",
+      readOnly: true,
+    },
+    tags: {
+      title: "Tags",
+      type: "string",
+      readOnly: true,
+    },
+  },
+});
+awschemaExpected = _.cloneDeep(awschema);
+  awformdata = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: ""
+  })
+  awformdataExpected = ref<Stores.awView>({
+  _id: "",
+  name: "",
+  description: "",
+  tags: "",
+  template: "",
+});
+}
 
 const onExpectedAW = () => {
-  awActiveKey.value = "2";
+  if(awformdata.value._id){
+    awActiveKey.value = "2";
   isDisabled.value = false;
+  }else{
+    return message.error("请先选择主要数据")
+  }
+  
 };
 
-function awhandlerSubmit() {
-  
-  
-  
+// 接受传递重新选择的aw
+let chooseAw:any = null
+let chooseAwExpected:any = null
+
+
+function awhandlerSubmit(awdata:any) {
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-
+  // debugger
   let tempformdata2: any = generateObj(awformdata);
-  
   let tempawschema: any = generateObj(awschema);
-  
-  
   let formdataKeys=Object.keys(tempformdata2)
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
     }
   })
-  let tempawformdata=tempawschema.properties
-
-
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if (
-      cacheprops.get(ev_id) != null &&
-      cacheprops.get(ev_id).props &&
-      cacheprops.get(ev_id).props.primaryprops &&
-      cacheprops.get(ev_id).props.primaryprops.data &&
-      cacheprops.get(ev_id).props.primaryprops.data.name &&
-      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
-    ) {
-
-      
-      // console.log("cacheprops set.....1/1", cacheprops);
-      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // awformdata.value = awformData.props;
-      awformdata.value = awformData;
+    if(chooseAw){
       currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-      hasAWInfo.value = true;
-    } //新的aw拖入modeler
-    else {
-      // console.log("cacheprops set.....2/2", cacheprops);
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {aw:tempformdata2 ,data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {aw:chooseAw ,data: tempformdata2, schema: tempawschema } },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: {aw:tempformdata2, data: tempformdata2, schema: tempawschema } },
+        props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
       });
-      // console.log("cacheprops set.....2/3    .....", cacheprops);
-      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
     }
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   else {
     //获取epected的
-    // console.log("cacheprops set.....3/3", cacheprops);
-    let tempexpected;
-    
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.primaryprops &&
+      currentElementMap.get(ev_id).props.primaryprops.data
+    ) {
+      let props=cacheprops.get(ev_id).props.primaryprops  
+      console.log(props);
+      if(
+        currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
-    ) {
-      
-      // console.log(
-      //   "expected in handler:",
-      //   currentElementMap.get(ev_id).props.expectedprops
-      // );
-      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
-      // console.log(tempexpected);
-      
-    } else {
-      let tempawformdata2Expected:any = generateObj(awformdataExpected);
-      let tempawschemaExpected:any = generateObj(awschemaExpected);
-
-          let formdataKeys  = Object.keys(tempawformdata2Expected)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempawformdata2Expected[item]=""
-    }
-  })
-      console.log(tempawformdata2Expected,awformdataExpected.value);
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // awformdataExpected.value!=tempawformdata2Expected
-      currentElementMap.set(ev_id, {
+      ){
+        
+        // let oldAwFormData: any = currentElementMap.get(ev_id).props.primaryprops.data
+        // let oldAwSchema: any = currentElementMap.get(ev_id).props.primaryprops.schema
+        // let oldAw: any = currentElementMap.get(ev_id).props.primaryprops.aw
+        let tempawformdata2Expected:any = currentElementMap.get(ev_id).props.expectedprops.data
+        let tempawschemaExpected:any = currentElementMap.get(ev_id).props.expectedprops.schema
+        let tempawAwExpected:any = currentElementMap.get(ev_id).props.expectedprops.aw
+      if(chooseAw){
+        currentElementMap.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawAwExpected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-    }
-    // console.log(" 2/1-1 : tempexpected", tempexpected);
-    // console.log('cacheprops set.....2/2', cacheprops)
-    if (typeof tempexpected != "undefined") {
-      console.log( awformdataExpected.value);
-      let tempawschemaExpected : any = tempexpected.schema;
-      let tempformdataExpected2: any = generateObj(awformdataExpected);
-       let formdataKeys=Object.keys(tempformdata2)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempformdata2[item]=""
-    }
-  })
-      // console.log(
-      //   "awschemaexpected:",
-      //   awschemaExpected,
-      //   "tempformdata2Expected ",
-      //   tempformdata2Expected
-      // );
-      let props=cacheprops.get(ev_id).props.expectedprops
-      currentElementMap.set(ev_id, {
+      }else{
+        currentElementMap.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, schema: tempawschemaExpected, data:tempformdataExpected2 },
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawAwExpected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:tempawAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
-      }); 
-      
-
-    } //未设置expected，只存primary
-    else {
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // console.log("correct");
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
       });
-      cacheprops.set(ev_id, {
-        props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-      });
-    }
+      }
+      }else{
+        if(chooseAw){
+          currentElementMap.set(ev_id, {
+            props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
+          });
+          cacheprops.set(ev_id, {
+            props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
+          })
+        }else{
+          currentElementMap.set(ev_id, {
+            props: { primaryprops: {aw:props.aw, data: tempformdata2, schema: tempawschema } },
+          });
+          cacheprops.set(ev_id, {
+            props: { primaryprops: {aw:props.aw, data: tempformdata2, schema: tempawschema } },
+          })
+        }
+      }
+    } 
   }
 
   //Draw
@@ -900,10 +942,9 @@ awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
     cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
     cell.resize(maxX, maxY - 10);
   }
-
-  // console.log('new cacheprops:   ', cacheprops)
   currentElementMap.clear();
   onCloseDrawer();
+  clearAw()
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -919,8 +960,7 @@ const subAttributes=(data:any)=>{
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
   onCloseDrawer();
-  console.log(globalformData.value);
-  
+  clearAw()
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
@@ -945,6 +985,7 @@ function globalhandlerSubmit(data?:any) {
 }
 
 function linkhandlerSubmit() {
+  // console.log(modeler.graph.getCell("4d53c22es-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
   if (linkData.value.label) {
@@ -1000,6 +1041,8 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
+
+  
   onCloseDrawer();
   // message.success(t('component.message.saveSuccess'));
 }
@@ -1094,7 +1137,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     rst = await request
       .get(url + "/" + id)
       .then((response) => {
-        debugger
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
@@ -1121,7 +1163,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             //read resources info from backend, todo
           }
           mbtCache = response; //should work on here
-          console.log(123);
+          console.log(mbtCache);
           
           
           localStorage.setItem(
@@ -1263,6 +1305,7 @@ async function saveMBT(route?: any) {
 
 function reloadMBT(route: any) {
   // console.log('reloadMBT, if id not reload......cacheprops/', cacheprops)
+  console.log(modeler.graph.getCell("4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
@@ -1290,13 +1333,21 @@ function reloadMBT(route: any) {
       let cells: any[]=[]
       let newData:any[]=[]
       modeler.graph.getCells().forEach((item: any) => {
+        if(item.id== '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a'){console.log ('+++++',item)}
         if (item.attributes.type == "standard.HeaderedRectangle") {
+         
+          
           graphIds.push(item.id);
+          
+          
           if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
               cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:true})
               newData.push(cacheprops.get(item.id).props.primaryprops)
             sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
             if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
+        //       if(item.id=='4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a' || item.id=='637732da56e578e7c9b3e301'){
+        //     debugger
+        // }
               cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:false})
               newData.push(cacheprops.get(item.id).props.expectedprops)
               sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
@@ -1304,11 +1355,11 @@ function reloadMBT(route: any) {
           }
         }
       });
+      console.log(graphIds);
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       // console.log("...sqlstr:", sqlstr);
       let tempdata = awqueryByBatchIds(sqlstr);
-      // console.log(tempdata);
       console.log(newData,"+++++",cells);
       tempdata.then((aws) => {
         const awById = _.groupBy(aws, "_id")
@@ -1321,6 +1372,8 @@ function reloadMBT(route: any) {
       })
       
       cells.forEach((cell:{item:any,id:string,isStep:boolean})=>{
+        
+        
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
         let aw:any={template:"",description:""}
@@ -1404,6 +1457,9 @@ onBeforeRouteLeave((to,form,next) => {
 
 
 
+
+
+
 // 判断是否自由编辑aw模式
 let isAwModel=ref(true)
 onMounted(() => {
@@ -1438,6 +1494,8 @@ onMounted(() => {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
+        console.log(modeler.graph.getCell("4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
+        debugger
         if (value.modelDefinition.hasOwnProperty("props")) {
           const map = new Map(
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
@@ -1503,6 +1561,7 @@ onMounted(() => {
   } else {
     res = mbtquery();
     res.then((value: any) => {
+      
       if (
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo")
@@ -1515,10 +1574,13 @@ onMounted(() => {
           );
           cacheprops = map;
         }
+        
       }
     });
   }
-
+  // ['87506c30-86d6-4edd-b736-9c5083528e2b', '692238fc-d777-4bbb-95b5-e20c93ea3b8a', '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a']
+  
+  
   /**
    * Drag & Drop stencil to modeler paper
    */
@@ -2002,6 +2064,7 @@ function showGlobalInfo() {
 }
 
 function showAWInfo(rowobj: any) {
+  chooseAw = rowobj
   awschema.value.properties = {
     _id: {
       type: "string",
@@ -2030,6 +2093,8 @@ function showAWInfo(rowobj: any) {
       readOnly: true,
     },
   };
+  console.log(rowobj);
+  
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
@@ -2057,147 +2122,111 @@ function showAWInfo(rowobj: any) {
     // });
   }
 }
-function handlerConfirmExpected() {
+function handlerConfirmExpected(data:any , schema:any) {
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
-    debugger
-  // let tempawschemaExpected = generateObj(awschemaExpected);
-  // let tempformdata2Expected = generateObj(awformdataExpected);
-  
-  let tempawschema:any = generateObj(awschema);
-  let tempformdata2: any = generateObj(awformdata);
-  let tempawschemaExpected : any = generateObj(awschemaExpected);
-  let tempformdataExpected2: any = generateObj(awformdataExpected);
-  let expectedformdataKeys=Object.keys(tempformdataExpected2)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!expectedformdataKeys.includes(item)) {
-      tempformdataExpected2[item]=""
-    }
-  })
+    let tempformdata2: any = generateObj(awformdata);
+  let tempawschema: any = generateObj(awschema);
     let formdataKeys=Object.keys(tempformdata2)
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
     }
   })
-
+  let expectedformdataKeys=Object.keys(data)
+  Object.keys(schema.properties).forEach((item: any) => {
+    if (!expectedformdataKeys.includes(item)) {
+      data[item]=""
+    }
+  })
     //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if (
-      cacheprops.get(ev_id) != null &&
-      cacheprops.get(ev_id).props &&
-      cacheprops.get(ev_id).props.primaryprops &&
-      cacheprops.get(ev_id).props.primaryprops.data &&
-      cacheprops.get(ev_id).props.primaryprops.data.name &&
-      cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
-    ) {
-      // console.log("cacheprops set.....1/1", cacheprops);
-      let awformData = cacheprops.get(ev_id).props.primaryprops.data;
-      let props=cacheprops.get(ev_id).props.primaryprops
-      // awformdata.value = awformData.props;
-      awformdata.value = awformData;
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
-      });
-      hasAWInfo.value = true;
-    } //新的aw拖入modeler
-    else {
-      // console.log("cacheprops set.....2/2", cacheprops);
-      currentElementMap.set(ev_id, {
-        props: { primaryprops: { data: tempformdata2, schema: tempawschema },
-        expectedprops: { schema: tempawschemaExpected, data: tempformdataExpected2 }
 
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: { data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempformdataExpected2 }
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: data, schema: schema },
         },
       });
-      // console.log("cacheprops set.....2/3    .....", cacheprops);
-      // cacheprops.set(ev_id, { 'expectedprops': tempformdata });
+      } //新的aw拖入modeler
+    else {
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+        },
+      });
     }
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
   else {
     //获取epected的
     // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
-
+    let props=cacheprops.get(ev_id).props.primaryprops
     if (
       currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
     ) {
-      // console.log(
-      //   "expected in handler:",
-      //   currentElementMap.get(ev_id).props.expectedprops
-      // );
-      tempexpected = currentElementMap.get(ev_id).props.expectedprops;
+      
+      let propsExpect=cacheprops.get(ev_id).props.expectedprops
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      } else {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+          expectedprops: {...propsExpect, schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+         expectedprops: {...propsExpect, schema: schema, data: data },
+        },
+      });
+      };
     } else {
-    let tempawformdata2Expected:any = generateObj(awformdataExpected);
-      let tempawschemaExpected:any = generateObj(awschemaExpected);
-
-          let formdataKeys  = Object.keys(tempawformdata2Expected)
-  Object.keys(tempawschemaExpected.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempawformdata2Expected[item]=""
-    }
-  })
-  let props=cacheprops.get(ev_id).props.primaryprops
-      currentElementMap.set(ev_id, {
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { schema: tempawschemaExpected, data: tempawformdata2Expected },
+          primaryprops: {...props},
+          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
         },
       });
       cacheprops.set(ev_id, {
         props: {
-          primaryprops: {...props, data: tempformdata2, schema: tempawschema },
-          expectedprops: { data: tempawformdata2Expected, schema: tempawschemaExpected },
+          primaryprops: {...props},
+         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
         },
       });
-    }
-    // console.log(" 2/1-1 : tempexpected", tempexpected);
-    // console.log('cacheprops set.....2/2', cacheprops)
-    if (typeof tempexpected != "undefined") {
-   let props=cacheprops.get(ev_id).props.expectedprops
-   let propsPrimary=cacheprops.get(ev_id).props.primaryprops
-      currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {...propsPrimary, data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, schema: tempawschemaExpected, data: tempformdataExpected2 },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {...propsPrimary, data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
-        },
-      });
-    } //未设置expected，只存primary
-    else {
-      // console.log("correct");
-      let props=cacheprops.get(ev_id).props.expectedprops
-         let propsPrimary=cacheprops.get(ev_id).props.primaryprops
-      currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: { ...propsPrimary, data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: { ...propsPrimary, data: tempformdata2, schema: tempawschema },
-          expectedprops: {...props, data: tempformdataExpected2, schema: tempawschemaExpected },
-          },
-      });
+      }
     }
   }
-
-  console.log(currentElementMap.get(ev_id).props.expectedprops);
   
     let tempaw = {};
   let maxX = 180;
@@ -2312,6 +2341,7 @@ function handlerConfirmExpected() {
   message.success(t("component.message.saveSuccess"));
 }
 function showAWExpectedInfo(rowobj: any) {
+  chooseAwExpected=rowobj
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
   awformdataExpected.value.description = rowobj.description;
@@ -2812,6 +2842,29 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 const softwrap=true
+
+
+function relayout(){
+  modeler.paper.freeze();
+
+        modeler.graph.getLinks().forEach(link=>{
+          link.router('normal');
+          link.connector('jumpover');
+
+          
+        })
+
+
+        joint.layout.DirectedGraph.layout(modeler.graph, MBTLayoutOptions);
+        
+        modeler.paper.fitToContent({
+            padding: 50,
+            allowNewOrigin: 'any',
+            useModelGeometry: true
+        });
+
+        modeler.paper.unfreeze();
+}
 </script>
 
 <template>
@@ -2834,6 +2887,11 @@ const softwrap=true
             <span style="margin-left: 5px">
               <a-button danger @click="reloadMBT(route)">
                 {{ $t("layout.multipleTab.reload") }}
+              </a-button>
+            </span>
+            <span style="margin-left: 5px">
+              <a-button danger @click="relayout()">
+               Re-Layout
               </a-button>
             </span>
           </a-button-group>
@@ -3076,7 +3134,7 @@ const softwrap=true
                         <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit()">{{
+                        <a-button type="primary" @click="awhandlerSubmit(awformdata)">{{
                           $t("common.submitText")
                         }}</a-button>
                       </span>
@@ -3205,7 +3263,7 @@ const softwrap=true
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerConfirmExpected()"
+                        <a-button type="primary" @click="handlerConfirmExpected(awformdataExpected,awschemaExpected)"
                           >Confirm</a-button
                         >
                       </span>

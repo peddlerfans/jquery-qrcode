@@ -459,6 +459,42 @@ onMounted(() => {
   query()
 })
 
+
+let tableloading=ref(false)
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+}
+let copyData:any = ref ({
+  name:""
+})
+let copyVisible = ref<boolean>(false)
+const copyName = (record:any) => {
+
+    copyData.value.name = `${record.name}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    tableloading.value=true
+    delete copyData.value._id
+   request.post('/api/templates',copyData.value).then((rst :any)=>{
+     tableData.value.push(copyData.value)
+    // pagination.value.total +=1
+    let tableindex = tableData.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      tableData.value[tableindex]._id=rst._id
+      copyVisible.value = false
+      tableloading.value=false
+    }
+
+   })
+   
+  })
+}
 </script>
 
 
@@ -569,7 +605,10 @@ onMounted(() => {
     <!-- ######################### -->
     <!-- List of CodeGen templates -->
     <!-- ######################### -->
-    <a-table :columns="columns1" :data-source="tableData" bordered :pagination="pagination">
+    <a-table :columns="columns1" 
+    :data-source="tableData" bordered 
+    :loading="tableloading"
+    :pagination="pagination">
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
@@ -653,15 +692,21 @@ onMounted(() => {
                             @cancel="cancel">
                 <a>{{ $t('common.delText') }}</a>
               </a-popconfirm>
-
-
             </span>
-
+              <span style="margin-left:0.625rem;" v-show="!record.editing">
+            <a-button type="primary" size="small" @click="copyName(record)">{{ $t('component.table.clone') }}</a-button>
+          </span>
           </div>
         </template>
       </template>
     </a-table>
-
+       <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
 
 
   </main>
