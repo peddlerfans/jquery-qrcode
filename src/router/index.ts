@@ -295,6 +295,20 @@ export const routes: RouteRecordRaw[] = [
       }
       next()
     }
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Layout,
+    meta: { title:'Settings',icon:ExportOutlined },
+    children: [
+      {
+        path: 'webHook',
+        name: 'webHook',
+        component: () => import('@/views/settings/webHook.vue'),
+        meta: { title: 'component.route.webHook', icon: FieldBinaryOutlined, keepAlive: true }
+      }
+    ]
   }
 ]
 
