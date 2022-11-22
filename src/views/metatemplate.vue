@@ -192,9 +192,9 @@ const save = (record: any) => {
     showAddFactorBtn.value=true
     if(record._id){
     await updMeta(record)
-  }else{  
+  }else{
      let rst= await request.post("/api/templates", record)
-      let tableindex = tableData.value.indexOf(record)
+    let tableindex = tableData.value.indexOf(record)
     tableData.value[tableindex]._id=rst._id
     tableloading.value=false
       }
@@ -346,18 +346,40 @@ let rules:Record<string,Rule[]>={
   name:[{required:true,validator:checkName,trigger:'blur'}],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
-let copyData = reactive ({
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+}
+let copyData:any = ref ({
   name:""
 })
-const copyVisible = ref<boolean>(false)
+let copyVisible = ref<boolean>(false)
 const copyName = (record:any) => {
-    copyData.name = `${record.name}_copy`
-    copyVisible.value = true
 
+    copyData.value.name = `${record.name}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name}
+    copyVisible.value = true
 }
 const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    tableloading.value=true
+    delete copyData.value._id
+   request.post('/api/templates',copyData.value).then((rst :any)=>{
+    tableData.value.push(copyData.value)
+    let tableindex = tableData.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      tableData.value[tableindex]._id=rst._id
+      copyVisible.value = false
+      tableloading.value=false
+    }
 
+   })
+   
+  })
 }
+
 
 </script>
 
@@ -511,20 +533,20 @@ const copyOk=()=>{
               <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
             </a-popconfirm>
           </span>
-          <!-- <span style="margin-left:0.625rem;">
-            <a-button type="primary" size="small" @click="copyName(record)">copy</a-button>
-          </span> -->
+          <span style="margin-left:0.625rem;">
+            <a-button type="primary" size="small" @click="copyName(record)">clone</a-button>
+          </span>
         </div>
       </template>
     </template>
   </a-table>
-  <!-- <a-modal v-model:visible="copyVisible" title="Copy Modal" @ok="copyOk">
+  <a-modal v-model:visible="copyVisible" title="Copy Modal" @ok="copyOk">
       <AForm :model="copyData" ref="refCopy" :rules="copyRule">
           <a-form-item name="name">
             <a-input v-model:value="copyData.name"></a-input>
           </a-form-item>
       </AForm>
-    </a-modal> -->
+    </a-modal>
   </main>
 </template>
 
