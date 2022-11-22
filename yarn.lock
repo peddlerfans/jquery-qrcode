@@ -523,7 +523,7 @@
 
 "@types/dagre@^0.7.48":
   "integrity" "sha512-rF3yXSwHIrDxEkN6edCE4TXknb5YSEpiXfLaspw1I08grC49ZFuAVGOQCmZGIuLUGoFgcqGlUFBL/XrpgYpQgw=="
-  "resolved" "https://registry.npmjs.org/@types/dagre/-/dagre-0.7.48.tgz"
+  "resolved" "https://registry.npmmirror.com/@types/dagre/-/dagre-0.7.48.tgz"
   "version" "0.7.48"
 
 "@types/eslint-scope@^3.7.3":
