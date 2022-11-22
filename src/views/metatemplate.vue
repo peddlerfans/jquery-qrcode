@@ -8,6 +8,7 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import { useI18n } from "vue-i18n";
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
+import { RadarChart } from 'echarts/charts';
 // import { FormState } from './componentTS/awmodeler';
 let tableloading=ref(false)
 const { t } = useI18n()
@@ -345,8 +346,18 @@ let rules:Record<string,Rule[]>={
   name:[{required:true,validator:checkName,trigger:'blur'}],
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
+let copyData = reactive ({
+  name:""
+})
+const copyVisible = ref<boolean>(false)
+const copyName = (record:any) => {
+    copyData.name = `${record.name}_copy`
+    copyVisible.value = true
 
+}
+const copyOk=()=>{
 
+}
 
 </script>
 
@@ -500,11 +511,20 @@ let rules:Record<string,Rule[]>={
               <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
             </a-popconfirm>
           </span>
+          <!-- <span style="margin-left:0.625rem;">
+            <a-button type="primary" size="small" @click="copyName(record)">copy</a-button>
+          </span> -->
         </div>
       </template>
     </template>
   </a-table>
-      
+  <!-- <a-modal v-model:visible="copyVisible" title="Copy Modal" @ok="copyOk">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal> -->
   </main>
 </template>
 
