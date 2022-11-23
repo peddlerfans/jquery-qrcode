@@ -17,6 +17,7 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: 'component.route.dashboard', icon: HomeOutlined }
+
     }
   ]
 }
