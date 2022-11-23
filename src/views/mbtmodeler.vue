@@ -253,6 +253,7 @@ const onCloseDrawer = () => {
 ]
   linkData.value.label=""
   visible.value = false;
+  awActiveKey.value = "1";
 };
 
 /** Panel -> AW part, including a searching form and table */
@@ -701,7 +702,8 @@ awschemaExpected = _.cloneDeep(awschema);
 const onExpectedAW = () => {
   if(awformdata.value._id){
     awActiveKey.value = "2";
-  isDisabled.value = false;
+    isDisabled.value = false;
+    awquery("", true);  
   }else{
     return message.error("请先选择主要数据")
   }
@@ -713,11 +715,60 @@ let chooseAw:any = null
 let chooseAwExpected:any = null
 
 
-function awhandlerSubmit(awdata:any) {
+function awhandlerSubmit(data:any,schema:any) {
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
   leaveRouter.value = true
+  let awform1: any = generateObj(awformdata);
+  let awschema1: any = generateObj(awschema);
+  let awform2: any = generateObj(awformdataExpected);
+  let awschema2: any = generateObj(awschemaExpected);
+  
+
+  // if (isdata == "1") {
+  //   if (awformdataExpected.value._id) {
+  //     if (chooseAwExpected) {
+  //       if (chooseAw) {
+  //           currentElementMap.set(ev_id, {
+  //             props: {
+  //               primaryprops: {aw:chooseAw , data: data, schema: schema },
+  //               expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+  //             },
+  //           });
+  //           cacheprops.set(ev_id, {
+  //             props: {
+  //               primaryprops: {aw:chooseAw , data: data, schema: schema },
+  //               expectedprops: {aw:chooseAwExpected ,data: awform2, schema: awschema2 },
+  //             },
+  //           });
+  //       } else {
+  //         if (currentElementMap.get(ev_id).props.primaryprops) {
+  //           let prop = currentElementMap.get(ev_id).props.primaryprops.aw
+  //           currentElementMap.set(ev_id, {
+  //             props: {
+  //               primaryprops: {aw:prop , data: data, schema: schema },
+  //               expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+  //             },
+  //           });
+  //           cacheprops.set(ev_id, {
+  //             props: {
+  //               primaryprops: {aw:prop , data: data, schema: schema },
+  //               expectedprops: {aw:chooseAwExpected ,data: awform2, schema: awschema2 },
+  //             },
+  //           });
+  //         }
+  //       }
+  //     } else {
+        
+  //     }
+  //   }
+  // }
+
+
+
+
+
   // debugger
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
@@ -928,7 +979,228 @@ function awhandlerSubmit(awdata:any) {
   clearAw()
   message.success(t("component.message.saveSuccess"));
 }
+function handlerConfirmExpected(data:any , schema:any) {
+  leaveRouter.value = true
+    isAW.value = true;
+  isLink.value = false;
+  isGlobal.value = false;
+    let tempformdata2: any = generateObj(awformdata);
+  let tempawschema: any = generateObj(awschema);
+    let formdataKeys=Object.keys(tempformdata2)
+  Object.keys(tempawschema.properties).forEach((item: any) => {
+    if (!formdataKeys.includes(item)) {
+      tempformdata2[item]=""
+    }
+  })
+  let expectedformdataKeys=Object.keys(data)
+  Object.keys(schema.properties).forEach((item: any) => {
+    if (!expectedformdataKeys.includes(item)) {
+      data[item]=""
+    }
+  })
+    //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
+  if (currentElementMap.size == 0) {
 
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: data, schema: schema },
+        },
+      });
+      } //新的aw拖入modeler
+    else {
+      currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+        },
+      });
+    }
+  } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
+  else {
+    //获取epected的
+    // console.log("cacheprops set.....3/3", cacheprops);
+    let tempexpected;
+    console.log(cacheprops.get(ev_id));
+    
+    let props=cacheprops.get(ev_id).props.primaryprops
+    if (
+      currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.expectedprops &&
+      currentElementMap.get(ev_id).props.expectedprops.data
+    ) {
+      
+      let propsExpect=cacheprops.get(ev_id).props.expectedprops
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      } else {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+          expectedprops: {...propsExpect, schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+         expectedprops: {...propsExpect, schema: schema, data: data },
+        },
+      });
+      };
+    } else {
+      if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {...props},
+         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
+        },
+      });
+      }
+    }
+  }
+
+    let tempaw = {};
+  let maxX = 180;
+  let maxY = 150;
+  // let breaklineHeight = 120;
+  // let breaklineHeightExpected = 0;
+  let showheadtext = "";
+  let showbodytext = "";
+  let cell = modeler.graph.getCell(ev_id);
+  let isOneAW = true;
+     for (const [key, value] of Object.entries(
+    currentElementMap.get(ev_id).props.primaryprops.data
+  )) {
+    let obj = JSON.parse(`{"${key}":"${value}"}`);
+    Object.assign(tempaw, obj);
+    if (key == "template" || key == "description") {
+      showheadtext =
+        cacheprops.get(ev_id).props.primaryprops.data.template ||
+        cacheprops.get(ev_id).props.primaryprops.data.description;
+
+      if (showheadtext.length > 45) {
+        showheadtext = showheadtext.slice(0, 42) + " ...";
+      }
+      let sizeX = showheadtext.length * 2.5;
+
+      if (sizeX < 100 || sizeX > 150) sizeX = 160;
+      let sizeY = cacheprops.get(ev_id).props.primaryprops.data.description.length * 2.5;
+      // breaklineHeight = sizeY;
+      if (sizeY < 45) sizeY = 45;
+      if (sizeY > 135) sizeY = 150;
+
+      // console.log('sizex:', sizeX, '  sizey:', sizeY, ' , breaklineheight:', breaklineHeight);
+      maxX = maxX > sizeX ? maxX : sizeX;
+      maxY = maxY > sizeY ? maxX : sizeY;
+      break;
+    }
+  }
+  if (
+    currentElementMap.get(ev_id) &&
+    currentElementMap.get(ev_id).props &&
+    currentElementMap.get(ev_id).props.expectedprops
+  ) {
+    // console.log(" expected ");
+    isOneAW = false;
+    for (const [key, value] of Object.entries(
+      currentElementMap.get(ev_id).props.expectedprops.data
+    )) {
+      let obj = JSON.parse(`{"${key}":"${value}"}`);
+      Object.assign(tempaw, obj);
+      if (key == "template" || key == "description") {
+        showbodytext =
+          cacheprops.get(ev_id).props.expectedprops.data.template ||
+          cacheprops.get(ev_id).props.expectedprops.data.description;
+        let sizeX = showbodytext.length * 2.5;
+        if (showbodytext.length > 45) {
+          showbodytext = showbodytext.slice(0, 42) + " ...";
+        }
+        if (sizeX < 100 || sizeX > 150) sizeX = 160;
+        let sizeY =
+          cacheprops.get(ev_id).props.expectedprops.data.description.length * 2.5;
+        if (sizeY < 45) sizeY = 45;
+        if (sizeY > 135) sizeY = 150;
+        // breaklineHeightExpected = sizeY;
+        maxX = maxX > sizeX ? maxX : sizeX;
+        maxY = maxY > sizeY ? maxX : sizeY;
+        break;
+      }
+    }
+  } else {
+    // console.log("last else");
+    isOneAW = true;
+    showbodytext = "";
+  }
+    cell.attr(
+    "headerText/text",
+    joint.util.breakText(
+      showheadtext,
+      {
+        width: maxX,
+      },
+      { "font-size": 16 }
+    )
+  );
+
+  if (showbodytext.length > 0)
+    cell.attr(
+      "bodyText/text",
+      joint.util.breakText(
+        showbodytext,
+        {
+          width: maxX,
+        },
+        { "font-size": 16 }
+      )
+    );
+
+  if (isOneAW) {
+    cell.attr("header", { width: maxX, height: maxY * 0.5 });
+    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("bodyText/text", "");
+    cell.attr("body").transform = "matrix(0,0,0,0,0,0)";
+    cell.resize(maxX, maxY * 0.5 - 20);
+  } // For both primary and expected
+  else {
+    cell.attr("header", { width: maxX, height: maxY * 0.5 });
+    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
+    cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
+    cell.resize(maxX, maxY - 10);
+  }
+  currentElementMap.clear();
+  
+  onCloseDrawer();
+  message.success(t("component.message.saveSuccess"));
+}
 
 
 const subAttributes=(data:any)=>{
@@ -1045,16 +1317,27 @@ function handlerClearExpected() {
     cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
   ) {
     // console.log("success 2   awformdataExpected", awformdataExpected);
-
-    cacheprops.set(ev_id, {
-      props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+    if (chooseAw) {
+      cacheprops.set(ev_id, {
+      props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
     });
-    // console.log("succ3 ", cacheprops.get(ev_id).props);
 
     currentElementMap.set(ev_id, {
-      props: { primaryprops: { data: tempformdata2, schema: tempawschema } },
+      props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
     });
-  }
+    } else {
+      if (cacheprops.get(ev_id).props.primaryprops) {
+        let aw = cacheprops.get(ev_id).props.primaryprops.aw
+         cacheprops.set(ev_id, {
+      props: { primaryprops: {aw:aw, data: tempformdata2, schema: tempawschema } },
+    });
+
+    currentElementMap.set(ev_id, {
+      props: { primaryprops: {aw:aw, data: tempformdata2, schema: tempawschema } },
+    });
+      }
+    }
+  }  
   awActiveKey.value = "1";
   isDisabled.value = true;
 }
@@ -1287,7 +1570,6 @@ async function saveMBT(route?: any) {
 
 
 function reloadMBT(route: any) {
-
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
@@ -1317,7 +1599,11 @@ function reloadMBT(route: any) {
       modeler.graph.getCells().forEach((item: any) => {
         // if(item.id== '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a'){console.log ('+++++',item)}
         if (item.attributes.type == "standard.HeaderedRectangle") {
+         
+          
           graphIds.push(item.id);
+          
+          
           if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
               cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:true})
               newData.push(cacheprops.get(item.id).props.primaryprops)
@@ -1410,67 +1696,12 @@ onBeforeRouteLeave((to,form,next) => {
     next()
   }
 
-
-
-
-
-
-
-  // if(saveMbtData){
-  //   if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
-  //     Modal.confirm({
-  //       // title: 'Do you want to delete these items?',
-  //       icon: createVNode(ExclamationCircleOutlined),
-  //       content: t("MBTStore.leaveRouter"),
-  //       onOk() {
-  //         return new Promise<void>((resolve, reject) => {
-  //           next()
-  //           resolve()
-  //         }).catch(() => console.log('Oops errors!'));
-  //       },
-  //       // eslint-disable-next-line @typescript-eslint/no-empty-function
-  //       onCancel() {
-  //         next(false)
-  //       },
-  //     });
-  //   }else{
-  //     next()
-  //   }
-  // }else{
-  //   // console.log("++++++",getmbtData());
-  //   if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
-  //     // console.log(modeler.graph);
-      
-  //     // console.log(JSON.stringify(encatch) ,"+++++", JSON.stringify(getmbtData()));
-      
-  //     Modal.confirm({
-  //       // title: 'Do you want to delete these items?',
-  //       icon: createVNode(ExclamationCircleOutlined),
-  //       content: t("MBTStore.leaveRouter"),
-  //       onOk() {
-  //         return new Promise<void>((resolve, reject) => {
-  //           next()
-  //           resolve()
-  //         }).catch(() => console.log('Oops errors!'));
-  //       },
-  //       // eslint-disable-next-line @typescript-eslint/no-empty-function
-  //       onCancel() {
-  //         next(false)
-  //       },
-  //     });
-
-  // } 
-  // }
-
 })
 
 
 
-
-
-
 // 判断是否自由编辑aw模式
-let isAwModel=ref(true)
+let isAwModel=ref(false)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
@@ -2131,225 +2362,7 @@ function showAWInfo(rowobj: any) {
     // });
   }
 }
-function handlerConfirmExpected(data:any , schema:any) {
-  leaveRouter.value = true
-    isAW.value = true;
-  isLink.value = false;
-  isGlobal.value = false;
-    let tempformdata2: any = generateObj(awformdata);
-  let tempawschema: any = generateObj(awschema);
-    let formdataKeys=Object.keys(tempformdata2)
-  Object.keys(tempawschema.properties).forEach((item: any) => {
-    if (!formdataKeys.includes(item)) {
-      tempformdata2[item]=""
-    }
-  })
-  let expectedformdataKeys=Object.keys(data)
-  Object.keys(schema.properties).forEach((item: any) => {
-    if (!expectedformdataKeys.includes(item)) {
-      data[item]=""
-    }
-  })
-    //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
-  if (currentElementMap.size == 0) {
 
-      if (chooseAwExpected) {
-        currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
-          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
-          expectedprops: {aw:chooseAwExpected ,data: data, schema: schema },
-        },
-      });
-      } //新的aw拖入modeler
-    else {
-      currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
-        },
-      });
-    }
-  } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
-  else {
-    //获取epected的
-    // console.log("cacheprops set.....3/3", cacheprops);
-    let tempexpected;
-    let props=cacheprops.get(ev_id).props.primaryprops
-    if (
-      currentElementMap.get(ev_id) &&
-      currentElementMap.get(ev_id).props &&
-      currentElementMap.get(ev_id).props.expectedprops &&
-      currentElementMap.get(ev_id).props.expectedprops.data
-    ) {
-      
-      let propsExpect=cacheprops.get(ev_id).props.expectedprops
-      if (chooseAwExpected) {
-        currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
-        },
-      });
-      } else {
-        currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-          expectedprops: {...propsExpect, schema: schema, data: data },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-         expectedprops: {...propsExpect, schema: schema, data: data },
-        },
-      });
-      };
-    } else {
-      if (chooseAwExpected) {
-        currentElementMap.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-          expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
-        },
-      });
-      cacheprops.set(ev_id, {
-        props: {
-          primaryprops: {...props},
-         expectedprops: {aw:chooseAwExpected, schema: schema, data: data },
-        },
-      });
-      }
-    }
-  }
-
-    let tempaw = {};
-  let maxX = 180;
-  let maxY = 150;
-  // let breaklineHeight = 120;
-  // let breaklineHeightExpected = 0;
-  let showheadtext = "";
-  let showbodytext = "";
-  let cell = modeler.graph.getCell(ev_id);
-  let isOneAW = true;
-     for (const [key, value] of Object.entries(
-    currentElementMap.get(ev_id).props.primaryprops.data
-  )) {
-    let obj = JSON.parse(`{"${key}":"${value}"}`);
-    Object.assign(tempaw, obj);
-    if (key == "template" || key == "description") {
-      showheadtext =
-        cacheprops.get(ev_id).props.primaryprops.data.template ||
-        cacheprops.get(ev_id).props.primaryprops.data.description;
-
-      if (showheadtext.length > 45) {
-        showheadtext = showheadtext.slice(0, 42) + " ...";
-      }
-      let sizeX = showheadtext.length * 2.5;
-
-      if (sizeX < 100 || sizeX > 150) sizeX = 160;
-      let sizeY = cacheprops.get(ev_id).props.primaryprops.data.description.length * 2.5;
-      // breaklineHeight = sizeY;
-      if (sizeY < 45) sizeY = 45;
-      if (sizeY > 135) sizeY = 150;
-
-      // console.log('sizex:', sizeX, '  sizey:', sizeY, ' , breaklineheight:', breaklineHeight);
-      maxX = maxX > sizeX ? maxX : sizeX;
-      maxY = maxY > sizeY ? maxX : sizeY;
-      break;
-    }
-  }
-  if (
-    currentElementMap.get(ev_id) &&
-    currentElementMap.get(ev_id).props &&
-    currentElementMap.get(ev_id).props.expectedprops
-  ) {
-    // console.log(" expected ");
-    isOneAW = false;
-    for (const [key, value] of Object.entries(
-      currentElementMap.get(ev_id).props.expectedprops.data
-    )) {
-      let obj = JSON.parse(`{"${key}":"${value}"}`);
-      Object.assign(tempaw, obj);
-      if (key == "template" || key == "description") {
-        showbodytext =
-          cacheprops.get(ev_id).props.expectedprops.data.template ||
-          cacheprops.get(ev_id).props.expectedprops.data.description;
-        let sizeX = showbodytext.length * 2.5;
-        if (showbodytext.length > 45) {
-          showbodytext = showbodytext.slice(0, 42) + " ...";
-        }
-        if (sizeX < 100 || sizeX > 150) sizeX = 160;
-        let sizeY =
-          cacheprops.get(ev_id).props.expectedprops.data.description.length * 2.5;
-        if (sizeY < 45) sizeY = 45;
-        if (sizeY > 135) sizeY = 150;
-        // breaklineHeightExpected = sizeY;
-        maxX = maxX > sizeX ? maxX : sizeX;
-        maxY = maxY > sizeY ? maxX : sizeY;
-        break;
-      }
-    }
-  } else {
-    // console.log("last else");
-    isOneAW = true;
-    showbodytext = "";
-  }
-    cell.attr(
-    "headerText/text",
-    joint.util.breakText(
-      showheadtext,
-      {
-        width: maxX,
-      },
-      { "font-size": 16 }
-    )
-  );
-
-  if (showbodytext.length > 0)
-    cell.attr(
-      "bodyText/text",
-      joint.util.breakText(
-        showbodytext,
-        {
-          width: maxX,
-        },
-        { "font-size": 16 }
-      )
-    );
-
-  if (isOneAW) {
-    cell.attr("header", { width: maxX, height: maxY * 0.5 });
-    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
-    cell.attr("bodyText/text", "");
-    cell.attr("body").transform = "matrix(0,0,0,0,0,0)";
-    cell.resize(maxX, maxY * 0.5 - 20);
-  } // For both primary and expected
-  else {
-    cell.attr("header", { width: maxX, height: maxY * 0.5 });
-    cell.attr("header").transform = "matrix(1,0,0,1,0,-20)";
-    cell.attr("body").transform = "matrix(1,0,0,1,0,-20)";
-    cell.resize(maxX, maxY - 10);
-  }
-      currentElementMap.clear();
-  onCloseDrawer();
-  message.success(t("component.message.saveSuccess"));
-}
 function showAWExpectedInfo(rowobj: any) {
   
   
@@ -2994,8 +3007,7 @@ function relayout(){
         font-size: 5rem;
         overflow: hidden;
         padding: 0rem !important;
-      "
-    >
+      ">
       <a-row
         type="flex"
         style="width: 100%;overflow: auto; height: 100%; min-height: 100%; min-width: 100%; padding: 0rem !important"
@@ -3149,7 +3161,7 @@ function relayout(){
                         <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
                       </span>
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit(awformdata)">{{
+                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
                           $t("common.submitText")
                         }}</a-button>
                       </span>
