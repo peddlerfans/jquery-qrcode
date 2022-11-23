@@ -289,9 +289,9 @@ async function updateAw(url:string,data:any) {
 
 let refForm=ref()
 // const validator = new Schema(descriptor);
-const onFinishForm = () => {  
+const onFinishForm = () => {
   // console.log(modelstates.value);
-  
+
   refForm.value.validate().then(async (res:any)=>{
     modelstates.value.tags=states.tags
     await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
@@ -607,7 +607,6 @@ let rules: Record<string, Rule[]> = {
               <a-button type="link" @click="editparams(record)" :disabled="!canEdit">{{ $t('component.table.edit') }}</a-button>
               <a-divider type="vertical" />
               <a-popconfirm
-                  
                   :title="$t('component.message.sureDel')"
                   @confirm="delmodel(record)"
                   :cancel-text="$t('common.cancelText')"
