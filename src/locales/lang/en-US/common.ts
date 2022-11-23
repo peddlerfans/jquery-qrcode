@@ -30,5 +30,7 @@ export default {
   dark: 'Dark',
 
   newTag: 'Add a New Tag',
-  newValue: 'Add a New Value'
+  newValue: 'Add a New Value',
+
+  clone: 'clone'
 };

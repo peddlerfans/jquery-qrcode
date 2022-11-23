@@ -65,41 +65,18 @@ import { debug } from "console";
 const { t } = useI18n();
 
 window.joint = joint;
- const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions= 
+ const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
          {
             dagre: dagre,
             graphlib: dagre.graphlib,
             setVertices: true,
-            setLabels: true,            
+            setLabels: true,
             nodeSep: 50,
             edgeSep: 80,
             rankDir: 'TB'
 
         };
-        // rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-        // interface LayoutOptions {
-        //     dagre?: any;
-        //     graphlib?: any;
-        //     align?: 'UR' | 'UL' | 'DR' | 'DL';
-        //     rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
-        //     ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
-        //     nodeSep?: number;
-        //     edgeSep?: number;
-        //     rankSep?: number;
-        //     marginX?: number;
-        //     marginY?: number;
-        //     resizeClusters?: boolean;
-        //     clusterPadding?: dia.Padding;
-        //     setPosition?: (element: dia.Element, position: dia.BBox) => void;
-        //     setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
-        //     setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
-        //     debugTiming?: boolean;
-        //     exportElement?: (element: dia.Element) => Node;
-        //     exportLink?: (link: dia.Link) => Edge;
-        //     // deprecated
-        //     setLinkVertices?: boolean;
-        // }
-        
+
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -375,14 +352,16 @@ async function awqueryById(id: string) {
   }
 }
 //format: i.g.    ids: xxxxxxxx1|yyyyyyyyy2
-async function awqueryByBatchIds(ids: string) {
+async function awqueryByBatchIds(ids: string ,perPage:number) {
   // console.log(ids)
-  let rst = await request.get("/api/hlfs?q=_id:" + ids);
+
+  let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
   if (rst.data) {
     // console.log('rst:', rst.data)
     return rst.data;
   }
 }
+
 async function awquery(data?: any, isExpected?: boolean) {
   let rst;
   if (isExpected) {
@@ -738,10 +717,12 @@ function awhandlerSubmit(awdata:any) {
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
+  leaveRouter.value = true
   // debugger
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
+  let ExpectedformdataKeys  = Object.keys(tempformdata2)
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
@@ -951,7 +932,7 @@ function awhandlerSubmit(awdata:any) {
 
 
 const subAttributes=(data:any)=>{
-  
+  leaveRouter.value = true
   globalformData.value.codegen_text=data.value.codegen_text
   globalformData.value.codegen_script=data.value.codegen_script
   mbtCache["attributes"]= mbtCache["attributes"] || {}
@@ -973,7 +954,7 @@ const subAttributes=(data:any)=>{
  */
 function globalhandlerSubmit(data?:any) {
   // console.log(data);
-  
+  leaveRouter.value=true
   // console.log(tempschema,metatemplatedetailtableData);
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -985,6 +966,7 @@ function globalhandlerSubmit(data?:any) {
 }
 
 function linkhandlerSubmit() {
+  leaveRouter.value=true
   // console.log(modeler.graph.getCell("4d53c22es-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
   linkData.value._id = lv_id;
   linkFormData._id = linkData.value._id;
@@ -1000,12 +982,10 @@ function linkhandlerSubmit() {
   linkFormData.connectorType = linkData.value.connectorType;
   linkFormData.routerType = linkData.value.routerType;
   linkFormData.isCondition = linkData.value.isCondition;
-  // console.log(linkData.value.connectorType)
-  // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
-  
-  
+
+
   // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -1053,6 +1033,7 @@ function handlerEditExpected() {
 }
 
 function handlerClearExpected() {
+  leaveRouter.value=true
   // hasAWExpectedInfo.value = false;
   // console.log("clear expected,ev_id:", ev_id);
   let tempformdata2 = generateObj(awformdata);
@@ -1083,7 +1064,7 @@ function handlerCancel() {
   hasAWInfo.value = false;
 }
 
-let mbtCache: any; //save the data from backend Stores.mbt
+let mbtCache: any=reactive({}); //save the data from backend Stores.mbt
 const route = useRoute();
 let dataDefData: Ref<any[]> = ref([]);
 let cacheDataSchema: any[] = [];
@@ -1163,9 +1144,9 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             //read resources info from backend, todo
           }
           mbtCache = response; //should work on here
-          console.log(mbtCache);
+          encatch = response
           
-          
+
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1175,7 +1156,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
           );
-          encatch = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name)!)
+          
           return mbtCache;  
         }
       })
@@ -1298,14 +1279,15 @@ function getmbtData() {
 async function saveMBT(route?: any) {
   
   // console.log(mbtCache);
+  leaveRouter.value = false
     saveMbtData = getmbtData()
     await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData())
   message.success(t("component.message.saveSuccess"));
 }
 
+
 function reloadMBT(route: any) {
-  // console.log('reloadMBT, if id not reload......cacheprops/', cacheprops)
-  console.log(modeler.graph.getCell("b5be8d0b-4e29-4330-b45d-87b558e914c6"),'MBT@@@@@@@');
+
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
@@ -1333,13 +1315,9 @@ function reloadMBT(route: any) {
       let cells: any[]=[]
       let newData:any[]=[]
       modeler.graph.getCells().forEach((item: any) => {
-        if(item.id== '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a'){console.log ('+++++',item)}
+        // if(item.id== '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a'){console.log ('+++++',item)}
         if (item.attributes.type == "standard.HeaderedRectangle") {
-         
-          
           graphIds.push(item.id);
-          
-          
           if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
               cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:true})
               newData.push(cacheprops.get(item.id).props.primaryprops)
@@ -1355,15 +1333,17 @@ function reloadMBT(route: any) {
           }
         }
       });
-      console.log(graphIds);
+      // console.log(graphIds);
       let tempcellsinfo = value.modelDefinition.cellsinfo;
+      // console.log(sqlstr);
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
-      // console.log("...sqlstr:", sqlstr);
-      let tempdata = awqueryByBatchIds(sqlstr);
-      console.log(newData,"+++++",cells);
+      let perPage=sqlstr.split('|')
+      let tempdata = awqueryByBatchIds(sqlstr,perPage.length);
+      
+      
+      // console.log(newData,"+++++",cells);
       tempdata.then((aws) => {
         const awById = _.groupBy(aws, "_id")
-        console.log(awById)
       newData.forEach((obj:any)=>{
         if (awById[obj.data._id]) {
           obj.aw=awById[obj.data._id][0]
@@ -1405,15 +1385,13 @@ let tableColumns = ref([]);
 let tableDataDynamic = ref([]);
 let tableColumnsDynamic = ref();
 
+
+
 // 离开路由时判断
 onBeforeRouteLeave((to,form,next) => {
-  // console.log(saveMbtData,getmbtData());
-  // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
-  if(saveMbtData){
     
-    
-    if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
-      Modal.confirm({
+  if(leaveRouter.value){
+    Modal.confirm({
         // title: 'Do you want to delete these items?',
         icon: createVNode(ExclamationCircleOutlined),
         content: t("MBTStore.leaveRouter"),
@@ -1428,30 +1406,61 @@ onBeforeRouteLeave((to,form,next) => {
           next(false)
         },
       });
-    }else{
-      next()
-    }
   }else{
-    if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
-    
-      Modal.confirm({
-        // title: 'Do you want to delete these items?',
-        icon: createVNode(ExclamationCircleOutlined),
-        content: t("MBTStore.leaveRouter"),
-        onOk() {
-          return new Promise<void>((resolve, reject) => {
-            next()
-            resolve()
-          }).catch(() => console.log('Oops errors!'));
-        },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        onCancel() {
-          next(false)
-        },
-      });
-
-  } 
+    next()
   }
+
+
+
+
+
+
+
+  // if(saveMbtData){
+  //   if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
+  //     Modal.confirm({
+  //       // title: 'Do you want to delete these items?',
+  //       icon: createVNode(ExclamationCircleOutlined),
+  //       content: t("MBTStore.leaveRouter"),
+  //       onOk() {
+  //         return new Promise<void>((resolve, reject) => {
+  //           next()
+  //           resolve()
+  //         }).catch(() => console.log('Oops errors!'));
+  //       },
+  //       // eslint-disable-next-line @typescript-eslint/no-empty-function
+  //       onCancel() {
+  //         next(false)
+  //       },
+  //     });
+  //   }else{
+  //     next()
+  //   }
+  // }else{
+  //   // console.log("++++++",getmbtData());
+  //   if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
+  //     // console.log(modeler.graph);
+      
+  //     // console.log(JSON.stringify(encatch) ,"+++++", JSON.stringify(getmbtData()));
+      
+  //     Modal.confirm({
+  //       // title: 'Do you want to delete these items?',
+  //       icon: createVNode(ExclamationCircleOutlined),
+  //       content: t("MBTStore.leaveRouter"),
+  //       onOk() {
+  //         return new Promise<void>((resolve, reject) => {
+  //           next()
+  //           resolve()
+  //         }).catch(() => console.log('Oops errors!'));
+  //       },
+  //       // eslint-disable-next-line @typescript-eslint/no-empty-function
+  //       onCancel() {
+  //         next(false)
+  //       },
+  //     });
+
+  // } 
+  // }
 
 })
 
@@ -1494,7 +1503,6 @@ onMounted(() => {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
-        console.log(modeler.graph.getCell("4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a"),'MBT@@@@@@@');
 
         if (value.modelDefinition.hasOwnProperty("props")) {
           const map = new Map(
@@ -1857,7 +1865,7 @@ onMounted(() => {
           console.log(modeler.graph.getCell(linkView.model.id));
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
-          
+
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
@@ -1888,7 +1896,7 @@ onMounted(() => {
       lv_id = linkView.model.id + "";
 
       console.log(cacheprops.has(linkView.model.id));
-      
+
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
         console.log(templinkData.props);
@@ -1909,7 +1917,7 @@ onMounted(() => {
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
       // showDrawer(linkView);
-    } 
+    }
     showDrawer(linkView);
   });
 
@@ -1957,10 +1965,8 @@ onMounted(() => {
           cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
-          let awformData = cacheprops.get(ev_id).props.primaryprops.data;
-          let awformSchema = cacheprops.get(ev_id).props.primaryprops.schema;
-          awformdata.value = awformData;
-          awschema.value = awformSchema;
+          awformdata.value = cacheprops.get(ev_id).props.primaryprops.data;
+          awschema.value = cacheprops.get(ev_id).props.primaryprops.schema;
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2059,6 +2065,9 @@ function showGlobalInfo() {
     if (mbtCache['attributes']) {
        globalformData.value.codegen_text = mbtCache['attributes'].codegen_text;
     globalformData.value.codegen_script = mbtCache['attributes'].codegen_script;
+    }else{
+      globalformData.value.codegen_text = ''
+    globalformData.value.codegen_script = ''
     }
   }
 }
@@ -2123,6 +2132,7 @@ function showAWInfo(rowobj: any) {
   }
 }
 function handlerConfirmExpected(data:any , schema:any) {
+  leaveRouter.value = true
     isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -2227,7 +2237,7 @@ function handlerConfirmExpected(data:any , schema:any) {
       }
     }
   }
-  
+
     let tempaw = {};
   let maxX = 180;
   let maxY = 150;
@@ -2341,6 +2351,8 @@ function handlerConfirmExpected(data:any , schema:any) {
   message.success(t("component.message.saveSuccess"));
 }
 function showAWExpectedInfo(rowobj: any) {
+  
+  
   chooseAwExpected=rowobj
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
@@ -2348,7 +2360,7 @@ function showAWExpectedInfo(rowobj: any) {
   awformdataExpected.value.tags = "";
   awformdataExpected.value.template = rowobj.template;
   awformdataExpected.value._id = rowobj._id;
-
+  console.log(awformdataExpected.value);
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
       awformdataExpected.value.tags += value + " ";
@@ -2360,8 +2372,8 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
-  
-  
+
+
 }
 
 const activeKey = ref("2");
@@ -2530,6 +2542,7 @@ const cancel = (e: MouseEvent) => {
 };
 
 const handleDynamicTable = (data: any) => {
+  leaveRouter.value = true
   // console.log('get data from children',data  )
   let tempObj = {};
   Object.assign(tempObj, { tableData: data.tableData });
@@ -2554,6 +2567,7 @@ const handleDynamicTableClear = (data: any) => {
 };
 
 const handleDirectInput = (data: any) => {
+  leaveRouter.value = true
   // console.log('get data from children',data  )
   let tempObj = {};
   Object.assign(tempObj, { tableData: data.tableData });
@@ -2569,6 +2583,7 @@ const handleDirectInput = (data: any) => {
   message.success("Save config Successfully");
 };
 const handleStaticTable = (data: any) => {
+  leaveRouter.value = true
   // console.log('get data from static children',data  )
   let tempObj = {};
 
@@ -2588,7 +2603,7 @@ const handleStaticTable = (data: any) => {
 
 const submitTemplate = (data: any) => {
   // console.log('emit value:',data)
-
+  leaveRouter.value = true
   let metaObj = {};
   Object.assign(metaObj, { schema: data.schema });
   Object.assign(metaObj, { data: data.data });
@@ -2752,7 +2767,7 @@ watch(
       if ( isExclusiveGateway.value && isLink.value ){
         linkData.value.label = ifdata(newvalue)!;
       }
-      
+
     }
   },
   { deep: true }
@@ -2851,12 +2866,12 @@ function relayout(){
           link.router('normal');
           link.connector('jumpover');
 
-          
+
         })
 
 
         joint.layout.DirectedGraph.layout(modeler.graph, MBTLayoutOptions);
-        
+
         modeler.paper.fitToContent({
             padding: 50,
             allowNewOrigin: 'any',
@@ -2908,7 +2923,7 @@ function relayout(){
           :data-source="previewData" 
           :pagination="{pageSize:5}"
           bordered
-          :rowKey="(record:any) => record.id"
+          :rowKey="(record: any) => record.id"
           class="previewclass"
           >
         <template #bodyCell="{column,record}">
@@ -2945,7 +2960,7 @@ function relayout(){
                       />
           <!-- </div> -->
           </a-modal>
-         
+
         </a-col>
         <a-col span="2" class="isSwitch">
           <div >
