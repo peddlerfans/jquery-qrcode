@@ -30,6 +30,7 @@ export default {
     total: '共 {total} 条数据',
     required: "必填",
     returnType: "返回类型",
+    unrequired: '非必填',
     name: '名称',
     description: '描述',
     tags: '标签',
@@ -48,6 +49,7 @@ export default {
     then: '则',
     operator: '关系',
     topics: '大纲',
+    isRequire: '是否必填',
 
     pageTip: '当前显示第{head}-{tail}条，共{total}条'
   },
