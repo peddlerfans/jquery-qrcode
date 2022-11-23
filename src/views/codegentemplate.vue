@@ -297,6 +297,42 @@ let modelRules: Record<string, Rule[]> = {
   description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
 }
 
+
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+}
+let copyData:any = ref ({
+  name:""
+})
+let copyVisible = ref<boolean>(false)
+const clone = (record:any) => {
+
+    copyData.value.name = `${record.name}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    delete copyData.value._id
+   request.post('/api/templates',copyData.value).then((rst :any)=>{
+    let tableData = codegenTable.value.getTableData()
+    tableData.unshift(rst)
+    codegenTable.value.setTableData(tableData)
+    // let tableindex = metaTable.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      // metaTable.value[tableindex]._id=rst._id
+      copyVisible.value = false
+    }
+   })
+   
+  })
+}
+const clearValida =()=>{
+  refCopy.value.clearValidate()
+}
 </script>
 
 <template>
@@ -409,7 +445,15 @@ let modelRules: Record<string, Rule[]> = {
         :columns="column"
         tableRef="codegenTemplateTable"
         :fetchObj="codegenTableQuery"
+        @clone="clone"
     ></common-table>
+    <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')" @cancel="clearValida">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
   </main>
 </template>
 

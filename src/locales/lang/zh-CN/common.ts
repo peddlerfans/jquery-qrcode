@@ -30,5 +30,7 @@ export default {
   dark: '黑暗主题',
 
   newTag: '添加标签',
-  newValue: '添加值'
+  newValue: '添加值',
+
+  clone: '复制'
 };
