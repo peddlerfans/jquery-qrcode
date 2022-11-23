@@ -65,12 +65,12 @@ import { debug } from "console";
 const { t } = useI18n();
 
 window.joint = joint;
- const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions= 
+ const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
          {
             dagre: dagre,
             graphlib: dagre.graphlib,
             setVertices: true,
-            setLabels: true,            
+            setLabels: true,
             nodeSep: 50,
             edgeSep: 80,
             rankDir: 'TB'
@@ -99,7 +99,7 @@ window.joint = joint;
         //     // deprecated
         //     setLinkVertices?: boolean;
         // }
-        
+
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -742,6 +742,12 @@ function awhandlerSubmit(awdata:any) {
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
+  let ExpectedformdataKeys  = Object.keys(tempformdata2)
+        Object.keys(tempformdata2.properties).forEach((item: any) => {
+          if (!tempawschema.includes(item)) {
+            tempformdata2[item]=""
+          }
+        })
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
@@ -1004,8 +1010,8 @@ function linkhandlerSubmit() {
   // console.log(linkFormData.label);
   modeler.graph.getCell(lv_id).router(linkData.value.routerType);
   modeler.graph.getCell(lv_id).connector(linkData.value.connectorType);
-  
-  
+
+
   // let loopcount1 = linkData.value.loopcount;
   while (modeler.graph.getCell(lv_id).hasLabels) {
     modeler.graph.getCell(lv_id).removeLabel(-1);
@@ -1165,7 +1171,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           mbtCache = response; //should work on here
           console.log(mbtCache);
           
-          
+
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name + "_id",
             idstr
@@ -1410,8 +1416,8 @@ onBeforeRouteLeave((to,form,next) => {
   // console.log(saveMbtData,getmbtData());
   // console.log(JSON.stringify(encatch),JSON.stringify(getmbtData()));
   if(saveMbtData){
-    
-    
+
+
     if(JSON.stringify(saveMbtData) !== JSON.stringify(getmbtData())){
       Modal.confirm({
         // title: 'Do you want to delete these items?',
@@ -1433,7 +1439,7 @@ onBeforeRouteLeave((to,form,next) => {
     }
   }else{
     if (JSON.stringify(encatch) !== JSON.stringify(getmbtData())) {
-    
+
       Modal.confirm({
         // title: 'Do you want to delete these items?',
         icon: createVNode(ExclamationCircleOutlined),
@@ -1857,7 +1863,7 @@ onMounted(() => {
           console.log(modeler.graph.getCell(linkView.model.id));
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
-          
+
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
@@ -1888,7 +1894,7 @@ onMounted(() => {
       lv_id = linkView.model.id + "";
 
       console.log(cacheprops.has(linkView.model.id));
-      
+
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
         console.log(templinkData.props);
@@ -1909,7 +1915,7 @@ onMounted(() => {
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
       // showDrawer(linkView);
-    } 
+    }
     showDrawer(linkView);
   });
 
@@ -2227,7 +2233,7 @@ function handlerConfirmExpected(data:any , schema:any) {
       }
     }
   }
-  
+
     let tempaw = {};
   let maxX = 180;
   let maxY = 150;
@@ -2360,8 +2366,8 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
-  
-  
+
+
 }
 
 const activeKey = ref("2");
@@ -2752,7 +2758,7 @@ watch(
       if ( isExclusiveGateway.value && isLink.value ){
         linkData.value.label = ifdata(newvalue)!;
       }
-      
+
     }
   },
   { deep: true }
@@ -2851,12 +2857,12 @@ function relayout(){
           link.router('normal');
           link.connector('jumpover');
 
-          
+
         })
 
 
         joint.layout.DirectedGraph.layout(modeler.graph, MBTLayoutOptions);
-        
+
         modeler.paper.fitToContent({
             padding: 50,
             allowNewOrigin: 'any',
@@ -2908,7 +2914,7 @@ function relayout(){
           :data-source="previewData" 
           :pagination="{pageSize:5}"
           bordered
-          :rowKey="(record:any) => record.id"
+          :rowKey="(record: any) => record.id"
           class="previewclass"
           >
         <template #bodyCell="{column,record}">
@@ -2945,7 +2951,7 @@ function relayout(){
                       />
           <!-- </div> -->
           </a-modal>
-         
+
         </a-col>
         <a-col span="2" class="isSwitch">
           <div >
