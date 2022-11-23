@@ -36,24 +36,24 @@ const user = userStore()
 
 let oauth:any
 
-// try{
-//   oauth=await request.get("/api/oauthConfig")
-// }catch (e) {
-//   console.log(e)
-// }
+try{
+  oauth=await request.get("/api/oauthConfig")
+}catch (e) {
+  console.log(e)
+}
 
-oauth=[
-    {
-      "name":"atlassian",
-      "link_info":{
-        "icon":"https://confluence.atlassian.com/staticassets/4.1.3/dist/common/images/favicon.png",
-        "color":"blue",
-        "url":"/auth/atlassian"}
-    },
-  {
-    "name":"gitlab",
-    "link_info":{
-      "icon":"https://gitlab.com/assets/favicon-72a2cad5025aa931d6ea56c3201d1f18e68a8cd39788c7c80d5b2b82aa5143ef.png","color":"red","url":"/auth/gitlab"}}]
+// oauth=[
+//     {
+//       "name":"atlassian",
+//       "link_info":{
+//         "icon":"https://confluence.atlassian.com/staticassets/4.1.3/dist/common/images/favicon.png",
+//         "color":"blue",
+//         "url":"/auth/atlassian"}
+//     },
+//   {
+//     "name":"gitlab",
+//     "link_info":{
+//       "icon":"https://gitlab.com/assets/favicon-72a2cad5025aa931d6ea56c3201d1f18e68a8cd39788c7c80d5b2b82aa5143ef.png","color":"red","url":"/auth/gitlab"}}]
 
 function login() {
   loading.login = true
