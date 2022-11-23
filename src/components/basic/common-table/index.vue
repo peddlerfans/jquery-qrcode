@@ -700,7 +700,7 @@ defineExpose({
           </tempalte>
           <a-divider v-if="column.actionList.length >= 3" type="vertical" />
             <span v-show="!record.edit" style="margin-left:0.8rem">
-            <a-button type="primary" size="small" @click="cloneRow(record)">{{ $t('common.clone') }}</a-button>
+            <a-button type="primary" size="small" @click="cloneRow(record)">{{ $t('component.table.clone') }}</a-button>
           </span>
         </span>
         </div>
