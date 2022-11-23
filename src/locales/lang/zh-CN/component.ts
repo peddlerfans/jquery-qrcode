@@ -49,7 +49,11 @@ export default {
     then: '则',
     operator: '关系',
     topics: '大纲',
+
+    clone: '复制',
+
     isRequire: '是否必填',
+
 
     pageTip: '当前显示第{head}-{tail}条，共{total}条'
   },
