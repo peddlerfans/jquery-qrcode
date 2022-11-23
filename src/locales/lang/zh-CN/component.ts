@@ -50,7 +50,7 @@ export default {
     operator: '关系',
     topics: '大纲',
 
-    clone: '复制',
+    clone: '克隆',
 
     isRequire: '是否必填',
 
