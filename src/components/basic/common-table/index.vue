@@ -66,7 +66,7 @@ initTableSelect()
 // 获取需要回传事件数组
 let events = props.columns.filter((a: any) => a.title === 'action')
 events = events[0]?.cbName || []
-const emit = defineEmits(['edit', 'go2Page', 'delete', 'save'])
+const emit = defineEmits(['edit', 'go2Page', 'delete', 'save','clone'])
 
 let tableData = ref<Array<any>>([])
 let tagInputRef = ref()
@@ -442,6 +442,9 @@ const getTableData = () => {
 const changeColumn = (obj: any) => {
   columns.value.push(handleColumn(obj))
 }
+const cloneRow = (obj:any) => {
+  emit('clone',obj)
+}
 
 defineExpose({
   createNewRow,
@@ -688,12 +691,17 @@ defineExpose({
            </a-popconfirm>
           </template>
           <a-divider v-if="column.actionList.length >= 3" type="vertical" />
+
           <tempalte v-if="column.actionList.includes('check')">
             <a-checkbox
                 v-model:checked="record.require"
                 @change="(e: any) => tableCheckChange(e, record)"
             >{{ $t('component.table.isRequire') }}</a-checkbox>
           </tempalte>
+          <a-divider v-if="column.actionList.length >= 3" type="vertical" />
+            <span v-show="!record.edit" style="margin-left:0.8rem">
+            <a-button type="primary" size="small" @click="cloneRow(record)">{{ $t('common.clone') }}</a-button>
+          </span>
         </span>
         </div>
       </template>
