@@ -743,11 +743,7 @@ function awhandlerSubmit(awdata:any) {
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
   let ExpectedformdataKeys  = Object.keys(tempformdata2)
-        Object.keys(tempformdata2.properties).forEach((item: any) => {
-          if (!tempawschema.includes(item)) {
-            tempformdata2[item]=""
-          }
-        })
+
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
