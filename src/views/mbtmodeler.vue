@@ -1570,7 +1570,6 @@ async function saveMBT(route?: any) {
 
 
 function reloadMBT(route: any) {
-
   let res;
   let mbtId =
     localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
@@ -1600,7 +1599,11 @@ function reloadMBT(route: any) {
       modeler.graph.getCells().forEach((item: any) => {
         // if(item.id== '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a'){console.log ('+++++',item)}
         if (item.attributes.type == "standard.HeaderedRectangle") {
+         
+          
           graphIds.push(item.id);
+          
+          
           if (cacheprops.get(item.id).props.hasOwnProperty("primaryprops")) {
               cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:true})
               newData.push(cacheprops.get(item.id).props.primaryprops)
