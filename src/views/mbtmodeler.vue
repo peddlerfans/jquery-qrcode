@@ -2093,7 +2093,7 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(modeler.graph.getCell(linkView.model.id));
+          setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
 
