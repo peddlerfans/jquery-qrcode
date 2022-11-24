@@ -6,6 +6,7 @@ import { any } from 'vue-types';
 import $ from 'jquery'
 import { S } from 'vitest/dist/global-d05ffb3f';
 import { Container } from 'postcss';
+import { StringDecoder } from 'string_decoder';
 
 declare module JQuery {
     namespace JQuery {
@@ -15,7 +16,34 @@ declare module JQuery {
     }
 }
 declare module 'jointjs' {
-
+    export namespace layout {
+        export namespace DirectedGraph {
+            interface LayoutOptions {
+                dagre?: any;
+                graphlib?: any;
+                align?: 'UR' | 'UL' | 'DR' | 'DL';
+                rankDir?: any;
+                ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
+                nodeSep?: number;
+                edgeSep?: number;
+                rankSep?: number;
+                marginX?: number;
+                marginY?: number;
+                resizeClusters?: boolean;
+                clusterPadding?: dia.Padding;
+                setPosition?: (element: dia.Element, position: dia.BBox) => void;
+                setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
+                setLabels?: boolean | ((link: dia.Link, position: dia.Point, points: dia.Point[]) => void);
+                debugTiming?: boolean;
+                exportElement?: (element: dia.Element) => Node;
+                exportLink?: (link: dia.Link) => Edge;
+                // deprecated
+                setLinkVertices?: boolean;
+            }
+            export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
+        }
+        
+    }
     export namespace dia {
         namespace Paper {
 
@@ -98,6 +126,10 @@ interface DynamicModel {
 }
 declare module 'axios' {
     interface ResponseData<T> {
+        map: any;
+        length: number;
+        outputLang: any;
+        results: any;
         error: any;
         config: any;
         // model(model: any): any;
