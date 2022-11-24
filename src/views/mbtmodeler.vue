@@ -1610,7 +1610,7 @@ function reloadMBT(route: any) {
             sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
             if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
               
-              cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:false})
+              cells.push({item,id:cacheprops.get(item.id).props.expectedprops.data._id,isStep:false})
               newData.push(cacheprops.get(item.id).props.expectedprops)
               sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
             }
