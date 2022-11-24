@@ -661,7 +661,7 @@ const deleteconstraint = (obj:any) => {
 
 <a-tabs v-model:activeKey="activeKey">
   <a-tab-pane key="1" tab="Data">
-          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered :scroll="{ x: true }">
 
 
 

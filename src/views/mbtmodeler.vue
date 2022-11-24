@@ -1609,10 +1609,8 @@ function reloadMBT(route: any) {
               newData.push(cacheprops.get(item.id).props.primaryprops)
             sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
             if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
-        //       if(item.id=='4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a' || item.id=='637732da56e578e7c9b3e301'){
-        //     debugger
-        // }
-              cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:false})
+              
+              cells.push({item,id:cacheprops.get(item.id).props.expectedprops.data._id,isStep:false})
               newData.push(cacheprops.get(item.id).props.expectedprops)
               sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
             }
@@ -1660,6 +1658,8 @@ function reloadMBT(route: any) {
                   )
                 );
       })
+      // console.log(cells);
+      
       });
     }
   });
@@ -2093,7 +2093,7 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(modeler.graph.getCell(linkView.model.id));
+          setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
 
@@ -2365,7 +2365,6 @@ function showAWInfo(rowobj: any) {
 
 function showAWExpectedInfo(rowobj: any) {
   
-  
   chooseAwExpected=rowobj
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
@@ -2385,8 +2384,6 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
-
-
 }
 
 const activeKey = ref("2");
