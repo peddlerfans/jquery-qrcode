@@ -2097,9 +2097,10 @@ onMounted(() => {
         console.log("error:", e);
       }
     }
-  });   
-  modeler.paper.on("link:pointerdblclick", async function (linkView: any) {    
-    setLinkType(linkView.model,linkView.model)
+  }); 
+
+  modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+          setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
 

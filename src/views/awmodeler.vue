@@ -34,11 +34,20 @@ let searchobj: tableSearch = reactive({
 // 防止树形数据请求覆盖
 let treeSelectTitle = '/'
 
+let treeRequireTime = 0
+
 async function query(data?: any) {
   tableLoading.value = true
-  const rst = await http.get("/api/hlfs", { params: data || searchobj })
-  // let path = (rst.config.params?.q || '').slice(6) || '/'
-  // if (path !== treeSelectTitle) return
+  const params: any = data || searchobj
+  const rst = await http.get("/api/hlfs", { params })
+  /**
+   * 该请求有请求覆盖bug
+   * 通过响应头 date 字段对比上个请求的发起时间
+   * 保证数据的更新总是最后一个发起请求的数据
+   * */
+  let timeTemp = new Date(rst.headers.date).getTime()
+  if (timeTemp < treeRequireTime) return
+  treeRequireTime = timeTemp
   let res = rst.data
   if (res.data) {
     pagination.value.total = res.total
