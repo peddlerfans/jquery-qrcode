@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    ABadge: typeof import('ant-design-vue/es')['Badge']
     ABreadcrumb: typeof import('ant-design-vue/es')['Breadcrumb']
     ABreadcrumbItem: typeof import('ant-design-vue/es')['BreadcrumbItem']
     AButton: typeof import('ant-design-vue/es')['Button']
@@ -24,7 +25,7 @@ declare module '@vue/runtime-core' {
     AImage: typeof import('ant-design-vue/es')['Image']
     AInput: typeof import('ant-design-vue/es')['Input']
     AInputNumber: typeof import('ant-design-vue/es')['InputNumber']
-    AInputSearch: typeof import('ant-design-vue/es')['InputSearch']
+    AInputPassword: typeof import('ant-design-vue/es')['InputPassword']
     ALayout: typeof import('ant-design-vue/es')['Layout']
     ALayoutContent: typeof import('ant-design-vue/es')['LayoutContent']
     ALayoutHeader: typeof import('ant-design-vue/es')['LayoutHeader']
@@ -38,13 +39,14 @@ declare module '@vue/runtime-core' {
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ASlider: typeof import('ant-design-vue/es')['Slider']
+    AStep: typeof import('ant-design-vue/es')['Step']
+    ASteps: typeof import('ant-design-vue/es')['Steps']
     ASwitch: typeof import('ant-design-vue/es')['Switch']
     ATable: typeof import('ant-design-vue/es')['Table']
     ATabPane: typeof import('ant-design-vue/es')['TabPane']
     ATabs: typeof import('ant-design-vue/es')['Tabs']
     ATag: typeof import('ant-design-vue/es')['Tag']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
-    ATree: typeof import('ant-design-vue/es')['Tree']
     ATypographyLink: typeof import('ant-design-vue/es')['TypographyLink']
     CommonTable: typeof import('./src/components/basic/common-table/index.vue')['default']
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
