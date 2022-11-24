@@ -22,7 +22,7 @@ const props = defineProps<{
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
 };
-console.log(props.schema);
+console.log(props.isFormVisible);
 
 let tempschema = ref(props.schema);
 let metaformProps = ref(props.metaformProps);

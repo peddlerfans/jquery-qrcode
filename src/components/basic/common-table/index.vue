@@ -692,12 +692,12 @@ defineExpose({
           </template>
           <a-divider v-if="column.actionList.length >= 3" type="vertical" />
 
-          <tempalte v-if="column.actionList.includes('check')">
+          <!-- <tempalte v-if="column.actionList.includes('check')">
             <a-checkbox
                 v-model:checked="record.require"
                 @change="(e: any) => tableCheckChange(e, record)"
             >{{ $t('component.table.isRequire') }}</a-checkbox>
-          </tempalte>
+          </tempalte> -->
           <a-divider v-if="column.actionList.length >= 3" type="vertical" />
             <span v-show="!record.edit" style="margin-left:0.8rem">
             <a-button type="primary" size="small" @click="cloneRow(record)">{{ $t('component.table.clone') }}</a-button>
