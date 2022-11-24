@@ -19,6 +19,8 @@ export default {
   preview: '预览',
   submitText: '提交',
   close: '关闭',
+  saveError: "保存失败",
+  cloneError: '克隆失败',
 
   inputText: '请输入',
   chooseText: '请选择',

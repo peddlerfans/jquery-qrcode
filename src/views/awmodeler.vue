@@ -221,13 +221,18 @@ async function saveAw(data: any) {
   if(clickKey){
     data={...data,path:clickKey.path}
   }
-  let rst=await request.post("/api/hlfs", data)
-  if(rst._id){
+  request.post("/api/hlfs", data).then((rst: any) => {
+    if(rst._id){
     deleteId=rst._id
     tableData.value.unshift(rst)
     message.success(t('component.message.addText'))
   }
   tableLoading.value = false
+  }).catch(() => {
+    message.error(t("commont.saveError"))
+    tableLoading.value = false
+   })
+  
 }
 let modelstates = ref<ModelState>({
   key:0,
@@ -472,8 +477,8 @@ let checkName = async (_rule: Rule, value: string) => {
   }else if(!reg.test(value) && !reg1.test(value)){
     return Promise.reject(t('component.message.hefaName'))
   }else{
-    let rst=await request.get("/api/hlfs",{params:{q:`name:${modelstates.value.name}`,search:''}})
-    if(rst.data && rst.data.length>0 && rst.data[0].name==modelstates.value.name){
+    let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
+    if(rst.data && rst.data.length>0 && rst.data[0].name==value){
       // message.error("Duplicate name")
       // modelstates.value.name=""
       return Promise.reject(t('component.message.depName'))
@@ -488,18 +493,10 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('component.message.emptyDescription'))
   }else  {
-    // if(!reg.test(value)){
-    //   return Promise.reject('The AW description is not standardized')
-    // }else{
-    //   if(modelstates.value._id){
-    //   return Promise.resolve()
-    // }else{
-    let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
-
-    if(rst.data && rst.data.length>0 && rst.data[0].description==modelstates.value.description){
+    let rst=await request.get("/api/hlfs",{params:{search:value}})
+    if(rst.data && rst.data.length>0 && rst.data[0].description==value){
       return Promise.reject(t('component.message.dupDescription'))
     }else{
-
       return Promise.resolve();
     }
     // }
@@ -1125,6 +1122,52 @@ const addAwmodel= (key:any,title:string)=>{
 // 定义修改的变量
 let awupdate=ref("awmodeler")
 
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
+}
+let copyData:any = ref ({
+  name: "",
+  description:""
+})
+let copyVisible = ref<boolean>(false)
+const copyName = (record:any) => {    
+    copyData.value.name = `${record.name}_clone`
+    copyData.value.description = `${record.description}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name,description:copyData.value.description}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    tableLoading.value=true
+    delete copyData.value._id    
+   request.post('/api/hlfs',copyData.value).then((rst :any)=>{
+     tableData.value.push(copyData.value)
+    pagination.value.total +=1
+    let tableindex = tableData.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      tableData.value[tableindex]._id=rst._id
+      copyVisible.value = false
+      tableLoading.value=false
+    }
+
+   }).catch(() => {
+    message.error(t('commont.cloneError'))
+    copyVisible.value = false
+    tableLoading.value = false
+   })
+   
+  })
+}
+const clearValida = () => {
+  copyVisible.value = false
+  unref(refCopy).clearValidate()
+}
+
+
 </script>
 <template>
   <main class="main">
@@ -1547,9 +1590,23 @@ let awupdate=ref("awmodeler")
                       <a >{{ $t('common.delText') }}</a>
                     </a-popconfirm>
                   </span>
+                  <span style="margin-left:0.625rem;" v-show="!record.editing">
+                    <a-button type="primary" size="small" @click="copyName(record)">{{ $t('component.table.clone') }}</a-button>
+                  </span>
+
                 </template>
               </template>
             </a-table>
+     <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')" @cancel="clearValida">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+          <a-form-item name="description" :label="$t('component.table.description')">
+            <a-input v-model:value="copyData.description"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
           </div>
         </template>
       </SplitPanel>
