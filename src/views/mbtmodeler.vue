@@ -62,7 +62,14 @@ import { VAceEditor } from 'vue3-ace-editor';
 import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 import "./componentTS/ace-config";
 import { debug } from "console";
+import MBTStore from "@/stores/MBTModel"
+import { storeToRefs } from "pinia";
 const { t } = useI18n();
+
+
+const store = MBTStore()
+let { aa }  = storeToRefs(store);
+
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -235,6 +242,9 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
+  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
+  console.log(aa);
+  
   rulesData.value=[
   //初始化条件对象或者，已保存的条件对象
   {
@@ -1383,10 +1393,6 @@ let conditionalValue = ref([]);
 })
 return setarr
  }
- localStorage.setItem(
-            "mbt_" + route.params.name,
-            JSON.stringify(route.params.name)
-          );
 
 let encatch:any=null
       
@@ -1609,25 +1615,19 @@ function reloadMBT(route: any) {
               newData.push(cacheprops.get(item.id).props.primaryprops)
             sqlstr += cacheprops.get(item.id).props.primaryprops.data._id + "|";
             if (cacheprops.get(item.id).props.hasOwnProperty("expectedprops")) {
-        //       if(item.id=='4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a' || item.id=='637732da56e578e7c9b3e301'){
-        //     debugger
-        // }
-              cells.push({item,id:cacheprops.get(item.id).props.primaryprops.data._id,isStep:false})
+              
+              cells.push({item,id:cacheprops.get(item.id).props.expectedprops.data._id,isStep:false})
               newData.push(cacheprops.get(item.id).props.expectedprops)
               sqlstr += cacheprops.get(item.id).props.expectedprops.data._id + "|";
             }
           }
         }
       });
-      // console.log(graphIds);
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       // console.log(sqlstr);
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       let perPage=sqlstr.split('|')
       let tempdata = awqueryByBatchIds(sqlstr,perPage.length);
-      
-      
-      // console.log(newData,"+++++",cells);
       tempdata.then((aws) => {
         const awById = _.groupBy(aws, "_id")
       newData.forEach((obj:any)=>{
@@ -1643,8 +1643,9 @@ function reloadMBT(route: any) {
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
         let aw:any={template:"",description:""}
+        
         if (awById[cell.id]) {
-           aw=awById[cell.id][0]
+           aw=awById[cell.id][0]           
         }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
@@ -1660,6 +1661,8 @@ function reloadMBT(route: any) {
                   )
                 );
       })
+      console.log(cells);
+      
       });
     }
   });
@@ -1705,11 +1708,12 @@ let isAwModel=ref(false)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-
-  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
+  
+  // localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", JSON.stringify(route.params._id))
+  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
+  store.getMbtmodel(mbtId)
   let res;
   if (mbtId) {
-   
     
     res = mbtquery(mbtId);
     console.log(res);
@@ -1728,7 +1732,6 @@ onMounted(() => {
               // globalschema.value.properties.codegen_text.enum.push(rec.name)
               // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
-            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -1743,21 +1746,25 @@ onMounted(() => {
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
           modeler.paper.scale(value.modelDefinition.paperscale);
-        }
+        } 
         //dataDefinition includes meta, datapool and resources
-
+          console.log(value.dataDefinition);
+          
         if (value.dataDefinition.meta) {
+          
+          isFormVisible.value = true;
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-          isFormVisible.value = true;
+          
         }
 
         if (value.dataDefinition.data) {
           // console.log('has data info ',value.dataDefinition.data.tableData)
           cacheDataDefinition.data = value.dataDefinition.data;
           // tableData.value = value.dataDefinition.data.tableData;
-
+          condataName.value = value.dataDefinition.data.tableColumns
+          conditionalValue.value = value.dataDefinition.data.tableData
           dataFrom.value = value.dataDefinition.data.dataFrom;
           if (dataFrom.value == "direct_input") {
             templateRadiovalue.value = 3;
@@ -1767,6 +1774,7 @@ onMounted(() => {
           } else if (dataFrom.value == "dynamic_template") {
             templateRadiovalue.value = 1;
             templateCategory.value = 1;
+
             tableDataDynamic.value = value.dataDefinition.data.tableData;
             tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
           } else {
@@ -1796,6 +1804,7 @@ onMounted(() => {
 
         })
       }
+    }).catch(()=>{console.log("catch");
     });
   } else {
     res = mbtquery();
@@ -2064,8 +2073,6 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
-        
-        
         let cell = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
           console.log(el, cell);
@@ -2093,7 +2100,7 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-          console.log(modeler.graph.getCell(linkView.model.id));
+          setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
 
@@ -2365,7 +2372,6 @@ function showAWInfo(rowobj: any) {
 
 function showAWExpectedInfo(rowobj: any) {
   
-  
   chooseAwExpected=rowobj
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
@@ -2385,8 +2391,6 @@ function showAWExpectedInfo(rowobj: any) {
       Object.assign(awschemaExpected.value.properties, field);
     });
   }
-
-
 }
 
 const activeKey = ref("2");
@@ -2532,7 +2536,6 @@ const onAfterChange = (value: any) => {
   modeler.paper.scale(value);
   // modeler.paper.options.width=`${100*value1.value}%`;
   // modeler.paper.options.height=`${100*value1.value}%`;
-  console.log(modeler.paper.options);
   // canvas.value.style.overflow='auto'
   // Object.assign(modeler.paper.options,{overflow:'scroll'})
   modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
