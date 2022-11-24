@@ -1658,7 +1658,7 @@ function reloadMBT(route: any) {
                   )
                 );
       })
-      console.log(cells);
+      // console.log(cells);
       
       });
     }
