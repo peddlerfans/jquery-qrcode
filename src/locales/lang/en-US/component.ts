@@ -46,7 +46,7 @@ export default {
     then: 'Then',
     operator: 'Operator',
     topics: 'Topics',
-
+    clone: 'clone',
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
 

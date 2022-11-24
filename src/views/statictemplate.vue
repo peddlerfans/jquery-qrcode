@@ -30,7 +30,8 @@ let tableloading=ref(false)
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
-      q:'category:static'
+  q: 'category:static'
+      
 });
 watch(
     () => formState.search,
