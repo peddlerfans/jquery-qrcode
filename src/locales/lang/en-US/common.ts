@@ -19,6 +19,8 @@ export default {
   preview: 'Preview',
   submitText: 'Submit',
   close: 'close',
+  saveError: "Save failed",
+  cloneError: 'Clone failed',
 
   inputText: 'Please enter',
   chooseText: 'Please choose',

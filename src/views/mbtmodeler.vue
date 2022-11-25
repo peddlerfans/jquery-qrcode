@@ -180,11 +180,9 @@ const showDrawer = (
   id?: string
 ) => {
   visible.value = true;
-  console.log(el);
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
-    ev_id = id;
-
+    ev_id = id;    
     awformdata.value._id = "";
     awformdata.value.description = "";
     awformdata.value.name = "";
