@@ -657,7 +657,7 @@ const linkschema = ref({
 // 清空awformData和awschema，，，的函数
 function clearAw(){
 
-  awschema = ref({
+  awschema.value = {
   title: "AW",
   description: "Configuration for the AW",
   type: "object",
@@ -689,22 +689,22 @@ function clearAw(){
       readOnly: true,
     },
   },
-});
+};
 awschemaExpected = _.cloneDeep(awschema);
-  awformdata = ref<Stores.awView>({
+  awformdata.value = {
   _id: "",
   name: "",
   description: "",
   tags: "",
   template: ""
-  })
-  awformdataExpected = ref<Stores.awView>({
+  }
+  awformdataExpected.value = {
   _id: "",
   name: "",
   description: "",
   tags: "",
   template: "",
-});
+};
 }
 
 const onExpectedAW = () => {
@@ -987,6 +987,10 @@ function awhandlerSubmit(data:any,schema:any) {
   clearAw()
   message.success(t("component.message.saveSuccess"));
 }
+
+
+
+
 function handlerConfirmExpected(data:any , schema:any) {
   leaveRouter.value = true
     isAW.value = true;
@@ -1205,7 +1209,7 @@ function handlerConfirmExpected(data:any , schema:any) {
     cell.resize(maxX, maxY - 10);
   }
   currentElementMap.clear();
-  
+  clearAw()
   onCloseDrawer();
   message.success(t("component.message.saveSuccess"));
 }
@@ -1279,20 +1283,6 @@ function linkhandlerSubmit() {
       },
     },
   });
-  // console.log(modeler.graph.getCell(lv_id));
-  //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
-  //   linkFormData.label += ` Loop : ${loopcount1}`;
-  // } else {
-  //   if (typeof linkFormData.label == "undefined") linkFormData.label = "";
-  //   modeler.graph.getCell(lv_id).appendLabel({
-  //     attrs: {
-  //       text: {
-  //         text: linkFormData.label || "",
-  //       },
-  //     },
-  //   });
-  //   modeler.graph.getCell(lv_id).attr("line/stroke", "black");
-  // }
   let tempObj = {};
   Object.assign(tempObj, { _id: linkFormData._id });
   Object.assign(tempObj, { label: linkFormData.label });
@@ -1301,7 +1291,7 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
-
+  linkData.value.label = ''
   
   onCloseDrawer();
   // message.success(t('component.message.saveSuccess'));
@@ -1718,17 +1708,14 @@ onMounted(() => {
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
-        value.modelDefinition.hasOwnProperty("cellsinfo")
+        value.modelDefinition.hasOwnProperty("cellsinfo") &&
+        value.hasOwnProperty('dataDefinition')
       ) {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {      
-              // console.log(rec);
-                      
+            rst.forEach((rec: any) => {
               codegennames.value.push({title:rec.name,const:rec._id});
-              // globalschema.value.properties.codegen_text.enum.push(rec.name)
-              // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
           }
         });
@@ -1781,11 +1768,6 @@ onMounted(() => {
             tableData.value = value.dataDefinition.data.tableData;
             tableColumns.value = value.dataDefinition.data.tableColumns;
           }
-
-          /**
-           * todo 10.19
-           */
-          // cacheDataDefinition.meta;
         }
 
       }else{
@@ -2014,6 +1996,7 @@ onMounted(() => {
         modeler.graph.addCell(s);
         // console.log('sss:', s);
         if (s.attributes.type == "standard.HeaderedRectangle") {
+          awquery()
           aw = "aw";
           cellid = s.id + "";
         }
@@ -2098,25 +2081,28 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+    // console.log(linkData.value.label);
           setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
-
+          // console.log("进入");
+          
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
           isChoose.value=true
           isAW.value = false;
-          linkData.value.isCondition = false;
+          linkData.value.isCondition = true;
           // showDrawer(linkView);
         }else{
-          // console.log(123);
+          console.log(123);
           isLink.value=true
           isExclusiveGateway.value = true;
           isGlobal.value = false;
           isChoose.value=false
           isAW.value = false;
           linkData.value.isCondition = true;
+
           // showDrawer(linkView);
         }
     }else{
@@ -2129,31 +2115,26 @@ onMounted(() => {
       linkData.value.isCondition = false;
     }
 
-      lv_id = linkView.model.id + "";
-
-      console.log(cacheprops.has(linkView.model.id));
-
+      lv_id = linkView.model.id + "";      
+      if(linkData.value.label=='name == undefined ')linkData.value.label = ''
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
-        console.log(templinkData.props);
+        linkData.value.label = templinkData.props.label
         linkData.value = templinkData.props;
-
+        // console.log(linkData.value);
         if (templinkData.props.ruleData && templinkData.props.ruleData.length > 0) {
           rulesData.value = templinkData.props.ruleData;
         }
-
         // linkData.value.label=condition
         currentLinkMap.set(lv_id, { props: templinkData });
-
         linkData.value._id = linkView.model.id;
       } else {
-        // todo link props
-        // message.warning("Select a template first");
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      // showDrawer(linkView);
     }
+
+    
     showDrawer(linkView);
   });
 
@@ -2261,6 +2242,8 @@ onMounted(() => {
       ) {
         // message.success("Save MBT model successfully")
       }
+      
+      
     }
   );
 
@@ -2338,7 +2321,6 @@ function showAWInfo(rowobj: any) {
       readOnly: true,
     },
   };
-  console.log(rowobj);
   
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
@@ -2346,7 +2328,7 @@ function showAWInfo(rowobj: any) {
   awformdata.value.tags = "";
   awformdata.value.template = rowobj.template;
   awformdata.value._id = rowobj._id;
-
+  
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
       awformdata.value.tags += value + " ";
@@ -2775,17 +2757,16 @@ const conditionstr = (arr: any) => {
     .substring(0, ifcondition.join("").toString().length - 4);
 };
 watch(
-  rulesData,
-  (newvalue: any) => {
-    if (rulesData.value.length > 0) {
-      if ( isExclusiveGateway.value && isLink.value ){
-        linkData.value.label = ifdata(newvalue)!;
-      }
-
-    }
-  },
-  { deep: true }
-);
+            rulesData,
+            (newvalue: any) => {
+              if (rulesData.value.length > 0) {
+                if ( isExclusiveGateway.value && isLink.value && linkData.value.isCondition){
+                  linkData.value.label = ifdata(newvalue)!;
+                }
+              }
+            },
+            { deep: true }
+          );
 let router = useRouter();
 // 点击跳转Aw修改
 const routerAw = (awData: any) => {
@@ -3157,10 +3138,10 @@ function relayout(){
                     v-if="isAW && hasAWInfo"
                   >
                     <div slot-scope="{ awformdata }" style="position: relative;">
-                      <span style="position: absolute; left: 3rem;top: -27.5rem; ">
+                      <!-- <span style="position: absolute; left: 3rem;top: -27.5rem; "> -->
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
-                      </span>
+                        <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
+                      <!-- </span> -->
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
                           $t("common.submitText")

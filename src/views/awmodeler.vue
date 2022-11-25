@@ -205,7 +205,7 @@ let obj = ref<paramsobj>({
   name: "",
   description: "",
   type: "",
-  returnType: [],
+  
   enum: [],
   inputVisible: false,
   inputValue: '',
@@ -239,6 +239,7 @@ let modelstates = ref<ModelState>({
   name: '',
   description: '',
   template: "",
+  returnType: [],
   template_en:"",
   _id: "",
   params:[],
@@ -252,6 +253,7 @@ const clear = () => {
     description: '',
     template: "",
     _id: "",
+    returnType: [],
     template_en: "",
     params: [],
     tags: []
@@ -261,7 +263,6 @@ const clear = () => {
         name: "",
         description: "",
         type: "",
-        returnType: [],
         enum: [],
         inputVisible: false,
         inputValue: '',
@@ -279,7 +280,6 @@ const clearFactorState = () => {
   obj.value.name = ''
   obj.value.description = ''
   obj.value.required = false,
-      obj.value.returnType = [],
       obj.value.type = ''
   obj.value.enum = []
   obj.value.editing = true
@@ -310,7 +310,6 @@ const cancelparams = (record:any) => {
   } else {
     record.description=obj.value.description
     record.required=obj.value.required
-    record.returnType=obj.value.returnType
     record.name = obj.value.name
     record.type = obj.value.type
     states.tags=obj.value.enum
@@ -322,7 +321,6 @@ const cancelparams = (record:any) => {
 const editparams = (record:any) => {
   obj.value.description=record.description
   obj.value.required=record.required
-  obj.value.returnType=record.returnType
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
@@ -336,7 +334,6 @@ const addNewParams = () => {
     description: '',
     type: '',
     enum: [],
-    returnType:[],
     editing: true,
     inputVisible: true,
     inputValue: '',
@@ -591,19 +588,6 @@ async function updateAw(url:string,data:any) {
   let rst = await request.put(url, data)
   // pagination.value.total = 1
   // tableData.value = [rst]
-}
-// 修改的函数
-const edit = (rowobj:any) => {
-  showModal()
-  modelstates.value.key=rowobj.key
-  modelstates.value.name=rowobj.name
-  modelstates.value.description=rowobj.description
-  modelstates.value.template=rowobj.template
-  modelstates.value.template_en=rowobj.template_en
-  modelstates.value._id = rowobj._id
-  states.tags = rowobj.tags
-  modelstates.value.params = [...rowobj.params]
-  modelstates.value.params=modelstates.value.params.map((item:any, index:number)=>{return {...item ,editing:false, inputVisible: false, inputValue: ''}})
 }
 // 表格的结构
 const columns = reactive<Object[]>(
@@ -1360,7 +1344,34 @@ const clearValida = () => {
                       :style="{ width: '78px' }"
                       @blur="handleInputConfirm"
                       @keyup.enter="handleInputConfirm"
-
+                  />
+                  <a-tag v-else style="background: #fff; border-style: dashed"
+                         @click="showInput">
+                    <plus-outlined />
+                    {{ $t('common.newTag') }}
+                  </a-tag>
+                </a-form-item>
+                <a-form-item>
+                  <template v-for="tag in modelstates.returnType" :key="tag">
+                    <a-tooltip v-if="tag.length > 20" :title="tag">
+                      <a-tag :closable="true" @close="handleClose(tag)">
+                        {{ `${tag.slice(0, 20)}...` }}
+                      </a-tag>
+                    </a-tooltip>
+                    <a-tag v-else-if="tag.length==0"></a-tag>
+                    <a-tag v-else :closable="true" @close="handleClose(tag)">
+                      {{tag}}
+                    </a-tag>
+                  </template>
+                  <a-input
+                      v-if="states.inputVisible"
+                      ref="inputRef"
+                      v-model:value="states.inputValue"
+                      type="text"
+                      size="small"
+                      :style="{ width: '78px' }"
+                      @blur="handleInputConfirm"
+                      @keyup.enter="handleInputConfirm"
                   />
                   <a-tag v-else style="background: #fff; border-style: dashed"
                          @click="showInput">

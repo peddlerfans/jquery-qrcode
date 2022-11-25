@@ -53,3 +53,16 @@ export const MBTStore = defineStore('mbtmodel', {
 })
 
 export default MBTStore
+
+
+
+//  选择AW、 选择预期 修改Aw
+// 点击上一个  aw之后，新加的一个aw无法编辑
+
+
+// cd 文件夹
+//crontab-1  修改每天修改信息
+// less pull 进入文件中查看
+// vim 为编辑文件内容
+//ls -ltr查看当前文件夹中的文件
+//zai  code下直接执行  ./redeploy.sh
