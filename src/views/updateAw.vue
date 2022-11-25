@@ -49,6 +49,7 @@ let modelstates = ref<ModelState>({
   template: "",
   template_en: "",
   validationError:"",
+  returnType: [],
   _id: "",
   params:[],
   tags:[],
@@ -60,7 +61,7 @@ let obj = ref<paramsobj>({
   name: "",
   description: "",
   type: "",
-  returnType: [],
+  
   enum: [],
   inputVisible: false,
   inputValue: '',
@@ -122,7 +123,7 @@ const addNewParams = () => {
     description : '',
     type : '',
     enum : [],
-    returnType : [],
+
     editing: true,
     inputVisible: true,
     inputValue: '',
@@ -172,7 +173,6 @@ const cancelparams = (record:any) => {
   } else {
     record.description=obj.value.description
     record.required=obj.value.required
-    record.returnType=obj.value.returnType
     record.name = obj.value.name
     record.type = obj.value.type
     states.tags=obj.value.enum
@@ -203,7 +203,6 @@ const clearFactorState = () => {
   obj.value.name = ''
   obj.value.description = ''
   obj.value.required = false,
-      obj.value.returnType = [],
       obj.value.type = ''
   obj.value.enum = []
   obj.value.editing = true
@@ -226,7 +225,6 @@ const editparams = (record: any) => {
   if (!canEdit.value) return
   obj.value.description=record.description
   obj.value.required=record.required
-  obj.value.returnType=record.returnType
   obj.value.name = record.name
   obj.value.type = record.type
   obj.value.enum = record.values
