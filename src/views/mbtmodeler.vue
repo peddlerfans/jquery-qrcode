@@ -290,6 +290,7 @@ let isLink = ref(false);
 let isChoose = ref(false);
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
+let tableLoad = ref(false)
 // aw form searching primary
 const formState = reactive<FormState>({
   awname: "",
@@ -390,6 +391,7 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
 }
 
 async function awquery(data?: any, isExpected?: boolean) {
+  tableLoad.value = true
   let rst;
   if (isExpected) {
     rst = await request.get("/api/hlfs", { params: data || searchobjExpected });
@@ -407,7 +409,7 @@ async function awquery(data?: any, isExpected?: boolean) {
       pagination.value.total = rst.total;
       tableData.value = rst.data;
     }
-
+    tableLoad.value = false
     return rst.data;
   }
 }
@@ -3220,7 +3222,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                       :data-source="tableData"
                       class="components-table-demo-nested"
                       :pagination="pagination"
-                      
+                      :loading="tableLoad"
                     >
                       <template #headerCell="{ column }">
                         <span>{{ $t(column.title) }}</span>
