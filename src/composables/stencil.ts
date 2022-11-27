@@ -8,21 +8,21 @@ const { t } = i18n.global
 
 window.joint = joint
 
-export class MyShape extends dia.Element {
-  constructor(e: Element, o: any) {
-    super(e, o);
-    this.prop('isStep', true)
-    this.on('change', (evt: any) => {
-      if (evt.changed && evt.changed.custom && evt.changed.custom) {
-        // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        this.updateRectangles();
-        this.attr('label/text/0', "test")
-      }
+// export class MyShape extends dia.Element {
+//   constructor(e: Element, o: any) {
+//     super(e, o);
+//     this.prop('isStep', true)
+//     this.on('change', (evt: any) => {
+//       if (evt.changed && evt.changed.custom && evt.changed.custom) {
+//         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
+//         this.updateRectangles();
+//         this.attr('label/text/0', "test")
+//       }
 
-    })
+//     })
 
-    this.updateRectangles();
-  }
+//     this.updateRectangles();
+//   }
   // constructor() {
   //   super();
   //   this.prop('isStep',true)
@@ -63,90 +63,90 @@ export class MyShape extends dia.Element {
   //   super.on(eventName,cb,x,y,z)
   //   return true
   // }
-  updateRectangles() {
-    var attrs = this.get('attrs');
-    var rects = [
-      { type: 'step', text: this.prop('custom/step') || 'NNN' },
-      { type: 'expectation', text: this.prop('custom/expectation') },
-      // { type: 'methods', text: this.get('methods') }
-    ];
+//   updateRectangles() {
+//     var attrs = this.get('attrs');
+//     var rects = [
+//       { type: 'step', text: this.prop('custom/step') || 'NNN' },
+//       { type: 'expectation', text: this.prop('custom/expectation') },
+//       // { type: 'methods', text: this.get('methods') }
+//     ];
 
-    var offsetY = 0;
+//     var offsetY = 0;
 
-    rects.forEach(function (rect) {
-      // debugger;
+//     rects.forEach(function (rect) {
+//       // debugger;
 
-      var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-      var rectHeight = lines.length * 20 + 20;
+//       var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
+//       var rectHeight = lines.length * 20 + 20;
 
-      attrs['.mbt-step-' + rect.type + '-text'].text = lines.join('\n');
-      attrs['.mbt-step-' + rect.type + '-rect'].height = rectHeight;
-      attrs['.mbt-step-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
+//       attrs['.mbt-step-' + rect.type + '-text'].text = lines.join('\n');
+//       attrs['.mbt-step-' + rect.type + '-rect'].height = rectHeight;
+//       attrs['.mbt-step-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
 
-      offsetY += rectHeight;
-    });
-  }
-  setSizeFromContent() {
-    // delete this.cache.layout;
-    const {
-      width,
-      height
-    } = this.layout();
-    this.resize(width, height);
-  }
-  defaults() {
-    return {
-      ...super.defaults,
-      type: 'itea.mbt.test',
-      size: { width: 100, height: 30 },
-      position: { x: 10, y: 10 },
-      prop: {
-        isStep: true,
-        custom: {
-          step: {
+//       offsetY += rectHeight;
+//     });
+//   }
+//   setSizeFromContent() {
+//     // delete this.cache.layout;
+//     const {
+//       width,
+//       height
+//     } = this.layout();
+//     this.resize(width, height);
+//   }
+//   defaults() {
+//     return {
+//       ...super.defaults,
+//       type: 'itea.mbt.test',
+//       size: { width: 100, height: 30 },
+//       position: { x: 10, y: 10 },
+//       prop: {
+//         isStep: true,
+//         custom: {
+//           step: {
 
-          },
-          expectation: {
+//           },
+//           expectation: {
 
-          }
-        }
+//           }
+//         }
 
-      },
-      attrs: {
-        rect: { 'width': 200 },
+//       },
+//       attrs: {
+//         rect: { 'width': 200 },
 
-        '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-        '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
+//         '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
+//         '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
 
-        '.mbt-step-step-text': {
-          'ref': '.mbt-step-step-rect',
-          'ref-y': .5,
-          'ref-x': .5,
-          'text-anchor': 'middle',
-          'y-alignment': 'middle',
-          'font-weight': 'bold',
-          'fill': 'black',
-          'font-size': 12,
-          'font-family': 'Times New Roman'
-        },
-        '.mbt-step-expectation-text': {
-          'ref': '.mbt-step-expectation-rect', 'ref-y': -.5, 'ref-x': .5,
-          'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-        }
-      },
+//         '.mbt-step-step-text': {
+//           'ref': '.mbt-step-step-rect',
+//           'ref-y': .5,
+//           'ref-x': .5,
+//           'text-anchor': 'middle',
+//           'y-alignment': 'middle',
+//           'font-weight': 'bold',
+//           'fill': 'black',
+//           'font-size': 12,
+//           'font-family': 'Times New Roman'
+//         },
+//         '.mbt-step-expectation-text': {
+//           'ref': '.mbt-step-expectation-rect', 'ref-y': -.5, 'ref-x': .5,
+//           'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
+//         }
+//       },
 
-    }
-  }
+//     }
+//   }
 
-  markup = ['<g class="rotatable">',
-    '<g class="scalable">',
-    '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
-    '</g>',
-    '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
-    '</g>'].join('')
+//   markup = ['<g class="rotatable">',
+//     '<g class="scalable">',
+//     '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
+//     '</g>',
+//     '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
+//     '</g>'].join('')
 
-}
-Object.assign(joint.shapes, { itea: { mbt: { test: { MyShape } } } })
+// }
+// Object.assign(joint.shapes, { itea: { mbt: { test: { MyShape } } } })
 export class Stencil {
   namespace = joint.shapes;
   states: object;

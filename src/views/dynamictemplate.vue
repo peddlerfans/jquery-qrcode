@@ -321,8 +321,6 @@ const clearValida =()=>{
   refCopy.value.clearValidate()
 }
 
-
-
 </script>
 
 
