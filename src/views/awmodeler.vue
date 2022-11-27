@@ -153,6 +153,8 @@ const onSelectAwChange = async (value: any) => {
 const inputChange = (value: any) => {
   if (formState.search == "@") {
     cascder.value = true
+  } else {
+    cascder.value = false
   }
 }
 
@@ -205,13 +207,10 @@ let obj = ref<paramsobj>({
   name: "",
   description: "",
   type: "",
-  
   enum: [],
   inputVisible: false,
   inputValue: '',
   editing: false,
-  returnTypeinput: "",
-  returnTypevisible : false
 })
 // 添加功能的函数
 let deleteId=""
@@ -234,6 +233,9 @@ async function saveAw(data: any) {
    })
   
 }
+let returnInput = ref('')
+let returnVisibal = ref(false)
+let returnRef = ref()
 let modelstates = ref<ModelState>({
   key:0,
   name: '',
@@ -267,8 +269,6 @@ const clear = () => {
         inputVisible: false,
         inputValue: '',
         editing: false,
-        returnTypeinput: '',
-        returnTypevisible : false
       }
   states.tags = [];
 
@@ -285,10 +285,6 @@ const clearFactorState = () => {
   obj.value.editing = true
   obj.value.inputVisible = false
   obj.value.inputValue = ''
-  obj.value.returnTypeinput = ''
-  obj.value.returnTypevisible = false
-
-
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 // 点击保存params的函数
@@ -337,8 +333,6 @@ const addNewParams = () => {
     editing: true,
     inputVisible: true,
     inputValue: '',
-    returnTypeinput: '',
-    returnTypevisible : false
   })
 }
 // params的表格结构
@@ -359,12 +353,6 @@ const paramsColum = [
     title: 'component.table.description',
     dataIndex:'description',
     key:'description',
-    width:100
-  },
-  {
-    title: 'component.table.returnType',
-    dataIndex:'returnType',
-    key:'returnType',
     width:100
   },
   {
@@ -468,7 +456,7 @@ const showValidationError=(record:any):any=>{
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
-  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9$]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
   }else if(!reg.test(value) && !reg1.test(value)){
@@ -538,15 +526,25 @@ let states = reactive<statesTs>({
 });
 
 const handleClose = (removedTag: string) => {
-
   const tags = states.tags.filter((tag: string) => tag !== removedTag);
   states.tags = tags;
+};
+
+const handleReturnClose = (removedTag: string) => {
+  const tags = modelstates.value.returnType.filter((tag: string) => tag !== removedTag);
+  modelstates.value.returnType = tags;
 };
 
 const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
     inputRef.value.focus();
+  })
+};
+const showreturnInput = () => {
+  returnVisibal.value = true;
+  nextTick(() => {
+    returnRef.value.focus();
   })
 };
 
@@ -560,6 +558,16 @@ const handleInputConfirm = () => {
     inputVisible: false,
     inputValue: '',
   });
+}
+
+const handleReturnConfirm = () => {
+  let tags = modelstates.value.returnType;
+  if (returnInput.value && tags.indexOf(returnInput.value) === -1) {
+    modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
+  }
+  
+  returnInput.value = '',
+  returnVisibal.value = false
 }
 
 // 删除功能
@@ -1252,6 +1260,7 @@ const clearValida = () => {
                            @change="inputChange"
                            ref="searchInput"
                   >
+                  
                   </a-input>
                   <a-cascader
                       v-if="cascder"
@@ -1351,30 +1360,30 @@ const clearValida = () => {
                     {{ $t('common.newTag') }}
                   </a-tag>
                 </a-form-item>
-                <a-form-item>
+                <a-form-item :label="$t('component.table.returnType')" name="returnType">
                   <template v-for="tag in modelstates.returnType" :key="tag">
                     <a-tooltip v-if="tag.length > 20" :title="tag">
-                      <a-tag :closable="true" @close="handleClose(tag)">
+                      <a-tag :closable="true" @close="handleReturnClose(tag)">
                         {{ `${tag.slice(0, 20)}...` }}
                       </a-tag>
                     </a-tooltip>
                     <a-tag v-else-if="tag.length==0"></a-tag>
-                    <a-tag v-else :closable="true" @close="handleClose(tag)">
+                    <a-tag v-else :closable="true" @close="handleReturnClose(tag)">
                       {{tag}}
                     </a-tag>
                   </template>
                   <a-input
-                      v-if="states.inputVisible"
-                      ref="inputRef"
-                      v-model:value="states.inputValue"
+                      v-if="returnVisibal"
+                      ref="returnRef"
+                      v-model:value="returnInput"
                       type="text"
                       size="small"
                       :style="{ width: '78px' }"
-                      @blur="handleInputConfirm"
-                      @keyup.enter="handleInputConfirm"
+                      @blur="handleReturnConfirm"
+                      @keyup.enter="handleReturnConfirm"
                   />
                   <a-tag v-else style="background: #fff; border-style: dashed"
-                         @click="showInput">
+                         @click="showreturnInput">
                     <plus-outlined />
                     {{ $t('common.newTag') }}
                   </a-tag>
@@ -1449,42 +1458,6 @@ const clearValida = () => {
           </span>
                     </div>
                   </template>
-
-
-                  <template v-if="column.key === 'returnType'">
-                    <div>
-                      <template v-if="record.editing">
-                        <template v-for="(tag) in record.returnType" :key="tag">
-                          <a-tooltip v-if="tag.length > 20" :title="tag">
-                            <a-tag :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
-                              {{ `${tag.slice(0, 20)}...` }}
-                            </a-tag>
-                          </a-tooltip>
-                          <a-tag v-else-if="tag.length==0"></a-tag>
-                          <a-tag v-else :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
-                            {{tag}}
-                          </a-tag>
-                        </template>
-                        <a-input v-if="record.returnTypevisible || record.type=='string'" ref="returnType" v-model:value.trim="record.returnTypeinput" type="text"
-                                 size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
-                                 @keyup.enter="handleReturnType(record)" />
-                        <a-input-number v-else-if="record.returnTypevisible && record.type=='number'" ref="returnType" v-model:value.number="record.returnTypeinput" type="text"
-                                        size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
-                                        @keyup.enter="handleReturnType(record)" />
-                        <a-tag v-else style="background: #fff; border-style: dashed" @click="newReturnType(record)">
-                          <plus-outlined />
-                          {{ $t('common.newValue') }}
-                        </a-tag>
-                      </template>
-
-                      <span v-else>
-            <a-tag v-for="tag in record.returnType" :key="tag" color="cyan">
-              {{ tag }}
-            </a-tag>
-          </span>
-                    </div>
-                  </template>
-
 
                   <template v-if="column.key === 'action'">
                     <div class="editable-row-operations">

@@ -8,13 +8,15 @@ import {PlusOutlined} from '@ant-design/icons-vue'
 import { routerKey, useRoute, useRouter } from "vue-router";
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 import { AnyKindOfDictionary } from "lodash";
+import { identifier } from "@babel/types";
 const { t } = useI18n()
 
 
 async function query(data?:any){
   let rsts=await request.get(`/api/hlfs/${data}`)
   if(rsts){
-    modelstates.value={...rsts} as any
+    modelstates.value = { ...rsts } as any
+    if(!modelstates.value.returnType)modelstates.value.returnType = []
     states.tags=rsts.tags!
     sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
   }
@@ -41,7 +43,9 @@ onMounted(()=>{
   query(JSON.parse(getId))
 
 })
-
+let returnInput = ref('')
+let returnRef = ref()
+let returnVisibal = ref(false)
 let modelstates = ref<ModelState>({
   key:0,
   name: '',
@@ -61,13 +65,10 @@ let obj = ref<paramsobj>({
   name: "",
   description: "",
   type: "",
-  
   enum: [],
   inputVisible: false,
   inputValue: '',
   editing: false,
-  returnTypeinput: '',
-  returnTypevisible : false
 })
 
 // params的表格结构
@@ -88,12 +89,6 @@ const paramsColum = [
     title: 'component.table.description',
     dataIndex:'description',
     key:'description',
-    width:100
-  },
-  {
-    title: 'component.table.returnType',
-    dataIndex:'returnType',
-    key:'returnType',
     width:100
   },
   {
@@ -123,12 +118,9 @@ const addNewParams = () => {
     description : '',
     type : '',
     enum : [],
-
     editing: true,
     inputVisible: true,
     inputValue: '',
-    returnTypeinput: '',
-    returnTypevisible : false
   })
 }
 // 添加params的enu
@@ -137,10 +129,11 @@ const handleCloseTag = (record: any, removedTag: any) => {
   record.enum = tags;
 };
 
-const handleCloseReturnType = (record: any, removedTag: any) => {
-  const tags = record.returnType.filter((tag: any) => tag !== removedTag);
-  record.returnType = tags;
+const handleReturnClose = (removedTag: string) => {
+  const tags = modelstates.value.returnType.filter((tag: string) => tag !== removedTag);
+  modelstates.value.returnType = tags;
 };
+
 const handleFactorValueConfirm = (record: any) => {
   let values = record.enum;
   if (values && record.inputValue && values.indexOf(record.inputValue) === -1) {
@@ -153,17 +146,20 @@ const handleFactorValueConfirm = (record: any) => {
   });
 }
 
-const handleReturnType = (record: any) => {
-  let values = record.returnType;
-  if (values && record.returnTypeinput && values.indexOf(record.returnTypeinput) === -1) {
-
-    values = [...values, record.returnTypeinput];
+const handleReturnConfirm = () => {
+  let tags: Array<String> = modelstates.value.returnType;    
+  if (returnInput.value ) {
+    if (tags.length > 0) {
+      if (tags.indexOf(returnInput.value) === -1) {
+        modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
+      }
+    } else {
+      modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
+    }
   }
-  Object.assign(record, {
-    returnType: values,
-    returnTypeinput: '',
-    returnTypevisible : false
-  });
+  
+  returnInput.value = '',
+  returnVisibal.value = false
 }
 // 点击取消修改或添加params的函数
 const cancelparams = (record:any) => {
@@ -189,11 +185,10 @@ const newFactorValueInput = (record: any) => {
     inputRefs.value.focus();
   })
 };
-const newReturnType = (record: any) => {
-  record.returnTypevisible = true;
-
+const showreturnInput = () => {
+  returnVisibal.value = true;
   nextTick(() => {
-    returnType.value.focus();
+    returnRef.value.focus();
   })
 };
 
@@ -208,9 +203,6 @@ const clearFactorState = () => {
   obj.value.editing = true
   obj.value.inputVisible = false
   obj.value.inputValue = ''
-  obj.value.returnTypeinput = ''
-  obj.value.returnTypevisible = false
-
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 // 点击保存params的函数
@@ -277,9 +269,8 @@ async function updateAw(url:string,data:any) {
   delete data._id
   let rst = await request.put(url, data)
   // console.log(JSON.parse(getupdate));
-  if(rst){
-    console.log(123);
-
+  if (rst) {
+    modelstates.value = rst as any
     canEdit.value=false
   }
 
@@ -490,6 +481,38 @@ let rules: Record<string, Rule[]> = {
           {{ $t('common.newTag') }}
         </a-tag>
       </a-form-item>
+
+              <a-form-item :label="$t('component.table.returnType')" name="returnType">
+          <template v-for="tag in modelstates.returnType" :key="tag">
+            <a-tooltip v-if="tag.length > 20" :title="tag">
+              <a-tag :closable="true" @close="handleReturnClose(tag)">
+                {{ `${tag.slice(0, 20)}...` }}
+              </a-tag>
+            </a-tooltip>
+            <a-tag v-else-if="tag.length==0"></a-tag>
+            <a-tag v-else :closable="true" @close="handleReturnClose(tag)">
+              {{tag}}
+            </a-tag>
+          </template>
+          <a-input
+              v-if="returnVisibal"
+              ref="returnRef"
+              v-model:value="returnInput"
+              type="text"
+              size="small"
+              :style="{ width: '78px' }"
+              @blur="handleReturnConfirm"
+              @keyup.enter="handleReturnConfirm"
+          />
+          <a-tag 
+          v-show="!returnVisibal && canEdit"
+           style="background: #fff; border-style: dashed"
+                  @click="showreturnInput">
+            <plus-outlined />
+            {{ $t('common.newTag') }}
+          </a-tag>
+        </a-form-item>
+
       <a-form-item
           :label="$t('component.table.params')"
           name="params"  >
@@ -561,39 +584,6 @@ let rules: Record<string, Rule[]> = {
           </div>
         </template>
 
-        <template v-if="column.key === 'returnType'">
-          <div>
-            <template v-if="record.editing">
-              <template v-for="(tag) in record.returnType" :key="tag">
-                <a-tooltip v-if="tag.length > 20" :title="tag">
-                  <a-tag :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
-                    {{ `${tag.slice(0, 20)}...` }}
-                  </a-tag>
-                </a-tooltip>
-                <a-tag v-else-if="tag.length==0"></a-tag>
-                <a-tag v-else :closable="true" :visible="true" @close="handleCloseReturnType(record, tag)">
-                  {{tag}}
-                </a-tag>
-              </template>
-              <a-input v-if="record.returnTypevisible || record.type=='string'" ref="returnType" v-model:value.trim="record.returnTypeinput" type="text"
-                       size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
-                       @keyup.enter="handleReturnType(record)" />
-              <a-input-number v-else-if="record.returnTypevisible && record.type=='number'" ref="returnType" v-model:value.number="record.returnTypeinput" type="text"
-                              size="small" :style="{ width: '78px' }" @blur="handleReturnType(record)"
-                              @keyup.enter="handleReturnType(record)" />
-              <a-tag v-else style="background: #fff; border-style: dashed" @click="newReturnType(record)">
-                <plus-outlined />
-                {{ $t('common.newValue') }}
-              </a-tag>
-            </template>
-
-            <span v-else>
-            <a-tag v-for="tag in record.returnType" :key="tag" color="cyan">
-              {{ tag }}
-            </a-tag>
-          </span>
-          </div>
-        </template>
         <template v-if="column.key === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">

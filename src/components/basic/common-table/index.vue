@@ -191,7 +191,7 @@ let descriptionForm = ref()
 
 const checkName = async (_rule: Rule, value: string) => {
   let reg = /^[a-zA-Z\$_][a-zA-Z\d_]*$/
-  let reg1 = /^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+  let reg1 = /^[\u4e00-\u9fa5_a-zA-Z0-9$]+$/
   if (!value) {
     return Promise.reject(t('templateManager.nameinput'))
   } else if (tempRow._id && tempRow.name === value) {

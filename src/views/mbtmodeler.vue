@@ -7,10 +7,10 @@ import templateTable from "@/components/templateTable.vue";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode, nextTick } from "vue";
 import type { Ref } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import { CascaderProps, FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import  dagre from 'dagre';
@@ -64,6 +64,7 @@ import "./componentTS/ace-config";
 import { debug } from "console";
 import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
+import { awStore } from "@/stores/aw";
 const { t } = useI18n();
 
 
@@ -118,6 +119,22 @@ const templateRadiovalue = ref<number>(1);
 const leaveRouter=ref(false)
 const isLeaveRouter=ref(false)
 let saveMbtData:any = null
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectOption = ref("")
+let selectoptions:any = ref([
+  {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+
+  },
+])
 const handleRadioChange: any = (v: any) => {
   templateCategory.value = v;
 };
@@ -240,10 +257,10 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
-  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
-  console.log(aa);
-  
-  rulesData.value=[
+  if (awformdata.value._id) {
+  awhandlerSubmit(awformdata.value,awschema.value)  
+  }  
+  rulesData.value=[ 
   //初始化条件对象或者，已保存的条件对象
   {
     relation: childrelation,
@@ -262,6 +279,7 @@ const onCloseDrawer = () => {
   linkData.value.label=""
   visible.value = false;
   awActiveKey.value = "1";
+  clearAw()
 };
 
 /** Panel -> AW part, including a searching form and table */
@@ -708,7 +726,13 @@ awschemaExpected = _.cloneDeep(awschema);
 }
 
 const onExpectedAW = () => {
-  if(awformdata.value._id){
+  if (awformdata.value._id) {
+    if (!awformdataExpected.value._id) {
+      isAW.value = true
+      hasAWExpectedInfo.value = false
+      isGlobal.value = false
+      isLink.value = false  
+    }  
     awActiveKey.value = "2";
     isDisabled.value = false;
     awquery("", true);  
@@ -732,7 +756,13 @@ function awhandlerSubmit(data:any,schema:any) {
   let awschema1: any = generateObj(awschema);
   let awform2: any = generateObj(awformdataExpected);
   let awschema2: any = generateObj(awschemaExpected);
-  
+  let ExpectedformdataKeys = Object.keys(awform2)
+    Object.keys(awschema2.properties).forEach((item: any) => {
+    if (!ExpectedformdataKeys.includes(item)) {
+      awform2[item]=""
+    }
+  })
+  // debugger
 
   // if (isdata == "1") {
   //   if (awformdataExpected.value._id) {
@@ -781,7 +811,7 @@ function awhandlerSubmit(data:any,schema:any) {
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
-  let ExpectedformdataKeys  = Object.keys(tempformdata2)
+  
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
@@ -789,12 +819,29 @@ function awhandlerSubmit(data:any,schema:any) {
   })
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if(chooseAw){
+    if(chooseAwExpected){
       currentElementMap.set(ev_id, {
-        props: { primaryprops: {aw:chooseAw ,data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+        },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+        },
+      });
+    } else {
+            currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        },
       });
     }
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
@@ -834,7 +881,21 @@ function awhandlerSubmit(data:any,schema:any) {
           expectedprops: {aw:tempawAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-      }else{
+      } else {  
+        if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+      }  
         currentElementMap.set(ev_id, {
         props: {
           primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
@@ -865,9 +926,38 @@ function awhandlerSubmit(data:any,schema:any) {
           })
         }
       }
-    } 
+    } else {
+      if (awformdataExpected.value._id) {
+        console.log(123);
+        
+         currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschemaExpected.value, data: awformdataExpected.value },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: awformdataExpected.value, schema: awschemaExpected.value },
+        },
+      });
+      } else {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema }
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        } 
+      });
+      }
+    }
   }
-
+  console.log(cacheprops.get(ev_id));
+  
   //Draw
   let tempaw = {};
   let maxX = 180;
@@ -983,7 +1073,7 @@ function awhandlerSubmit(data:any,schema:any) {
     cell.resize(maxX, maxY - 10);
   }
   currentElementMap.clear();
-  onCloseDrawer();
+  visible.value = false
   clearAw()
   message.success(t("component.message.saveSuccess"));
 }
@@ -1045,7 +1135,13 @@ function handlerConfirmExpected(data:any , schema:any) {
     // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
     console.log(cacheprops.get(ev_id));
-    
+    if (
+     currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.primaryprops &&
+      currentElementMap.get(ev_id).props.primaryprops.data 
+    ) {
+      
     let props=cacheprops.get(ev_id).props.primaryprops
     if (
       currentElementMap.get(ev_id) &&
@@ -1098,6 +1194,21 @@ function handlerConfirmExpected(data:any , schema:any) {
       });
       }
     }
+    } else {
+            currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
+        },
+      });
+    }
+    
   }
 
     let tempaw = {};
@@ -1210,7 +1321,7 @@ function handlerConfirmExpected(data:any , schema:any) {
   }
   currentElementMap.clear();
   clearAw()
-  onCloseDrawer();
+  visible.value = false
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -1224,12 +1335,13 @@ const subAttributes=(data:any)=>{
   mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
-  onCloseDrawer();
+  
   clearAw()
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
+  visible.value = false
 }
 
 
@@ -2168,11 +2280,7 @@ onMounted(() => {
         elementView.model.attributes.type == "standard.HeaderedRectangle"
       ) {
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
-        ev_id = elementView.model.id + "";
-        isAW.value = true;
-        isChoose.value = false;
-        isLink.value = false;
-        isGlobal.value = false;
+
 
         if (
           cacheprops.get(ev_id) != null &&
@@ -2181,6 +2289,11 @@ onMounted(() => {
           cacheprops.get(ev_id).props.primaryprops.data.name &&
           cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
         ) {
+            ev_id = elementView.model.id + "";
+            isAW.value = true;
+            isChoose.value = false;
+            isLink.value = false;
+            isGlobal.value = false;
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           awformdata.value = cacheprops.get(ev_id).props.primaryprops.data;
           awschema.value = cacheprops.get(ev_id).props.primaryprops.schema;
@@ -2214,6 +2327,7 @@ onMounted(() => {
               },
             });
           } else {
+            isDisabled.value = true
             let props=cacheprops.get(ev_id).props.primaryprops
             // console.log(props);
             
@@ -2229,7 +2343,10 @@ onMounted(() => {
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
-          // console.log('empty   ', currentElementMap)
+          isAW.value = true
+          hasAWInfo.value = false
+          isLink.value = false
+          isGlobal.value = false
         }
 
         showDrawer(elementView, "aw", ev_id);
@@ -2875,6 +2992,38 @@ function relayout(){
 
         modeler.paper.unfreeze();
 }
+
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  } else {
+    cascder.value = false
+  }
+}
+const onSelectAwChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }
+  selectOption.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+  console.log(selectedOptions);
+  let rst = await request.get("/api/hlfs/_tags", { params: { q: "category:meta" } })
+  const targetOption = selectedOptions[0];
+  targetOption.loading = true
+  if (rst.length > 0) {
+    rst = rst.map((item: any) => ({ value: item, label: item }))
+    targetOption.children = rst
+  }
+  targetOption.loading = false;
+  selectoptions.value = [...selectoptions.value];
+};
+
 </script>
 
 <template>
@@ -3025,11 +3174,21 @@ function relayout(){
                       @finishFailed="handleFinishFailed"
                     >
                       <a-form-item :wrapper-col="{ span: 24 }">
-                        <a-input v-model:value="formState.search" placeholder="aw">
-                          <template #prefix>
-                            <search-outlined />
-                          </template>
-                        </a-input>
+                        <a-input v-model:value="formState.search"
+                        :placeholder="$t('awModeler.inputSearch1')"
+                        @change="inputChange"
+                        ref="searchInput"
+                                >
+                  
+                  </a-input>
+                  <a-cascader
+                      v-if="cascder"
+                      :load-data="loadData"
+                      v-model:value="selectOption"
+                      placeholder="Please select"
+                      :options="selectoptions"
+                      @change="onSelectAwChange"
+                  ></a-cascader>
                       </a-form-item>
                       <a-form-item :wrapper-col="{ span: 4 }">
                         <a-button type="primary" html-type="submit">{{
@@ -3149,12 +3308,19 @@ function relayout(){
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerCancel()">{{
-                          $t("common.editText")
+                          $t("common.chooseAw")
                         }}</a-button>
                       </span>
-                      <a-button danger @click="onExpectedAW()">{{
-                        $t("common.next")
+                      <span style="margin-right: 5px">
+                        <a-button danger @click="onExpectedAW()">{{
+                        $t("common.chooseEx")
                       }}</a-button>
+                      </span>
+                      
+                        <a-button danger @click="routerAw(awformdata)">
+                          {{$t('common.updateAw')}}
+                        </a-button>
+
                     </div>
                   </VueForm>
                 </div>
@@ -3268,12 +3434,12 @@ function relayout(){
                     <div slot-scope="{ awformdataExpected }">
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerEditExpected()">{{
-                          $t("common.editText")
+                          $t("common.chooseEx")
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerConfirmExpected(awformdataExpected,awschemaExpected)"
-                          >Confirm</a-button
+                          >{{$t("common.submitText")}}</a-button
                         >
                       </span>
                       <span style="margin-left: 5px">
@@ -3284,7 +3450,7 @@ function relayout(){
                           @confirm="handlerClearExpected()"
                           @cancel="cancel"
                         >
-                          <a-button danger>Clear</a-button>
+                          <a-button danger>{{$t('common.clear')}}</a-button>
                         </a-popconfirm>
                       </span>
                     </div>

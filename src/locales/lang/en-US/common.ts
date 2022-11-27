@@ -7,6 +7,9 @@ export default {
   delText: 'Delete',
   configText: 'config',
   editText: 'Edit',
+  chooseAw: 'chooseAw',
+  updateAw: 'updateAw',
+  chooseEx: 'choose Expected',
   resetText: 'Reset',
   searchText: 'Search',
   queryText: 'Search',
@@ -33,6 +36,6 @@ export default {
 
   newTag: 'Add a New Tag',
   newValue: 'Add a New Value',
-
+  clear: 'clear',
   clone: 'clone'
 };

@@ -22,8 +22,6 @@ export interface paramsobj {
     enum: Array<any>
     editing: boolean
     inputValue: any
-    returnTypeinput: any
-    returnTypevisible: boolean
 }
 export interface ModelState {
     key?: number
