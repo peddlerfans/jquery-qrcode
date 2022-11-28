@@ -3,7 +3,7 @@
 // Read more: https://github.com/vuejs/core/pull/3399
 import '@vue/runtime-core'
 
-export {}
+export { }
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
@@ -15,6 +15,7 @@ declare module '@vue/runtime-core' {
     ACard: typeof import('ant-design-vue/es')['Card']
     ACascader: typeof import('ant-design-vue/es')['Cascader']
     ACheckbox: typeof import('ant-design-vue/es')['Checkbox']
+    ACheckboxGroup: typeof import('ant-design-vue/es')['CheckboxGroup']
     ACol: typeof import('ant-design-vue/es')['Col']
     AConfigProvider: typeof import('ant-design-vue/es')['ConfigProvider']
     ADivider: typeof import('ant-design-vue/es')['Divider']
@@ -39,6 +40,7 @@ declare module '@vue/runtime-core' {
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
     ARadio: typeof import('ant-design-vue/es')['Radio']
     ARadioGroup: typeof import('ant-design-vue/es')['RadioGroup']
+    AResult: typeof import('ant-design-vue/es')['Result']
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
     ASlider: typeof import('ant-design-vue/es')['Slider']
