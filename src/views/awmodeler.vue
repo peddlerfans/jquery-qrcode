@@ -1180,30 +1180,7 @@ const clearValida = () => {
               :auto-expand-parent="autoExpandParent"
               @expand="onExpand">
             <template #title="{key:treeKey,title,showEdit}">
-              <template v-if="title=='/'">
-                <a-dropdown :trigger="['contextmenu']">
-                  <template v-if="searchValues &&  title.includes(searchValues)">
-                    <div style="color: #f50;">
-                      <span>{{title}}</span>
-                    </div>
-                  </template>
-                  <span v-else-if="!showEdit">{{ title }}</span>
-                  <a-input v-else="showEdit"
-                           type="text"
-                           ref="updDom"
-                           v-model:value="updTreedata"
-                           @blur="onchangtitle(treeKey)"
-                           @keyup.enter="onchangtitle(treeKey)"
-                  />
-                  <template #overlay>
-                    <a-menu @click="() => onContextMenuClick(treeKey)">
-                      <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
-                    </a-menu>
-                  </template>
-                </a-dropdown>
-
-              </template>
-              <a-dropdown :trigger="['contextmenu']" v-else>
+              <a-dropdown :trigger="['contextmenu']">
                 <template v-if="searchValues &&  title.includes(searchValues)">
                   <div style="color: #f50;">
                     <span>{{title}}</span>
@@ -1662,6 +1639,10 @@ const clearValida = () => {
   margin-left: 1rem;
   width:3.125rem!important;
   font-size: 1.25rem!important;
+}
+.ant-dropdown-trigger{
+  min-width: 30px;
+    display: block;
 }
 // .exampleEnum{
 //   // width:400px
