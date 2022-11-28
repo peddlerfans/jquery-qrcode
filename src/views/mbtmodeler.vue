@@ -2138,7 +2138,7 @@ onMounted(() => {
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
         
-        let linksource = modeler.graph.getCell(el.attributes.source.id);
+        let linksource:any = modeler.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "standard.Polygon") {
           
@@ -2159,7 +2159,7 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
-        let cell = modeler.graph.getCell(el.id);
+        let cell:any = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
           console.log(el, cell);
           
