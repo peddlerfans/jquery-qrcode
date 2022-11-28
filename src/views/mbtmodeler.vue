@@ -290,6 +290,7 @@ let isLink = ref(false);
 let isChoose = ref(false);
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
+let tableLoad = ref(false)
 // aw form searching primary
 const formState = reactive<FormState>({
   awname: "",
@@ -390,6 +391,7 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
 }
 
 async function awquery(data?: any, isExpected?: boolean) {
+  tableLoad.value = true
   let rst;
   if (isExpected) {
     rst = await request.get("/api/hlfs", { params: data || searchobjExpected });
@@ -407,7 +409,7 @@ async function awquery(data?: any, isExpected?: boolean) {
       pagination.value.total = rst.total;
       tableData.value = rst.data;
     }
-
+    tableLoad.value = false
     return rst.data;
   }
 }
@@ -2309,36 +2311,37 @@ onMounted(() => {
           ) {
             awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-            let tempawschemaExpected = generateObj(awschemaExpected);
-            let tempformdata2Expected = generateObj(awformdataExpected);
-            let props=cacheprops.get(ev_id).props.expectedprops
-            isDisabled.value = false;
-            // awformdata.value = awformdataExpected;
-            hasAWExpectedInfo.value = true;
-            currentElementMap.set(ev_id, {
-              props: {
-                primaryprops: { data: tempformdata2, schema: tempawschema },
-                expectedprops: {
-                  ...props,
-                  data: tempformdata2Expected,
-                  schema: tempawschemaExpected,
-                },
-              },
-            });
-          } else {
-            isDisabled.value = true
-            let props=cacheprops.get(ev_id).props.primaryprops
-            // console.log(props);
-            
-            cacheprops.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            currentElementMap.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
-            
+            // let tempawschemaExpected = generateObj(awschemaExpected);
+            // let tempformdata2Expected = generateObj(awformdataExpected);
+            // let props=cacheprops.get(ev_id).props.expectedprops
+            // isDisabled.value = false;
+            // // awformdata.value = awformdataExpected;
+            // hasAWExpectedInfo.value = true;
+            // currentElementMap.set(ev_id, {
+            //   props: {
+            //     primaryprops: { data: tempformdata2, schema: tempawschema },
+            //     expectedprops: {
+            //       ...props,
+            //       data: tempformdata2Expected,
+            //       schema: tempawschemaExpected,
+            //     },
+            //   },
+            // });
           }
+          // else {
+          //   isDisabled.value = true
+          //   let props=cacheprops.get(ev_id).props.primaryprops
+          //   // console.log(props);
+            
+          //   cacheprops.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   currentElementMap.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
+            
+          // }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
@@ -2372,9 +2375,9 @@ onMounted(() => {
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
-  setTimeout(()=>{
-    onAfterChange(1)
-  },1000)
+  // setTimeout(()=>{
+  //   onAfterChange(1)
+  // },1000)
   
 });
 // 点击打开选择模板
@@ -3220,7 +3223,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                       :data-source="tableData"
                       class="components-table-demo-nested"
                       :pagination="pagination"
-                      
+                      :loading="tableLoad"
                     >
                       <template #headerCell="{ column }">
                         <span>{{ $t(column.title) }}</span>
@@ -3699,7 +3702,7 @@ header {
 
 .split-wrapper .scalable {
   width: 20px;
-  max-width: 5vw;
+  /* max-width: 5vw; */
   overflow: hidden;
 }
 

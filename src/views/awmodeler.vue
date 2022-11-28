@@ -97,10 +97,14 @@ const checkquery=()=>{
 const instance=getCurrentInstance()
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
+  q:'',
   search:''
 });
 // 表单提交成功时的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  if (clickKey.path) {
+    formState.q = `path:${clickKey.path}`
+  }
   await query(formState)
   pagination.value.pageNo=1
 };
