@@ -84,7 +84,6 @@ window.joint = joint;
             rankDir: 'TB'
 
         };
-
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -119,6 +118,9 @@ const templateRadiovalue = ref<number>(1);
 const leaveRouter=ref(false)
 const isLeaveRouter=ref(false)
 let saveMbtData:any = null
+const route = useRoute();
+let params_id:any=route.params._id
+localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
 
 let searchInput = ref()
 let cascder = ref(false)
@@ -1460,7 +1462,7 @@ function handlerCancel() {
 }
 
 let mbtCache: any=reactive({}); //save the data from backend Stores.mbt
-const route = useRoute();
+
 let dataDefData: Ref<any[]> = ref([]);
 let cacheDataSchema: any[] = [];
 let cacheDataContent: any[] = [];
@@ -1536,12 +1538,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
           mbtCache = response; //should work on here
           encatch = response
-          
-
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            idstr
-          );
 
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
@@ -1569,7 +1565,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
       mbtCache = rst;
-      localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", str);
       localStorage.setItem(
         "mbt_" + route.params._id + route.params.name,
         JSON.stringify(rst)
@@ -1584,10 +1579,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record;
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            record._id
-          );
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(record)
@@ -2208,7 +2199,6 @@ onMounted(() => {
           linkData.value.isCondition = true;
           // showDrawer(linkView);
         }else{
-          console.log(123);
           isLink.value=true
           isExclusiveGateway.value = true;
           isGlobal.value = false;
@@ -2246,7 +2236,6 @@ onMounted(() => {
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
     }
-
     
     showDrawer(linkView);
   });
@@ -2628,7 +2617,7 @@ const value1 = ref<number>(0.8);
 const paperscale = ref(1);
 let dom=ref()
 const onAfterChange = (value: any) => {
-  
+  leaveRouter.value = true
   const canvasRect:any = canvas.value.getClientRects()[0]
   value1.value=value
   modeler.paper.scale(value);
@@ -2652,7 +2641,7 @@ onAfterChange(value1.value)
 }
 
 const cancel = (e: MouseEvent) => {
-  console.log(e);
+  // console.log(e);
 };
 
 const handleDynamicTable = (data: any) => {
