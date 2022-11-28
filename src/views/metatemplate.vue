@@ -17,7 +17,7 @@ const column = [
   { title: "name", width: 40, link: 'metaModeler', require: true },
   { title: "description", width: 120, require: true },
   { title: "tags", width: 100 },
-  { title: "action", width: 100, actionList: ['edit', 'delete'] },
+  { title: "action", width: 100, actionList: ['edit', 'delete','clone'] },
 ]
 
 const metaTableQuery = {
