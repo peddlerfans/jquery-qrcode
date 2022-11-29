@@ -38,7 +38,7 @@ import {
   Factor,
   Constraint,
   valueStatesTs,
-} from "./componentTS/dynamictemplate"; 
+} from "./componentTS/dynamictemplate";
 import CreateRule from '@/components/CreateRule.vue'
 import { useI18n } from "vue-i18n";
 
@@ -58,7 +58,6 @@ let finalModel: Model = reactive({
 })// 根据传来的id值获取到数据
 async function query(id?: any) {
   finalResult = await request.get(`/api/templates/${id}`, { params: { category: 'dynamic' } })
-
   finalModel.option = finalResult.model!.option
   finalModel.factor = finalResult.model!.factor.map((e: any) => {
     return {
@@ -68,21 +67,21 @@ async function query(id?: any) {
   if(finalResult.model.constraint){
     finalModel.constraint=conditionData(finalResult.model.constraint)
   }
-  
   if(finalResult.model.constraintif){
     finalModel.constraintif=conditionData(finalResult.model.constraintif)
   }
-
   condata.value = finalModel.constraint.map((e: any,index:number) => {
     return {if:ifdata(e.if),then:ifdata(e.then),keys:index}
   })
   valueData.value=finalModel.factor
+  factorsTable.value.setTableData(finalResult.model!.factor || [])
+  constraintTable.value.setTableData(finalResult.model.constraintif)
 }
 let modelId: any
 onMounted(() => {
   modelId = sessionStorage.getItem('dynamic_' + route.params._id)
   query(JSON.parse(modelId))
-}) 
+})
 
 
 const saveModel = async () => {
@@ -91,10 +90,10 @@ const saveModel = async () => {
       message.warning(t('templateManager.saveModelTip'))
     }else{
       let rst = await request.put(url + `/${finalResult._id}`, {model: toRaw(finalModel)})
-      if(rst){
+      if (rst) {
          query(finalResult._id)
       }
-      
+
       message.success(t('templateManager.saveModelSuccess'))
     }
   }else{
@@ -122,17 +121,6 @@ const orderOptions = ref<SelectProps['options']>([
   }
 ])
 
-const typeOptions = ref<SelectProps['options']>([
-  {
-    value: 'string',
-    label: 'String',
-  },
-  {
-    value: 'number',
-    label: 'Number',
-  }
-])
-
 // Initialize an obj for a single factor
 let factorState = reactive<Factor>({
   name: '',
@@ -143,46 +131,14 @@ let factorState = reactive<Factor>({
   inputValue: '',
 })
 
-const factorColumns = [ // Setup the header of columns
-  {
-    title: 'component.table.name',
-    dataIndex: 'name',
-    key: 'name',
-    // width: 40
-  },
-  {
-    title: 'component.table.type',
-    dataIndex: 'type',
-    key: 'type',
-    // width: 120
-  },
-  {
-    title: 'component.table.values',
-    dataIndex: 'values',
-    key: 'values',
-  },
-  {
-    title: 'component.table.action',
-    dataIndex: 'action',
-    key: 'action',
-    // width: 100
-  },
-
-
-]
-
 let newValue = ref();
 let showAddFactorBtn = ref(true)
 
 const addNewFactor = () => {
-  showAddFactorBtn.value = false;
-  finalModel.factor.unshift({
+  factorsTable.value.createNewRow({
     name: '',
     type: '',
-    values: [],
-    editing: true,
-    inputVisible: true,
-    inputValue: ''
+    values: []
   })
 }
 
@@ -203,12 +159,6 @@ const saveFactor = async (record: Factor) => {
   showAddFactorBtn.value = true
 }
 
-
-const deleteFactor = (record: Factor) => {
-  const index= finalModel.factor.findIndex(e => e === record)
-  finalModel.factor.splice(index,1);
-  message.success(t('component.message.delText'));
-}
 const cancelFactor = (record: Factor) => {
 
   if (factorState.name === ''){
@@ -236,33 +186,6 @@ const clearFactorState = () => {
   // (instance?.refs.refFactorForm as any).resetFields();
 }
 
-// Handel Tags in modal form
-const handleCloseTag = (record: Factor, removedTag: string) => {
-  const tags = record.values.filter((tag: string) => tag !== removedTag);
-  record.values = tags;
-
-};
-let inputRef = ref();
-
-const handleFactorValueConfirm = (record: Factor) => {
-  let values = record.values;
-  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
-    values = [...values, record.inputValue];
-  }
-  Object.assign(record, {
-    values: values,
-    inputVisible: false,
-    inputValue: '',
-  });
-}
-
-const newFactorValueInput = (record: Factor) => {
-  record.inputVisible = true;
-  nextTick(() => {
-    inputRef.value.focus();
-    inputRef.value.toString();
-  })
-};
 // Operators
 
 const stringOptions = [
@@ -360,33 +283,6 @@ const addNewConstraint = () => {
 
 const instance = getCurrentInstance()
 
-const cancel = (e: MouseEvent) => {
-};
-
-const focus = () => {
-};
-
-const columns=[
-{
-    title: 'component.table.if',
-    dataIndex: 'if',
-    key: 'if',
-    width: 120
-  },
-  {
-    title: 'component.table.then',
-    dataIndex: 'then',
-    key: 'then',
-    width: 120
-  },
-  {
-    title: 'component.table.action',
-    dataIndex:'action',
-    key:'action',
-    width:60
-  }
-]
-
 
 // 将表格数据追加识别索引属性
 const conditionData=(arr:any)=>arr.map((item:any,index:string)=>({...item,keys:index}))
@@ -411,7 +307,7 @@ function ifdata(arr:any){
     }else{
       break
     }
-    
+
   }
   if(finditem!=null){
     let findlength=finditem.length
@@ -420,7 +316,7 @@ function ifdata(arr:any){
       }
     return finditem
   }
-  
+
 }
 function selectvalue(value:any){
   let values=null
@@ -452,7 +348,7 @@ function selectvalue(value:any){
 const conditionstr=(arr:any)=>{
   let ifcondition=null
   if(arr[arr.length-1].value){
-        // delete arr[arr.length-1].selectvalues  
+        // delete arr[arr.length-1].selectvalues
   }
   ifcondition=arr.map((item:any)=>{
       if(item.selectvalues){
@@ -461,18 +357,18 @@ const conditionstr=(arr:any)=>{
       }else{
         // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
         return `[${item.name}] ${item.operator} ${selectvalue(item.value)} `
-      }    
+      }
   })
   return ifcondition.join("").toString().substring(0,ifcondition.join("").toString().length-4)
 }
 
 const rulesChange=(datas: any,key:string)=>{
-  rulesData.value = datas//输出的条件对象 
-    
+  rulesData.value = datas//输出的条件对象
+
 }
 const thenrulesChange=(datas: any,key:string)=>{
-  thenrulesData.value = datas//输出的条件对象 
-  
+  thenrulesData.value = datas//输出的条件对象
+
 }
 
 
@@ -481,40 +377,19 @@ let condata=ref<Array<any>>([])
   const keys=ref<any>(-1)
 // 点击保存时触发数据填充表格
 const conditionsend = () => {
-      // console.log(rulesData.value && thenObj.value.thenName && thenObj.value.thenOperator && thenObj.value.thenValue);
-      
     if(rulesData.value && thenrulesData.value){
-      // let thencondition
-      // if(typeof thenObj.value.thenValue=="number"){
-      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} ${thenObj.value.thenValue}`
-      // }else{
-      //   thencondition=`[${thenObj.value.thenName}] ${thenObj.value.thenOperator} "${thenObj.value.thenValue}"`
-      //   // console.log(thencondition);
-      // }
-
       let truerow={if:rulesData.value,then:thenrulesData.value}
-      
-      
       if (keys.value>=0) {
-        // console.log(1);
-        
         finalModel.constraint[keys.value]={...truerow}
         finalModel.constraintif[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
         condata.value[keys.value]={if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:keys.value}
       } else {
-        // console.log(2);
         condata.value.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
-        // // finalModel.constraint=[...finalModel.constraint,{...truerow}] 
         finalModel.constraint.push({...truerow})
-        // // finalModel.constraintif=[...finalModel.constraintif,{...conrow,keys:condata.value.length}]
         finalModel.constraintif.push({if:ifdata(rulesData.value),then:ifdata(thenrulesData.value),keys:condata.value.length})
-        // console.log(condata.value);
       }
-        // console.log(keys.value);
         keys.value=-1
       saveModel()
-      
-      // condata.value=conditionData(condata.value)
   }
   cancelbulid()
 }
@@ -534,34 +409,26 @@ const cancelbulid=()=>{
                 ],
                 children:[]}
   ],
+    thenrulesData.value= [//初始化条件对象或者，已保存的条件对象
+    {relation:"AND",
+    id:1,
+                conditions:[
+                {
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }
+                ],
+                children:[]}
+  ],
   thenObj.value.thenName=''
   thenObj.value.thenOperator=''
   thenObj.value.thenValue=''
   childComponent.value=false
   showAddConstraintBtn.value = true;
 }
-// 点击修改的值
-const editCon=(obj:any)=>{
-  keys.value=obj.keys
-  showAddConstraintBtn.value=false
-if(finalModel.constraint.length>0){
-    rulesData.value=finalModel.constraint[obj.keys].if
-  thenObj.value.thenName=finalModel.constraint[obj.keys].then.thenName
-  thenObj.value.thenOperator=finalModel.constraint[obj.keys].then.thenOperator
-  thenObj.value.thenValue=finalModel.constraint[obj.keys].then.thenValue
-}
-  childComponent.value=true
-}
-// 点击删除触发的函数
-const deleteconstraint = (obj: any) => {  
-  if (childComponent.value) {
-    return message.warning(t('templateManager.dynamicDelText'))
-  }
-  condata.value.splice(obj.keys,1)
-  finalModel.constraint.splice(obj.keys,1)
-  finalModel.constraintif.splice(obj.keys,1)
-  saveModel()
-}
+
 const conditionshow=computed(()=>{
   if(rulesData.value[0].conditions.length>0){
     let strData=ifdata(rulesData.value)
@@ -570,7 +437,7 @@ const conditionshow=computed(()=>{
     }else{
       return ifdata(rulesData.value)
     }
-    
+
   }
 })
 // 递归组件需要的数据
@@ -634,6 +501,61 @@ console.log(previewErrorMsg.value,rst);
 
 }
 
+// factors table
+let factorsTable = ref<any>(null)
+const factorsColumn = [
+  { title: 'name', width: 180 },
+  { title: 'type', width: 180, option: '2' },
+  { title: 'values', width: 180 },
+  { title: 'action', width: 100, actionList: ['edit', 'delete'] },
+]
+// 点击保存回调
+const saveFactorRow = (row: any) => {
+  let temp = row.index
+  delete row.isNewRow
+  delete row.index
+  finalModel.factor.splice(temp, 1, row)
+  factorsTable.value.setTableData(finalModel.factor)
+}
+const deleteFactor = (record: Factor) => {
+  const index= finalModel.factor.findIndex(e => JSON.stringify(e) === JSON.stringify(record))
+  if (index === -1) return
+  finalModel.factor.splice(index,1)
+  factorsTable.value.setTableData(finalModel.factor)
+  message.success(t('component.message.delText'))
+}
+
+// constraint table
+let constraintTable = ref<any>(null)
+const constraintColumn = [
+  { title: 'if', width: 120 },
+  { title: 'then', width: 120 },
+  {
+    title: 'action',
+    width: 60,
+    cbName: ['edit', 'delete'],
+    actionList: ['edit', 'delete']
+  }
+]
+// 点击修改的值
+const editCon = (obj: any) => {
+  keys.value = obj.keys
+  if (finalModel.constraint.length > 0) {
+    rulesData.value = finalModel.constraint[obj.keys].if
+    thenObj.value.thenName = finalModel.constraint[obj.keys].then.thenName
+    thenObj.value.thenOperator = finalModel.constraint[obj.keys].then.thenOperator
+    thenObj.value.thenValue = finalModel.constraint[obj.keys].then.thenValue
+  }
+  childComponent.value = true
+}
+const deleteconstraint = (obj:any) => {
+  condata.value.splice(obj.keys, 1)
+  finalModel.constraint.splice(obj.keys, 1)
+  finalModel.constraintif.splice(obj.keys, 1)
+  console.log(finalModel)
+  saveModel()
+}
+
 </script>
 
 
@@ -662,114 +584,24 @@ console.log(previewErrorMsg.value,rst);
 
 
     <!-- ############ -->
+    <!-- ############ -->
     <!-- Factors info -->
     <!-- ############ -->
 
     <div style="margin: 30px 0 8px 0;">
       <h2 style="display: inline;">{{ $t('templateManager.factorsLabel') }}</h2>
-      <a-button v-if="showAddFactorBtn" @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">
+      <a-button @click="addNewFactor" class="editable-add-btn" style="margin-left: 12px;">
         {{ $t('templateManager.newFactor') }}
       </a-button>
 
     </div>
-
-
-    <a-table v-if="finalModel.factor.length>0" :columns="factorColumns" :data-source="finalModel.factor" bordered>
-      <template #headerCell="{ column }">
-        <span>{{ $t(column.title) }}</span>
-      </template>
-      <template #bodyCell="{ column, text, record }">
-
-        <template v-if='column.key==="name"'>
-          <div>
-            <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
-            <template v-else>
-              {{text}}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if='column.key==="type"'>
-          <div>
-            <!-- <a-form-item label="Type" name="type">
-              <a-select ref="select" v-if="factorState.name===record.name" v-model:value="factorState.type" :options="typeOptions" @focus="focus"></a-select>
-            </a-form-item>
-            <a-input v-if="factorState.name===record.name" v-model:value="factorState.type" style="margin: -5px 0" /> -->
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="typeOptions"
-                      @focus="focus"></a-select>
-
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-
-
-        <template v-if="column.key === 'values'">
-          <template v-if="record.editing">
-            <template v-for="(tag) in record.values" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input
-                v-if="record.inputVisible && record.type=='string'"
-                ref="inputRef"
-                v-model:value.trim="record.inputValue"
-                type="text"
-                size="small" :style="{ width: '78px' }"
-                @blur="handleFactorValueConfirm(record)"
-                @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
-            size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-            @keyup.enter="handleFactorValueConfirm(record)" />
-            <a-tag v-show="!record.inputVisible" style="background: #fff; border-style: dashed; cursor: pointer;" @click="newFactorValueInput(record)">
-              <plus-outlined />
-              {{ $t('common.newValue') }}
-            </a-tag>
-          </template>
-
-          <span v-else>
-            <a-tag v-for="tag in record.values" :key="tag" color="cyan">
-              {{ tag }}
-            </a-tag>
-          </span>
-        </template>
-        <template v-else-if="column.dataIndex === 'action'">
-          <div class="editable-row-operations">
-            <span v-if="record.editing">
-              <a-typography-link type="danger" @click="saveFactor(record)">{{ $t('common.saveText') }}</a-typography-link>
-              <a-divider type="vertical" />
-
-                <a @click="cancelFactor(record)">{{ $t('common.cancelText') }}</a>
-            </span>
-
-            <span v-else>
-              <a @click="editFactor(record)">{{ $t('component.table.edit') }}</a>
-              <a-divider type="vertical" />
-              <a-popconfirm
-                  :title="$t('templateManager.delFactor')"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="deleteFactor(record)" @cancel="cancel">
-                <a>{{ $t('common.delText') }}</a>
-              </a-popconfirm>
-            </span>
-
-          </div>
-        </template>
-      </template>
-    </a-table>
-
-
-
+    <common-table
+        ref="factorsTable"
+        :columns="factorsColumn"
+        tableRef="factorsTable"
+        @save="saveFactorRow"
+        @delete="deleteFactor"
+    ></common-table>
 
     <!-- ################ -->
     <!-- Constraints info -->
@@ -780,27 +612,13 @@ console.log(previewErrorMsg.value,rst);
       <a-button v-if="showAddConstraintBtn" @click="addNewConstraint" class="editable-add-btn"
                 style="margin-left: 12px;">{{ $t('templateManager.newConstraint' )}}</a-button>
     </div>
-    <a-table :columns="columns" :data-source="condata" bordered>
-      <template #headerCell="{ column }">
-        <span>{{ $t(column.title) }}</span>
-      </template>
-      <template  #bodyCell="{ column, text, record }">
-        <template v-if="column.key=='action'">
-          <span>
-            <a @click="editCon(record)">{{ $t('common.editText') }}</a>
-              <a-divider type="vertical" />
-              <a-popconfirm
-              
-                  :title="$t('templateManager.delConstraint')"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="deleteconstraint(record)" @cancel="cancel">
-                <a >{{ $t('common.delText') }}</a>
-              </a-popconfirm>
-          </span>
-        </template>
-      </template>
-    </a-table>
+    <common-table
+        ref="constraintTable"
+        :columns="constraintColumn"
+        tableRef="constraintTable"
+        @edit="editCon"
+        @delete="deleteconstraint"
+    ></common-table>
     <a-divider/>
     <div v-if="childComponent">
       <!-- <condition :factorsconditional="conditional" @parentdata="ondata"></condition> -->
@@ -822,10 +640,10 @@ console.log(previewErrorMsg.value,rst);
                     <a-button @click="cancelbulid">{{ $t('common.cancelText') }}</a-button>
                 </div>
         </h2>
-        
+
         <hr/>
         <div style="margin-top: .625rem;">
-          
+
             <!-- <a-form layout="inline" style="margin-top:1.25rem;">
                 <a-form-item :label="$t('component.table.name')">
                     <a-select :options="ifNameOpetions" v-model:value="thenObj.thenName"></a-select>
@@ -839,11 +657,11 @@ console.log(previewErrorMsg.value,rst);
                 </a-form-item>
             </a-form> -->
         <create-rule :keys="keys" :formDatas="formDatas" :valueData="valueData" :rulesData="thenrulesData" @rulesChange="thenrulesChange"></create-rule>
-                
+
         </div>
       </a-col>
     </a-row>
-      
+
     </div>
     <div style="margin-top: 1.875rem">
       <a-button type="primary" @click="saveModel" class=""
@@ -856,10 +674,10 @@ console.log(previewErrorMsg.value,rst);
 
 <a-tabs v-model:activeKey="activeKey">
   <a-tab-pane key="1" tab="Data">
-          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
-        
-        
-        
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered :scroll="{ x: true }">
+
+
+
             <template #bodyCell="{ column, text, record }">
       <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
       <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->

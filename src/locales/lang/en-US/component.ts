@@ -26,6 +26,7 @@ export default {
     total: 'total of {total}',
 
     required: 'Required',
+    unrequired: 'Not required',
     name: 'Name',
     returnType: "returnType",
     description: 'Description',
@@ -44,7 +45,8 @@ export default {
     if: 'IF',
     then: 'Then',
     operator: 'Operator',
-
+    topics: 'Topics',
+    clone: 'clone',
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
 
@@ -61,7 +63,7 @@ export default {
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
-    hefaName: "The AW name is not standardized",
+    hefaName: "The name format includes Chinese, English,Number,_,$",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',
@@ -78,6 +80,7 @@ export default {
     staticTemplate: 'Static',
     dynamicTemplate: 'Dynamic',
     codegenTemplate: 'Codegen',
-    account: 'Account'
+    account: 'Account',
+    webHook: 'Web Hook'
   }
 };

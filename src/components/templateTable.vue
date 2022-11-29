@@ -304,6 +304,7 @@ const chooseTemplateFunc = () => {
       :columns="columnsOrigin"
       :pagination="pagination"
       :loading="tableLoading"
+      :scroll="{ x: true }"
       bordered
       @resizeColumn="tableResize"
     >
