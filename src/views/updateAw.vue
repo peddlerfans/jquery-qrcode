@@ -11,7 +11,8 @@ import { AnyKindOfDictionary } from "lodash";
 import { identifier } from "@babel/types";
 const { t } = useI18n()
 
-
+let route=useRoute()
+let router=useRouter()
 async function query(data?:any){
   let rsts=await request.get(`/api/hlfs/${data}`)
   if(rsts){
@@ -21,24 +22,21 @@ async function query(data?:any){
     sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
   }
 }
-let route=useRoute()
-
-let router=useRouter()
 
 // 判断是否是详情还是编辑操作
 let canEdit = ref(!router.currentRoute.value.query?.canEdit)
 // console.log(canEdit)
 
-if(route.params._id){
+
+
+onMounted(()=>{
+  if(route.params._id){
   sessionStorage.setItem('awupdate_'+route.params._id,JSON.stringify(route.params._id))
   sessionStorage.setItem('awupdate_'+route.params.awupdate,JSON.stringify(route.params.awupdate))
   let str:any=route.params.mbtid
-  localStorage.setItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id", str)
+  localStorage.setItem("mbt" + route.params.mbtid + route.params.mbtname + "id", str)
   localStorage.setItem("mbt_" + route.params.mbtname+"aw" , JSON.stringify(route.params.mbtname))
-
 }
-
-onMounted(()=>{
   let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
   query(JSON.parse(getId))
 
@@ -262,7 +260,7 @@ const handleInputConfirm = () => {
 }
 let getId:any=sessionStorage.getItem('awupdate_'+route.params._id)
 let getupdate:any=sessionStorage.getItem('awupdate_'+route.params.awupdate)
-let getmbtId=localStorage.getItem("mbt_" + route.params.mbtid + route.params.mbtname + "_id")
+let getmbtId=localStorage.getItem("mbt" + route.params.mbtid + route.params.mbtname + "id")
 let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 // 修改函数
 async function updateAw(url:string,data:any) {
@@ -292,6 +290,8 @@ const onFinishForm = () => {
 
 }
 const onFinishFailedForm = (errorInfo: any) => {
+  console.log(getmbtId,getmbtname);
+  
   if(JSON.parse(getupdate)=="awmodeler"){
     router.push("/awmodeler/index")
   }else if(JSON.parse(getupdate)=="mbtAW"){
