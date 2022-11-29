@@ -7,10 +7,10 @@ import templateTable from "@/components/templateTable.vue";
 import * as joint from "jointjs";
 import { dia } from "jointjs";
 import { message } from "ant-design-vue/es";
-import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode } from "vue";
+import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode, nextTick } from "vue";
 import type { Ref } from "vue";
 import { onBeforeRouteLeave, useRoute, useRouter } from "vue-router";
-import { FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import { CascaderProps, FormProps, Modal, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import request from "@/utils/request";
 // import { RadioGroupProps } from "ant-design-vue";
 import  dagre from 'dagre';
@@ -62,7 +62,16 @@ import { VAceEditor } from 'vue3-ace-editor';
 import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 import "./componentTS/ace-config";
 import { debug } from "console";
+import MBTStore from "@/stores/MBTModel"
+import { storeToRefs } from "pinia";
+import { awStore } from "@/stores/aw";
+import { json } from "node:stream/consumers";
 const { t } = useI18n();
+
+
+const store = MBTStore()
+let { aa }  = storeToRefs(store);
+
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -76,7 +85,6 @@ window.joint = joint;
             rankDir: 'TB'
 
         };
-
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -111,6 +119,25 @@ const templateRadiovalue = ref<number>(1);
 const leaveRouter=ref(false)
 const isLeaveRouter=ref(false)
 let saveMbtData:any = null
+const route = useRoute();
+let params_id:any=route.params._id
+localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
+
+let searchInput = ref()
+let cascder = ref(false)
+let selectOption = ref("")
+let selectoptions:any = ref([
+  {
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
+  },
+  {
+    value: 'name:',
+    label: 'name:',
+
+  },
+])
 const handleRadioChange: any = (v: any) => {
   templateCategory.value = v;
 };
@@ -173,11 +200,9 @@ const showDrawer = (
   id?: string
 ) => {
   visible.value = true;
-  console.log(el);
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
-    ev_id = id;
-
+    ev_id = id;    
     awformdata.value._id = "";
     awformdata.value.description = "";
     awformdata.value.name = "";
@@ -185,8 +210,6 @@ const showDrawer = (
     awformdata.value.template = "";
     // handlerCancel()
     hasAWInfo.value = false;
-
-    awquery();
     awquery("", true);
   } else if(typeof el == "undefined" && aw == "awmodel" && id) {
     awschema.value.properties._id!=null
@@ -235,7 +258,18 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
-  rulesData.value=[
+  visible.value = false;
+  // if (awformdata.value._id && chooseAw) {
+  //   let ss=null
+  //   watch(awformdata,(newValue:any)=>{
+  //       ss = newValue
+  //   },{deep:true,immediate:true})
+  //   if(ss){      
+  //     awhandlerSubmit(ss,awschema.value) 
+  //   }
+   
+  // }  
+  rulesData.value=[ 
   //初始化条件对象或者，已保存的条件对象
   {
     relation: childrelation,
@@ -251,9 +285,11 @@ const onCloseDrawer = () => {
     children: [],
   },
 ]
+
   linkData.value.label=""
-  visible.value = false;
+
   awActiveKey.value = "1";
+  clearAw()
 };
 
 /** Panel -> AW part, including a searching form and table */
@@ -264,6 +300,7 @@ let isLink = ref(false);
 let isChoose = ref(false);
 let hasAWInfo = ref(false);
 let hasAWExpectedInfo = ref(false);
+let tableLoad = ref(false)
 // aw form searching primary
 const formState = reactive<FormState>({
   awname: "",
@@ -364,6 +401,7 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
 }
 
 async function awquery(data?: any, isExpected?: boolean) {
+  tableLoad.value = true
   let rst;
   if (isExpected) {
     rst = await request.get("/api/hlfs", { params: data || searchobjExpected });
@@ -381,7 +419,7 @@ async function awquery(data?: any, isExpected?: boolean) {
       pagination.value.total = rst.total;
       tableData.value = rst.data;
     }
-
+    tableLoad.value = false
     return rst.data;
   }
 }
@@ -649,7 +687,7 @@ const linkschema = ref({
 // 清空awformData和awschema，，，的函数
 function clearAw(){
 
-  awschema = ref({
+  awschema.value = {
   title: "AW",
   description: "Configuration for the AW",
   type: "object",
@@ -681,26 +719,32 @@ function clearAw(){
       readOnly: true,
     },
   },
-});
+};
 awschemaExpected = _.cloneDeep(awschema);
-  awformdata = ref<Stores.awView>({
+  awformdata.value = {
   _id: "",
   name: "",
   description: "",
   tags: "",
   template: ""
-  })
-  awformdataExpected = ref<Stores.awView>({
+  }
+  awformdataExpected.value = {
   _id: "",
   name: "",
   description: "",
   tags: "",
   template: "",
-});
+};
 }
 
 const onExpectedAW = () => {
-  if(awformdata.value._id){
+  if (awformdata.value._id) {
+    if (!awformdataExpected.value._id) {
+      isAW.value = true
+      hasAWExpectedInfo.value = false
+      isGlobal.value = false
+      isLink.value = false  
+    }  
     awActiveKey.value = "2";
     isDisabled.value = false;
     awquery("", true);  
@@ -724,7 +768,13 @@ function awhandlerSubmit(data:any,schema:any) {
   let awschema1: any = generateObj(awschema);
   let awform2: any = generateObj(awformdataExpected);
   let awschema2: any = generateObj(awschemaExpected);
-  
+  let ExpectedformdataKeys = Object.keys(awform2)
+    Object.keys(awschema2.properties).forEach((item: any) => {
+    if (!ExpectedformdataKeys.includes(item)) {
+      awform2[item]=""
+    }
+  })
+  // debugger
 
   // if (isdata == "1") {
   //   if (awformdataExpected.value._id) {
@@ -766,14 +816,11 @@ function awhandlerSubmit(data:any,schema:any) {
   // }
 
 
-
-
-
   // debugger
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
-  let ExpectedformdataKeys  = Object.keys(tempformdata2)
+  
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
@@ -781,12 +828,29 @@ function awhandlerSubmit(data:any,schema:any) {
   })
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
-    if(chooseAw){
+    if(chooseAwExpected){
       currentElementMap.set(ev_id, {
-        props: { primaryprops: {aw:chooseAw ,data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+        },
       });
       cacheprops.set(ev_id, {
-        props: { primaryprops: {aw:chooseAw, data: tempformdata2, schema: tempawschema } },
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschema2, data: awform2 },
+        },
+      });
+    } else {
+            currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        },
       });
     }
   } //1. 双击状态 ，2. 设置primary后 currentElementMap不为空
@@ -806,10 +870,6 @@ function awhandlerSubmit(data:any,schema:any) {
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
       ){
-        
-        // let oldAwFormData: any = currentElementMap.get(ev_id).props.primaryprops.data
-        // let oldAwSchema: any = currentElementMap.get(ev_id).props.primaryprops.schema
-        // let oldAw: any = currentElementMap.get(ev_id).props.primaryprops.aw
         let tempawformdata2Expected:any = currentElementMap.get(ev_id).props.expectedprops.data
         let tempawschemaExpected:any = currentElementMap.get(ev_id).props.expectedprops.schema
         let tempawAwExpected:any = currentElementMap.get(ev_id).props.expectedprops.aw
@@ -826,7 +886,21 @@ function awhandlerSubmit(data:any,schema:any) {
           expectedprops: {aw:tempawAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-      }else{
+      } else {  
+        if (chooseAwExpected) {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: tempawschemaExpected, data: tempawformdata2Expected },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
+        },
+      });
+      }  
         currentElementMap.set(ev_id, {
         props: {
           primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
@@ -857,9 +931,35 @@ function awhandlerSubmit(data:any,schema:any) {
           })
         }
       }
-    } 
+    } else {
+      if (awformdataExpected.value._id) {        
+         currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: awschemaExpected.value, data: awformdataExpected.value },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,data: awformdataExpected.value, schema: awschemaExpected.value },
+        },
+      });
+      } else {
+        currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema }
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+        } 
+      });
+      }
+    }
   }
-
+  
   //Draw
   let tempaw = {};
   let maxX = 180;
@@ -975,10 +1075,14 @@ function awhandlerSubmit(data:any,schema:any) {
     cell.resize(maxX, maxY - 10);
   }
   currentElementMap.clear();
-  onCloseDrawer();
+  visible.value = false
   clearAw()
   message.success(t("component.message.saveSuccess"));
 }
+
+
+
+
 function handlerConfirmExpected(data:any , schema:any) {
   leaveRouter.value = true
     isAW.value = true;
@@ -1033,7 +1137,13 @@ function handlerConfirmExpected(data:any , schema:any) {
     // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
     console.log(cacheprops.get(ev_id));
-    
+    if (
+     currentElementMap.get(ev_id) &&
+      currentElementMap.get(ev_id).props &&
+      currentElementMap.get(ev_id).props.primaryprops &&
+      currentElementMap.get(ev_id).props.primaryprops.data 
+    ) {
+      
     let props=cacheprops.get(ev_id).props.primaryprops
     if (
       currentElementMap.get(ev_id) &&
@@ -1086,6 +1196,21 @@ function handlerConfirmExpected(data:any , schema:any) {
       });
       }
     }
+    } else {
+            currentElementMap.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
+        },
+      });
+      cacheprops.set(ev_id, {
+        props: {
+          primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
+          expectedprops: {aw:chooseAwExpected ,schema: schema, data: data },
+        },
+      });
+    }
+    
   }
 
     let tempaw = {};
@@ -1197,8 +1322,8 @@ function handlerConfirmExpected(data:any , schema:any) {
     cell.resize(maxX, maxY - 10);
   }
   currentElementMap.clear();
-  
-  onCloseDrawer();
+  clearAw()
+  visible.value = false
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -1212,12 +1337,13 @@ const subAttributes=(data:any)=>{
   mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
-  onCloseDrawer();
+  
   clearAw()
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
+  visible.value = false
 }
 
 
@@ -1271,20 +1397,6 @@ function linkhandlerSubmit() {
       },
     },
   });
-  // console.log(modeler.graph.getCell(lv_id));
-  //   modeler.graph.getCell(lv_id).attr("line/stroke", "red");
-  //   linkFormData.label += ` Loop : ${loopcount1}`;
-  // } else {
-  //   if (typeof linkFormData.label == "undefined") linkFormData.label = "";
-  //   modeler.graph.getCell(lv_id).appendLabel({
-  //     attrs: {
-  //       text: {
-  //         text: linkFormData.label || "",
-  //       },
-  //     },
-  //   });
-  //   modeler.graph.getCell(lv_id).attr("line/stroke", "black");
-  // }
   let tempObj = {};
   Object.assign(tempObj, { _id: linkFormData._id });
   Object.assign(tempObj, { label: linkFormData.label });
@@ -1293,7 +1405,7 @@ function linkhandlerSubmit() {
   Object.assign(tempObj, { connectorType: linkFormData.connectorType });
   Object.assign(tempObj, { routerType: linkFormData.routerType });
   cacheprops.set(lv_id, { props: tempObj });
-
+  linkData.value.label = ''
   
   onCloseDrawer();
   // message.success(t('component.message.saveSuccess'));
@@ -1348,7 +1460,7 @@ function handlerCancel() {
 }
 
 let mbtCache: any=reactive({}); //save the data from backend Stores.mbt
-const route = useRoute();
+
 let dataDefData: Ref<any[]> = ref([]);
 let cacheDataSchema: any[] = [];
 let cacheDataContent: any[] = [];
@@ -1383,10 +1495,6 @@ let conditionalValue = ref([]);
 })
 return setarr
  }
- localStorage.setItem(
-            "mbt_" + route.params.name,
-            JSON.stringify(route.params.name)
-          );
 
 let encatch:any=null
       
@@ -1428,12 +1536,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
           mbtCache = response; //should work on here
           encatch = response
-          
-
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            idstr
-          );
 
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
@@ -1461,7 +1563,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
       mbtCache = rst;
-      localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", str);
       localStorage.setItem(
         "mbt_" + route.params._id + route.params.name,
         JSON.stringify(rst)
@@ -1476,10 +1577,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record;
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            record._id
-          );
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(record)
@@ -1570,9 +1667,11 @@ async function saveMBT(route?: any) {
 
 
 function reloadMBT(route: any) {
+  
   let res;
-  let mbtId =
-    localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
+  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
+    
+    
   // console.log("reloadMBT, mbtid", mbtId);
   if (mbtId.length > 0) {
     res = mbtquery(mbtId, true);
@@ -1617,15 +1716,11 @@ function reloadMBT(route: any) {
           }
         }
       });
-      // console.log(graphIds);
       let tempcellsinfo = value.modelDefinition.cellsinfo;
       // console.log(sqlstr);
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       let perPage=sqlstr.split('|')
       let tempdata = awqueryByBatchIds(sqlstr,perPage.length);
-      
-      
-      // console.log(newData,"+++++",cells);
       tempdata.then((aws) => {
         const awById = _.groupBy(aws, "_id")
       newData.forEach((obj:any)=>{
@@ -1641,8 +1736,9 @@ function reloadMBT(route: any) {
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
         // console.log(awById[cell.item.id],cell.item.id,awById);
         let aw:any={template:"",description:""}
+        
         if (awById[cell.id]) {
-           aw=awById[cell.id][0]
+           aw=awById[cell.id][0]           
         }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
@@ -1705,30 +1801,30 @@ let isAwModel=ref(false)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-
-  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id");
+  let params_id:any = route.params._id
+  let paramsName: any = route.params.name
+localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
+localStorage.setItem("mbt_" + route.params.name,paramsName);
+  // localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", JSON.stringify(route.params._id))
+  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
+  store.getMbtmodel(mbtId)
   let res;
-  if (mbtId) {
-   
-    
+  if (mbtId) {    
     res = mbtquery(mbtId);
-    console.log(res);
+    // console.log(res);
     res.then((value: any) => {
+      // debugger
       if (
         value.hasOwnProperty("modelDefinition") &&
-        value.modelDefinition.hasOwnProperty("cellsinfo")
+        value.modelDefinition.hasOwnProperty("cellsinfo") &&
+        value.hasOwnProperty('dataDefinition')
       ) {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
           // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
-            rst.forEach((rec: any) => {      
-              // console.log(rec);
-                      
+            rst.forEach((rec: any) => {
               codegennames.value.push({title:rec.name,const:rec._id});
-              // globalschema.value.properties.codegen_text.enum.push(rec.name)
-              // globalschema.value.properties.codegen_script.enum.push(rec.name)
             });
-            
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
@@ -1740,24 +1836,31 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
+          console.log(cacheprops);
+          
+          
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
           modeler.paper.scale(value.modelDefinition.paperscale);
-        }
+        } 
         //dataDefinition includes meta, datapool and resources
-
+          console.log(value.dataDefinition);
+          
         if (value.dataDefinition.meta) {
+          
+          isFormVisible.value = true;
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-          isFormVisible.value = true;
+          
         }
 
         if (value.dataDefinition.data) {
           // console.log('has data info ',value.dataDefinition.data.tableData)
           cacheDataDefinition.data = value.dataDefinition.data;
           // tableData.value = value.dataDefinition.data.tableData;
-
+          condataName.value = value.dataDefinition.data.tableColumns
+          conditionalValue.value = value.dataDefinition.data.tableData
           dataFrom.value = value.dataDefinition.data.dataFrom;
           if (dataFrom.value == "direct_input") {
             templateRadiovalue.value = 3;
@@ -1767,6 +1870,7 @@ onMounted(() => {
           } else if (dataFrom.value == "dynamic_template") {
             templateRadiovalue.value = 1;
             templateCategory.value = 1;
+
             tableDataDynamic.value = value.dataDefinition.data.tableData;
             tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
           } else {
@@ -1775,11 +1879,6 @@ onMounted(() => {
             tableData.value = value.dataDefinition.data.tableData;
             tableColumns.value = value.dataDefinition.data.tableColumns;
           }
-
-          /**
-           * todo 10.19
-           */
-          // cacheDataDefinition.meta;
         }
 
       }else{
@@ -1796,27 +1895,30 @@ onMounted(() => {
 
         })
       }
+    }).catch(()=>{console.log("catch");
     });
   } else {
-    res = mbtquery();
-    res.then((value: any) => {
+    // res = mbtquery();
+    // res.then((value: any) => {
       
-      if (
-        value.hasOwnProperty("modelDefinition") &&
-        value.modelDefinition.hasOwnProperty("cellsinfo")
-      ) {
-        let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        modeler.graph.fromJSON(JSON.parse(tempstr));
-        if (value.modelDefinition.hasOwnProperty("props")) {
-          const map = new Map(
-            Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
-          );
-          cacheprops = map;
-        }
+    //   if (
+    //     value.hasOwnProperty("modelDefinition") &&
+    //     value.modelDefinition.hasOwnProperty("cellsinfo")
+    //   ) {
+    //     let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
+    //     modeler.graph.fromJSON(JSON.parse(tempstr));
+    //     if (value.modelDefinition.hasOwnProperty("props")) {
+    //       const map = new Map(
+    //         Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
+    //       );
+    //       cacheprops = map;
+    //     }
         
-      }
-    });
+    //   }
+    // });
   }
+
+  
   // ['87506c30-86d6-4edd-b736-9c5083528e2b', '692238fc-d777-4bbb-95b5-e20c93ea3b8a', '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a']
   
   
@@ -2007,6 +2109,7 @@ onMounted(() => {
         modeler.graph.addCell(s);
         // console.log('sss:', s);
         if (s.attributes.type == "standard.HeaderedRectangle") {
+          awquery()
           aw = "aw";
           cellid = s.id + "";
         }
@@ -2043,7 +2146,7 @@ onMounted(() => {
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
         
-        let linksource = modeler.graph.getCell(el.attributes.source.id);
+        let linksource:any = modeler.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "standard.Polygon") {
           
@@ -2064,9 +2167,7 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
-        
-        
-        let cell = modeler.graph.getCell(el.id);
+        let cell:any = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
           console.log(el, cell);
           
@@ -2093,25 +2194,27 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+    
           setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
-
+          // console.log("进入");
+          
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
           isChoose.value=true
           isAW.value = false;
-          linkData.value.isCondition = false;
+          linkData.value.isCondition = true;
           // showDrawer(linkView);
         }else{
-          // console.log(123);
           isLink.value=true
           isExclusiveGateway.value = true;
           isGlobal.value = false;
           isChoose.value=false
           isAW.value = false;
           linkData.value.isCondition = true;
+
           // showDrawer(linkView);
         }
     }else{
@@ -2124,37 +2227,33 @@ onMounted(() => {
       linkData.value.isCondition = false;
     }
 
-      lv_id = linkView.model.id + "";
-
-      console.log(cacheprops.has(linkView.model.id));
-
+      lv_id = linkView.model.id + "";      
+      if(linkData.value.label=='name == undefined ')linkData.value.label = ''
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
-        console.log(templinkData.props);
+        linkData.value.label = templinkData.props.label
         linkData.value = templinkData.props;
-
+        // console.log(linkData.value);
         if (templinkData.props.ruleData && templinkData.props.ruleData.length > 0) {
           rulesData.value = templinkData.props.ruleData;
         }
-
         // linkData.value.label=condition
         currentLinkMap.set(lv_id, { props: templinkData });
-
         linkData.value._id = linkView.model.id;
       } else {
-        // todo link props
-        // message.warning("Select a template first");
         currentLinkMap.set(linkView.model.id, { props: {} });
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
-      // showDrawer(linkView);
     }
+    
     showDrawer(linkView);
   });
 
   modeler.paper.on(
     "element:pointerclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+     
+      
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2163,11 +2262,10 @@ onMounted(() => {
       ) {
         ev_id = elementView.model.id + "";
         isAW.value = true;
-
         isLink.value = false;
         isGlobal.value = false;
       } else {
-        console.log(elementView.model);
+        // console.log(elementView.model);
       }
     }
   );
@@ -2175,6 +2273,7 @@ onMounted(() => {
   modeler.paper.on(
     "element:pointerdblclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+      awActiveKey.value = '1'
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2182,68 +2281,76 @@ onMounted(() => {
         elementView.model.attributes.type == "standard.HeaderedRectangle"
       ) {
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
-        ev_id = elementView.model.id + "";
-        isAW.value = true;
-        isChoose.value = false;
-        isLink.value = false;
-        isGlobal.value = false;
-
         if (
-          cacheprops.get(ev_id) != null &&
-          cacheprops.get(ev_id).props.primaryprops &&
-          cacheprops.get(ev_id).props.primaryprops.data &&
-          cacheprops.get(ev_id).props.primaryprops.data.name &&
-          cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
+          cacheprops.get(elementView.model.attributes.id) != null &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name.length > 0
         ) {
+          
+          
+            ev_id = elementView.model.id + "";
+            isAW.value = true;
+            isChoose.value = false;
+            isLink.value = false;
+            isGlobal.value = false;
+            // hasAWInfo.value = true
+            
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
-          awformdata.value = cacheprops.get(ev_id).props.primaryprops.data;
-          awschema.value = cacheprops.get(ev_id).props.primaryprops.schema;
+          awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
+          awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
           // console.log(tempawschema,tempformdata2);
           if (
-            cacheprops.get(ev_id) != null &&
-            cacheprops.get(ev_id).props.expectedprops &&
-            cacheprops.get(ev_id).props.expectedprops.data &&
-            cacheprops.get(ev_id).props.expectedprops.data.name &&
-            cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
+            cacheprops.get(elementView.model.attributes.id) != null &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data.name &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data.name.length > 0
           ) {
-            awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-            awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-            let tempawschemaExpected = generateObj(awschemaExpected);
-            let tempformdata2Expected = generateObj(awformdataExpected);
-            let props=cacheprops.get(ev_id).props.expectedprops
-            isDisabled.value = false;
-            // awformdata.value = awformdataExpected;
-            hasAWExpectedInfo.value = true;
-            currentElementMap.set(ev_id, {
-              props: {
-                primaryprops: { data: tempformdata2, schema: tempawschema },
-                expectedprops: {
-                  ...props,
-                  data: tempformdata2Expected,
-                  schema: tempawschemaExpected,
-                },
-              },
-            });
-          } else {
-            let props=cacheprops.get(ev_id).props.primaryprops
-            // console.log(props);
-            
-            cacheprops.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            currentElementMap.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
-            
+            awformdataExpected.value = cacheprops.get(elementView.model.attributes.id).props.expectedprops.data;
+            awschemaExpected.value = cacheprops.get(elementView.model.attributes.id).props.expectedprops.schema;
+            // let tempawschemaExpected = generateObj(awschemaExpected);
+            // let tempformdata2Expected = generateObj(awformdataExpected);
+            // let props=cacheprops.get(ev_id).props.expectedprops
+            // isDisabled.value = false;
+            // // awformdata.value = awformdataExpected;
+            // hasAWExpectedInfo.value = true;
+            // currentElementMap.set(ev_id, {
+            //   props: {
+            //     primaryprops: { data: tempformdata2, schema: tempawschema },
+            //     expectedprops: {
+            //       ...props,
+            //       data: tempformdata2Expected,
+            //       schema: tempawschemaExpected,
+            //     },
+            //   },
+            // });
           }
+          // else {
+          //   isDisabled.value = true
+          //   let props=cacheprops.get(ev_id).props.primaryprops
+          //   // console.log(props);
+            
+          //   cacheprops.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   currentElementMap.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
+            
+          // }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
-          // console.log('empty   ', currentElementMap)
+          isAW.value = true
+          hasAWInfo.value = false
+          isLink.value = false
+          isGlobal.value = false
         }
 
         showDrawer(elementView, "aw", ev_id);
@@ -2256,6 +2363,8 @@ onMounted(() => {
       ) {
         // message.success("Save MBT model successfully")
       }
+      
+      
     }
   );
 
@@ -2268,9 +2377,9 @@ onMounted(() => {
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
-  setTimeout(()=>{
-    onAfterChange(1)
-  },1000)
+  // setTimeout(()=>{
+  //   onAfterChange(1)
+  // },1000)
   
 });
 // 点击打开选择模板
@@ -2333,7 +2442,6 @@ function showAWInfo(rowobj: any) {
       readOnly: true,
     },
   };
-  console.log(rowobj);
   
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
@@ -2341,7 +2449,7 @@ function showAWInfo(rowobj: any) {
   awformdata.value.tags = "";
   awformdata.value.template = rowobj.template;
   awformdata.value._id = rowobj._id;
-
+  
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
       awformdata.value.tags += value + " ";
@@ -2523,13 +2631,12 @@ const value1 = ref<number>(0.8);
 const paperscale = ref(1);
 let dom=ref()
 const onAfterChange = (value: any) => {
-  
+  leaveRouter.value = true
   const canvasRect:any = canvas.value.getClientRects()[0]
   value1.value=value
   modeler.paper.scale(value);
   // modeler.paper.options.width=`${100*value1.value}%`;
   // modeler.paper.options.height=`${100*value1.value}%`;
-  console.log(modeler.paper.options);
   // canvas.value.style.overflow='auto'
   // Object.assign(modeler.paper.options,{overflow:'scroll'})
   modeler.paper.fitToContent({ padding: 10, gridWidth: canvasRect.width, gridHeight: canvasRect.height })
@@ -2548,7 +2655,7 @@ onAfterChange(value1.value)
 }
 
 const cancel = (e: MouseEvent) => {
-  console.log(e);
+  // console.log(e);
 };
 
 const handleDynamicTable = (data: any) => {
@@ -2771,17 +2878,16 @@ const conditionstr = (arr: any) => {
     .substring(0, ifcondition.join("").toString().length - 4);
 };
 watch(
-  rulesData,
-  (newvalue: any) => {
-    if (rulesData.value.length > 0) {
-      if ( isExclusiveGateway.value && isLink.value ){
-        linkData.value.label = ifdata(newvalue)!;
-      }
-
-    }
-  },
-  { deep: true }
-);
+            rulesData,
+            (newvalue: any) => {
+              if (rulesData.value.length > 0) {
+                if ( isExclusiveGateway.value && isLink.value && linkData.value.isCondition){
+                  linkData.value.label = ifdata(newvalue)!;
+                }
+              }
+            },
+            { deep: true }
+          );
 let router = useRouter();
 // 点击跳转Aw修改
 const routerAw = (awData: any) => {
@@ -2798,8 +2904,8 @@ const routerAw = (awData: any) => {
       _id: awData._id,
       name: awData.name,
       awupdate: awUpdate.value,
-      mbtid: getmbtId!,
-      mbtname: JSON.parse(getmbtNAme!),
+      mbtid: getmbtId,
+      mbtname: getmbtNAme,
     },
   });
 };
@@ -2890,6 +2996,38 @@ function relayout(){
 
         modeler.paper.unfreeze();
 }
+
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  } else {
+    cascder.value = false
+  }
+}
+const onSelectAwChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }
+  selectOption.value = ''
+  cascder.value = false
+  nextTick(() => {
+    searchInput.value.focus()
+  })
+}
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+  console.log(selectedOptions);
+  let rst = await request.get("/api/hlfs/_tags", { params: { q: "category:meta" } })
+  const targetOption = selectedOptions[0];
+  targetOption.loading = true
+  if (rst.length > 0) {
+    rst = rst.map((item: any) => ({ value: item, label: item }))
+    targetOption.children = rst
+  }
+  targetOption.loading = false;
+  selectoptions.value = [...selectoptions.value];
+};
+
 </script>
 
 <template>
@@ -3009,7 +3147,7 @@ function relayout(){
         type="flex"
         style="width: 100%;overflow: auto; height: 100%; min-height: 100%; min-width: 100%; padding: 0rem !important"
       >
-        <a-col :span="1" style="padding: 0rem !important">
+        <a-col :span="1" style="padding: 0rem !important position: sticky">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
         <a-col :span="23" ref="dom">
@@ -3040,11 +3178,21 @@ function relayout(){
                       @finishFailed="handleFinishFailed"
                     >
                       <a-form-item :wrapper-col="{ span: 24 }">
-                        <a-input v-model:value="formState.search" placeholder="aw">
-                          <template #prefix>
-                            <search-outlined />
-                          </template>
-                        </a-input>
+                        <a-input v-model:value="formState.search"
+                        :placeholder="$t('awModeler.inputSearch1')"
+                        @change="inputChange"
+                        ref="searchInput"
+                                >
+                  
+                  </a-input>
+                  <a-cascader
+                      v-if="cascder"
+                      :load-data="loadData"
+                      v-model:value="selectOption"
+                      placeholder="Please select"
+                      :options="selectoptions"
+                      @change="onSelectAwChange"
+                  ></a-cascader>
                       </a-form-item>
                       <a-form-item :wrapper-col="{ span: 4 }">
                         <a-button type="primary" html-type="submit">{{
@@ -3077,7 +3225,7 @@ function relayout(){
                       :data-source="tableData"
                       class="components-table-demo-nested"
                       :pagination="pagination"
-                      
+                      :loading="tableLoad"
                     >
                       <template #headerCell="{ column }">
                         <span>{{ $t(column.title) }}</span>
@@ -3153,10 +3301,10 @@ function relayout(){
                     v-if="isAW && hasAWInfo"
                   >
                     <div slot-scope="{ awformdata }" style="position: relative;">
-                      <span style="position: absolute; left: 3rem;top: -27.5rem; ">
+                      <!-- <span style="position: absolute; left: 3rem;top: -27.5rem; "> -->
                         <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button>
-                      </span>
+                        <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
+                      <!-- </span> -->
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
                           $t("common.submitText")
@@ -3164,12 +3312,19 @@ function relayout(){
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerCancel()">{{
-                          $t("common.editText")
+                          $t("common.chooseAw")
                         }}</a-button>
                       </span>
-                      <a-button danger @click="onExpectedAW()">{{
-                        $t("common.next")
+                      <span style="margin-right: 5px">
+                        <a-button danger @click="onExpectedAW()">{{
+                        $t("common.chooseEx")
                       }}</a-button>
+                      </span>
+                      
+                        <a-button danger @click="routerAw(awformdata)">
+                          {{$t('common.updateAw')}}
+                        </a-button>
+
                     </div>
                   </VueForm>
                 </div>
@@ -3283,12 +3438,12 @@ function relayout(){
                     <div slot-scope="{ awformdataExpected }">
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerEditExpected()">{{
-                          $t("common.editText")
+                          $t("common.chooseEx")
                         }}</a-button>
                       </span>
                       <span style="margin-right: 5px">
                         <a-button type="primary" @click="handlerConfirmExpected(awformdataExpected,awschemaExpected)"
-                          >Confirm</a-button
+                          >{{$t("common.submitText")}}</a-button
                         >
                       </span>
                       <span style="margin-left: 5px">
@@ -3299,7 +3454,7 @@ function relayout(){
                           @confirm="handlerClearExpected()"
                           @cancel="cancel"
                         >
-                          <a-button danger>Clear</a-button>
+                          <a-button danger>{{$t('common.clear')}}</a-button>
                         </a-popconfirm>
                       </span>
                     </div>
@@ -3549,7 +3704,7 @@ header {
 
 .split-wrapper .scalable {
   width: 20px;
-  max-width: 5vw;
+  /* max-width: 5vw; */
   overflow: hidden;
 }
 

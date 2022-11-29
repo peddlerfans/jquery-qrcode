@@ -66,13 +66,12 @@ export default {
     sureDel: '确定要删除吗?',
     sureCancel: '确定要取消吗?',
     saveSuccess: '保存成功',
-
     dupDescription: '描述不能和现有数据的描述重复',
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
-    hefaName: "名称格式不正确",
-
+    hefaName: "名称格式为包含中文,英文,数字,_,$",
+    updateErr:"修改失败",
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',
     noLatencyData: '暂无延迟数据',

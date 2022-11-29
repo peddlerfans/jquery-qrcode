@@ -63,7 +63,7 @@ export default {
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
-    hefaName: "The AW name is not standardized",
+    hefaName: "The name format includes Chinese, English,Number,_,$",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',
