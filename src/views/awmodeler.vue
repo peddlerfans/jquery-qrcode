@@ -97,10 +97,14 @@ const checkquery=()=>{
 const instance=getCurrentInstance()
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
+  q:'',
   search:''
 });
 // 表单提交成功时的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
+  if (clickKey.path) {
+    formState.q = `path:${clickKey.path}`
+  }
   await query(formState)
   pagination.value.pageNo=1
 };
@@ -558,6 +562,7 @@ const handleInputConfirm = () => {
     inputVisible: false,
     inputValue: '',
   });
+  modelstates.value.tags = [...states.tags]
 }
 
 const handleReturnConfirm = () => {
@@ -933,6 +938,8 @@ const pushSubtree =async (key: any,title:any) => {
   // 获取当前添加节点的对象
   let nowNode=getTreeDataByItem(treeData.value,key)
   getloop(treeData.value,key,nowNode.children.length)
+  console.log(nowNode.children.length);
+  
   treeData.value = [...treeData.value]
   let expandKey=queryKey(treeData.value,key)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
@@ -941,9 +948,11 @@ const pushSubtree =async (key: any,title:any) => {
   }).join("/")
   str = str.substring(1, str.length)
   let pushPath
-  if(title=="/"){pushPath="/childNode"}else{pushPath=str+'/'+'childNode'}
+  // if(title=="/"){pushPath="/childNode"}else{
+    pushPath=nowNode.children.length?str+'/'+`childNode${nowNode.children.length}`:str+'/'+'childNode0'
+  // }
 
-  await request.post("/api/hlfs?isFolder=true?focre=true",{path:pushPath})
+  await request.post("/api/hlfs?isFolder=true&focre=true",{path:pushPath})
   expandedKeys.value = [key];
   autoExpandParent.value=true
   // queryTree()
@@ -964,14 +973,14 @@ const queryKey=(arr:any,key:string)=>{
   return expandKey
 }
 //找到需要添加的节点并添加下级
-const getloop=(arr:Array<any>, key:string,lenght:any)=> {
+const getloop=(arr:Array<any>, key:string,lenghts:any)=> {
   //首先循环arr最外层数据
   for (let s = 0; s < arr.length; s++) {
     //如果匹配到了arr最外层中的我需要修改的数据
     if (arr[s].key == key) {
       let obj = {
-        title: length?`childNode${length}`:'childNode0',
-        key: uuid(),
+        title: lenghts?`childNode${lenghts}`:'childNode0',
+        key: length?`childNode${lenghts}`:'childNode0',
         children:[],
         showEdit: false,
         isLeaf:true,
@@ -998,7 +1007,7 @@ const pushSib=async(arr:Array<any>, key:string,length:any)=> {
     if (arr[s].key == key) {
       let obj = {
         title: `NewNode${length}`,
-        key: uuid(),
+        key: `NewNode${length}`,
         children:[],
         showEdit: false,
         isLeaf:false,
@@ -1037,11 +1046,11 @@ const addSib=async(key:any)=>{
   if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
     let newStr=str.substring(0,newStrIndex+1)
-    let pathnew = newStr + `NewNode${parentNode.length}`
+    let pathnew =parentNode.lenght? newStr + `NewNode${parentNode.length}`:newStr+`NewNode0`
     console.log(pathnew);
     await request.post("/api/hlfs?isFolder=true",{path:pathnew})
   }else{
-    await request.post("/api/hlfs?isFolder=true",{path:'/NewNode'})
+    await request.post("/api/hlfs?isFolder=true",{path:parentNode.lenght?`/NewNode${parentNode.lenght}`:'/NewNode0'})
   }
   pushSib(treeData.value,key,parentNode.length)
   // treeData.value = [...treeData.value]
@@ -1177,22 +1186,22 @@ const clearValida = () => {
               @expand="onExpand">
             <template #title="{key:treeKey,title,showEdit}">
               <template v-if="title=='/'">
-                <a-dropdown :trigger="['contextmenu']">
-                  <template v-if="searchValues &&  title.includes(searchValues)">
-                    <div style="color: #f50;">
-                      <span>{{title}}</span>
-                    </div>
-                  </template>
-                  <span v-else-if="!showEdit">{{ title }}</span>
-                  <a-input v-else="showEdit"
-                           type="text"
-                           ref="updDom"
-                           v-model:value="updTreedata"
-                           @blur="onchangtitle(treeKey)"
-                           @keyup.enter="onchangtitle(treeKey)"
-                  />
-                  <template #overlay>
-                    <a-menu @click="() => onContextMenuClick(treeKey)">
+              <a-dropdown :trigger="['contextmenu']">
+                <template v-if="searchValues &&  title.includes(searchValues)">
+                  <div style="color: #f50;">
+                    <span>{{title}}</span>
+                  </div>
+                </template>
+                <span v-else-if="!showEdit">{{ title }}</span>
+                <a-input v-else="showEdit"
+                         type="text"
+                         ref="updDom"
+                         v-model:value="updTreedata"
+                         @blur="onchangtitle(treeKey)"
+                         @keyup.enter="onchangtitle(treeKey)"
+                />
+                <template #overlay>
+                  <a-menu @click="() => onContextMenuClick(treeKey)">
                       <a-menu-item key="2" @click="pushSubtree(treeKey,title)">Add Child Node</a-menu-item>
                     </a-menu>
                   </template>
@@ -1658,6 +1667,10 @@ const clearValida = () => {
   margin-left: 1rem;
   width:3.125rem!important;
   font-size: 1.25rem!important;
+}
+.ant-dropdown-trigger{
+  min-width: 30px;
+    display: block;
 }
 // .exampleEnum{
 //   // width:400px
