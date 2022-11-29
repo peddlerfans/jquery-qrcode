@@ -1,0 +1,12 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  mbt-ui-dev:
+    image: registry.gitlab.com/itea-tech/itea-oppo/mbt-frontend:dev
+    ports:
+      - "8082:8080"
+  mbt-api-dev:
+    image: registry.gitlab.com/itea-tech/itea-oppo/mbt-backend:dev
+    environment:
+      - CI_BUILD_REF_NAME=dev
+    ports:
+      - "3002:3000"
