@@ -1810,7 +1810,6 @@ localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",param
     res = mbtquery(mbtId);
     // console.log(res);
     res.then((value: any) => {
-      debugger
       if (
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo") &&
