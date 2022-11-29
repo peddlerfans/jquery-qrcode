@@ -84,7 +84,6 @@ window.joint = joint;
             rankDir: 'TB'
 
         };
-
 const formFooter = {
   show: false, // 是否显示默认底部
   // okBtn: "Save", // 确认按钮文字
@@ -119,6 +118,9 @@ const templateRadiovalue = ref<number>(1);
 const leaveRouter=ref(false)
 const isLeaveRouter=ref(false)
 let saveMbtData:any = null
+const route = useRoute();
+let params_id:any=route.params._id
+localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
 
 let searchInput = ref()
 let cascder = ref(false)
@@ -207,8 +209,6 @@ const showDrawer = (
     awformdata.value.template = "";
     // handlerCancel()
     hasAWInfo.value = false;
-
-    awquery();
     awquery("", true);
   } else if(typeof el == "undefined" && aw == "awmodel" && id) {
     awschema.value.properties._id!=null
@@ -257,9 +257,16 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
-  if (awformdata.value._id) {
-  awhandlerSubmit(awformdata.value,awschema.value)  
-  }  
+  // if (awformdata.value._id && chooseAw) {
+  //   let ss=null
+  //   watch(awformdata,(newValue:any)=>{
+  //       ss = newValue
+  //   },{deep:true,immediate:true})
+  //   if(ss){      
+  //     awhandlerSubmit(ss,awschema.value) 
+  //   }
+   
+  // }  
   rulesData.value=[ 
   //初始化条件对象或者，已保存的条件对象
   {
@@ -276,6 +283,7 @@ const onCloseDrawer = () => {
     children: [],
   },
 ]
+
   linkData.value.label=""
   visible.value = false;
   awActiveKey.value = "1";
@@ -806,9 +814,6 @@ function awhandlerSubmit(data:any,schema:any) {
   // }
 
 
-
-
-
   // debugger
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
@@ -863,10 +868,6 @@ function awhandlerSubmit(data:any,schema:any) {
       currentElementMap.get(ev_id).props.expectedprops &&
       currentElementMap.get(ev_id).props.expectedprops.data
       ){
-        
-        // let oldAwFormData: any = currentElementMap.get(ev_id).props.primaryprops.data
-        // let oldAwSchema: any = currentElementMap.get(ev_id).props.primaryprops.schema
-        // let oldAw: any = currentElementMap.get(ev_id).props.primaryprops.aw
         let tempawformdata2Expected:any = currentElementMap.get(ev_id).props.expectedprops.data
         let tempawschemaExpected:any = currentElementMap.get(ev_id).props.expectedprops.schema
         let tempawAwExpected:any = currentElementMap.get(ev_id).props.expectedprops.aw
@@ -929,9 +930,7 @@ function awhandlerSubmit(data:any,schema:any) {
         }
       }
     } else {
-      if (awformdataExpected.value._id) {
-        console.log(123);
-        
+      if (awformdataExpected.value._id) {        
          currentElementMap.set(ev_id, {
         props: {
           primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
@@ -958,7 +957,6 @@ function awhandlerSubmit(data:any,schema:any) {
       }
     }
   }
-  console.log(cacheprops.get(ev_id));
   
   //Draw
   let tempaw = {};
@@ -1460,7 +1458,7 @@ function handlerCancel() {
 }
 
 let mbtCache: any=reactive({}); //save the data from backend Stores.mbt
-const route = useRoute();
+
 let dataDefData: Ref<any[]> = ref([]);
 let cacheDataSchema: any[] = [];
 let cacheDataContent: any[] = [];
@@ -1536,12 +1534,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
           mbtCache = response; //should work on here
           encatch = response
-          
-
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            idstr
-          );
 
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
@@ -1569,7 +1561,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
     if (rst && rst.name == route.params.name) {
       let str = rst._id + "";
       mbtCache = rst;
-      localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", str);
       localStorage.setItem(
         "mbt_" + route.params._id + route.params.name,
         JSON.stringify(rst)
@@ -1584,10 +1575,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       rst.data.forEach((record: any) => {
         if (record.name == route.params.name) {
           mbtCache = record;
-          localStorage.setItem(
-            "mbt_" + route.params._id + route.params.name + "_id",
-            record._id
-          );
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(record)
@@ -1678,9 +1665,11 @@ async function saveMBT(route?: any) {
 
 
 function reloadMBT(route: any) {
+  
   let res;
-  let mbtId =
-    localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
+  let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
+    
+    
   // console.log("reloadMBT, mbtid", mbtId);
   if (mbtId.length > 0) {
     res = mbtquery(mbtId, true);
@@ -1810,15 +1799,16 @@ let isAwModel=ref(false)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  
+  let params_id:any=route.params._id
+localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
+
   // localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", JSON.stringify(route.params._id))
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
   store.getMbtmodel(mbtId)
   let res;
-  if (mbtId) {
-    
+  if (mbtId) {    
     res = mbtquery(mbtId);
-    console.log(res);
+    // console.log(res);
     res.then((value: any) => {
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -1842,6 +1832,9 @@ onMounted(() => {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           cacheprops = map;
+          console.log(cacheprops);
+          
+          
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
           modeler.paper.scale(value.modelDefinition.paperscale);
@@ -1901,25 +1894,27 @@ onMounted(() => {
     }).catch(()=>{console.log("catch");
     });
   } else {
-    res = mbtquery();
-    res.then((value: any) => {
+    // res = mbtquery();
+    // res.then((value: any) => {
       
-      if (
-        value.hasOwnProperty("modelDefinition") &&
-        value.modelDefinition.hasOwnProperty("cellsinfo")
-      ) {
-        let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        modeler.graph.fromJSON(JSON.parse(tempstr));
-        if (value.modelDefinition.hasOwnProperty("props")) {
-          const map = new Map(
-            Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
-          );
-          cacheprops = map;
-        }
+    //   if (
+    //     value.hasOwnProperty("modelDefinition") &&
+    //     value.modelDefinition.hasOwnProperty("cellsinfo")
+    //   ) {
+    //     let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
+    //     modeler.graph.fromJSON(JSON.parse(tempstr));
+    //     if (value.modelDefinition.hasOwnProperty("props")) {
+    //       const map = new Map(
+    //         Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
+    //       );
+    //       cacheprops = map;
+    //     }
         
-      }
-    });
+    //   }
+    // });
   }
+
+  
   // ['87506c30-86d6-4edd-b736-9c5083528e2b', '692238fc-d777-4bbb-95b5-e20c93ea3b8a', '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a']
   
   
@@ -2147,7 +2142,7 @@ onMounted(() => {
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
         
-        let linksource = modeler.graph.getCell(el.attributes.source.id);
+        let linksource:any = modeler.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "standard.Polygon") {
           
@@ -2168,7 +2163,7 @@ onMounted(() => {
     // console.log('*****',el);
     if (el && el.hasOwnProperty("id")) {
       try {
-        let cell = modeler.graph.getCell(el.id);
+        let cell:any = modeler.graph.getCell(el.id);
         if (cell.isLink()) {
           console.log(el, cell);
           
@@ -2195,6 +2190,7 @@ onMounted(() => {
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
+    
           setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
@@ -2208,7 +2204,6 @@ onMounted(() => {
           linkData.value.isCondition = true;
           // showDrawer(linkView);
         }else{
-          console.log(123);
           isLink.value=true
           isExclusiveGateway.value = true;
           isGlobal.value = false;
@@ -2246,7 +2241,6 @@ onMounted(() => {
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
     }
-
     
     showDrawer(linkView);
   });
@@ -2254,6 +2248,8 @@ onMounted(() => {
   modeler.paper.on(
     "element:pointerclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+     
+      
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2262,11 +2258,10 @@ onMounted(() => {
       ) {
         ev_id = elementView.model.id + "";
         isAW.value = true;
-
         isLink.value = false;
         isGlobal.value = false;
       } else {
-        console.log(elementView.model);
+        // console.log(elementView.model);
       }
     }
   );
@@ -2274,6 +2269,7 @@ onMounted(() => {
   modeler.paper.on(
     "element:pointerdblclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+      console.log(elementView);
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2281,66 +2277,69 @@ onMounted(() => {
         elementView.model.attributes.type == "standard.HeaderedRectangle"
       ) {
         // console.log("success 1   ", cacheprops.get(ev_id).props.primaryprops);
-
-
         if (
-          cacheprops.get(ev_id) != null &&
-          cacheprops.get(ev_id).props.primaryprops &&
-          cacheprops.get(ev_id).props.primaryprops.data &&
-          cacheprops.get(ev_id).props.primaryprops.data.name &&
-          cacheprops.get(ev_id).props.primaryprops.data.name.length > 0
+          cacheprops.get(elementView.model.attributes.id) != null &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name &&
+          cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name.length > 0
         ) {
+          
+          
             ev_id = elementView.model.id + "";
             isAW.value = true;
             isChoose.value = false;
             isLink.value = false;
             isGlobal.value = false;
+            // hasAWInfo.value = true
+            
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
-          awformdata.value = cacheprops.get(ev_id).props.primaryprops.data;
-          awschema.value = cacheprops.get(ev_id).props.primaryprops.schema;
+          awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
+          awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
           // console.log(tempawschema,tempformdata2);
           if (
-            cacheprops.get(ev_id) != null &&
-            cacheprops.get(ev_id).props.expectedprops &&
-            cacheprops.get(ev_id).props.expectedprops.data &&
-            cacheprops.get(ev_id).props.expectedprops.data.name &&
-            cacheprops.get(ev_id).props.expectedprops.data.name.length > 0
+            cacheprops.get(elementView.model.attributes.id) != null &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data.name &&
+            cacheprops.get(elementView.model.attributes.id).props.expectedprops.data.name.length > 0
           ) {
-            awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
-            awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-            let tempawschemaExpected = generateObj(awschemaExpected);
-            let tempformdata2Expected = generateObj(awformdataExpected);
-            let props=cacheprops.get(ev_id).props.expectedprops
-            isDisabled.value = false;
-            // awformdata.value = awformdataExpected;
-            hasAWExpectedInfo.value = true;
-            currentElementMap.set(ev_id, {
-              props: {
-                primaryprops: { data: tempformdata2, schema: tempawschema },
-                expectedprops: {
-                  ...props,
-                  data: tempformdata2Expected,
-                  schema: tempawschemaExpected,
-                },
-              },
-            });
-          } else {
-            isDisabled.value = true
-            let props=cacheprops.get(ev_id).props.primaryprops
-            // console.log(props);
-            
-            cacheprops.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            currentElementMap.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
-            
+            awformdataExpected.value = cacheprops.get(elementView.model.attributes.id).props.expectedprops.data;
+            awschemaExpected.value = cacheprops.get(elementView.model.attributes.id).props.expectedprops.schema;
+            // let tempawschemaExpected = generateObj(awschemaExpected);
+            // let tempformdata2Expected = generateObj(awformdataExpected);
+            // let props=cacheprops.get(ev_id).props.expectedprops
+            // isDisabled.value = false;
+            // // awformdata.value = awformdataExpected;
+            // hasAWExpectedInfo.value = true;
+            // currentElementMap.set(ev_id, {
+            //   props: {
+            //     primaryprops: { data: tempformdata2, schema: tempawschema },
+            //     expectedprops: {
+            //       ...props,
+            //       data: tempformdata2Expected,
+            //       schema: tempawschemaExpected,
+            //     },
+            //   },
+            // });
           }
+          // else {
+          //   isDisabled.value = true
+          //   let props=cacheprops.get(ev_id).props.primaryprops
+          //   // console.log(props);
+            
+          //   cacheprops.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   currentElementMap.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
+            
+          // }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
@@ -2374,9 +2373,9 @@ onMounted(() => {
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
-  setTimeout(()=>{
-    onAfterChange(1)
-  },1000)
+  // setTimeout(()=>{
+  //   onAfterChange(1)
+  // },1000)
   
 });
 // 点击打开选择模板
@@ -2628,7 +2627,7 @@ const value1 = ref<number>(0.8);
 const paperscale = ref(1);
 let dom=ref()
 const onAfterChange = (value: any) => {
-  
+  leaveRouter.value = true
   const canvasRect:any = canvas.value.getClientRects()[0]
   value1.value=value
   modeler.paper.scale(value);
@@ -2652,7 +2651,7 @@ onAfterChange(value1.value)
 }
 
 const cancel = (e: MouseEvent) => {
-  console.log(e);
+  // console.log(e);
 };
 
 const handleDynamicTable = (data: any) => {
@@ -3144,7 +3143,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
         type="flex"
         style="width: 100%;overflow: auto; height: 100%; min-height: 100%; min-width: 100%; padding: 0rem !important"
       >
-        <a-col :span="1" style="padding: 0rem !important">
+        <a-col :span="1" style="padding: 0rem !important position: sticky">
           <div class="stencil" ref="stencilcanvas"></div>
         </a-col>
         <a-col :span="23" ref="dom">
@@ -3701,7 +3700,7 @@ header {
 
 .split-wrapper .scalable {
   width: 20px;
-  max-width: 5vw;
+  /* max-width: 5vw; */
   overflow: hidden;
 }
 
