@@ -65,6 +65,7 @@ import { debug } from "console";
 import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
+import { json } from "node:stream/consumers";
 const { t } = useI18n();
 
 
@@ -255,6 +256,7 @@ const onAWExpectedBack = () => {
 };
 
 const onCloseDrawer = () => {
+  visible.value = false;
   // if (awformdata.value._id && chooseAw) {
   //   let ss=null
   //   watch(awformdata,(newValue:any)=>{
@@ -283,7 +285,7 @@ const onCloseDrawer = () => {
 ]
 
   linkData.value.label=""
-  visible.value = false;
+
   awActiveKey.value = "1";
   clearAw()
 };
@@ -1797,9 +1799,10 @@ let isAwModel=ref(false)
 onMounted(() => {
   stencil = new Stencil(stencilcanvas);
   modeler = new MbtModeler(canvas);
-  let params_id:any=route.params._id
+  let params_id:any = route.params._id
+  let paramsName: any = route.params.name
 localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",params_id)
-
+localStorage.setItem("mbt_" + route.params.name,paramsName);
   // localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id", JSON.stringify(route.params._id))
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
   store.getMbtmodel(mbtId)
@@ -1808,6 +1811,7 @@ localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",param
     res = mbtquery(mbtId);
     // console.log(res);
     res.then((value: any) => {
+      // debugger
       if (
         value.hasOwnProperty("modelDefinition") &&
         value.modelDefinition.hasOwnProperty("cellsinfo") &&
@@ -2268,7 +2272,7 @@ localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",param
   modeler.paper.on(
     "element:pointerdblclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
-      console.log(elementView);
+      awActiveKey.value = '1'
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2899,8 +2903,8 @@ const routerAw = (awData: any) => {
       _id: awData._id,
       name: awData.name,
       awupdate: awUpdate.value,
-      mbtid: getmbtId!,
-      mbtname: JSON.parse(getmbtNAme!),
+      mbtid: getmbtId,
+      mbtname: getmbtNAme,
     },
   });
 };
