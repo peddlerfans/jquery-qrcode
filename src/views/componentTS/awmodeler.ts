@@ -1,5 +1,7 @@
 // 定义数据双向绑定的数据
 
+import { AnyARecord } from "dns";
+
 export interface tableSearch {
     search: string
     page: number
@@ -17,18 +19,16 @@ export interface paramsobj {
     type: string;
     required: boolean
     description: string
-    returnType: any
     enum: Array<any>
     editing: boolean
     inputValue: any
-    returnTypeinput: any
-    returnTypevisible: boolean
 }
 export interface ModelState {
     key?: number
     name: string;
     description: string;
     template: string;
+    returnType: any
     template_en: string
     _id: string;
     validationError?: string
