@@ -969,6 +969,7 @@ function awhandlerSubmit(data:any,schema:any) {
   let showheadtext = "";
   let showbodytext = "";
   let cell = modeler.graph.getCell(ev_id);
+  console.log(cell)
   let isOneAW = true;
   // console.log("before launch...", currentElementMap.get(ev_id).props);
   for (const [key, value] of Object.entries(
@@ -1875,7 +1876,7 @@ onMounted(() => {
             templateCategory.value = 1;
 
             tableDataDynamic.value = value.dataDefinition.data.tableData;
-            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key');
           } else {
             templateRadiovalue.value = 2;
             templateCategory.value = 2;
