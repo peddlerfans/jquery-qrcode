@@ -2300,36 +2300,37 @@ onMounted(() => {
           ) {
             awformdataExpected.value = cacheprops.get(ev_id).props.expectedprops.data;
             awschemaExpected.value = cacheprops.get(ev_id).props.expectedprops.schema;
-            let tempawschemaExpected = generateObj(awschemaExpected);
-            let tempformdata2Expected = generateObj(awformdataExpected);
-            let props=cacheprops.get(ev_id).props.expectedprops
-            isDisabled.value = false;
-            // awformdata.value = awformdataExpected;
-            hasAWExpectedInfo.value = true;
-            currentElementMap.set(ev_id, {
-              props: {
-                primaryprops: { data: tempformdata2, schema: tempawschema },
-                expectedprops: {
-                  ...props,
-                  data: tempformdata2Expected,
-                  schema: tempawschemaExpected,
-                },
-              },
-            });
-          } else {
-            isDisabled.value = true
-            let props=cacheprops.get(ev_id).props.primaryprops
-            // console.log(props);
-            
-            cacheprops.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            currentElementMap.set(ev_id, {
-              props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
-            });
-            // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
-            
+            // let tempawschemaExpected = generateObj(awschemaExpected);
+            // let tempformdata2Expected = generateObj(awformdataExpected);
+            // let props=cacheprops.get(ev_id).props.expectedprops
+            // isDisabled.value = false;
+            // // awformdata.value = awformdataExpected;
+            // hasAWExpectedInfo.value = true;
+            // currentElementMap.set(ev_id, {
+            //   props: {
+            //     primaryprops: { data: tempformdata2, schema: tempawschema },
+            //     expectedprops: {
+            //       ...props,
+            //       data: tempformdata2Expected,
+            //       schema: tempawschemaExpected,
+            //     },
+            //   },
+            // });
           }
+          // else {
+          //   isDisabled.value = true
+          //   let props=cacheprops.get(ev_id).props.primaryprops
+          //   // console.log(props);
+            
+          //   cacheprops.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   currentElementMap.set(ev_id, {
+          //     props: { primaryprops: {...props, data: tempformdata2, schema: tempawschema } },
+          //   });
+          //   // console.log(cacheprops.get(ev_id).props,currentElementMap.get(ev_id).props);
+            
+          // }
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
@@ -2363,9 +2364,9 @@ onMounted(() => {
     showGlobalInfo();
     showDrawer(undefined, "", "");
   });
-  setTimeout(()=>{
-    onAfterChange(1)
-  },1000)
+  // setTimeout(()=>{
+  //   onAfterChange(1)
+  // },1000)
   
 });
 // 点击打开选择模板
@@ -3690,7 +3691,7 @@ header {
 
 .split-wrapper .scalable {
   width: 20px;
-  max-width: 5vw;
+  /* max-width: 5vw; */
   overflow: hidden;
 }
 

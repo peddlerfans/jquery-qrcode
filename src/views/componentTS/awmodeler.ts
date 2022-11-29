@@ -11,6 +11,7 @@ export interface tableSearch {
 // 查询表单的数据
 export interface FormState {
     search: string;
+    q: string
 }
 // 模态窗表单
 export interface paramsobj {
