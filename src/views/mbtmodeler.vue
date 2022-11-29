@@ -2344,7 +2344,6 @@ localStorage.setItem("mbt_" + route.params._id + route.params.name + "_id",param
           // console.log('final result cacheprops:    ', cacheprops)
           hasAWInfo.value = true;
         } else {
-          console.log(cacheprops.get(elementView.model.attributes.id));
           isAW.value = true
           hasAWInfo.value = false
           isLink.value = false
