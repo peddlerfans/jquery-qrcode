@@ -310,7 +310,7 @@ const updateTableData = (newData: any) => {
   request.put(`${url}/${newData._id}`, newData).then((res: any) => {
     const index = tableData.value.indexOf(newData)
     tableData.value.splice(index, 1, res)
-    message.success(t('component.message.updateText'))
+    message.success(t('component.message.modifiedText'))
   }).catch(e => message.error(t('component.message.updateErr')))
 }
 
@@ -321,7 +321,7 @@ const newTableData = (newData: any) => {
   request.post(url, newData).then((res: any) => {
     const index = tableData.value.indexOf(newData)
     tableData.value.splice(index, 1, res)
-    message.success(t('component.message.updateText'))
+    message.success(t('component.message.addText'))
   }).catch(e => {
     newData.isNewRow = true
     newData.editing = true
