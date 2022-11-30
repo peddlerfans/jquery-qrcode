@@ -45,7 +45,7 @@ export class InspectorService {
             ],
 
             colorPaletteReset: [
-                { content: <string>undefined, icon: '/assets/no-color-icon.svg' },
+                { content: <string><unknown>undefined, icon: '/assets/no-color-icon.svg' },
                 { content: '#f6f6f6' },
                 { content: '#dcd7d7' },
                 { content: '#8f8f8f' },
@@ -89,15 +89,15 @@ export class InspectorService {
             ],
 
             portLabelPositionRectangle: [
-                { value: { name: 'top', args: { y: -12 }}, content: 'Above' },
-                { value: { name: 'right', args: { y: 0 }}, content: 'On Right' },
-                { value: { name: 'bottom', args: { y: 12 }}, content: 'Below' },
-                { value: { name: 'left', args: { y: 0 }}, content: 'On Left' }
+                { value: { name: 'top', args: { y: -12 } }, content: 'Above' },
+                { value: { name: 'right', args: { y: 0 } }, content: 'On Right' },
+                { value: { name: 'bottom', args: { y: 12 } }, content: 'Below' },
+                { value: { name: 'left', args: { y: 0 } }, content: 'On Left' }
             ],
 
             portLabelPositionEllipse: [
-                { value: 'radial' , content: 'Horizontal' },
-                { value: 'radialOriented' , content: 'Angled' }
+                { value: 'radial', content: 'Horizontal' },
+                { value: 'radialOriented', content: 'Angled' }
             ],
 
             imageIcons: [
@@ -188,7 +188,7 @@ export class InspectorService {
                                 options: options.strokeWidth,
                                 group: 'connection',
                                 label: 'Link thickness',
-                                when: { ne: { 'attrs/line/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/line/stroke': 'transparent' } },
                                 index: 4
                             },
                             strokeDasharray: {
@@ -196,7 +196,7 @@ export class InspectorService {
                                 options: options.strokeStyle,
                                 group: 'connection',
                                 label: 'Link style',
-                                when: { ne: { 'attrs/line/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/line/stroke': 'transparent' } },
                                 index: 5
                             },
                             stroke: {
@@ -219,7 +219,7 @@ export class InspectorService {
                                     options: options.colorPaletteReset,
                                     group: 'marker-source',
                                     label: 'Color',
-                                    when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' }},
+                                    when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' } },
                                     index: 2
                                 }
                             },
@@ -236,7 +236,7 @@ export class InspectorService {
                                     options: options.colorPaletteReset,
                                     group: 'marker-target',
                                     label: 'Color',
-                                    when: { ne: { 'attrs/line/targetMarker/d': 'M 0 0 0 0' }},
+                                    when: { ne: { 'attrs/line/targetMarker/d': 'M 0 0 0 0' } },
                                     index: 2
                                 }
                             }
@@ -257,7 +257,7 @@ export class InspectorService {
                                 placeholder: 'Pick a side',
                                 group: 'connection',
                                 label: 'Anchors side',
-                                when: { eq: { 'router/name': 'oneSide' }, otherwise: { unset: true }},
+                                when: { eq: { 'router/name': 'oneSide' }, otherwise: { unset: true } },
                                 index: 2
                             }
                         }
@@ -377,7 +377,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -385,7 +385,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -393,7 +393,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -401,7 +401,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -429,7 +429,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -439,8 +439,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -476,7 +476,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -484,7 +484,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -492,7 +492,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -500,7 +500,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -528,7 +528,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -538,8 +538,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/stroke-width': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -575,7 +575,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -583,7 +583,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -591,7 +591,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -599,7 +599,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -627,7 +627,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -637,8 +637,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -674,7 +674,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -682,7 +682,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -690,7 +690,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -698,7 +698,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -726,7 +726,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -736,8 +736,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -767,7 +767,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'top',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -777,8 +777,8 @@ export class InspectorService {
                                 group: 'top',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -818,7 +818,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -826,7 +826,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -834,7 +834,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -842,7 +842,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -885,7 +885,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -893,7 +893,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -901,7 +901,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -909,7 +909,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -948,7 +948,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/border/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/border/stroke': 'transparent' } },
                                 index: 4
                             }
                         }
@@ -982,7 +982,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -990,7 +990,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -998,7 +998,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1006,7 +1006,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -1034,7 +1034,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -1044,8 +1044,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1096,7 +1096,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/bodyText/text': '' }},
+                                when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -1104,7 +1104,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/bodyText/text': '' }},
+                                when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -1112,7 +1112,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/bodyText/text': '' }},
+                                when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1120,7 +1120,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/boduText/text': '' }},
+                                when: { ne: { 'attrs/boduText/text': '' } },
                                 index: 5
                             }
                         },
@@ -1138,7 +1138,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'headerText',
-                                when: { ne: { 'attrs/headerText/text': '' }},
+                                when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -1146,7 +1146,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'headerText',
-                                when: { ne: { 'attrs/headerText/text': '' }},
+                                when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -1154,7 +1154,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'headerText',
-                                when: { ne: { 'attrs/headerText/text': '' }},
+                                when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1162,7 +1162,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'headerText',
-                                when: { ne: { 'attrs/headerText/text': '' }},
+                                when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 5
                             }
                         },
@@ -1190,7 +1190,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -1200,8 +1200,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1231,7 +1231,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'header',
-                                when: { ne: { 'attrs/header/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/header/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -1241,8 +1241,8 @@ export class InspectorService {
                                 group: 'header',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/header/stroke': 'transparent' }},
-                                        { ne: { 'attrs/header/strokeWidth': 0 }}
+                                        { ne: { 'attrs/header/stroke': 'transparent' } },
+                                        { ne: { 'attrs/header/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1286,7 +1286,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -1294,7 +1294,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -1302,7 +1302,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1310,7 +1310,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -1338,7 +1338,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -1348,8 +1348,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1397,7 +1397,7 @@ export class InspectorService {
                                             type: 'color-palette',
                                             options: options.colorPalette,
                                             label: 'Fill',
-                                            when: { not: { equal: { inPorts: [] }}},
+                                            when: { not: { equal: { inPorts: [] } } },
                                             group: 'inPorts',
                                             index: 1
                                         }
@@ -1408,7 +1408,7 @@ export class InspectorService {
                                         type: 'select-box',
                                         options: options.side,
                                         label: 'Position',
-                                        when: { not: { equal: { inPorts: [] }}},
+                                        when: { not: { equal: { inPorts: [] } } },
                                         group: 'inPorts',
                                         index: 3
                                     }
@@ -1418,7 +1418,7 @@ export class InspectorService {
                                         type: 'select-box',
                                         options: options.portLabelPositionRectangle,
                                         label: 'Text Position',
-                                        when: { not: { equal: { inPorts: [] }}},
+                                        when: { not: { equal: { inPorts: [] } } },
                                         group: 'inPorts',
                                         index: 4
                                     }
@@ -1439,7 +1439,7 @@ export class InspectorService {
                                             type: 'color-palette',
                                             options: options.colorPalette,
                                             label: 'Fill',
-                                            when: { not: { equal: { outPorts: [] }}},
+                                            when: { not: { equal: { outPorts: [] } } },
                                             group: 'outPorts',
                                             index: 2
                                         }
@@ -1450,7 +1450,7 @@ export class InspectorService {
                                         type: 'select-box',
                                         options: options.side,
                                         label: 'Position',
-                                        when: { not: { equal: { outPorts: [] }}},
+                                        when: { not: { equal: { outPorts: [] } } },
                                         group: 'outPorts',
                                         index: 4
                                     }
@@ -1460,7 +1460,7 @@ export class InspectorService {
                                         type: 'select-box',
                                         options: options.portLabelPositionRectangle,
                                         label: 'Text Position',
-                                        when: { not: { equal: { outPorts: [] }}},
+                                        when: { not: { equal: { outPorts: [] } } },
                                         group: 'outPorts',
                                         index: 5
                                     }
@@ -1517,7 +1517,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
                             fontFamily: {
@@ -1525,7 +1525,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 3
                             },
                             fontWeight: {
@@ -1533,7 +1533,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1541,7 +1541,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/label/text': '' }},
+                                when: { ne: { 'attrs/label/text': '' } },
                                 index: 5
                             }
                         },
@@ -1569,7 +1569,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/body/stroke': 'transparent' } },
                                 index: 3
                             },
                             strokeDasharray: {
@@ -1579,8 +1579,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/body/strokeWidth': 0 }}
+                                        { ne: { 'attrs/body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/body/strokeWidth': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1628,7 +1628,7 @@ export class InspectorService {
                                             type: 'color-palette',
                                             options: options.colorPalette,
                                             label: 'Fill',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'inPorts',
                                             index: 1
                                         }
@@ -1644,7 +1644,7 @@ export class InspectorService {
                                             defaultValue: 0,
                                             unit: '°',
                                             label: 'Position',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'inPorts',
                                             index: 3
                                         }
@@ -1656,7 +1656,7 @@ export class InspectorService {
                                             type: 'select-button-group',
                                             options: options.portLabelPositionEllipse,
                                             label: 'Text direction',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'inPorts',
                                             index: 4
                                         }
@@ -1678,7 +1678,7 @@ export class InspectorService {
                                             type: 'color-palette',
                                             options: options.colorPalette,
                                             label: 'Fill',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'outPorts',
                                             index: 2
                                         }
@@ -1694,7 +1694,7 @@ export class InspectorService {
                                             defaultValue: 180,
                                             unit: '°',
                                             label: 'Position',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'outPorts',
                                             index: 4
                                         }
@@ -1706,7 +1706,7 @@ export class InspectorService {
                                             type: 'select-button-group',
                                             options: options.portLabelPositionEllipse,
                                             label: 'Text Position',
-                                            when: { not: { equal: { 'ports/items': [] }}},
+                                            when: { not: { equal: { 'ports/items': [] } } },
                                             group: 'outPorts',
                                             index: 5
                                         }
@@ -1793,8 +1793,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1839,7 +1839,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -1847,7 +1847,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -1855,7 +1855,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1863,7 +1863,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -1891,7 +1891,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/circle/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/circle/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -1901,8 +1901,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/circle/stroke': 'transparent' }},
-                                        { ne: { 'attrs/circle/stroke-width': 0 }}
+                                        { ne: { 'attrs/circle/stroke': 'transparent' } },
+                                        { ne: { 'attrs/circle/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -1938,7 +1938,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -1946,7 +1946,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -1954,7 +1954,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -1962,7 +1962,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 5
                             }
                         },
@@ -1990,7 +1990,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.root/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.root/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2000,8 +2000,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.root/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.root/stroke-width': 0 }}
+                                        { ne: { 'attrs/.root/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.root/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2048,7 +2048,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2056,7 +2056,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2064,7 +2064,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2072,7 +2072,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/.label/text': '' }},
+                                when: { ne: { 'attrs/.label/text': '' } },
                                 index: 5
                             }
                         },
@@ -2100,7 +2100,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/rect/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/rect/stroke': 'transparent' } },
                                 index: 2
                             },
                             'stroke-dasharray': {
@@ -2110,8 +2110,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/rect/stroke': 'transparent' }},
-                                        { ne: { 'attrs/rect/stroke-width': 0 }}
+                                        { ne: { 'attrs/rect/stroke': 'transparent' } },
+                                        { ne: { 'attrs/rect/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 3
@@ -2147,7 +2147,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2155,7 +2155,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2163,7 +2163,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2171,7 +2171,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2199,7 +2199,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2209,8 +2209,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2246,7 +2246,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2254,7 +2254,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2262,7 +2262,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2270,7 +2270,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2298,7 +2298,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'outer',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2308,8 +2308,8 @@ export class InspectorService {
                                 group: 'outer',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2339,7 +2339,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'inner',
-                                when: { ne: { 'attrs/.inner/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.inner/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2349,8 +2349,8 @@ export class InspectorService {
                                 group: 'inner',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.inner/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.inner/stroke-width': 0 }}
+                                        { ne: { 'attrs/.inner/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.inner/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2390,7 +2390,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2398,7 +2398,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2406,7 +2406,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2414,7 +2414,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2442,7 +2442,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2452,8 +2452,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2489,7 +2489,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2497,7 +2497,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2505,7 +2505,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2513,7 +2513,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2541,7 +2541,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'outer',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2551,8 +2551,8 @@ export class InspectorService {
                                 group: 'outer',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2582,7 +2582,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'inner',
-                                when: { ne: { 'attrs/.inner/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.inner/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2592,8 +2592,8 @@ export class InspectorService {
                                 group: 'inner',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.inner/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.inner/stroke-width': 0 }}
+                                        { ne: { 'attrs/.inner/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.inner/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2633,7 +2633,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2641,7 +2641,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2649,7 +2649,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2657,7 +2657,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2685,7 +2685,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'outer',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2695,8 +2695,8 @@ export class InspectorService {
                                 group: 'outer',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2726,7 +2726,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'inner',
-                                when: { ne: { 'attrs/.inner/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.inner/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2736,8 +2736,8 @@ export class InspectorService {
                                 group: 'inner',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.inner/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.inner/stroke-width': 0 }}
+                                        { ne: { 'attrs/.inner/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.inner/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2777,7 +2777,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2792,7 +2792,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2800,7 +2800,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2828,7 +2828,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2838,8 +2838,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2875,7 +2875,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -2883,7 +2883,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -2891,7 +2891,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -2899,7 +2899,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -2927,7 +2927,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'outer',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2937,8 +2937,8 @@ export class InspectorService {
                                 group: 'outer',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -2968,7 +2968,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'inner',
-                                when: { ne: { 'attrs/.inner/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.inner/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -2978,8 +2978,8 @@ export class InspectorService {
                                 group: 'inner',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.inner/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.inner/stroke-width': 0 }}
+                                        { ne: { 'attrs/.inner/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.inner/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -3019,7 +3019,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -3027,7 +3027,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -3035,7 +3035,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -3043,7 +3043,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -3071,7 +3071,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'outer',
-                                when: { ne: { 'attrs/.outer/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.outer/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -3081,8 +3081,8 @@ export class InspectorService {
                                 group: 'outer',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.outer/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.outer/stroke-width': 0 }}
+                                        { ne: { 'attrs/.outer/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.outer/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -3112,7 +3112,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'inner',
-                                when: { ne: { 'attrs/.inner/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.inner/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -3122,8 +3122,8 @@ export class InspectorService {
                                 group: 'inner',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.inner/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.inner/stroke-width': 0 }}
+                                        { ne: { 'attrs/.inner/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.inner/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -3163,7 +3163,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -3171,7 +3171,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -3179,7 +3179,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -3187,7 +3187,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'attrs/text/text': '' }},
+                                when: { ne: { 'attrs/text/text': '' } },
                                 index: 5
                             }
                         },
@@ -3215,7 +3215,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/polygon/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/polygon/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -3225,8 +3225,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/polygon/stroke': 'transparent' }},
-                                        { ne: { 'attrs/polygon/stroke-width': 0 }}
+                                        { ne: { 'attrs/polygon/stroke': 'transparent' } },
+                                        { ne: { 'attrs/polygon/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4
@@ -3543,7 +3543,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'text',
-                                when: { ne: { 'name': '' }},
+                                when: { ne: { 'name': '' } },
                                 index: 5
                             }
                         },
@@ -3571,7 +3571,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.uml-state-body/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.uml-state-body/stroke': 'transparent' } },
                                 index: 4
                             },
                             'stroke-dasharray': {
@@ -3581,8 +3581,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.uml-state-body/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.uml-state-body/stroke-width': 0 }}
+                                        { ne: { 'attrs/.uml-state-body/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.uml-state-body/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 5
@@ -3603,7 +3603,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'events',
-                                when: { ne: { 'events': 0 }},
+                                when: { ne: { 'events': 0 } },
                                 index: 5
                             }
                         }
@@ -3641,7 +3641,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'rank',
-                                when: { ne: { 'attrs/.rank/text': '' }},
+                                when: { ne: { 'attrs/.rank/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -3649,7 +3649,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'rank',
-                                when: { ne: { 'attrs/.rank/text': '' }},
+                                when: { ne: { 'attrs/.rank/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -3657,7 +3657,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'rank',
-                                when: { ne: { 'attrs/.rank/text': '' }},
+                                when: { ne: { 'attrs/.rank/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -3665,7 +3665,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'rank',
-                                when: { ne: { 'attrs/.rank/text': '' }},
+                                when: { ne: { 'attrs/.rank/text': '' } },
                                 index: 5
                             }
                         },
@@ -3683,7 +3683,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Font size',
                                 group: 'name',
-                                when: { ne: { 'attrs/.name/text': '' }},
+                                when: { ne: { 'attrs/.name/text': '' } },
                                 index: 2
                             },
                             'font-family': {
@@ -3691,7 +3691,7 @@ export class InspectorService {
                                 options: options.fontFamily,
                                 label: 'Font family',
                                 group: 'name',
-                                when: { ne: { 'attrs/.name/text': '' }},
+                                when: { ne: { 'attrs/.name/text': '' } },
                                 index: 3
                             },
                             'font-weight': {
@@ -3699,7 +3699,7 @@ export class InspectorService {
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'name',
-                                when: { ne: { 'attrs/.name/text': '' }},
+                                when: { ne: { 'attrs/.name/text': '' } },
                                 index: 4
                             },
                             fill: {
@@ -3707,7 +3707,7 @@ export class InspectorService {
                                 options: options.colorPalette,
                                 label: 'Fill',
                                 group: 'name',
-                                when: { ne: { 'attrs/.name/text': '' }},
+                                when: { ne: { 'attrs/.name/text': '' } },
                                 index: 5
                             }
                         },
@@ -3735,7 +3735,7 @@ export class InspectorService {
                                 unit: 'px',
                                 label: 'Outline thickness',
                                 group: 'presentation',
-                                when: { ne: { 'attrs/.card/stroke': 'transparent' }},
+                                when: { ne: { 'attrs/.card/stroke': 'transparent' } },
                                 index: 3
                             },
                             'stroke-dasharray': {
@@ -3745,8 +3745,8 @@ export class InspectorService {
                                 group: 'presentation',
                                 when: {
                                     and: [
-                                        { ne: { 'attrs/.card/stroke': 'transparent' }},
-                                        { ne: { 'attrs/.card/stroke-width': 0 }}
+                                        { ne: { 'attrs/.card/stroke': 'transparent' } },
+                                        { ne: { 'attrs/.card/stroke-width': 0 } }
                                     ]
                                 },
                                 index: 4

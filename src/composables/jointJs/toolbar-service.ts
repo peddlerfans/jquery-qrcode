@@ -15,7 +15,7 @@ import * as joint from '@clientio/rappid';
 
 export class ToolbarService {
 
-    toolbar: joint.ui.Toolbar;
+    toolbar: joint.ui.Toolbar = new joint.ui.Toolbar;
 
     create(commandManager: joint.dia.CommandManager, paperScroller: joint.ui.PaperScroller) {
         const { tools, groups } = this.getToolbarConfig();

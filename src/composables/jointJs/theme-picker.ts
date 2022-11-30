@@ -38,7 +38,7 @@ export class ThemePicker extends joint.ui.Toolbar {
         this.mainView = options.mainView;
     }
 
-    options: ThemePicker.Options;
+    declare options: ThemePicker.Options;
     mainView: ThemePicker.MainView;
 
     init() {
@@ -93,7 +93,7 @@ export class ThemePicker extends joint.ui.Toolbar {
             themedLinks.push(defaultLink);
         }
 
-        themedLinks.forEach(function(link: joint.dia.Link) {
+        themedLinks.forEach(function (link: joint.dia.Link) {
             link.attr({
                 '.connection': { 'stroke': linkColor },
                 '.marker-target': { 'fill': linkColor },
