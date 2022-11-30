@@ -1358,6 +1358,7 @@ function globalhandlerSubmit(data?:any) {
   Object.assign(metaObj, { schema: tempschema.value });
   Object.assign(metaObj, { data: metatemplatedetailtableData.value });
   cacheDataDefinition.meta = metaObj;
+  cacheDataDefinition.resources = resourcesdataSource.value
   
   onCloseDrawer();
   message.success(t("component.message.saveSuccess"));
