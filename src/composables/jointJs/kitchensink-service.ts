@@ -24,15 +24,15 @@ class KitchenSinkService {
 
     el: HTMLElement;
 
-    graph: joint.dia.Graph;
-    paper: joint.dia.Paper;
-    paperScroller: joint.ui.PaperScroller;
+    graph!: joint.dia.Graph;
+    paper!: joint.dia.Paper;
+    paperScroller!: joint.ui.PaperScroller;
 
-    commandManager: joint.dia.CommandManager;
-    snaplines: joint.ui.Snaplines;
-    clipboard: joint.ui.Clipboard;
-    selection: joint.ui.Selection;
-    navigator: joint.ui.Navigator;
+    commandManager!: joint.dia.CommandManager;
+    snaplines!: joint.ui.Snaplines;
+    clipboard!: joint.ui.Clipboard;
+    selection!: joint.ui.Selection;
+    navigator!: joint.ui.Navigator;
 
     stencilService: StencilService;
     toolbarService: ToolbarService;
@@ -99,13 +99,13 @@ class KitchenSinkService {
             sorting: joint.dia.Paper.sorting.APPROX
         });
 
-        paper.on('blank:contextmenu', (evt) => {
-            this.renderContextToolbar({ x: evt.clientX, y: evt.clientY });
-        });
+        // paper.on('blank:contextmenu', (evt) => {
+        //     this.renderContextToolbar({ x: evt.clientX, y: evt.clientY });
+        // });
 
-        paper.on('cell:contextmenu', (cellView, evt) => {
-            this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, [cellView.model]);
-        });
+        // paper.on('cell:contextmenu', (cellView, evt) => {
+        //     this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, [cellView.model]);
+        // });
 
         this.snaplines = new joint.ui.Snaplines({ paper: paper });
 
@@ -202,7 +202,7 @@ class KitchenSinkService {
 
             if (evt.button === 2) {
                 evt.stopPropagation();
-                this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, this.selection.collection.toArray());
+                // this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, this.selection.collection.toArray());
             }
 
         }, this);
@@ -272,7 +272,8 @@ class KitchenSinkService {
     }
 
     selectPrimaryCell(cellView: joint.dia.CellView) {
-        const cell = cellView.model;
+        let cell: any
+        cell = cellView.model;
         if (cell.isElement()) {
             this.selectPrimaryElement(<joint.dia.ElementView>cellView);
         } else {
@@ -282,8 +283,8 @@ class KitchenSinkService {
     }
 
     selectPrimaryElement(elementView: joint.dia.ElementView) {
-
-        const element = elementView.model;
+        let element: any
+        element = elementView.model;
 
         new joint.ui.FreeTransform({
             cellView: elementView,
@@ -487,7 +488,7 @@ class KitchenSinkService {
 
     renderPlugin(selector: string, plugin: any): void {
 
-        this.el.querySelector(selector).appendChild(plugin.el);
+        this.el.querySelector(selector)!.appendChild(plugin.el);
         plugin.render();
     }
 }
