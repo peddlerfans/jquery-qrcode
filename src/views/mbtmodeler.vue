@@ -70,8 +70,6 @@ const { t } = useI18n();
 
 
 const store = MBTStore()
-let { aa }  = storeToRefs(store);
-
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -969,6 +967,7 @@ function awhandlerSubmit(data:any,schema:any) {
   let showheadtext = "";
   let showbodytext = "";
   let cell = modeler.graph.getCell(ev_id);
+  console.log(cell)
   let isOneAW = true;
   // console.log("before launch...", currentElementMap.get(ev_id).props);
   for (const [key, value] of Object.entries(
@@ -1537,7 +1536,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
           mbtCache = response; //should work on here
           encatch = response
-
           localStorage.setItem(
             "mbt_" + route.params._id + route.params.name,
             JSON.stringify(response)
@@ -1866,13 +1864,14 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
             templateRadiovalue.value = 3;
             templateCategory.value = 3;
             tableDataDirectInput.value = value.dataDefinition.data.tableData;
-            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
+            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns
           } else if (dataFrom.value == "dynamic_template") {
             templateRadiovalue.value = 1;
             templateCategory.value = 1;
 
             tableDataDynamic.value = value.dataDefinition.data.tableData;
-            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key')
+            console.table(tableColumnsDynamic.value)
           } else {
             templateRadiovalue.value = 2;
             templateCategory.value = 2;
