@@ -1828,6 +1828,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
             });
           }
         });
+        value1.value = value.modelDefinition.paperscale
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
@@ -1836,9 +1837,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           const map = new Map(
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
-          cacheprops = map;
-          console.log(cacheprops);
-          
+          cacheprops = map;         
           
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
