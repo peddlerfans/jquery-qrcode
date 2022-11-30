@@ -21,6 +21,13 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false"
   },
   "dependencies": {
+    "@types/backbone": "latest",
+    "@types/jquery": "latest",
+    "@vue/compiler-sfc": "^3.0.0",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "@clientio/rappid": "file:rappid.tgz",
+    "core-js": "^3.6.5",
     "@lljj/vue3-form-ant": "^1.14.0",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.1.1",
