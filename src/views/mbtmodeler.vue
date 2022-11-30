@@ -1512,6 +1512,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         if (response && response.name == route.params.name) {
           idstr = response._id + "";
           if (response.modelDefinition && response.modelDefinition.props) {
+              // response.modelDefinition.
             const propsMap = new Map(
               Object.entries(JSON.parse(JSON.stringify(response.modelDefinition.props)))
             );
