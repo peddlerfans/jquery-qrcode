@@ -45,3 +45,6 @@ ace.config.setModuleUrl('ace/mode/javascript_worker', workerJavascriptUrl);
 
 import workerHtmlUrl from 'ace-builds/src-noconflict/worker-html?url';
 ace.config.setModuleUrl('ace/mode/html_worker', workerHtmlUrl);
+
+import searchBoxUrl from 'ace-builds/src-noconflict/ext-searchbox?url';
+ace.config.setModuleUrl('ace/ext/searchbox', searchBoxUrl);
