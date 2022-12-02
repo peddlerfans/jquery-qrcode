@@ -70,8 +70,6 @@ const { t } = useI18n();
 
 
 const store = MBTStore()
-let { aa }  = storeToRefs(store);
-
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -610,7 +608,8 @@ const globalschema = ref({
       anyOf: codegennames.value,
     },
   },
-});let awschema = ref({
+});
+let awschema = ref({
   title: "AW",
   description: "Configuration for the AW",
   type: "object",
