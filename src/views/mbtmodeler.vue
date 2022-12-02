@@ -61,7 +61,6 @@ import { useI18n } from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
 import { autoCompleteProps } from "ant-design-vue/lib/auto-complete";
 import "./componentTS/ace-config";
-import { debug } from "console";
 import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";

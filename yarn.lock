@@ -449,6 +449,13 @@
     "@nodelib/fs.scandir" "2.1.5"
     "fastq" "^1.6.0"
 
+"@originjs/vite-plugin-commonjs@^1.0.3":
+  "integrity" "sha512-KuEXeGPptM2lyxdIEJ4R11+5ztipHoE7hy8ClZt3PYaOVQ/pyngd2alaSrPnwyFeOW1UagRBaQ752aA1dTMdOQ=="
+  "resolved" "https://registry.npmjs.org/@originjs/vite-plugin-commonjs/-/vite-plugin-commonjs-1.0.3.tgz"
+  "version" "1.0.3"
+  dependencies:
+    "esbuild" "^0.14.14"
+
 "@playwright/test@^1.26.0":
   "integrity" "sha512-D24pu1k/gQw3Lhbpc38G5bXlBjGDrH5A52MsrH12wz6ohGDeQ+aZg/JFSEsT/B3G8zlJe/EU4EkJK74hpqsjEg=="
   "resolved" "https://registry.npmjs.org/@playwright/test/-/test-1.26.0.tgz"
@@ -2111,7 +2118,7 @@
   "resolved" "https://r.cnpmjs.org/esbuild-windows-64/-/esbuild-windows-64-0.14.49.tgz"
   "version" "0.14.49"
 
-"esbuild@^0.14.47", "esbuild@>=0.13":
+"esbuild@^0.14.14", "esbuild@^0.14.47", "esbuild@>=0.13":
   "integrity" "sha512-/TlVHhOaq7Yz8N1OJrjqM3Auzo5wjvHFLk+T8pIue+fhnhIMpfAzsG6PLVMbFveVxqD2WOp3QHei+52IMUNmCw=="
   "resolved" "https://r.cnpmjs.org/esbuild/-/esbuild-0.14.49.tgz"
   "version" "0.14.49"
