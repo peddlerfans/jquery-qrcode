@@ -409,6 +409,19 @@ const cancelbulid=()=>{
                 ],
                 children:[]}
   ],
+    thenrulesData.value= [//初始化条件对象或者，已保存的条件对象
+    {relation:"AND",
+    id:1,
+                conditions:[
+                {
+        name:'name',
+        operator:"=",
+        value:undefined,
+        selectvalues:childselectvalue
+      }
+                ],
+                children:[]}
+  ],
   thenObj.value.thenName=''
   thenObj.value.thenOperator=''
   thenObj.value.thenValue=''
@@ -661,7 +674,7 @@ const deleteconstraint = (obj:any) => {
 
 <a-tabs v-model:activeKey="activeKey">
   <a-tab-pane key="1" tab="Data">
-          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered>
+          <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered :scroll="{ x: true }">
 
 
 

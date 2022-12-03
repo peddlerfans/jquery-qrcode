@@ -17,7 +17,7 @@ const column = [
   { title: "name", width: 40, link: 'metaModeler', require: true },
   { title: "description", width: 120, require: true },
   { title: "tags", width: 100 },
-  { title: "action", width: 100, actionList: ['edit', 'delete'] },
+  { title: "action", width: 100, actionList: ['edit', 'delete','clone'] },
 ]
 
 const metaTableQuery = {
@@ -103,6 +103,68 @@ const inputChange = (value: any) => {
   }
 }
 
+let checkName=async (_rule:Rule,value:string)=>{
+  let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
+  if(!value){
+   
+    return Promise.reject(t('templateManager.nameinput'))
+  }else if(!reg.test(value) && !reg1.test(value)){
+
+    return Promise.reject(t('templateManager.namehefa'))
+  }else{
+    let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+
+        return Promise.reject(t('templateManager.duplicate'))
+      }else{
+
+        return Promise.resolve();
+      
+      }
+  }
+}
+
+
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+}
+let copyData:any = ref ({
+  name:""
+})
+let copyVisible = ref<boolean>(false)
+const clone = (record:any) => {
+
+    copyData.value.name = `${record.name}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    delete copyData.value._id
+   request.post('/api/templates',copyData.value).then((rst :any)=>{
+    let tableData = metaTable.value.getTableData()
+    tableData.unshift(rst)
+    metaTable.value.setTableData(tableData)
+    // let tableindex = metaTable.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      // metaTable.value[tableindex]._id=rst._id
+      copyVisible.value = false
+    }
+   })
+   
+  })
+}
+const clearValida =()=>{
+  refCopy.value.clearValidate()
+}
+
+
 </script>
 
 <template>
@@ -128,20 +190,7 @@ const inputChange = (value: any) => {
             :options="selectoptions"
             @change="onSelectChange"
             ></a-cascader>
-
-              <!-- <a-mentions v-model:value="formState.search"  split=""
-               :placeholder="$t('awModeler.inputSearch1')"
-
-               >
-               <a-mentions-option value="tags:" >
-                 tags:
-               </a-mentions-option>
-               <a-mentions-option value="name:" >
-                 name:
-               </a-mentions-option>
-             </a-mentions> -->
             </a-col>
-
             <a-col :span="4">
               <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
             </a-col>
@@ -161,7 +210,16 @@ const inputChange = (value: any) => {
         :columns="column"
         tableRef="metaTemplateTable"
         :fetchObj="metaTableQuery"
+        @clone="clone"
     ></common-table>
+    <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')" @cancel="clearValida">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
+
   </main>
 </template>
 
