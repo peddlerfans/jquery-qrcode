@@ -72,13 +72,13 @@ export default defineConfig({
     proxy: {
       "/api": {
         // target: 'https://mbt-dev.oppo.itealab.net/api',
-        target: 'https://mbt-test.oppo.itealab.net/',
-        // target: 'http://localhost:3000/',
+        // target: 'https://mbt-test.oppo.itealab.net/api',
+        target: 'http://localhost:3000/',
         changeOrigin: true,
         secure: true,
-        // rewrite: (path: string) => {
-        //   return path.replace(/^\/api/, '')
-        // }
+        rewrite: (path: string) => {
+          return path.replace(/^\/api/, '')
+        }
       },
       // "/auth": {
       //   target: 'http://localhost:3000/auth',

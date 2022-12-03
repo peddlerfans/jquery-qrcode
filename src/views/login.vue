@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive,ref, Ref } from 'vue'
 import { UserOutlined, LockOutlined,  } from '@ant-design/icons-vue'
 import { appTitle } from '@/appConfig'
 import { userStore } from '@/stores/user'
@@ -14,7 +14,10 @@ import request from "@/utils/request";
 // library.add(faAtlassian, faGitlab)
 
 
-
+interface oauthIf {
+  name: string
+  link_info: any
+}
 
 interface LoginForm {
   username: string
@@ -34,49 +37,43 @@ const router = useRouter()
 const route = useRoute()
 const user = userStore()
 
-let oauth:any
+const oauth = ref<oauthIf[] | null>();
 
 try{
-  oauth=await request.get("/api/oauthConfig")
+  request.get("/api/oauthConfig").then((o:any)=>{
+    oauth.value=o
+    console.log("oauth")
+    console.log(oauth)
+  })
 }catch (e) {
   console.log(e)
 }
 
-// oauth=[
-//     {
-//       "name":"atlassian",
-//       "link_info":{
-//         "icon":"https://confluence.atlassian.com/staticassets/4.1.3/dist/common/images/favicon.png",
-//         "color":"blue",
-//         "url":"/auth/atlassian"}
-//     },
-//   {
-//     "name":"gitlab",
-//     "link_info":{
-//       "icon":"https://gitlab.com/assets/favicon-72a2cad5025aa931d6ea56c3201d1f18e68a8cd39788c7c80d5b2b82aa5143ef.png","color":"red","url":"/auth/gitlab"}}]
 
-function login() {
+const redirect_url:any = route.query.redirect_url || location.origin+"/#/dashboard"
+const error_redirect:any = location.origin+"/#/login"
+
+const login_redirect_url: any =  route.query.redirect_url || location.origin+"/#/dashboard"
+
+function login(url:string) {
   loading.login = true
   user.login(form.username, form.password).then((_:any)=> {
-    router.replace('/dashboard')
+    // router.replace(route)
+    location.href=url
   }).catch((err :any)=> {
     loading.login = false
     message.error(err)
   })
 }
 
-const redirect_url:any = route.query.redirect_url || location.origin+"/#/dashboard"
-const error_redirect:any = location.origin+"/#/login"
-console.log('Login page - redirect_url')
-console.log(redirect_url)
-// const redirect=encodeURIComponent('http://127.0.0.1:7777/#/dashboard')
+
 </script>
 
 <template>
   <main class="main">
     <section class="login-wrapper">
       <h2 class="title">{{ appTitle }} Login</h2>
-      <AForm name="loginForm" :model="form" layout="vertical" class="login-form shadow" @finish="login">
+      <AForm name="loginForm" :model="form" layout="vertical" class="login-form shadow" @finish="login(login_redirect_url)">
         <AFormItem name="username" :rules="[{ required: true, message: '用户名不能为空!' }]">
           <AInput v-model:value="form.username" placeholder="用户名david或lili" size="large">
             <template #prefix>
@@ -100,7 +97,7 @@ console.log(redirect_url)
         </AButton>
 
 
-        <span v-if="oauth.length>0">
+        <span v-if="oauth && oauth.length>0">
           <a-divider style="height: 2px;"/>
           <a-button v-for="(v,k) of oauth" :key="k" :style="`width: 100%;margin-bottom: 5px;background: ${v.link_info.color };color:#FFFFFF;`" size="large"
                     :href="`/api${v.link_info.url}?redirect=${encodeURIComponent(redirect_url)}&error_redirect=${encodeURIComponent(error_redirect)}`">
