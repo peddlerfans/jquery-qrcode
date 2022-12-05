@@ -6,17 +6,30 @@ import {
   onMounted,
   reactive,
   ref,
-  computed, unref
+  computed,
+  unref
 } from 'vue'
 import {
   statesTs,
   typeOptions,
-  typeOptions2
+  typeOptions2,
+  tableSelectParams
 } from "./common-table"
 import cloneDeep from "lodash-es/cloneDeep";
 import router from "@/router";
 import { useI18n } from "vue-i18n";
 import {Rule} from "ant-design-vue/es/form";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  CopyOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  UpCircleOutlined,
+  DownCircleOutlined,
+  FileSearchOutlined
+} from '@ant-design/icons-vue'
 
 const { t } = useI18n()
 
@@ -50,13 +63,15 @@ const props = withDefaults(defineProps<Props>(), {
 const initTableSelect = () => {
   let tar = props.fetchObj.selection
   if (!tar) return
-  Object.assign(tar, {
+  let temp = {
+    selections: tar.selections,
     onChange: (changeArr: any, selectedRows: any) => {
       selectionList.value = selectedRows
     }
-  })
+  }
+  return temp
 }
-initTableSelect()
+const tableSelect = initTableSelect()
 
 /**
  * 表格 action 列方法回传父组件
@@ -66,7 +81,7 @@ initTableSelect()
 // 获取需要回传事件数组
 let events = props.columns.filter((a: any) => a.title === 'action')
 events = events[0]?.cbName || []
-const emit = defineEmits(['edit', 'go2Page', 'delete', 'save','clone'])
+const emit = defineEmits(['edit', 'go2Page', 'delete', 'save','clone', 'pageChange', 'detail'])
 
 let tableData = ref<Array<any>>([])
 let tagInputRef = ref()
@@ -141,6 +156,19 @@ const query = async (searchText?: string) => {
   pagination.total = rst.total
 }
 
+const getSearchRes = async (name: string) => {
+  let url = props.fetchObj.url
+  if (!url) return []
+  const qParams = props.fetchObj.createParams
+  const params = {
+    search: name,
+    q: qParams ? `category:${qParams}` : '',
+    page: 1,
+    perPage: 10
+  }
+  return await request.get(url, { params })
+}
+
 // 分页数据
 const pagination = reactive({
   current: 1,
@@ -162,7 +190,8 @@ const pagination = reactive({
   onChange: (page: number, pageSize: number) => {
     pagination.current = page
     pagination.pageSize = pageSize
-    query()
+    if (props.fetchObj.url) query()
+    else emit('pageChange', pagination)
   }
 })
 
@@ -199,12 +228,7 @@ const checkName = async (_rule: Rule, value: string) => {
   } else if (!reg.test(value) && !reg1.test(value)) {
     return Promise.reject(t('templateManager.namehefa'))
   } else {
-    let rst = await request.get(props.fetchObj.url,{
-      params: {
-        q: `catagory:${props.fetchObj.createParams}`,
-        search: `@name:${value}`
-      }
-    })
+    let rst: any = await getSearchRes(`@name:${value}`)
     if (rst.data && rst.data.length > 0 && rst.data[0].name === value) {
       return Promise.reject(t('templateManager.duplicate'))
     } else {
@@ -273,6 +297,31 @@ const editRow = (rowData: any) => {
   }
 }
 
+const detailRow = (rowData: any) => {
+  emit('detail', rowData)
+}
+
+// 交换两个数组元素位置
+const swapArray = (index1: number, index2: number) => {
+  tableData.value[index1] = tableData.value.splice(index2, 1, tableData.value[index1])[0]
+}
+
+const upRow = (index: number) => {
+  if(index !== 0) {
+    swapArray(index, index - 1);
+  } else {
+    message.warning(t('component.message.cantUpItem'))
+  }
+}
+
+const downRow = (index: number) => {
+  if (index+1 !== tableData.value.length) {
+    swapArray(index, index+1);
+  } else {
+    message.warning(t('component.message.cantDownItem'))
+  }
+}
+
 const save = async (rowData: any) => {
   let nameValidate = !unref(nameForm) || await unref(nameForm).validate()
   let descriptionValidate = !unref(descriptionForm) || await unref(descriptionForm).validate()
@@ -283,6 +332,7 @@ const save = async (rowData: any) => {
     if (props.columns.some((a: any) => a.title === 'values')) temp.values = states.value.values
     // 如果没有 url 说明不立即更新，暂存至表格内，等待更新数据
     temp.editing = false
+    delete rowData.isNewRow
     if (!props.fetchObj.url) {
       resetStates()
       emit('save', {
@@ -307,17 +357,22 @@ const save = async (rowData: any) => {
 const updateTableData = (newData: any) => {
   let url = props.fetchObj.url
   if (!url) return
-  request.put(`${url}/${newData._id}`, newData).then((res: any) => {
-    const index = tableData.value.indexOf(newData)
-    tableData.value.splice(index, 1, res)
-    message.success(t('component.message.modifiedText'))
-  }).catch(e => message.error(t('component.message.updateErr')))
+  loading.value = true
+  request.put(`${url}/${newData._id}`, newData)
+    .then((res: any) => {
+      const index = tableData.value.indexOf(newData)
+      tableData.value.splice(index, 1, res)
+      message.success(t('component.message.updateText'))
+    })
+    .catch(e => message.error(t('component.message.updateErr')))
+    .finally(() => loading.value = false )
 }
 
 // 新建数据更新
 const newTableData = (newData: any) => {
   const url = props.fetchObj.url
   if (!url) return
+  loading.value = true
   request.post(url, newData).then((res: any) => {
     const index = tableData.value.indexOf(newData)
     tableData.value.splice(index, 1, res)
@@ -325,7 +380,7 @@ const newTableData = (newData: any) => {
   }).catch(e => {
     newData.isNewRow = true
     newData.editing = true
-  })
+  }).finally(() => loading.value = false )
 }
 
 const cancel = (rowData: any) => {
@@ -401,7 +456,7 @@ const showValueInput = () => {
 
 // 点击添加 enum 的方法
 const showEnumInput = () => {
-  states.value.valueInputVisible = true
+  states.value.enumInputVisible = true
   nextTick(() => {
     enumInputRef.value.focus();
   })
@@ -411,8 +466,8 @@ const showEnumInput = () => {
 const createNewRow = (createObj: any) => {
   if (isEditing.value) return message.warning(t('component.message.errTip1'))
   if (!createObj.isNewRow) createObj.isNewRow = true
+  createObj.editing= true
   tableData.value.unshift(createObj)
-  editRow(createObj)
 }
 
 // 抛出表格数据变更函数
@@ -432,18 +487,25 @@ const go2Page = (record: any, column: any) => {
 }
 
 const setTableData = (data: any) => {
-  tableData.value = data
+  if (Array.isArray(data)) tableData.value = data
+  else {
+    tableData.value = data.tableData
+    if (data.hasOwnProperty('currentPage')) pagination.current = data.currentPage
+    if (data.hasOwnProperty('pageSize')) pagination.pageSize = data.pageSize
+    if (data.hasOwnProperty('total')) pagination.total = data.total
+  }
 }
 
 const getTableData = () => {
   return tableData.value
 }
 
-const changeColumn = (obj: any) => {
-  columns.value.push(handleColumn(obj))
+const changeColumn = (col: Array<any>) => {
+  columns.value = col.map((a: any) => handleColumn(a))
 }
-const cloneRow = (obj:any) => {
-  emit('clone',obj)
+
+const cloneRow = (obj: any) => {
+  emit('clone', obj)
 }
 
 defineExpose({
@@ -462,18 +524,19 @@ defineExpose({
 <template>
   <a-table
       :row-key="(record: any) => record._id"
-      :row-selection="fetchObj.selection"
+      :row-selection="tableSelect"
       :loading="loading"
       :pagination="pagination"
       :ref="tableRef"
       :data-source="tableData"
       :columns="columns"
+      :scroll="{ x: true }"
       bordered>
     <template #headerCell="{ column }">
       <!--      <span>{{ column.title }}</span>-->
       <span>{{ $t(`component.table.${column.title}`) }}</span>
     </template>
-    <template #bodyCell="{ column, text, record }">
+    <template #bodyCell="{ column, text, record, index }">
       <template v-if="column.key === 'name'">
         <template v-if="record.editing">
           <a-form :model="record" ref="nameForm" :rules="rules">
@@ -486,9 +549,19 @@ defineExpose({
           </a-form>
         </template>
         <template v-else-if="record._highlight && record._highlight.name">
-          <p v-for="item in record._highlight.name" v-html="item"></p>
+          <a
+              @click="go2Page(record, column)"
+              v-for="item in record._highlight.name"
+              v-html="item"
+          ></a>
         </template>
         <template v-else>
+          <a-tooltip placement="bottom" v-if="record.validationError">
+            <template #title>
+              <span>{{ record.validationError }}</span>
+            </template>
+            <exclamation-circle-outlined style="color: #c2953c;margin-right: 8px;" />
+          </a-tooltip>
           <template v-if="column.link">
             <a @click="go2Page(record, column)">{{ text }}</a>
           </template>
@@ -569,7 +642,7 @@ defineExpose({
           <template v-if="states.enumInputVisible">
             <a-input
                 v-if="record.type !== 'number'"
-                ref="inputRefs"
+                ref="enumInputRef"
                 v-model:value.trim="states.enumInputValue"
                 type="text"
                 size="small" :style="{ width: '78px' }"
@@ -577,7 +650,7 @@ defineExpose({
                 @keyup.enter="handleFactorEnumConfirm" />
             <a-input-number
                 v-if="record.type === 'number'"
-                ref="inputRefs"
+                ref="enumInputRef"
                 v-model:value.number="states.enumInputValue"
                 type="text"
                 size="small" :style="{ width: '78px' }"
@@ -587,7 +660,7 @@ defineExpose({
           <a-tag
               v-else
               style="background: #fff; border-style: dashed"
-              @click="states.enumInputVisible = true">
+              @click="showEnumInput">
             <plus-outlined />
             {{ $t('common.newValue') }}
           </a-tag>
@@ -611,6 +684,19 @@ defineExpose({
         </template>
         <template v-else-if="record._highlight && record._highlight.description">
           <p v-for="item in record._highlight.description" v-html="item"></p>
+        </template>
+        <template v-else>{{ text }}</template>
+      </template>
+      <template v-else-if="column.key === 'default'">
+        <template v-if="record.editing">
+          <a-form>
+            <a-form-item name="description">
+              <a-input
+                  v-model:value="record.default"
+                  style="margin: -5px 0"
+              ></a-input>
+            </a-form-item>
+          </a-form>
         </template>
         <template v-else>{{ text }}</template>
       </template>
@@ -673,35 +759,95 @@ defineExpose({
       <template v-else-if="column.key === 'action'">
         <div>
           <span v-show="record.editing">
-          <a style="color:red" @click="save(record)">{{ $t('common.saveText') }}</a>
-          <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.saveText') }}</span>
+              </template>
+              <check-circle-outlined @click="save(record)" class="icon--success-btn" />
+            </a-tooltip>
+            <a-divider type="vertical" />
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.cancelText') }}</span>
+              </template>
+              <close-circle-outlined @click="cancel(record)" class="icon--err-btn" />
+            </a-tooltip>
+            <a-divider type="vertical" v-if="column.actionList.includes('check')" />
+            <tempalte v-if="column.actionList.includes('check')">
+              <a-checkbox
+                  v-model:checked="record.required"
+                  @change="(e: any) => tableCheckChange(e, record)"
+              >{{ $t('component.table.isRequire') }}</a-checkbox>
+            </tempalte>
         </span>
         <span v-show="!record.editing">
-          <template v-if="column.actionList.includes('edit')">
-            <a @click="editRow(record)">{{ $t('common.editText') }}</a>
+          <template v-if="column.actionList.includes('detail')">
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.detail') }}</span>
+              </template>
+              <file-search-outlined @click="detailRow(record)" class="icon--primary-btn" />
+            </a-tooltip>
           </template>
-          <a-divider v-if="column.actionList.length >= 2" type="vertical" />
+          <a-divider v-if="column.actionList.includes('edit') && column.actionList.includes('detail')" type="vertical" />
+          <template v-if="column.actionList.includes('edit')">
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.editText') }}</span>
+              </template>
+              <edit-outlined @click="editRow(record)" class="icon--primary-btn" />
+            </a-tooltip>
+          </template>
+          <a-divider v-if="column.actionList.includes('delete')" type="vertical" />
           <template v-if="column.actionList.includes('delete')">
            <a-popconfirm
              :title="$t('component.message.sureDel')"
-             ok-text="Yes"
-             cancel-text="No"
+             :ok-text="$t('common.yesText')"
+             :cancel-text="$t('common.noText')"
              @confirm="confirm(record)">
-            <a>{{ $t('common.delText') }}</a>
+             <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.delText') }}</span>
+              </template>
+               <delete-outlined class="icon--primary-btn" />
+            </a-tooltip>
            </a-popconfirm>
           </template>
-          <a-divider v-if="column.actionList.length >= 3" type="vertical" />
-
-          <!-- <tempalte v-if="column.actionList.includes('check')">
+          <a-divider v-if="column.actionList.includes('up')" type="vertical" />
+          <template v-if="column.actionList.includes('up')">
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.up') }}</span>
+              </template>
+              <up-circle-outlined @click="upRow(index)" class="icon--primary-btn" />
+            </a-tooltip>
+          </template>
+          <a-divider v-if="column.actionList.includes('down')" type="vertical" />
+          <template v-if="column.actionList.includes('down')">
+            <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('common.down') }}</span>
+              </template>
+              <down-circle-outlined @click="downRow(index)" class="icon--primary-btn" />
+            </a-tooltip>
+          </template>
+          <a-divider v-if="column.actionList.includes('check')" type="vertical" />
+          <tempalte v-if="column.actionList.includes('check')">
             <a-checkbox
-                v-model:checked="record.require"
+                disabled
+                v-model:checked="record.required"
                 @change="(e: any) => tableCheckChange(e, record)"
             >{{ $t('component.table.isRequire') }}</a-checkbox>
-          </tempalte> -->
-          <a-divider v-if="column.actionList.length >= 3" type="vertical" />
-            <span v-show="!record.edit" style="margin-left:0.8rem">
-            <a-button type="primary" size="small" @click="cloneRow(record)">{{ $t('component.table.clone') }}</a-button>
-          </span>
+          </tempalte>
+          <a-divider v-if="column.actionList.includes('clone')" type="vertical" />
+          <template v-if="column.actionList.includes('clone')" >
+             <a-tooltip placement="bottom">
+              <template #title>
+                <span>{{ $t('component.table.clone') }}</span>
+              </template>
+              <copy-outlined @click="cloneRow(record)" class="icon--primary-btn" />
+            </a-tooltip>
+          </template>
         </span>
         </div>
       </template>
@@ -709,4 +855,5 @@ defineExpose({
   </a-table>
 </template>
 
-<style></style>
+<style>
+</style>
