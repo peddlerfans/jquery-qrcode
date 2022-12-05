@@ -1,42 +1,62 @@
 <script setup lang="ts">
 import request from "@/utils/request";
-import useTable from "@/composables/useTable";
 import {settingsWebHook} from "@/appConfig";
 import { message } from "ant-design-vue/es";
-import * as _ from "lodash";
 import {
   ref,
   reactive,
-  onBeforeMount,
   UnwrapRef,
-  onMounted,
   nextTick,
   getCurrentInstance,
-  computed
+  computed,
+  watch,
+  unref
 } from "vue";
 import type { FormProps } from "ant-design-vue";
 import { tableSearch, FormState } from "../componentTS/mbtmodeler";
-import {ModelState, statesTs, webHookDetail, httpFnList, httpFnEnList, httpNameTrance} from "../componentTS/webHook"
+import {ModelState, statesTs, httpFnList, httpFnEnList, httpNameTrance} from "../componentTS/webHook"
 import { Rule } from "ant-design-vue/es/form";
-import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
+import { PlusOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { CommonTable } from '@/components/basic/common-table'
 
 const { t } = useI18n()
 const url = settingsWebHook;
 const route = useRoute();
 const router = useRouter();
 const tableRef = ref();
-let searchobj: tableSearch = reactive({
-  search: "",
-  size: 20,
-  page: 1,
-  perPage: 20,
-});
+
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
   search: "",
 });
+
+const webHookTableQuery = {
+  url: '/api/webhooks',
+  searchText: ''
+}
+
+watch(
+    () => formState.search,
+    (value) => {
+      webHookTableQuery.searchText = value
+    }
+)
+
+// table data
+const column = [
+  { title: "name", require: true },
+  { title: "description", require: true },
+  { title: "tags" },
+  { title: 'url' },
+  {
+    title: "action",
+    actionList: ['detail', 'edit', 'delete'],
+    cbName: ['edit']
+  }
+]
+let webHookTable = ref<any>(null)
 
 const topicsFnObj = reactive({
   topicsFnList: [
@@ -57,78 +77,20 @@ const topicsFnObj = reactive({
 
 const instance = getCurrentInstance();
 
-const {
-  dataSource,
-  columns,
-  tableLoading,
-  pagination,
-  updateTable,
-  tableResize,
-  selectedRowKeys,
-} = useTable({
-  table: tableRef,
-  columns: [
-    { title: "component.table.name", dataIndex: "name", key: "name", width: 40 },
-    { title: "component.table.description", dataIndex: "description", key: "description", width: 120 },
-    {
-      title: "component.table.tags",
-      dataIndex: "tags",
-      key: "tags",
-      width: 100,
-      customRender: (opt) => {
-        if (_.isArray(opt.value)) {
-          return opt.value.toString();
-        } else return opt.value;
-      },
-    },
-    {
-      title: 'component.table.url',
-      dataIndex: 'url',
-      key: 'url',
-      width: 100
-    },
-    { title: "component.table.action", dataIndex: "action", key: "action", width: 100 },
-  ],
-  updateTableOptions: {
-    fetchUrl: url,
-  },
-});
-function openMenuModal() {
-  alert("good");
-}
-
-onBeforeMount(() => {
-  updateTable();
-});
-
 const onFinishFailedForm = (errorInfo: any) => {
   console.log("Failed:", errorInfo);
 };
-
-let mbtId = ref("");
-async function query(data?: any) {
-  let rst;
-
-  rst = await request.get(url, { params: data || searchobj });
-
-  if (rst.data) {
-    dataSource.value = rst.data;
-    return rst.data;
-  }
-}
 
 /**
  * Search the result
  */
 const handleFinish: FormProps["onFinish"] = (values: any) => {
-  let fetchUrl = url + `?search=` + formState.search;
-
-  updateTable({ fetchUrl: fetchUrl });
+  webHookTable.value.query(formState.search)
 };
 const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
   console.log(errors);
 };
-const wrapperCol = { span: 24, offset: 12 };
+
 // 模态窗数据
 const visible = ref<boolean>(false);
 let canEdit = ref<boolean>(false)
@@ -159,21 +121,7 @@ const modalTitle = computed(() => {
   }
 })
 
-let webhookdetail = ref<webHookDetail>({
-  topicsObj: {},
-  topicsOpts: []
-})
-
-onMounted(() => {
-  query();
-});
-// 修改功能4
-// 修改函数
-async function updateMBT(url: string, data: any) {
-  let rst = await request.put(url, data);
-  // console.log(rst);
-}
-let refForm = ref(null);
+let refForm = ref()
 // 清除模态窗数据
 const clear = () => {
   (modelstates.value = {
@@ -222,10 +170,7 @@ const edit = (rowobj: any, isCheck: boolean) => {
       obj[fnName] = [httpFn]
     }
   })
-  console.log(obj)
   obj.topicsOpts = Object.keys(obj)
-  // webhookdetail.value.topicsObj = obj
-  // webhookdetail.value.topicsOpts = Object.keys(obj)
   Object.keys(obj).forEach(a => {
     topicsFnObj.topicsFnList.forEach(topics => {
       if (topics.title === a) {
@@ -233,7 +178,6 @@ const edit = (rowobj: any, isCheck: boolean) => {
       }
     })
   })
-  console.log(topicsFnObj.topicsFnList)
   if (isCheck) {
     DetailModal()
   } else {
@@ -248,53 +192,49 @@ const onCheckAllChange = (e: any, idx: number) => {
   topicsFnObj.topicsFnList[idx].checkList = res ? httpFnList.map(a => a.value) : []
 }
 
-async function saveMBT(data: any) {
+async function saveWebHook(data: any) {
+  webHookTable.value.loading = true
   return new Promise((resolve, reject) => {
     request
         .post(url, data)
         .then((res) => {
-          mbtId.value = res._id as string;
-
-          let fetchUrl = `${url}/${mbtId.value}`;
-
-          updateTable({ fetchUrl: fetchUrl });
+          let tableData = webHookTable.value.getTableData()
+          tableData.unshift(res)
+          webHookTable.value.setTableData(tableData)
         })
         .catch(function (error) {
           if (error.response.status == 409) {
-            message.error("Duplicate name or description");
+            message.error(t('settings.requiredNameADesc'))
           }
-        });
+        })
+        .finally(() => webHookTable.value.loading = false )
   });
 }
 
 const onFinishForm = async (modelstates: any) => {
+  await unref(refForm).validate()
   modelstates.value.tags = states.tags;
   let arr:Array<string> = []
   topicsFnObj.topicsFnList.forEach((topics: any) => {
     topics.checkList.forEach((a: any) => arr.push(`${a}:${topics.title}`))
   })
   modelstates.value.topics = arr
-  console.log(modelstates.value.topics)
-
   // 判断修改或添加
-  if (modelstates.value.name && modelstates.value.description) {
-    if (modelstates.value._id) {
-      mbtId.value = modelstates.value._id;
-      updateMBT(url + `/${modelstates.value._id}`, modelstates.value).then((res: any) => {
-
-        updateTable({ fetchUrl: url });
-      });
-      message.success("Modified successfully");
-    } else {
-      delete modelstates.value._id;
-      message.success("Added successfully");
-      saveMBT(modelstates.value);
-    }
-    // }
-    visible.value = false;
-    clear();
+  if (modelstates.value._id) {
+    webHookTable.value.loading = true
+    request.put(url + `/${modelstates.value._id}`, modelstates.value).then((res: any) => {
+      let tableData = webHookTable.value.getTableData()
+      let tar = tableData.filter((a: any) => a._id === res._id)[0]
+      let index = tableData.indexOf(tar)
+      if (index === -1) return
+      tableData[index] = res
+      webHookTable.value.setTableData(tableData)
+      message.success(t('component.message.updateText'))
+    }).finally(() => webHookTable.value.loading = false )
   } else {
-    return message.error("name and descript is required");
+    delete modelstates.value._id;
+    message.success(t('component.message.saveText'));
+    saveWebHook(modelstates.value);
   }
 };
 
@@ -302,36 +242,18 @@ const onFinishForm = async (modelstates: any) => {
  * Create a new model and jump to moderler
  */
 const handleOk = () => {
-  visible.value = false;
   onFinishForm(modelstates);
-  clear();
-};
+}
 // 关闭模态窗触发事件
 const closemodel = () => {
   clear();
   visible.value = false;
-  // query()
-  // console.log(modelstates.value);
-};
-// 删除功能
-async function delmbt(key: any) {
-  let rst = await request.delete(url + `/${key._id}`);
-  updateTable();
-}
-const confirm = (e: MouseEvent) => {
-  delmbt(e);
-  query();
-  message.success("Delete on Successed");
-};
-
-const cancel = (e: MouseEvent) => {
-  console.log(e);
 };
 
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject("Please input your name!");
+    return Promise.reject(t('component.message.emptyName'));
   } else {
     return Promise.resolve();
   }
@@ -339,18 +261,18 @@ let checkName = async (_rule: Rule, value: string) => {
 
 let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
-    return Promise.reject("Please input your name!");
+    return Promise.reject(t('component.message.emptyDescription'));
   } else {
     return Promise.resolve();
   }
 };
 
 let checkUrl = async (_rule: Rule, value: string) => {
-  if (!value) return Promise.reject("Please input url")
+  if (!value) return Promise.reject(t('component.message.emptyUrl'))
   const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/g
   let res = reg.test(value)
   if (!res) {
-    return Promise.reject("Please input real url")
+    return Promise.reject(t('component.message.realUrl'))
   } else {
     return Promise.resolve()
   }
@@ -363,15 +285,14 @@ let rules: Record<string, Rule[]> = {
 };
 
 const handleClose = (removedTag: string) => {
-  const tags = states.tags.filter((tag: string) => tag !== removedTag);
-  // console.log(tags);
-  states.tags = tags;
+  const tags = states.tags.filter((tag: string) => tag !== removedTag)
+  states.tags = tags
 };
 const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
-    inputRef.value.focus();
-    inputRef.value.toString().toUpperCase();
+    inputRef.value.focus()
+    inputRef.value.toString().toUpperCase()
   });
 };
 
@@ -515,65 +436,15 @@ const handleInputConfirm = () => {
       </a-modal>
     </div>
     <div class="tableContainer">
-      <ATable
-          ref="tableRef"
-          class="table"
-          rowKey="key"
-          :dataSource="dataSource"
-          :columns="columns"
-          :pagination="pagination"
-          :loading="tableLoading"
-          bordered
-          @resizeColumn="tableResize"
-      >
-        <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
-        </template>
-
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
-            <a :href="`/#/mbtmodeler/${record._id}/${record.name}`">{{ record.name }}</a>
-          </template>
-
-          <template v-else-if="column.key === 'description'">
-            {{ record.description }}
-          </template>
-          <template v-else-if="column.key === 'tags'">
-            <span>
-              <a-tag
-                  v-for="tag in record.tags"
-                  :key="tag"
-                  :color="
-                  tag === 'loser' ? 'volcano' : tag.length > 5 ? 'geekblue' : 'green'
-                "
-              >
-                {{ tag.toUpperCase() }}
-              </a-tag>
-            </span>
-          </template>
-
-          <template v-else-if="column.key === 'action'">
-            <span>
-              <a @click="edit(record, true)" style="margin-right: 16px;">{{ $t('component.table.detail') }}</a>
-              <a @click="edit(record, false)">{{ $t('common.editText') }}</a>
-              <a-divider type="vertical" />
-              <!-- <a :href="'/#/mbtmodeler/'+ record.name">Details</a>
-                <a-divider type="vertical" /> -->
-              <a-popconfirm
-                  :title="$t('component.message.sureDel')"
-                  :ok-text="$t('common.yesText')"
-                  :cancel-text="$t('common.noText')"
-                  @confirm="confirm(record)"
-                  @cancel="cancel"
-              >
-                <a>{{ $t('common.delText') }}</a>
-              </a-popconfirm>
-            </span>
-          </template>
-        </template>
-      </ATable>
+      <common-table
+        ref="webHookTable"
+        :columns="column"
+        tableRef="webHookTable"
+        :fetchObj="webHookTableQuery"
+        @edit="(row) => edit(row, false)"
+        @detail="(row) => edit(row, true)"
+      ></common-table>
     </div>
-    <!-- </section> -->
   </main>
 </template>
 <style lang="postcss" scoped>

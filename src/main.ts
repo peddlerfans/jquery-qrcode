@@ -10,6 +10,7 @@ import 'ant-design-vue/dist/antd.less';
 import 'ant-design-vue/dist/antd.variable.min.css';
 import 'dayjs/locale/zh-cn';
 import '@/styles/index.postcss' // 全局样式
+import '@/styles/index.less'
 import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
