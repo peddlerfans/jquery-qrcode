@@ -66,6 +66,7 @@ import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
+import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 const { t } = useI18n();
 
 
@@ -2924,9 +2925,9 @@ let outLang=ref()
 // let previewData=ref()
 async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
-  
+
   if(rst && rst.results && rst.results.length>0){
-    
+
     outLang.value=rst.outputLang
     Object.keys(rst.results[0].json).forEach((obj)=>{
       let objJson={
@@ -2944,11 +2945,12 @@ async function querycode(){
       }
       return item.json
     })
-    console.log(previewData.value,previewcol.value);
-    
+    visiblepreciew.value = true
   }
   }).catch((err)=>{
-    message.error("Model configuration error")
+    // 这里提示用户详细错误问题
+    const errMsg = err.response.data
+    showErrCard(errMsg)
   })
   
 }
@@ -2956,7 +2958,6 @@ const preview=async (data:any)=>{
   
   searchPreview.mode="all"
   await querycode()
-  visiblepreciew.value=true
 }
 
 const openPreview = (record:any)=>{
