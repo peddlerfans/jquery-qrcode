@@ -60,10 +60,10 @@ const url = templateUrl;
 
 // 表格数据
 const column = [
-  { title: "name", width: 40, link: 'codegenModeler' },
-  { title: "description", width: 120 },
+  { title: "name", width: 40, link: 'codegenModeler', require: true },
+  { title: "description", width: 120, require: true },
   { title: "tags", width: 100 },
-  { title: "action", width: 100, actionList: ['edit', 'delete'] },
+  { title: "action", width: 100, actionList: ['edit', 'delete', 'clone'] },
 ]
 const codegenTableQuery = {
   url,
@@ -72,29 +72,7 @@ const codegenTableQuery = {
 }
 let codegenTable = ref<any>(null)
 
-
-// ######## Model list table ########
-
-// Inital a null reference for the model list table
 const tableRef = ref()
-
-const initModelAttr={
-  outputLanguage: '',
-  templateEngine: '',
-  data: '',
-  history: []
-}
-// ######## Search bar ########
-
-// Search
-let searchobj: tableSearch = reactive({
-  search: "",
-  q: "category:codegen",
-  size: 20,
-  page: 1,
-  perPage: 10
-})
-
 
 // 表单的数据
 const formState: UnwrapRef<FormState> = reactive({
@@ -121,29 +99,6 @@ const handleFinish: FormProps['onFinish'] = (values: any) => {
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
   console.log(errors);
 };
-
-// ??????
-const instance = getCurrentInstance()
-
-// ##################################
-// ######## Model CRUD Start ########
-// ##################################
-
-// Modal is hidden by default
-const visibleModel = ref<boolean>(false);
-let inputRef1 = ref()
-
-// Initialize an obj for model meta information
-let modelState = reactive<ModelState>({
-  name: '',
-  description: '',
-  _id: "",
-  tags: [],
-  editing: false,
-  inputVisible: false,
-  inputValue: '',
-});
-
 
 let searchInput = ref()
 let cascder = ref(false)
@@ -189,79 +144,11 @@ const inputChange = (value: any) => {
   }
 }
 
-
-
-// 清除模态窗数据
-const clearModelState = () => {
-
-  modelState.name = ''
-  modelState.description = ''
-  modelState._id = ""
-  modelState.tags = []
-  modelState.editing = false // Toggle model edit mode
-  modelState.inputVisible = false
-  modelState.inputValue = '';
-}
-
 const showModal = () => {
-  visibleModel.value = true;
-};
-
-// 关闭模态窗触发事件
-const closeModel = () => {
-  (instance?.refs.refModelForm as any).resetFields();
-  visibleModel.value = false;
-  clearModelState()
-
-  // query()
-}
-
-// Handel Tags in modal form
-const handleCloseTag = (removedTag: string) => {
-  const tags = modelState.tags.filter((tag: string) => tag !== removedTag);
-  modelState.tags = tags;
-
-};
-
-const newModelTagInput = (index: number) => {
-  modelState.inputVisible = true;
-  nextTick(() => {
-    inputRef1.value.focus();
-    inputRef1.value.toString().toUpperCase();
-  })
-
-};
-
-const handleModelTagConfirm = () => {
-  let tags = modelState.tags;
-  if (modelState.inputValue && tags.indexOf(modelState.inputValue) === -1) {
-    tags = [...tags, modelState.inputValue.toUpperCase()];
-  }
-  Object.assign(modelState, {
-    tags: tags,
-    inputVisible: false,
-    inputValue: '',
-  });
-}
-
-let refModelForm=ref()
-const saveModel = async () => {
-  const model = {
-    name: modelState.name,
-    description: modelState.description,
-    tags: toRaw(modelState.tags),
-    category: "codegen",
-    templateText: '',
-    model: initModelAttr
-  }
-
-  unref(refModelForm).validate('name', 'description').then(async (res: any) => {
-    let rst = await request.post(url, model)
-    let tableData = codegenTable.value.getTableData()
-    tableData.unshift(rst)
-    codegenTable.value.setTableData(tableData)
-    message.success(t('templateManager.createModelSuccess'))
-    closeModel()
+  codegenTable.value.createNewRow({
+    name: '',
+    description: '',
+    tags: []
   })
 }
 
@@ -282,21 +169,6 @@ let checkName = async (_rule: Rule, value: string) => {
     }
   }
 }
-
-let checkDesc = async (_rule: Rule, value: string) => {
-  if (!value) {
-    return Promise.reject(t('templateManager.description'))
-  } else {
-
-    return Promise.resolve();
-  }
-}
-
-let modelRules: Record<string, Rule[]> = {
-  name: [{ required: true, validator: checkName, trigger: 'blur' }],
-  description: [{ required: true, validator: checkDesc, trigger: 'blur' }],
-}
-
 
 let refCopy=ref()
 let copyRule:Record<string,Rule[]>={
@@ -338,8 +210,6 @@ const clearValida =()=>{
 <template>
   <main style="height:100%;overflow-x: hidden!important;">
     <header class="block shadow">
-      <!-- <section class="block shadow flex-center"> -->
-
       <!-- 表单的查询 -->
       <a-row>
         <a-col :span="20">
@@ -379,67 +249,6 @@ const clearValida =()=>{
         </a-col>
       </a-row>
     </header>
-
-
-    <!-- 模态窗 -->
-
-    <div>
-      <a-modal v-model:visible="visibleModel"
-               :title="modelState._id? $t('templateManager.updateCodegenTemp') : $t('templateManager.newCodegenTemp')" @cancel="closeModel" :width="900">
-
-        <!-- Model meta info -->
-
-        <h2>{{ $t('templateManager.template') }}</h2>
-
-        <a-form ref="refModelForm" autocomplete="off" :model="modelState" :rules="modelRules" name="basic"
-                :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
-          <a-form-item :label="$t('component.table.name')" name="name">
-            <a-input v-model:value="modelState.name" />
-          </a-form-item>
-
-          <a-form-item :label="$t('component.table.description')" name="description">
-            <a-input v-model:value="modelState.description" />
-          </a-form-item>
-
-          <!-- tags标签 -->
-          <a-form-item :label="$t('component.table.tags')" name="tags">
-            <template v-for="(tag) in modelState.tags" :key="tag">
-              <a-tooltip v-if="tag.length > 20" :title="tag">
-                <a-tag :closable="true" @close="handleCloseTag(tag)">
-                  {{ `${tag.slice(0, 20)}...` }}
-                </a-tag>
-              </a-tooltip>
-              <a-tag v-else-if="tag.length==0"></a-tag>
-              <a-tag v-else :closable="true" @close="handleCloseTag(tag)">
-                {{tag}}
-              </a-tag>
-            </template>
-            <a-input v-if="modelState.inputVisible" ref="inputRef1" v-model:value="modelState.inputValue" type="text"
-                     size="small" :style="{ width: '78px' }" @blur="handleModelTagConfirm"
-                     @keyup.enter="handleModelTagConfirm" />
-            <a-tag v-else style="background: #fff; border-style: dashed" @click="newModelTagInput(1)">
-              <plus-outlined />
-              {{ $t('common.newTag') }}
-            </a-tag>
-          </a-form-item>
-        </a-form>
-
-        <template #footer>
-          <a-button @click="closeModel">{{ $t('common.cancelText') }}</a-button>
-          <a-button @click="saveModel" type="primary" class="btn_ok">{{ $t('common.saveText') }}</a-button>
-        </template>
-
-
-      </a-modal>
-    </div>
-
-
-
-
-
-    <!-- ######################### -->
-    <!-- List of CodeGen templates -->
-    <!-- ######################### -->
     <common-table
         ref="codegenTable"
         :columns="column"

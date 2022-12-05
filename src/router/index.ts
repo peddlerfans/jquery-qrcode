@@ -299,7 +299,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/settings',
     name: 'Settings',
     component: Layout,
-    meta: { title:'Settings',icon:ExportOutlined },
+    meta: { title:'component.route.account',icon:ExportOutlined },
     children: [
       {
         path: 'webHook',
