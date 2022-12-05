@@ -11,8 +11,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
 
-import * as joint from '@clientio/rappid';
-
+import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const cache = new Map();
 export namespace app {
 
@@ -212,7 +211,7 @@ export namespace app {
             }
         };
 
-        private getDataWidthCached = function(d: string){
+        private getDataWidthCached = function (d: string) {
             if (cache.has(d)) {
                 return cache.get(d);
             } else {
@@ -322,7 +321,7 @@ export const NavigatorLinkView = joint.dia.LinkView.extend({
 
     defaultTheme: null,
 
-    initialize: function(options: any) {
+    initialize: function (options: any) {
         joint.mvc.View.prototype.initialize.call(this, options);
     },
 
