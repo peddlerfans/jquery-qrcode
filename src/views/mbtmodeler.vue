@@ -66,6 +66,8 @@ import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
+import { data2schema } from '@/views/componentTS/schema-constructor'
+
 const { t } = useI18n();
 
 
@@ -257,16 +259,6 @@ const onAWExpectedBack = () => {
 
 const onCloseDrawer = () => {
   visible.value = false;
-  // if (awformdata.value._id && chooseAw) {
-  //   let ss=null
-  //   watch(awformdata,(newValue:any)=>{
-  //       ss = newValue
-  //   },{deep:true,immediate:true})
-  //   if(ss){      
-  //     awhandlerSubmit(ss,awschema.value) 
-  //   }
-   
-  // }  
   rulesData.value=[ 
   //初始化条件对象或者，已保存的条件对象
   {
@@ -2299,6 +2291,10 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
           awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
+
+          console.log(awformdata.value)
+          console.log(awschema.value)
+
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2462,11 +2458,6 @@ function showAWInfo(rowobj: any) {
       
       Object.assign(awschema.value.properties, field);
     });
-
-    // _.forEach(rowobj.params, function (value, key) {
-    //   // awformdata.value.params += value.name + " ";
-    //   Object.assign(awschema.value.properties,{value.name:});
-    // });
   }
 }
 
@@ -3294,6 +3285,12 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                 </div>
                 <div style="margin: 5px; width: 80%" class="awconfig">
                   <VueForm
+                      v-model="awformdata"
+                      :formProps="awformProps"
+                      :schema="data2schema(cacheDataDefinition.data.tableData, 'file')"
+                      v-if="isAW && hasAWInfo"
+                  ></VueForm>
+                  <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
                     :schema="awschema"
@@ -3319,7 +3316,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                         $t("common.chooseEx")
                       }}</a-button>
                       </span>
-                      
+
                         <a-button danger @click="routerAw(awformdata)">
                           {{$t('common.updateAw')}}
                         </a-button>
