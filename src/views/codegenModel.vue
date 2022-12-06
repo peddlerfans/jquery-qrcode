@@ -496,7 +496,7 @@ footer {
 .ace-template, .ace-result, .ace-data {
   flex: 1;
   margin-top: 15px;
-  font-size: 18px;
+  /*font-size: 18px;*/
   border: 1px solid;
   height: 70vh;
 }
