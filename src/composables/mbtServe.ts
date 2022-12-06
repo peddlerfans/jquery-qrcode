@@ -3,7 +3,9 @@ import * as dagre from 'dagre';
 import { StencilService } from "./stencil";
 import { ToolbarService } from "./Toolbar";
 import { HaloService } from './haloService';
-import * as appShapes from '../composables/JointJs/app-shapes';
+import { InspectorService } from './inspector'
+import { KeyboardService } from "./keyboard"
+import * as appShapes from '../composables/jointJs/app-shapes';
 
 class MbtServe {
     el !: any;
@@ -21,12 +23,16 @@ class MbtServe {
     stencilService !: StencilService;
     toolbarService !: ToolbarService;
     haloService !: HaloService;
+    InspectorService !: InspectorService;
+    keyboardService !: KeyboardService;
 
     constructor(
         el: HTMLElement,
         stencilService: StencilService,
         toolbarService: ToolbarService,
         haloService: HaloService,
+        InspectorService: InspectorService,
+        keyboardService: KeyboardService
     ) {
         this.el = el;
         // apply current joint js theme
@@ -38,6 +44,8 @@ class MbtServe {
         this.stencilService = stencilService;
         this.toolbarService = toolbarService;
         this.haloService = haloService;
+        this.InspectorService = InspectorService
+        this.keyboardService = keyboardService
     }
     startRappid() {
 
@@ -48,8 +56,10 @@ class MbtServe {
         this.initializeToolbar();
         this.initializeTooltips();
         this.initializeSelection();
-        this.initializeTooltips();
         this.initializeToolsAndInspector();
+        this.initializeKeyboardShortcuts();
+        this.initializeNavigator();
+
     }
     initializeSelection() {
 
@@ -61,27 +71,27 @@ class MbtServe {
         });
         this.selection.collection.on('reset add remove', this.onSelectionChange.bind(this));
 
-        // const keyboard = this.keyboardService.keyboard;
+        const keyboard = this.keyboardService.keyboard;
 
         // Initiate selecting when the user grabs the blank area of the paper while the Shift key is pressed.
         // Otherwise, initiate paper pan.
         this.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
 
-            // if (keyboard.isActive('shift', evt)) {
-            //     this.selection.startSelecting(evt);
-            // } else {
-            this.selection.collection.reset([]);
-            this.paperScroller.startPanning(evt);
-            this.paper.removeTools();
-            // }
+            if (keyboard.isActive('shift', evt)) {
+                this.selection.startSelecting(evt);
+            } else {
+                this.selection.collection.reset([]);
+                this.paperScroller.startPanning(evt);
+                this.paper.removeTools();
+            }
         });
 
         this.paper.on('element:pointerdown', (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
 
             // Select an element if CTRL/Meta key is pressed while the element is clicked.
-            // if (keyboard.isActive('ctrl meta', evt)) {
-            //     this.selection.collection.add(elementView.model);
-            // }
+            if (keyboard.isActive('ctrl meta', evt)) {
+                this.selection.collection.add(elementView.model);
+            }
 
         });
 
@@ -97,9 +107,9 @@ class MbtServe {
         this.selection.on('selection-box:pointerdown', (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
 
             // Unselect an element if the CTRL/Meta key is pressed while a selected element is clicked.
-            // if (keyboard.isActive('ctrl meta', evt)) {
-            //     this.selection.collection.remove(elementView.model);
-            // }
+            if (keyboard.isActive('ctrl meta', evt)) {
+                this.selection.collection.remove(elementView.model);
+            }
 
         }, this);
 
@@ -114,6 +124,34 @@ class MbtServe {
 
         }, this);
     }
+
+    // keyboard初始化
+    initializeKeyboardShortcuts() {
+
+        this.keyboardService.create(
+            this.graph, this.clipboard, this.selection, this.paperScroller, this.commandManager);
+    }
+
+    // 初始化缩略图
+    initializeNavigator() {
+
+        const navigator = this.navigator = new joint.ui.Navigator({
+            width: 240,
+            height: 115,
+            paperScroller: this.paperScroller,
+            zoom: false,
+            paperOptions: {
+                async: true,
+                sorting: joint.dia.Paper.sorting.NONE,
+                elementView: appShapes.NavigatorElementView,
+                linkView: appShapes.NavigatorLinkView,
+                cellViewNamespace: { /* no other views are accessible in the navigator */ }
+            }
+        });
+
+        this.renderPlugin('.navigator-container', navigator);
+    }
+
     onSelectionChange() {
         const { paper, selection } = this;
         const { collection } = selection;
@@ -143,7 +181,7 @@ class MbtServe {
         } else {
             this.selectPrimaryLink(<joint.dia.LinkView>cellView);
         }
-        // this.inspectorService.create(cell);
+        this.InspectorService.create(cell);
     }
 
     selectPrimaryElement(elementView: joint.dia.ElementView) {
@@ -187,7 +225,7 @@ class MbtServe {
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
 
         const paper = this.paper = new joint.dia.Paper({
-            width: 1000,
+            width: 1100,
             height: 1000,
             gridSize: 10,
             drawGrid: true,
@@ -246,14 +284,13 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
-            console.log(this.selection.collection.reset([elementView.model]));
-
             this.selection.collection.reset([elementView.model]);
         });
     }
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
+        console.log(this.toolbarService);
 
         this.toolbarService.toolbar.on({
             'svg:pointerclick': this.openAsSVG.bind(this),

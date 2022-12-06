@@ -26,7 +26,7 @@ const scrollbar = ref<OverlayScrollbars>()
 const scrollbarDom = ref<Element>(document.createElement(props.tag))
 
 onMounted(() => {
-  scrollbar.value = OverlayScrollbars(scrollbarDom.value, Object.assign(getDirectionOptions(), props.initOptions || {}))
+  scrollbar.value = OverlayScrollbars(<HTMLElement>scrollbarDom.value, Object.assign(getDirectionOptions(), props.initOptions || {}))
   listenWheel()
 })
 

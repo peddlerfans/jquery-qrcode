@@ -6,8 +6,9 @@ import MbtServe from "@/composables/mbtServe"
 import { StencilService } from '@/composables/stencil';
 import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
+import { InspectorService } from "@/composables/inspector";
+import { KeyboardService } from "@/composables/keyboard";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from "@/composables/JointJs/app-shapes"
 import $ from 'jquery'
 import { onMounted, ref } from 'vue';
 let rappid : MbtServe
@@ -19,7 +20,9 @@ onMounted(()=>{
     apps.value,
     new StencilService(),
     new ToolbarService(),
-    new HaloService()
+    new HaloService(),
+    new InspectorService(),
+    new KeyboardService()
   )
   rappid.startRappid()
 })
@@ -34,7 +37,8 @@ onMounted(()=>{
           <div class="app-body">
             <div ref="stencils" class="stencil-container"></div>
             <div class="paper-container"/>
-            <div ref="canvas" class="canves"></div>
+            <div class="inspector-container"/>
+            <div class="navigator-container"/>
           </div>
 
   </main>
