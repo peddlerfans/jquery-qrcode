@@ -22,7 +22,7 @@ const column = [
   { title: "name", link: 'staticModeler', require: true },
   { title: "description", require: true },
   { title: "tags" },
-  { title: "action", actionList: ['edit', 'delete'] },
+  { title: "action", actionList: ['edit', 'delete', 'clone'] },
 ]
 
 const { t } = useI18n()

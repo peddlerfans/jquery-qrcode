@@ -22,6 +22,9 @@ export default {
   preview: '预览',
   submitText: '保存',
   close: '关闭',
+  up: '上升一位',
+  down: '下降一位',
+  detail: '详情',
   saveError: "保存失败",
   cloneError: '克隆失败',
 

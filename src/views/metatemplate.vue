@@ -17,7 +17,7 @@ const column = [
   { title: "name", width: 40, link: 'metaModeler', require: true },
   { title: "description", width: 120, require: true },
   { title: "tags", width: 100 },
-  { title: "action", width: 100, actionList: ['edit', 'delete','clone'] },
+  { title: "action", width: 100, actionList: ['edit', 'delete', 'clone'] },
 ]
 
 const metaTableQuery = {
@@ -107,10 +107,8 @@ let checkName=async (_rule:Rule,value:string)=>{
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
-   
     return Promise.reject(t('templateManager.nameinput'))
   }else if(!reg.test(value) && !reg1.test(value)){
-
     return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
