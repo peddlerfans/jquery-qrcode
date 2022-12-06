@@ -11,21 +11,44 @@ export function data2schema (awSchema: any, tableColumns: any, customList: any) 
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
         let prop = awSchema.properties
-        if (!customList.includes(a) && !(a.hasOwnProperty('custom') || a.custom)) {
-            prop[a] = {
-                "type":"string",
-                "title": a,
-                "enum": enumList.map((a: any) => a.value),
-                "enumNames": enumList.map((a: any) => a.title),
-                "custom": false
-            }
-        } else {
-            prop[a] = {
-                "type":"string",
-                "title": a,
-                "custom": true
+
+        prop[a] = {
+            "title": a,
+            "anyOf": [
+                {
+                    "type":"string",
+                    "title": "选项输入",
+                    "enum": enumList.map((a: any) => a.value),
+                    "enumNames": enumList.map((a: any) => a.title),
+                    "custom": false
+                }, {
+                    "type":"string",
+                    "title": "自定义输入",
+                    "custom": true
+                }
+            ],
+            "anyOfSelect": {
+                'ui:widget': "RadioWidget",
+                "ui:title": "输入设置",
+                "ui:options": {},
             }
         }
+
+        // if (!customList.includes(a) && !(a.hasOwnProperty('custom') || a.custom)) {
+        //     prop[a] = {
+        //         "type":"string",
+        //         "title": a,
+        //         "enum": enumList.map((a: any) => a.value),
+        //         "enumNames": enumList.map((a: any) => a.title),
+        //         "custom": false
+        //     }
+        // } else {
+        //     prop[a] = {
+        //         "type":"string",
+        //         "title": a,
+        //         "custom": true
+        //     }
+        // }
     })
     return awSchema
 }

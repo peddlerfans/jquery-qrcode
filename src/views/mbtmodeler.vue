@@ -83,6 +83,9 @@ function handleChange (arr: any) {
   customSchemaSelect.value = arr
   awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, arr)
 }
+let awUiSchema: any = {
+
+}
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -2307,8 +2310,8 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
           awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
           // 表单自定义输入设置
-          customSchemaSelect.value = getCustomProp(awschema.value.properties)
-          customFormItemOpt.value = getCustomOpts(awschema.value)
+          // customSchemaSelect.value = getCustomProp(awschema.value.properties)
+          // customFormItemOpt.value = getCustomOpts(awschema.value)
           awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
@@ -2452,7 +2455,6 @@ function showAWInfo(rowobj: any) {
       readOnly: true,
     },
   };
-  debugger
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
@@ -2474,8 +2476,8 @@ function showAWInfo(rowobj: any) {
       Object.assign(awschema.value.properties, field);
     });
   }
-  customSchemaSelect.value = getCustomProp(awschema.value.properties)
-  customFormItemOpt.value = getCustomOpts(awschema.value)
+  // customSchemaSelect.value = getCustomProp(awschema.value.properties)
+  // customFormItemOpt.value = getCustomOpts(awschema.value)
   awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
 }
 
@@ -3307,20 +3309,21 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
 <!--                      :schema="awschema"-->
 <!--                      v-if="isAW && hasAWInfo"-->
 <!--                  ></mbt-modeler-schema>-->
-                  <div class="schema-custom-select" v-if="isAW && hasAWInfo && customFormItemOpt.length">
-                    <span>请选择要自定义输入的表单元素：</span>
-                    <a-select
-                        class="schema-select"
-                        v-model:value="customSchemaSelect"
-                        mode="multiple"
-                        :options="customFormItemOpt"
-                        @change="handleChange"
-                    ></a-select>
-                  </div>
+<!--                  <div class="schema-custom-select" v-if="isAW && hasAWInfo && customFormItemOpt.length">-->
+<!--                    <span>请选择要自定义输入的表单元素：</span>-->
+<!--                    <a-select-->
+<!--                        class="schema-select"-->
+<!--                        v-model:value="customSchemaSelect"-->
+<!--                        mode="multiple"-->
+<!--                        :options="customFormItemOpt"-->
+<!--                        @change="handleChange"-->
+<!--                    ></a-select>-->
+<!--                  </div>-->
                   <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
                     :schema="awschema"
+                    :uischema="awUiSchema"
                     v-if="isAW && hasAWInfo"
                   >
                     <div slot-scope="{ awformdata }" style="position: relative;">
