@@ -28,7 +28,10 @@ import {
   MinusCircleOutlined,
   PlusCircleOutlined,
   PlusSquareFilled,
-ExclamationCircleOutlined,
+  ExclamationCircleOutlined,
+  CheckCircleOutlined,
+  DeleteOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { data, param } from "jquery";
@@ -68,6 +71,7 @@ import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
 import {data2schema, getCustomOpts, getCustomProp} from '@/views/componentTS/schema-constructor'
 import MbtModelerSchema from "@/views/mbt-modeler-schema.vue";
+import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 
 const { t } = useI18n();
 
@@ -209,7 +213,7 @@ const showDrawer = (
   visible.value = true;
   if (typeof el == "undefined" && aw == "aw" && id) {
     isAW.value = true;
-    ev_id = id;    
+    ev_id = id;
     awformdata.value._id = "";
     awformdata.value.description = "";
     awformdata.value.name = "";
@@ -266,7 +270,17 @@ const onAWExpectedBack = () => {
 
 const onCloseDrawer = () => {
   visible.value = false;
-  rulesData.value=[ 
+  // if (awformdata.value._id && chooseAw) {
+  //   let ss=null
+  //   watch(awformdata,(newValue:any)=>{
+  //       ss = newValue
+  //   },{deep:true,immediate:true})
+  //   if(ss){
+  //     awhandlerSubmit(ss,awschema.value)
+  //   }
+
+  // }
+  rulesData.value=[
   //初始化条件对象或者，已保存的条件对象
   {
     relation: childrelation,
@@ -741,8 +755,8 @@ const onExpectedAW = () => {
       isAW.value = true
       hasAWExpectedInfo.value = false
       isGlobal.value = false
-      isLink.value = false  
-    }  
+      isLink.value = false
+    }
     awActiveKey.value = "2";
     isDisabled.value = false;
     awquery("", true);  
@@ -818,7 +832,7 @@ function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
   let tempformdata2: any = generateObj(awformdata);
   let tempawschema: any = generateObj(awschema);
   let formdataKeys=Object.keys(tempformdata2)
-  
+
   Object.keys(tempawschema.properties).forEach((item: any) => {
     if (!formdataKeys.includes(item)) {
       tempformdata2[item]=""
@@ -885,7 +899,7 @@ function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
           expectedprops: {aw:tempawAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-      } else {  
+      } else {
         if (chooseAwExpected) {
         currentElementMap.set(ev_id, {
         props: {
@@ -899,7 +913,7 @@ function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
           expectedprops: {aw:chooseAwExpected ,data: tempawformdata2Expected, schema: tempawschemaExpected },
         },
       });
-      }  
+      }
         currentElementMap.set(ev_id, {
         props: {
           primaryprops: {aw:props.aw , data: tempformdata2, schema: tempawschema },
@@ -931,7 +945,7 @@ function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
         }
       }
     } else {
-      if (awformdataExpected.value._id) {        
+      if (awformdataExpected.value._id) {
          currentElementMap.set(ev_id, {
         props: {
           primaryprops: {aw:chooseAw , data: tempformdata2, schema: tempawschema },
@@ -953,13 +967,12 @@ function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
       cacheprops.set(ev_id, {
         props: {
           primaryprops: { aw: chooseAw, data: tempformdata2, schema: tempawschema },
-        } 
+        }
       });
       }
     }
-    console.log(cacheprops.get(ev_id));
   }
-  
+
   //Draw
   let tempaw = {};
   let maxX = 180;
@@ -1136,14 +1149,13 @@ function handlerConfirmExpected(data:any , schema:any) {
     //获取epected的
     // console.log("cacheprops set.....3/3", cacheprops);
     let tempexpected;
-    console.log(cacheprops.get(ev_id));
     if (
      currentElementMap.get(ev_id) &&
       currentElementMap.get(ev_id).props &&
       currentElementMap.get(ev_id).props.primaryprops &&
-      currentElementMap.get(ev_id).props.primaryprops.data 
+      currentElementMap.get(ev_id).props.primaryprops.data
     ) {
-      
+
     let props=cacheprops.get(ev_id).props.primaryprops
     if (
       currentElementMap.get(ev_id) &&
@@ -1210,7 +1222,7 @@ function handlerConfirmExpected(data:any , schema:any) {
         },
       });
     }
-    
+
   }
 
     let tempaw = {};
@@ -1337,7 +1349,7 @@ const subAttributes=(data:any)=>{
   mbtCache["attributes"].codegen_script=globalformData.value.codegen_script
   // Object.assign(mbtCache["attributes"],{codegen_text:globalformData.value.codegen_text})
   // Object.assign(mbtCache["attributes"],{codegen_script:globalformData.value.codegen_script})
-  
+
   clearAw()
   let metaObj = {};
   Object.assign(metaObj, { schema: tempschema.value });
@@ -1667,11 +1679,11 @@ async function saveMBT(route?: any) {
 
 
 function reloadMBT(route: any) {
-  
+
   let res;
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id") + "";
-    
-    
+
+
   // console.log("reloadMBT, mbtid", mbtId);
   if (mbtId.length > 0) {
     res = mbtquery(mbtId, true);
@@ -1717,7 +1729,6 @@ function reloadMBT(route: any) {
         }
       });
       let tempcellsinfo = value.modelDefinition.cellsinfo;
-      // console.log(sqlstr);
       sqlstr = sqlstr.slice(0, sqlstr.length - 1);
       let perPage=sqlstr.split('|')
       let tempdata = awqueryByBatchIds(sqlstr,perPage.length);
@@ -1734,11 +1745,10 @@ function reloadMBT(route: any) {
         
         
         let attrName=cell.isStep? "headerText/text":"bodyText/text"
-        // console.log(awById[cell.item.id],cell.item.id,awById);
         let aw:any={template:"",description:""}
-        
+
         if (awById[cell.id]) {
-           aw=awById[cell.id][0]           
+           aw=awById[cell.id][0]
         }
         let showheadtext = aw.template || aw.description;
         cell.item.attr(
@@ -1754,7 +1764,6 @@ function reloadMBT(route: any) {
                   )
                 );
       })
-      // console.log(cells);
       
       });
     }
@@ -1809,9 +1818,8 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
   let mbtId = localStorage.getItem("mbt_" + route.params._id + route.params.name + "_id")
   store.getMbtmodel(mbtId)
   let res;
-  if (mbtId) {    
+  if (mbtId) {
     res = mbtquery(mbtId);
-    // console.log(res);
     res.then((value: any) => {
       // debugger
       if (
@@ -1820,7 +1828,6 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
         value.hasOwnProperty('dataDefinition')
       ) {
         getAllTemplatesByCategory("codegen").then((rst: any) => {
-          // console.log('codegen:',rst)
           if (rst && _.isArray(rst)) {
             rst.forEach((rec: any) => {
               codegennames.value.push({title:rec.name,const:rec._id});
@@ -1828,7 +1835,6 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           }
         });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        // console.log('rendering string:',tempstr)
         modeler.graph.fromJSON(JSON.parse(tempstr));
 
         if (value.modelDefinition.hasOwnProperty("props")) {
@@ -1837,22 +1843,22 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           );
           cacheprops = map;
           console.log(cacheprops);
-          
-          
+
+
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
           modeler.paper.scale(value.modelDefinition.paperscale);
-        } 
+        }
         //dataDefinition includes meta, datapool and resources
           console.log(value.dataDefinition);
-          
+
         if (value.dataDefinition.meta) {
-          
+
           isFormVisible.value = true;
           cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-          
+
         }
 
         if (value.dataDefinition.data) {
@@ -1872,7 +1878,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
             templateCategory.value = 1;
 
             tableDataDynamic.value = value.dataDefinition.data.tableData;
-            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns;
+            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key');
           } else {
             templateRadiovalue.value = 2;
             templateCategory.value = 2;
@@ -1918,7 +1924,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
     // });
   }
 
-  
+
   // ['87506c30-86d6-4edd-b736-9c5083528e2b', '692238fc-d777-4bbb-95b5-e20c93ea3b8a', '4d53c22e-e31d-4dd2-8f6a-8f0f45f36e7a']
   
   
@@ -2194,12 +2200,12 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
   }); 
 
   modeler.paper.on("link:pointerdblclick", async function (linkView: any) {
-    
+
           setLinkType(linkView.model,linkView.model)
     if (getLinkType(linkView) == "exclusivegateway") {
         if(condataName.value.length == 0 && conditionalValue.value.length == 0){
           // console.log("进入");
-          
+
           isLink.value=false
           isExclusiveGateway.value = false;
           isGlobal.value = false;
@@ -2227,7 +2233,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
       linkData.value.isCondition = false;
     }
 
-      lv_id = linkView.model.id + "";      
+      lv_id = linkView.model.id + "";
       if(linkData.value.label=='name == undefined ')linkData.value.label = ''
       if (cacheprops.has(linkView.model.id)) {
         let templinkData = cacheprops.get(linkView.model.id);
@@ -2245,15 +2251,15 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
         // cacheprops.set(linkView.model.id, { 'label': linkData.value.label || '' });
         cacheprops.set(linkView.model.id, { props: {} });
     }
-    
+
     showDrawer(linkView);
   });
 
   modeler.paper.on(
     "element:pointerclick",
     (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
-     
-      
+
+
       if (
         elementView.model &&
         elementView.model.attributes &&
@@ -2288,15 +2294,15 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name &&
           cacheprops.get(elementView.model.attributes.id).props.primaryprops.data.name.length > 0
         ) {
-          
-          
+
+
             ev_id = elementView.model.id + "";
             isAW.value = true;
             isChoose.value = false;
             isLink.value = false;
             isGlobal.value = false;
             // hasAWInfo.value = true
-            
+
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
           awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
@@ -2367,8 +2373,8 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
       ) {
         // message.success("Save MBT model successfully")
       }
-      
-      
+
+
     }
   );
 
@@ -2453,7 +2459,7 @@ function showAWInfo(rowobj: any) {
   awformdata.value.tags = "";
   awformdata.value.template = rowobj.template;
   awformdata.value._id = rowobj._id;
-  
+
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
       awformdata.value.tags += value + " ";
@@ -2924,9 +2930,9 @@ let outLang=ref()
 // let previewData=ref()
 async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
-  
+
   if(rst && rst.results && rst.results.length>0){
-    
+
     outLang.value=rst.outputLang
     Object.keys(rst.results[0].json).forEach((obj)=>{
       let objJson={
@@ -2944,11 +2950,12 @@ async function querycode(){
       }
       return item.json
     })
-    console.log(previewData.value,previewcol.value);
-    
+    visiblepreciew.value = true
   }
   }).catch((err)=>{
-    message.error("Model configuration error")
+    // 这里提示用户详细错误问题
+    const errMsg = err.response.data
+    showErrCard(errMsg)
   })
   
 }
@@ -2956,7 +2963,6 @@ const preview=async (data:any)=>{
   
   searchPreview.mode="all"
   await querycode()
-  visiblepreciew.value=true
 }
 
 const openPreview = (record:any)=>{
@@ -3183,7 +3189,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                         @change="inputChange"
                         ref="searchInput"
                                 >
-                  
+
                   </a-input>
                   <a-cascader
                       v-if="cascder"
@@ -3636,21 +3642,32 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                     <template v-else-if="column.dataIndex === 'operation'">
                       <div class="editable-row-operations">
                         <span v-if="resourceseditableData[record.key]">
-                          <a-typography-link @click="resourcessave(record.key)"
-                            >{{ $t('common.saveText') }}</a-typography-link
-                          >
+                          <a-tooltip placement="bottom">
+                            <template #title>
+                              <span>{{ $t('common.saveText') }}</span>
+                            </template>
+                            <check-circle-outlined @click="resourcessave(record.key)" class="icon--success-btn" />
+                          </a-tooltip>
                           <a-divider type="vertical" />
                           <a-popconfirm
                             :title="$t('component.message.sureCancel')"
                             @confirm="resourcescancel(record.key)"
                           >
-                            <a>{{ $t("common.cancelText") }}</a>
+                            <a-tooltip placement="bottom">
+                              <template #title>
+                                <span>{{ $t('common.cancelText') }}</span>
+                              </template>
+                              <close-circle-outlined @click="resourcescancel(record.key)" class="icon--err-btn" />
+                            </a-tooltip>
                           </a-popconfirm>
                         </span>
                         <span v-else>
-                          <a @click="resourcesedit(record.key)">{{
-                            $t("common.editText")
-                          }}</a>
+                          <a-tooltip placement="bottom">
+                            <template #title>
+                              <span>{{ $t('common.editText') }}</span>
+                            </template>
+                            <edit-outlined @click="resourcesedit(record.key)" class="icon--primary-btn" />
+                          </a-tooltip>
                         </span>
                         <a-divider type="vertical" />
                         <span>
@@ -3659,7 +3676,12 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                             title="Sure to delete?"
                             @confirm="onresourcesDelete(record.key)"
                           >
-                            <a> {{ $t("common.delText") }}</a>
+                            <a-tooltip placement="bottom">
+                              <template #title>
+                                <span>{{ $t('common.delText') }}</span>
+                              </template>
+                               <delete-outlined class="icon--primary-btn" />
+                            </a-tooltip>
                           </a-popconfirm>
                         </span>
                       </div>

@@ -9,7 +9,7 @@ export default {
     metaName: "Meta Name",
     metaDescription: "Meta Description",
     nameinput: "place input your name",
-    namehefa: "The name is not standardized",
+    namehefa: "Must start with a letter, underscore, Chinese or dollar sign $, followed by letters, underscore, dollar sign $, Chinese and numbers",
     duplicate: "Duplicate name",
     description: "place input your description",
 
