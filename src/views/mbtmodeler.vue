@@ -66,12 +66,19 @@ import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
-import { data2schema } from '@/views/componentTS/schema-constructor'
+import {data2schema, getCustomOpts, getCustomProp} from '@/views/componentTS/schema-constructor'
+import MbtModelerSchema from "@/views/mbt-modeler-schema.vue";
 
 const { t } = useI18n();
 
-
 const store = MBTStore()
+
+let customSchemaSelect = ref<Array<any>>([])
+let customFormItemOpt = ref<Array<any>>([])
+function handleChange (arr: any) {
+  customSchemaSelect.value = arr
+  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, arr)
+}
 
 window.joint = joint;
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
@@ -171,7 +178,7 @@ interface FormState {
 }
 
 interface DataDefinition {
-  data: object;
+  data: any;
   meta: object;
   resources: object;
 }
@@ -750,7 +757,7 @@ let chooseAw:any = null
 let chooseAwExpected:any = null
 
 
-function awhandlerSubmit(data:any,schema:any) {
+function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -817,6 +824,7 @@ function awhandlerSubmit(data:any,schema:any) {
       tempformdata2[item]=""
     }
   })
+  console.log(tempformdata2);
   //刚从stencil拖过来currentElementMap为空。如果是双击状态则不为空
   if (currentElementMap.size == 0) {
     if(chooseAwExpected){
@@ -949,6 +957,7 @@ function awhandlerSubmit(data:any,schema:any) {
       });
       }
     }
+    console.log(cacheprops.get(ev_id));
   }
   
   //Draw
@@ -2291,10 +2300,10 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
           awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
           awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
-
-          console.log(awformdata.value)
-          console.log(awschema.value)
-
+          // 表单自定义输入设置
+          customSchemaSelect.value = getCustomProp(awschema.value.properties)
+          customFormItemOpt.value = getCustomOpts(awschema.value)
+          awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2437,7 +2446,7 @@ function showAWInfo(rowobj: any) {
       readOnly: true,
     },
   };
-  
+  debugger
   hasAWInfo.value = true;
   awformdata.value.name = rowobj.name;
   awformdata.value.description = rowobj.description;
@@ -2459,10 +2468,12 @@ function showAWInfo(rowobj: any) {
       Object.assign(awschema.value.properties, field);
     });
   }
+  customSchemaSelect.value = getCustomProp(awschema.value.properties)
+  customFormItemOpt.value = getCustomOpts(awschema.value)
+  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
 }
 
 function showAWExpectedInfo(rowobj: any) {
-  
   chooseAwExpected=rowobj
   hasAWExpectedInfo.value = true;
   awformdataExpected.value.name = rowobj.name;
@@ -2470,7 +2481,6 @@ function showAWExpectedInfo(rowobj: any) {
   awformdataExpected.value.tags = "";
   awformdataExpected.value.template = rowobj.template;
   awformdataExpected.value._id = rowobj._id;
-  console.log(awformdataExpected.value);
   if (_.isArray(rowobj.tags)) {
     _.forEach(rowobj.tags, function (value, key) {
       awformdataExpected.value.tags += value + " ";
@@ -3284,12 +3294,23 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                   </a-row>
                 </div>
                 <div style="margin: 5px; width: 80%" class="awconfig">
-                  <VueForm
-                      v-model="awformdata"
-                      :formProps="awformProps"
-                      :schema="data2schema(cacheDataDefinition.data.tableData, 'file')"
-                      v-if="isAW && hasAWInfo"
-                  ></VueForm>
+
+<!--                  <mbt-modeler-schema-->
+<!--                      v-model="awformdata"-->
+<!--                      :formProps="awformProps"-->
+<!--                      :schema="awschema"-->
+<!--                      v-if="isAW && hasAWInfo"-->
+<!--                  ></mbt-modeler-schema>-->
+                  <div class="schema-custom-select" v-if="isAW && hasAWInfo && customFormItemOpt.length">
+                    <span>请选择要自定义输入的表单元素：</span>
+                    <a-select
+                        class="schema-select"
+                        v-model:value="customSchemaSelect"
+                        mode="multiple"
+                        :options="customFormItemOpt"
+                        @change="handleChange"
+                    ></a-select>
+                  </div>
                   <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
@@ -3302,7 +3323,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                         <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
                       <!-- </span> -->
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
+                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema, customSchemaSelect)">{{
                           $t("common.submitText")
                         }}</a-button>
                       </span>
@@ -3810,6 +3831,11 @@ header {
     }
   }
 }
+  .schema-custom-select {
+    .schema-select {
+      width: 240px;
+    }
+  }
 }
 .awconfig{
   .__pathRoot_description {
