@@ -7,6 +7,7 @@ import { StencilService } from '@/composables/stencil';
 import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
+import { KeyboardService } from "@/composables/keyboard";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import * as appShapes from "@/composables/JointJs/app-shapes"
 import $ from 'jquery'
@@ -21,7 +22,8 @@ onMounted(()=>{
     new StencilService(),
     new ToolbarService(),
     new HaloService(),
-    new InspectorService()
+    new InspectorService(),
+    new KeyboardService()
   )
   rappid.startRappid()
 })
@@ -37,6 +39,7 @@ onMounted(()=>{
             <div ref="stencils" class="stencil-container"></div>
             <div class="paper-container"/>
             <div class="inspector-container"/>
+            <div class="navigator-container"/>
           </div>
 
   </main>
