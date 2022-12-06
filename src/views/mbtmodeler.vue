@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { MbtModeler } from "@/composables/MbtModeler";
-import { Stencil } from "@/composables/stencil";
+import joint from '../../node_modules/@clientio/rappid/rappid.js';
+import  {StencilService} from "@/composables/stencil";
+import * as appShapes from '@/composables/JointJs/app-shapes';
 import dynamicTable from "@/components/dynamicTable.vue";
 import metainfo from "@/components/metainfo.vue";
 import templateTable from "@/components/templateTable.vue";
-import * as joint from "jointjs";
-import { dia } from "jointjs";
+import { MbtModeler } from "@/composables/MbtModeler";
 import { message } from "ant-design-vue/es";
 import { ref, onMounted, UnwrapRef, reactive, toRefs, unref, watch, createVNode, nextTick } from "vue";
 import type { Ref } from "vue";
@@ -32,25 +32,10 @@ ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
 import { Stores } from "../../types/stores";
 import $, { data, param } from "jquery";
-import {
-  red,
-  volcano,
-  gold,
-  yellow,
-  lime,
-  green,
-  cyan,
-  blue,
-  geekblue,
-  purple,
-  magenta,
-  grey,
-} from "@ant-design/colors";
 import VueForm from "@lljj/vue3-form-ant";
 import {tableSearch,FormState,paramsobj,ModelState,statesTs,} from "./componentTS/awmodeler";
 import _, { transform } from "lodash";
 import { mockMBTUrl, realMBTUrl } from "@/appConfig";
-import { StorageSerializers, useCurrentElement } from "@vueuse/core";
 import { computed, defineComponent } from "vue";
 import { CheckOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { cloneDeep } from "lodash-es";
@@ -69,8 +54,7 @@ const { t } = useI18n();
 
 
 const store = MBTStore()
-
-window.joint = joint;
+let { aa }  = storeToRefs(store);
  const MBTLayoutOptions: joint.layout.DirectedGraph.LayoutOptions=
          {
             dagre: dagre,
@@ -192,7 +176,7 @@ const visible = ref(false);
  */
 
 const showDrawer = (
-  el?: dia.LinkView | dia.ElementView | undefined,
+  el?: joint.dia.LinkView | joint.dia.ElementView | undefined,
   aw?: string,
   id?: string
 ) => {
@@ -260,7 +244,7 @@ const onCloseDrawer = () => {
   //   let ss=null
   //   watch(awformdata,(newValue:any)=>{
   //       ss = newValue
-  //   },{deep:true,immediate:true})
+  //   },{deep:true,immejoint.diate:true})
   //   if(ss){      
   //     awhandlerSubmit(ss,awschema.value) 
   //   }
@@ -1601,7 +1585,7 @@ const stencilcanvas = ref(HTMLElement);
 const infoPanel = ref(HTMLElement);
 let showPropPanel: Ref<boolean> = ref(false);
 let modeler: MbtModeler;
-let stencil: Stencil;
+// let stencil: Stencil;
 
 
 function getmbtData() {
@@ -1797,7 +1781,36 @@ onBeforeRouteLeave((to,form,next) => {
 // 判断是否自由编辑aw模式
 let isAwModel=ref(false)
 onMounted(() => {
-  stencil = new Stencil(stencilcanvas);
+ const graph = new joint.dia.Graph({}, {
+            cellNamespace: appShapes
+        });
+  const paper = new joint.dia.Paper({
+            width: 1000,
+            height: 1000,
+            gridSize: 10,
+            drawGrid: true,
+            model: graph,
+            cellViewNamespace: appShapes,
+            defaultLink: <joint.dia.Link>new appShapes.app.Link(),
+            defaultConnectionPoint: appShapes.app.Link.connectionPoint,
+            interactive: { linkMove: false },
+            async: true,
+            sorting: joint.dia.Paper.sorting.APPROX
+        });
+  const paperScroller = new joint.ui.PaperScroller({
+            paper,
+            autoResizePaper: true,
+            scrollWhileDragging: true,
+            cursor: 'grab'
+        });
+        const snaplines = new joint.ui.Snaplines({ paper: paper });
+        let getStencil = new StencilService
+        
+        getStencil.create(paperScroller , snaplines)
+
+  $('.stencil').append(getStencil.stencil.render().el)
+
+  getStencil.setShapes()
   modeler = new MbtModeler(canvas);
   let params_id:any = route.params._id
   let paramsName: any = route.params.name
@@ -1923,207 +1936,207 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
   /**
    * Drag & Drop stencil to modeler paper
    */
-  stencil.paper.on("cell:pointerdown", (cellView, e: dia.Event, x, y) => {
-    let aw = "";
-    let cellid = ""; //element ID
-    $("body").append(
-      '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
-    );
-    let flyGraph = new joint.dia.Graph({}, { cellNamespace: namespace });
-    var headerHeight = 30;
-    var buttonSize = 14;
+  // stencil.paper.on("cell:pointerdown", (cellView, e: joint.dia.Event, x, y) => {
+  //   let aw = "";
+  //   let cellid = ""; //element ID
+  //   $("body").append(
+  //     '<div id="flyPaper" style="position:fixed;z-index:100;opacity:.7;pointer-event:none;"></div>'
+  //   );
+  //   let flyGraph = new joint.joint.dia.Graph({}, { cellNamespace: namespace });
+  //   var headerHeight = 30;
+  //   var buttonSize = 14;
 
-    //     let container=joint.dia.Element.define('Container.Parent', {
-    //     collapsed: false,
-    //     attrs: {
-    //         root: {
-    //             magnetSelector: 'body'
-    //         },
-    //         shadow: {
-    //             refWidth: '100%',
-    //             refHeight: '100%',
-    //             x: 3,
-    //             y: 3,
-    //             fill: '#000000',
-    //             opacity: 0.05
-    //         },
-    //         body: {
-    //             refWidth: 100,
-    //             refHeight: 100,
-    //             strokeWidth: 1,
-    //             stroke: '#DDDDDD',
-    //             fill: '#FCFCFC'
-    //         },
-    //         header: {
-    //             refWidth: 100,
-    //             height: headerHeight,
-    //             strokeWidth: 0.5,
-    //             stroke: '#4666E5',
-    //             fill: '#4666E5'
-    //         },
-    //         headerText: {
-    //             textVerticalAnchor: 'middle',
-    //             textAnchor: 'start',
-    //             refX: 8,
-    //             refY: headerHeight / 2,
-    //             fontSize: 16,
-    //             fontFamily: 'sans-serif',
-    //             letterSpacing: 1,
-    //             fill: '#FFFFFF',
-    //             textWrap: {
-    //                 width: -40,
-    //                 maxLineCount: 1,
-    //                 ellipsis: '*'
-    //             },
-    //             style: {
-    //                 textShadow: '1px 1px #222222',
-    //             }
-    //         },
-    //         button: {
-    //             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
-    //             refY: (headerHeight - buttonSize) / 2,
-    //             cursor: 'pointer',
-    //             event: 'element:button:pointerdown',
-    //             title: 'Collapse / Expand'
-    //         },
-    //         buttonBorder: {
-    //             width: buttonSize,
-    //             height: buttonSize,
-    //             fill: '#4666E5',
-    //             fillOpacity: 0.2,
-    //             stroke: '#4666E5',
-    //             strokeWidth: 0.5,
-    //         },
-    //         buttonIcon: {
-    //             fill: '#4666E5',
-    //             stroke: '#4666E5',
-    //             strokeWidth: 1
-    //         }
-    //     }
-    //     }, {
-    //     markup: [{
-    //         tagName: 'rect',
-    //         selector: 'shadow'
-    //     }, {
-    //         tagName: 'rect',
-    //         selector: 'body'
-    //     }, {
-    //         tagName: 'rect',
-    //         selector: 'header'
-    //     }, {
-    //         tagName: 'text',
-    //         selector: 'headerText'
-    //     },
-    //      {
-    //         tagName: 'g',
-    //         selector: 'button',
-    //         children: [{
-    //             tagName: 'rect',
-    //             selector: 'buttonBorder'
-    //         }, {
-    //             tagName: 'path',
-    //             selector: 'buttonIcon'
-    //         }]
-    //     }
-    //   ],
+  //   //     let container=joint.joint.dia.Element.define('Container.Parent', {
+  //   //     collapsed: false,
+  //   //     attrs: {
+  //   //         root: {
+  //   //             magnetSelector: 'body'
+  //   //         },
+  //   //         shadow: {
+  //   //             refWidth: '100%',
+  //   //             refHeight: '100%',
+  //   //             x: 3,
+  //   //             y: 3,
+  //   //             fill: '#000000',
+  //   //             opacity: 0.05
+  //   //         },
+  //   //         body: {
+  //   //             refWidth: 100,
+  //   //             refHeight: 100,
+  //   //             strokeWidth: 1,
+  //   //             stroke: '#DDDDDD',
+  //   //             fill: '#FCFCFC'
+  //   //         },
+  //   //         header: {
+  //   //             refWidth: 100,
+  //   //             height: headerHeight,
+  //   //             strokeWidth: 0.5,
+  //   //             stroke: '#4666E5',
+  //   //             fill: '#4666E5'
+  //   //         },
+  //   //         headerText: {
+  //   //             textVerticalAnchor: 'middle',
+  //   //             textAnchor: 'start',
+  //   //             refX: 8,
+  //   //             refY: headerHeight / 2,
+  //   //             fontSize: 16,
+  //   //             fontFamily: 'sans-serif',
+  //   //             letterSpacing: 1,
+  //   //             fill: '#FFFFFF',
+  //   //             textWrap: {
+  //   //                 width: -40,
+  //   //                 maxLineCount: 1,
+  //   //                 ellipsis: '*'
+  //   //             },
+  //   //             style: {
+  //   //                 textShadow: '1px 1px #222222',
+  //   //             }
+  //   //         },
+  //   //         button: {
+  //   //             refDx:  buttonSize - (headerHeight - buttonSize) / 2,
+  //   //             refY: (headerHeight - buttonSize) / 2,
+  //   //             cursor: 'pointer',
+  //   //             event: 'element:button:pointerdown',
+  //   //             title: 'Collapse / Expand'
+  //   //         },
+  //   //         buttonBorder: {
+  //   //             width: buttonSize,
+  //   //             height: buttonSize,
+  //   //             fill: '#4666E5',
+  //   //             fillOpacity: 0.2,
+  //   //             stroke: '#4666E5',
+  //   //             strokeWidth: 0.5,
+  //   //         },
+  //   //         buttonIcon: {
+  //   //             fill: '#4666E5',
+  //   //             stroke: '#4666E5',
+  //   //             strokeWidth: 1
+  //   //         }
+  //   //     }
+  //   //     }, {
+  //   //     markup: [{
+  //   //         tagName: 'rect',
+  //   //         selector: 'shadow'
+  //   //     }, {
+  //   //         tagName: 'rect',
+  //   //         selector: 'body'
+  //   //     }, {
+  //   //         tagName: 'rect',
+  //   //         selector: 'header'
+  //   //     }, {
+  //   //         tagName: 'text',
+  //   //         selector: 'headerText'
+  //   //     },
+  //   //      {
+  //   //         tagName: 'g',
+  //   //         selector: 'button',
+  //   //         children: [{
+  //   //             tagName: 'rect',
+  //   //             selector: 'buttonBorder'
+  //   //         }, {
+  //   //             tagName: 'path',
+  //   //             selector: 'buttonIcon'
+  //   //         }]
+  //   //     }
+  //   //   ],
 
-    //     toggle: function(shouldCollapse: undefined) {
-    //         var buttonD;
-    //         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-    //         if (collapsed) {
-    //             buttonD = 'M 2 7 12 7 M 7 2 7 12';
-    //             this.resize(140, 30);
-    //         } else {
-    //             buttonD = 'M 2 7 12 7';
-    //             this.fitChildren();
-    //         }
-    //         this.attr(['buttonIcon','d'], buttonD);
-    //         this.set('collapsed', collapsed);
-    //     },
+  //   //     toggle: function(shouldCollapse: undefined) {
+  //   //         var buttonD;
+  //   //         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
+  //   //         if (collapsed) {
+  //   //             buttonD = 'M 2 7 12 7 M 7 2 7 12';
+  //   //             this.resize(140, 30);
+  //   //         } else {
+  //   //             buttonD = 'M 2 7 12 7';
+  //   //             this.fitChildren();
+  //   //         }
+  //   //         this.attr(['buttonIcon','d'], buttonD);
+  //   //         this.set('collapsed', collapsed);
+  //   //     },
 
-    //     isCollapsed: function() {
-    //         return Boolean(this.get('collapsed'));
-    //     },
+  //   //     isCollapsed: function() {
+  //   //         return Boolean(this.get('collapsed'));
+  //   //     },
 
-    //     fitChildren: function() {
-    //         var padding = 10;
-    //         this.fitEmbeds({
-    //             padding: {
-    //                 top: headerHeight + padding,
-    //                 left: padding,
-    //                 right: padding,
-    //                 bottom: padding
-    //             }
-    //         });
-    //     }
-    // });
-    // let containerparent=joint.shapes.Container.Parent
-    //     let conatiner_a=new containerparent({
-    //       z: 1,
-    //         attrs: { headerText: { text: 'Container A' }}
-    //     })
-    // modeler.graph.addCell(conatiner_a)
-    let flyPaper = new joint.dia.Paper({
-      el: $("#flyPaper"),
-      model: flyGraph,
-      interactive: false,
-      cellViewNamespace: namespace,
-    });
-    let flyShape = cellView.model!.clone();
+  //   //     fitChildren: function() {
+  //   //         var padding = 10;
+  //   //         this.fitEmbeds({
+  //   //             padding: {
+  //   //                 top: headerHeight + padding,
+  //   //                 left: padding,
+  //   //                 right: padding,
+  //   //                 bottom: padding
+  //   //             }
+  //   //         });
+  //   //     }
+  //   // });
+  //   // let containerparent=joint.shapes.Container.Parent
+  //   //     let conatiner_a=new containerparent({
+  //   //       z: 1,
+  //   //         attrs: { headerText: { text: 'Container A' }}
+  //   //     })
+  //   // modeler.graph.addCell(conatiner_a)
+  //   let flyPaper = new joint.joint.dia.Paper({
+  //     el: $("#flyPaper"),
+  //     model: flyGraph,
+  //     interactive: false,
+  //     cellViewNamespace: namespace,
+  //   });
+  //   let flyShape = cellView.model!.clone();
 
-    let pos = cellView.model!.position();
-    let offset = {
-      x: x - pos.x,
-      y: y - pos.y,
-    };
-    flyShape.position(0, 0);
-    flyGraph.addCell(flyShape);
-    $("#flyPaper").offset({
-      left: (e.pageX as number) - offset.x,
-      top: (e.pageY as number) - offset.y,
-    });
+  //   let pos = cellView.model!.position();
+  //   let offset = {
+  //     x: x - pos.x,
+  //     y: y - pos.y,
+  //   };
+  //   flyShape.position(0, 0);
+  //   flyGraph.addCell(flyShape);
+  //   $("#flyPaper").offset({
+  //     left: (e.pageX as number) - offset.x,
+  //     top: (e.pageY as number) - offset.y,
+  //   });
 
-    $("body").on("mousemove.fly", (e: any) => {
-      $("#flyPaper").offset({
-        left: (e.pageX as number) - offset.x,
-        top: (e.pageY as number) - offset.y,
-      });
-    });
+  //   $("body").on("mousemove.fly", (e: any) => {
+  //     $("#flyPaper").offset({
+  //       left: (e.pageX as number) - offset.x,
+  //       top: (e.pageY as number) - offset.y,
+  //     });
+  //   });
 
-    $("body").on("mouseup.fly", (e: any) => {
-      var x = e.pageX,
-        y = e.pageY,
-        target = modeler.paper.$el.offset();
+  //   $("body").on("mouseup.fly", (e: any) => {
+  //     var x = e.pageX,
+  //       y = e.pageY,
+  //       target = modeler.paper.$el.offset();
 
-      let paperwidth: number = modeler.paper.$el.width();
-      let paperheight: number = modeler.paper.$el.height();
-      let targetwidth = target.left + paperwidth;
-      let targetheight = target.top + paperheight;
+  //     let paperwidth: number = modeler.paper.$el.width();
+  //     let paperheight: number = modeler.paper.$el.height();
+  //     let targetwidth = target.left + paperwidth;
+  //     let targetheight = target.top + paperheight;
 
-      if (x > target.left && x < targetwidth && y > target.top && y < targetheight) {
-        var s = flyShape.clone();
-        s.position(x - target.left - offset.x, y - target.top - offset.y);
+  //     if (x > target.left && x < targetwidth && y > target.top && y < targetheight) {
+  //       var s = flyShape.clone();
+  //       s.position(x - target.left - offset.x, y - target.top - offset.y);
 
-        modeler.graph.addCell(s);
-        // console.log('sss:', s);
-        if (s.attributes.type == "standard.HeaderedRectangle") {
-          awquery()
-          aw = "aw";
-          cellid = s.id + "";
-        }
-      }
-      // console.log("e",flyShape);
-      $("body").off("mousemove.fly").off("mouseup.fly");
-      flyShape.remove();
-      $("#flyPaper").remove();
-      if (aw.length > 0 && !isAwModel.value) {
-        showDrawer(undefined, aw, cellid)
-      } else {
+  //       modeler.graph.addCell(s);
+  //       // console.log('sss:', s);
+  //       if (s.attributes.type == "standard.HeaderedRectangle") {
+  //         awquery()
+  //         aw = "aw";
+  //         cellid = s.id + "";
+  //       }
+  //     }
+  //     // console.log("e",flyShape);
+  //     $("body").off("mousemove.fly").off("mouseup.fly");
+  //     flyShape.remove();
+  //     $("#flyPaper").remove();
+  //     if (aw.length > 0 && !isAwModel.value) {
+  //       showDrawer(undefined, aw, cellid)
+  //     } else {
         
-      }; //First param used when clicking an element or a link. Undefined means not clicking
-      isLink.value=false
-    });
-  });
+  //     }; //First param used when clicking an element or a link. Undefined means not clicking
+  //     isLink.value=false
+  //   });
+  // });
 
   /**
    *  When click the element/link/blank, show the propsPanel
@@ -2249,7 +2262,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
 
   modeler.paper.on(
     "element:pointerclick",
-    (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+    (elementView: joint.dia.ElementView, node: joint.dia.Event, x: number, y: number) => {
      
       
       if (
@@ -2270,7 +2283,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
 
   modeler.paper.on(
     "element:pointerdblclick",
-    (elementView: dia.ElementView, node: dia.Event, x: number, y: number) => {
+    (elementView: joint.dia.ElementView, node: joint.dia.Event, x: number, y: number) => {
       awActiveKey.value = '1'
       if (
         elementView.model &&
@@ -3692,12 +3705,12 @@ header {
 
 .stencil {
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   position: relative;
   margin: 0px;
   min-width: 58px;
-  width: 60px;
-  background-color: #222222;
+  /* width: 60px; */
+  background-color: #f1f1f1;
 }
 
 .split-wrapper .scalable {

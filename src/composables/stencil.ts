@@ -1,462 +1,381 @@
-import { ConsoleSqlOutlined } from "@ant-design/icons-vue";
-import * as joint from "jointjs";
-import { dia, g } from "jointjs";
-import { i18n } from "@/locales";
-// import { f } from "vitest/dist/index-60e2a8e1";
+// import { optimizeDeps } from "vite";
+import joint from "../../node_modules/@clientio/rappid/rappid.js"
+import * as appShapes from '../composables/JointJs/app-shapes';
+const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
+const paper = new joint.dia.Paper({
+  model: graph,
+  background: {
+    color: '#F8F9FA',
+  },
+  frozen: true,
+  async: true,
+  sorting: joint.dia.Paper.sorting.APPROX,
+  cellViewNamespace: joint.shapes,
 
-const { t } = i18n.global
-
-window.joint = joint
-
-// export class MyShape extends dia.Element {
-//   constructor(e: Element, o: any) {
-//     super(e, o);
-//     this.prop('isStep', true)
-//     this.on('change', (evt: any) => {
-//       if (evt.changed && evt.changed.custom && evt.changed.custom) {
-//         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-//         this.updateRectangles();
-//         this.attr('label/text/0', "test")
-//       }
-
-//     })
-
-//     this.updateRectangles();
-//   }
-  // constructor() {
-  //   super();
-  //   this.prop('isStep',true)
-  //   this.on('change',(evt:any)=> {
-  //     var attrs = this.get('attrs');
-  //     if (evt.changed && evt.changed.custom && evt.changed.custom) {
-  //       // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-  //       this.updateRectangles();
-  //       this.attr('label/text/0',"test")
-  //     }
-
-  //   })
-  //   this.on('element:dblclick',() => {
-  //     console.log("dddddddddddd")
-  //   })
-  //  this.updateRectangles();
-  // }
-  // addCellListener(cell: dia.Cell): void {
-  //   console.log("====")
-  //   cell.on('change', () => this.assignFormFields(), this);
-  // }
-  // on( eventName: string, cb:any,x,y,z) {
-  //   console.log(eventName,cb,x,y,z)
-  //   if (eventName === "change") {
-  //     console.log(this.getChangeFlag({"custom/step":1}))
-
-  //   }
-
-  //   //   var attrs = this.get('attrs');
-  //   //   if (evt.changed && evt.changed.custom && evt.changed.custom) {
-  //   //     // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-  //   //     this.updateRectangles();
-  //   //     this.attr('label/text/0',"test")
-  //   //   }
+});
 
 
-  //   // }
-  //   super.on(eventName,cb,x,y,z)
-  //   return true
-  // }
-//   updateRectangles() {
-//     var attrs = this.get('attrs');
-//     var rects = [
-//       { type: 'step', text: this.prop('custom/step') || 'NNN' },
-//       { type: 'expectation', text: this.prop('custom/expectation') },
-//       // { type: 'methods', text: this.get('methods') }
-//     ];
 
-//     var offsetY = 0;
 
-//     rects.forEach(function (rect) {
-//       // debugger;
-
-//       var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-//       var rectHeight = lines.length * 20 + 20;
-
-//       attrs['.mbt-step-' + rect.type + '-text'].text = lines.join('\n');
-//       attrs['.mbt-step-' + rect.type + '-rect'].height = rectHeight;
-//       attrs['.mbt-step-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
-
-//       offsetY += rectHeight;
-//     });
-//   }
-//   setSizeFromContent() {
-//     // delete this.cache.layout;
-//     const {
-//       width,
-//       height
-//     } = this.layout();
-//     this.resize(width, height);
-//   }
-//   defaults() {
-//     return {
-//       ...super.defaults,
-//       type: 'itea.mbt.test',
-//       size: { width: 100, height: 30 },
-//       position: { x: 10, y: 10 },
-//       prop: {
-//         isStep: true,
-//         custom: {
-//           step: {
-
-//           },
-//           expectation: {
-
-//           }
-//         }
-
-//       },
-//       attrs: {
-//         rect: { 'width': 200 },
-
-//         '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-//         '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-
-//         '.mbt-step-step-text': {
-//           'ref': '.mbt-step-step-rect',
-//           'ref-y': .5,
-//           'ref-x': .5,
-//           'text-anchor': 'middle',
-//           'y-alignment': 'middle',
-//           'font-weight': 'bold',
-//           'fill': 'black',
-//           'font-size': 12,
-//           'font-family': 'Times New Roman'
-//         },
-//         '.mbt-step-expectation-text': {
-//           'ref': '.mbt-step-expectation-rect', 'ref-y': -.5, 'ref-x': .5,
-//           'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-//         }
-//       },
-
-//     }
-//   }
-
-//   markup = ['<g class="rotatable">',
-//     '<g class="scalable">',
-//     '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
-//     '</g>',
-//     '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
-//     '</g>'].join('')
-
-// }
-// Object.assign(joint.shapes, { itea: { mbt: { test: { MyShape } } } })
-export class Stencil {
-  namespace = joint.shapes;
-  states: object;
-  linkAttrs: object = {};
-  transitions: [] = [];
-  graph: dia.Graph = new joint.dia.Graph({}, { cellNamespace: this.namespace });
-  paper: dia.Paper = new joint.dia.Paper({ model: this.graph, cellViewNamespace: joint.shapes });;
-  headerHeight = 14;
-  buttonSize = 14;
-
-  //   container=joint.dia.Element.define('Container.Parent', {
-  //     collapsed: false,
-  //     attrs: {
-  //         root: {
-  //             magnetSelector: 'body'
-  //         },
-  //         body: {
-  //             refWidth: 20,
-  //             refHeight: 20,
-  //             strokeWidth: 1,
-  //             stroke: '#DDDDDD',
-  //             fill: '#FCFCFC'
-  //         },
-  //         header: {
-  //             refWidth: 20,
-  //             height: this.headerHeight,
-  //             strokeWidth: 0.5,
-  //             stroke: '#4666E5',
-  //             fill: '#4666E5'
-  //         },
-  //         headerText: {
-  //             textVerticalAnchor: 'middle',
-  //             textAnchor: 'start',
-  //             refX: 8,
-  //             refY: this.headerHeight/2,
-  //             fontSize: 12,
-  //             fontFamily: 'sans-serif',
-  //             letterSpacing: 1,
-  //             // fill: '#FFFFFF',
-  //             // textWrap: {
-  //             //     width: 40,
-  //             //     maxLineCount: 1,
-  //             //     ellipsis: '*'
-  //             // },
-  //             // style: {
-  //             //     textShadow: '1px 1px #222222',
-  //             // }
-  //         },
-  //         // button: {
-  //         //     refDx: - this.buttonSize - (this.headerHeight - this.buttonSize) / 2,
-  //         //     refY: (this.headerHeight - this.buttonSize) / 2,
-  //         //     cursor: 'pointer',
-  //         //     event: 'element:button:pointerdown',
-  //         //     title: 'Collapse / Expand'
-  //         // },
-  //         buttonBorder: {
-  //             width: this.buttonSize,
-  //             height: this.buttonSize,
-  //             fill: '#000000',
-  //             fillOpacity: 0.2,
-  //             stroke: '#FFFFFF',
-  //             strokeWidth: 0.5,
-  //         },
-  //         buttonIcon: {
-  //             fill: 'none',
-  //             stroke: '#FFFFFF',
-  //             strokeWidth: 1
-  //         }
-  //     }
-  //     }, {
-  //     markup: [
-  //     //   {
-  //     //     tagName: 'rect',
-  //     //     selector: 'shadow'
-  //     // },
-  //      {
-  //         tagName: 'rect',
-  //         selector: 'body'
-  //     },
-  //      {
-  //         tagName: 'rect',
-  //         selector: 'header'
-  //     }, 
-  //     {
-  //         tagName: 'text',
-  //         selector: 'headerText'
-  //     }, 
-  //     // {
-  //     //     tagName: 'g',
-  //     //     selector: 'button',
-  //     //     children: [{
-  //     //         tagName: 'rect',
-  //     //         selector: 'buttonBorder'
-  //     //     }, {
-  //     //         tagName: 'path',
-  //     //         selector: 'buttonIcon'
-  //     //     }]
-  //     // }
-  //   ],
-
-  //     toggle: function(shouldCollapse: undefined) {
-  //         var buttonD;
-  //         var collapsed = (shouldCollapse === undefined) ? !this.get('collapsed') : shouldCollapse;
-  //         if (collapsed) {
-  //             buttonD = 'M 2 7 12 7 M 7 2 7 12';
-  //             this.resize(140, 30);
-  //         } else {
-  //             buttonD = 'M 2 7 12 7';
-  //             this.fitChildren();
-  //         }
-  //         this.attr(['buttonIcon','d'], buttonD);
-  //         this.set('collapsed', collapsed);
-  //     },
-
-  //     isCollapsed: function() {
-  //         return Boolean(this.get('collapsed'));
-  //     },
-
-  //     fitChildren: function() {
-  //         var padding = 10;
-  //         this.fitEmbeds({
-  //             padding: {
-  //                 top: this.headerHeight + padding,
-  //                 left: padding,
-  //                 right: padding,
-  //                 bottom: padding
-  //             }
-  //         });
-  //     }
-  // });
-  bodyAttributes = {
-    fill: "#FCFCFC",
-    stroke: "#333333",
-    strokeWidth: 2,
-    cursor: "grab",
+const getStencilGroups = () => {
+  return {
+    standard: { index: 1, label: 'Standard shapes', closed: true },
+    fsa: { index: 2, label: 'State machine' },
+    uml: { index: 3, label: 'UML' }
   };
-  labelAttributes = {
-    textVerticalAnchor: "middle",
-    textAnchor: "middle",
-    x: "calc(.5*w)",
-    y: "calc(.5*h)",
-    fill: "#333333",
-    fontSize: 18,
-    fontWeight: "bold",
-    fontFamily: "sans-serif",
-    fontVariant: "small-caps",
-    pointerEvents: "none",
-  };
-  constructor(canvas: any) {
-    const namespace = joint.shapes; // e.g. { standard: { Rectangle: RectangleElementClass }}
+}
+paper.unfreeze();
+export class StencilService {
 
-    let s0 = new joint.shapes.uml.StartState({
-      position: { x: 14, y: 20 },
-      size: { width: 30, height: 30 },
-      attrs: {
-        root: {
-          title: t('MBTStore.start')
-        },
-        circle: {
-          fill: "#4b4a67",
-          stroke: "none",
-        },
+  stencil !: joint.ui.Stencil
+  create(paperScroller: joint.ui.PaperScroller, snaplines: joint.ui.Snaplines) {
+    this.stencil = new joint.ui.Stencil({
+      paper: paperScroller,
+      snaplines: snaplines,
+      width: 240,
+      groups: this.getStencilGroups(),
+      dropAnimation: true,
+      groupsToggleButtons: true,
+      paperOptions: function () {
+        return {
+          model: new joint.dia.Graph({}, {
+            cellNamespace: appShapes
+          }),
+          cellViewNamespace: appShapes
+        };
       },
-    });
-
-
-    let se = new joint.shapes.uml.EndState({
-      position: { x: 14, y: 70 },
-      size: { width: 30, height: 30 },
-      attrs: {
-        root: {
-          title: t('MBTStore.end')
-        },
-        ".outer": {
-          stroke: "#4b4a67",
-          "stroke-width": 2,
-        },
-        ".inner": {
-          fill: "#4b4a67",
-        },
-        label: {
-          text: '结束'
-        }
+      search: {
+        '*': ['type', 'attrs/text/text', 'attrs/root/dataTooltip', 'attrs/label/text'],
+        'org.Member': ['attrs/.rank/text', 'attrs/root/dataTooltip', 'attrs/.name/text']
       },
-    });
-
-
-    let umlstate = new joint.shapes.standard.HeaderedRectangle({
-      size: { width: 30, height: 22 },
-      position: { x: 14, y: 120 },
-      attrs: {
-
-        body: {
-          fill: '#ffffff',
-          // fillOpacity: 0.5
-
-        },
-        header: {
-          fill: '#ffffff',
-          // fillOpacity: 0.1
-        },
-        headerText: {
-          text: 'aw'
-
-        },
-        bodyText: {
-          // text: 'bodyText'
-        },
-      }
+      layout: {
+        columns: 2,
+        marginX: 10,
+        marginY: 10,
+        columnGap: 10,
+        columnWidth: 100,
+        // reset defaults
+        resizeToFit: false,
+        dx: 0,
+        dy: 0
+      },
+      // Remove tooltip definition from clone
+      dragStartClone: (cell: joint.dia.Cell) => cell.clone().removeAttr('root/dataTooltip')
     })
-    // let Container =joint.shapes.Container.Parent;
-    // let Groupstate = new Container({
-    //   position: { x: 18, y: 170 },
-    //   size: { width: 30, height: 20 },
-    //   z: 1,
-    //   attrs: {       headerText: { text: 'group' }}
-    // });
-    /*
-        let umlstate = new joint.shapes.standard.Rectangle({
-    
-          position: { x: 10, y: 120 },
-          size: { width: 35, height: 35 },
+  }
+  setShapes() {
+    this.stencil.load(this.getStencilShapes());
+  }
+
+  getStencilGroups() {
+    return <{ [key: string]: joint.ui.Stencil.Group }>{
+      standard: { index: 1, label: 'Standard shapes' },
+      fsa: { index: 2, label: 'State machine' }
+    };
+  }
+  getStencilShapes() {
+    return {
+      standard: [
+        {
+          type: 'standard.Rectangle',
+          size: { width: 50, height: 35 },
           attrs: {
+            root: {
+              dataTooltip: 'Rectangle',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
             body: {
-              // fill: 'blue'
+              rx: 2,
+              ry: 2,
+              width: 40,
+              height: 20,
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
             },
             label: {
-              text: 'aw',
-              // fill: 'white'
-            },
+              text: 'rect',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
           }
-        });
-    */
-
-    let ParallelRhombusShape = new joint.shapes.standard.Polygon({
-
-      position: { x: 10, y: 170 },
-      size: { width: 40, height: 30 },
-      attrs: {
-        root: {
-          title: t('MBTStore.concurrency')
         },
-        body: {
-          refPoints: '0,10 10,0 20,10 10,20',
-          ...this.bodyAttributes
+        {
+          type: 'standard.Ellipse',
+          size: { width: 50, height: 35 },
+          attrs: {
+            root: {
+              dataTooltip: 'Ellipse',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              width: 40,
+              height: 20,
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
+            },
+            label: {
+              text: 'ellipse',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          }
         },
-        label: {
-          text: '+',
+        {
+          type: 'app.RectangularModel',
+          size: { width: 50, height: 40 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Rectangle with ports',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              rx: 2,
+              ry: 2,
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
+            },
+            label: {
+              text: 'rect',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          },
+          ports: {
+            items: [
+              { group: 'in' },
+              { group: 'in' },
+              { group: 'out' }
+            ]
+          }
         },
-      }
-    });
-
-    let ExclusiveRhombusShape = new joint.shapes.standard.Polygon({
-
-      position: { x: 10, y: 220 },
-      size: { width: 40, height: 30 },
-      attrs: {
-        root: {
-          title: t('MBTStore.branch')
+        {
+          type: 'app.CircularModel',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Ellipse with ports',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'ellipse',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          },
+          ports: {
+            items: [
+              { group: 'in' },
+              { group: 'in' },
+              { group: 'out' }
+            ]
+          }
         },
-        body: {
-          refPoints: '0,10 10,0 20,10 10,20',
-          ...this.bodyAttributes
+        {
+          type: 'standard.HeaderedRectangle',
+          size: { width: 50, height: 35 },
+          attrs: {
+            root: {
+              dataTooltip: 'Rectangle with header',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
+            },
+            header: {
+              stroke: '#31d0c6',
+              fill: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+              height: 20
+            },
+            bodyText: {
+              textWrap: {
+                text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur molestie.',
+                width: -10,
+                height: -20,
+                ellipsis: true
+              },
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0,
+              refY2: 12,
+            },
+            headerText: {
+              text: 'header',
+              fill: '#f6f6f6',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0,
+              refY: 12
+            }
+          }
+        }
+      ],
+      fsa: [
+        {
+          type: 'fsa.StartState',
+          size: { width: 60, height: 60 },
+          preserveAspectRatio: true,
+          attrs: {
+            root: {
+              dataTooltip: 'Start State',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            circle: {
+              width: 50,
+              height: 30,
+              fill: '#61549c',
+              'stroke-width': 0
+            },
+            text: {
+              text: 'startState',
+              fill: '#c6c7e2',
+              'font-family': 'Roboto Condensed',
+              'font-weight': 'Normal',
+              'font-size': 11,
+              'stroke-width': 0
+            }
+          }
         },
-
-        label: {
-          text: 'x',
+        {
+          type: 'fsa.EndState',
+          size: { width: 60, height: 60 },
+          preserveAspectRatio: true,
+          attrs: {
+            root: {
+              dataTooltip: 'End State',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            '.inner': {
+              fill: '#6a6c8a',
+              stroke: 'transparent'
+            },
+            '.outer': {
+              fill: 'transparent',
+              stroke: '#61549c',
+              'stroke-width': 2,
+              'stroke-dasharray': '0'
+            },
+            text: {
+              text: 'endState',
+              fill: '#c6c7e2',
+              'font-family': 'Roboto Condensed',
+              'font-weight': 'Normal',
+              'font-size': 11,
+              'stroke-width': 0
+            }
+          }
         },
-      }
-    });
-
-
-
-
-    this.states = {};
-    Object.assign(this.states, { s0: s0 });
-
-    Object.assign(this.states, { se: se });
-    Object.assign(this.states, { umlstate: umlstate });
-    // Object.assign(this.states, { Groupstate: Groupstate });
-    Object.assign(this.states, { exclusiverhombus: ExclusiveRhombusShape });
-    Object.assign(this.states, { parallelsrhombus: ParallelRhombusShape });
-
-    // Object.assign(this.states, { test: new MyShape() });
-    this.paper = new joint.dia.Paper({
-      el: canvas.value,
-      model: this.graph,
-      width: "100%",
-      height: "100%",
-      gridSize: 10,
-      drawGrid: true,
-      interactive: false,
-      cellViewNamespace: this.namespace
-    });
-
-
-    Object.keys(this.states).forEach((key: string) => {
-
-      this.graph.addCell(this.states[key as keyof typeof this.states]);
-    });
-
-    this.linkAttrs = {};
-    Object.assign(this.linkAttrs, {
-      fill: "none",
-      "stroke-linejoin": "round",
-      "stroke-width": "2",
-      stroke: "#4b4a67",
-    });
-
+        {
+          type: 'fsa.State',
+          size: { width: 60, height: 60 },
+          preserveAspectRatio: true,
+          attrs: {
+            root: {
+              dataTooltip: 'State',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            circle: {
+              fill: '#6a6c8a',
+              stroke: '#61549c',
+              'stroke-width': 2,
+              'stroke-dasharray': '0'
+            },
+            text: {
+              text: 'state',
+              fill: '#c6c7e2',
+              'font-family': 'Roboto Condensed',
+              'font-weight': 'Normal',
+              'font-size': 11,
+              'stroke-width': 0
+            }
+          }
+        }
+      ]
+    };
   }
+
 }
 
 
+  let getStencil:joint.ui.Stencil = new joint.ui.Stencil({
+    paper: paper,
+    // paper: new joint.ui.PaperScroller({paper : new joint.dia.Paper({width:100,height:100})}),
+    snaplines: new joint.ui.Snaplines({paper : paper}),
+    width: 100,
+    dropAnimation: true,
+    groupsToggleButtons: true,
+      paperOptions: function () {
+        return {
+            model: new joint.dia.Graph({}, {
+                cellNamespace: joint.shapes
+            }),
+            cellViewNamespace: joint.shapes
+        };
+    },
+    layout: {
+      columns: 2,
+      marginX: 10,
+      marginY: 10,
+      columnGap: 10,
+      columnWidth: 100,
+      // reset defaults
+      resizeToFit: false,
+      dx: 0,
+      dy: 0
+  },
+    search: {
+      '*': ['type', 'attrs/text/text', 'attrs/root/dataTooltip', 'attrs/label/text'],
+      'org.Member': ['attrs/.rank/text', 'attrs/root/dataTooltip', 'attrs/.name/text']
+  },
+  dragStartClone:(cell: joint.dia.Cell<joint.dia.Cell.Attributes, joint.dia.ModelSetOptions>) => {
+    let nc = cell.clone();
+    nc.attr('label/text',"I'm here")
+ //    this.graph.addCell(nc)
+     return  nc;
+ },
+ groups:getStencilGroups()
+  })
+
+// Stencil().load(getStencilShapes())
+// export  {getStencil , getStencilShapes}

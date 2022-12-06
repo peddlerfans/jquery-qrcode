@@ -24,12 +24,12 @@ const user = userStore()
 
 function login() {
   loading.login = true
-  user.login(form.username, form.password).then((_:any)=> {
+  // user.login(form.username, form.password).then((_:any)=> {
     router.replace('/dashboard')
-  }).catch((err :any)=> {
+  // }).catch((err :any)=> {
     loading.login = false
-    message.error(err)
-  })
+  //   message.error(err)
+  // })
 }
 </script>
 
