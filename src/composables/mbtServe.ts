@@ -49,6 +49,7 @@ class MbtServe {
         this.initializeTooltips();
         this.initializeSelection();
         this.initializeTooltips();
+        this.initializeToolsAndInspector();
     }
     initializeSelection() {
 
@@ -69,9 +70,9 @@ class MbtServe {
             // if (keyboard.isActive('shift', evt)) {
             //     this.selection.startSelecting(evt);
             // } else {
-            //     this.selection.collection.reset([]);
-            //     this.paperScroller.startPanning(evt);
-            //     this.paper.removeTools();
+            this.selection.collection.reset([]);
+            this.paperScroller.startPanning(evt);
+            this.paper.removeTools();
             // }
         });
 
@@ -106,7 +107,9 @@ class MbtServe {
 
             if (evt.button === 2) {
                 evt.stopPropagation();
-                // this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, this.selection.collection.toArray());
+                if (evt.clientX && evt.clientY) {
+                    this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, this.selection.collection.toArray());
+                }
             }
 
         }, this);
@@ -129,11 +132,13 @@ class MbtServe {
             });
         }
     }
-
+    // 获取选择元素内容的函数
     selectPrimaryCell(cellView: joint.dia.CellView) {
         let cell: any
         cell = cellView.model;
         if (cell.isElement()) {
+
+
             this.selectPrimaryElement(<joint.dia.ElementView>cellView);
         } else {
             this.selectPrimaryLink(<joint.dia.LinkView>cellView);
@@ -144,7 +149,6 @@ class MbtServe {
     selectPrimaryElement(elementView: joint.dia.ElementView) {
         let element: any
         element = elementView.model;
-
         new joint.ui.FreeTransform({
             cellView: elementView,
             allowRotation: false,
@@ -176,8 +180,6 @@ class MbtServe {
     }
 
     initializePaper() {
-        console.log(this.el);
-
         const graph = this.graph = new joint.dia.Graph({}, {
             cellNamespace: appShapes
         });
@@ -198,13 +200,17 @@ class MbtServe {
             sorting: joint.dia.Paper.sorting.APPROX
         });
 
-        // paper.on('blank:contextmenu', (evt) => {
-        //     this.renderContextToolbar({ x: evt.clientX, y: evt.clientY });
-        // });
+        paper.on('blank:contextmenu', (evt) => {
+            if (evt.clientX && evt.clientY) {
+                this.renderContextToolbar({ x: evt.clientX, y: evt.clientY });
+            }
+        });
 
-        // paper.on('cell:contextmenu', (cellView, evt) => {
-        //     this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, [cellView.model]);
-        // });
+        paper.on('cell:contextmenu', (cellView, evt) => {
+            if (evt.clientX && evt.clientY && cellView.model) {
+                this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, [cellView.model]);
+            }
+        });
 
         this.snaplines = new joint.ui.Snaplines({ paper: paper });
 
@@ -277,8 +283,106 @@ class MbtServe {
             this.snaplines.disable();
         }
     }
-    initializeTooltips(): joint.ui.Tooltip {
 
+    // 右键事件的触发
+    renderContextToolbar(point: joint.dia.Point, cellsToCopy: joint.dia.Cell[] = []) {
+        this.selection.collection.reset(cellsToCopy);
+        const contextToolbar = new joint.ui.ContextToolbar({
+            target: point,
+            root: this.paper.el,
+            padding: 0,
+            vertical: true,
+            anchor: 'top-left',
+            tools: [
+                {
+                    action: 'copy',
+                    content: 'Copy',
+                    attrs: {
+                        'disabled': cellsToCopy.length === 0
+                    }
+                },
+                {
+                    action: 'paste',
+                    content: 'Paste',
+                    attrs: {
+                        'disabled': this.clipboard.isEmpty()
+                    }
+                }]
+        });
+
+        contextToolbar.on('action:copy', () => {
+            contextToolbar.remove();
+
+            this.clipboard.copyElements(cellsToCopy, this.graph);
+        });
+
+        contextToolbar.on('action:paste', () => {
+            contextToolbar.remove();
+            const pastedCells = this.clipboard.pasteCellsAtPoint(this.graph, this.paper.clientToLocalPoint(point));
+
+            const elements = pastedCells.filter(cell => cell.isElement());
+
+            // Make sure pasted elements get selected immediately. This makes the UX better as
+            // the user can immediately manipulate the pasted elements.
+            this.selection.collection.reset(elements);
+        });
+        contextToolbar.render();
+    }
+
+    // 初始化目标paper上的事件
+    initializeToolsAndInspector() {
+        this.paper.on('cell:pointerup', (cellView: joint.dia.CellView) => {
+            const cell = cellView.model;
+            const { collection } = this.selection;
+            if (collection.includes(cell)) { return; }
+            collection.reset([cell]);
+        });
+
+        this.paper.on('link:mouseenter', (linkView: joint.dia.LinkView) => {
+
+            // Open tool only if there is none yet
+            if (linkView.hasTools()) { return; }
+
+            const ns = joint.linkTools;
+            const toolsView = new joint.dia.ToolsView({
+                name: 'link-hover',
+                tools: [
+                    new ns.Vertices({ vertexAdding: false }),
+                    new ns.SourceArrowhead(),
+                    new ns.TargetArrowhead()
+                ]
+            });
+
+            linkView.addTools(toolsView);
+        });
+
+        this.paper.on('link:mouseleave', (linkView: joint.dia.LinkView) => {
+
+            // Remove only the hover tool, not the pointerdown tool
+            if (linkView.hasTools('link-hover')) {
+                linkView.removeTools();
+            }
+        });
+
+        this.graph.on('change', (cell: joint.dia.Cell, opt: any) => {
+
+            if (!cell.isLink() || !opt.inspector) { return; }
+
+            const ns = joint.linkTools;
+            const toolsView = new joint.dia.ToolsView({
+                name: 'link-inspected',
+                tools: [
+                    new ns.Boundary({ padding: 15 }),
+                ]
+            });
+
+            cell.findView(this.paper).addTools(toolsView);
+        });
+    }
+
+
+    // 初始化Tooltip
+    initializeTooltips(): joint.ui.Tooltip {
         return new joint.ui.Tooltip({
             rootTarget: document.body,
             target: '[data-tooltip]',
