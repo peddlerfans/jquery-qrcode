@@ -71,9 +71,9 @@ export default defineConfig({
     port: 7777,
     proxy: {
       "/api": {
-        // target: 'https://mbt-dev.oppo.itealab.net/api',
+        target: 'https://mbt-dev.oppo.itealab.net/api',
         // target: 'https://mbt-test.oppo.itealab.net/api',
-        target: 'http://localhost:3000/',
+        // target: 'http://localhost:3000/',
         changeOrigin: true,
         secure: true,
         rewrite: (path: string) => {
