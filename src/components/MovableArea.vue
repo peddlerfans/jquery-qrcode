@@ -14,13 +14,13 @@ let dropIndex: number | null = null
 onMounted(() => {
   if (areaDom.value === null) return
   const collection = areaDom.value.children
-  for (const [key, item] of Object.entries(collection)) {
+  for (const [key, item] of Object.entries(collection) as any) {
     item.setAttribute('draggable', 'true')
     item.setAttribute('moveidx', key)
-    item.addEventListener('dragstart', (e) => onDragStart(e as DragEvent))
-    item.addEventListener('dragover', (e) => onDragOver(e as DragEvent))
-    item.addEventListener('drop', (e) => onDrop(e as DragEvent))
-    item.addEventListener('dragend', (e) => onDragEnd(e as DragEvent))
+    item.addEventListener('dragstart', (e: DragEvent) => onDragStart(e as DragEvent))
+    item.addEventListener('dragover', (e: DragEvent) => onDragOver(e as DragEvent))
+    item.addEventListener('drop', (e: DragEvent) => onDrop(e as DragEvent))
+    item.addEventListener('dragend', (e: DragEvent) => onDragEnd(e as DragEvent))
   }
 })
 
