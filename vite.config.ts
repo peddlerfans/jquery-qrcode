@@ -81,6 +81,16 @@ export default defineConfig({
           return path.replace(/^\/api/, '')
         }
       },
+
+      // "/auth": {
+      //   target: 'http://localhost:3000/auth',
+      //   changeOrigin: true,
+      //   secure: false,
+      //   rewrite: (path: string) => {
+      //     return path.replace(/^\/auth/, '')
+      //   }
+      // },
+
       //   "/mbtapi": {
       //     target: 'https://flows.iteatechnologies.com',
       //     changeOrigin: true,

@@ -11,7 +11,7 @@ export default {
     metaName: "模板名称",
     metaDescription: "模板描述",
     nameinput: "请输入名称",
-    namehefa: "名称不合规",
+    namehefa: "必须以字母、下划线、中文或者美元符$开头，后面的部分可以有字母、下划线、美元符$、中文以及数字组成",
     duplicate: "名称已存在",
     description: "请输入描述信息",
 

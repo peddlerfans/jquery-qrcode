@@ -93,11 +93,13 @@ const onImportFromMetaTemplate = () => {
       >Choose A Template</a-button
     >
   </a-space> -->
+  <main style="height: 100%; overflow-x: hidden !important">
   <a-table
     v-if="!isFormVisible"
     :columns="metatemplatecolumns"
     :data-source="metatemplatetableData"
     bordered
+    :scroll="{ x: true }"
   >
     <template #bodyCell="{ column, text, record }">
       <template v-if="column.key === 'name'">
@@ -117,6 +119,7 @@ const onImportFromMetaTemplate = () => {
       </template>
     </template>
   </a-table>
+  </main>
   <div class="awtable">
     <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
       Jump to Meta Template

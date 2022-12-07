@@ -111,23 +111,38 @@ let {
     fetchUrl: url,
   },
 });
+console.log(tableData , '123132123');
+// onBeforeMount(() => {
+//   if (tableData && templateCategory.value == 1) {
 
-onBeforeMount(() => {
-  if (tableData && templateCategory.value == 1) {
-    hasData.value = true;
-    // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
     
-    dataSource.value = tableData.value as never[];
-    let cust_columns = tableColumns.value;
-    columnsOrigin.value = cust_columns;
-    // console.log("......columns:", columns);
-    // console.log("......datasource:", dataSource);
-  } else {
+//     hasData.value = true;
+//     // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
     
-    updateTable();
+//     dataSource.value = tableData.value as never[];
+//     let cust_columns = tableColumns.value;
+//     columnsOrigin.value = cust_columns;
+//     // console.log("......columns:", columns);
+//     // console.log("......datasource:", dataSource);
+//   } else {
     
-  }
-});
+//     updateTable();
+    
+//   }
+// });
+
+// 判断后台是否有选中数据
+// const hasTableData = (data:any , category:number) => {
+//   if(data.length>0 && category >0){
+//     hasData.value = true;
+//     dataSource.value = data.value as never[];
+//     let cust_columns = tableColumns.value;
+//     columnsOrigin.value = cust_columns;
+//   }else{
+    
+//   }
+// }
+
 
 async function query(data?: any) {
   let rst;
@@ -151,8 +166,7 @@ onMounted(() => {
   
 
   let savedDataInfo = localStorage.getItem("mbt_" + route.params._id + route.params.name);
-  
-  if (_.isString(savedDataInfo)) {
+  if (savedDataInfo) {
     let tempObj = JSON.parse(savedDataInfo);
     let searchParam: string = "";
     if (
@@ -210,7 +224,7 @@ onMounted(() => {
             dataSource.value = temparr;
             
           }
-          //   console.log('datasource:',dataSource)
+            console.log('datasource:',dataSource)
         });
       }
     }
