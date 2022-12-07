@@ -1,6 +1,6 @@
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from '../composables/JointJs/app-shapes';
+import * as appShapes from '@/composables/JointJs/app-shapes';
 import { i18n } from "@/locales";
 const { t } = i18n.global
 export class StencilService {
@@ -47,7 +47,7 @@ export class StencilService {
 
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
-      standard: { index: 1, label: 'Standard shapes'},
+      standard: { index: 1, label: 'Standard shapes' },
       fsa: { index: 2, label: 'State machine' }
     };
   }
@@ -138,29 +138,54 @@ export class StencilService {
           type: 'standard.Polygon',
           size: { width: 50, height: 35 },
           attrs: {
-              root: {
-                  dataTooltip: t('MBTStore.concurrency'),
-                  dataTooltipPosition: 'left',
-                  dataTooltipPositionSelector: '.joint-stencil'
-              },
-              body: {
-                  points: 'calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h) 0,calc(0.5 * h)',
-                  fill: 'transparent',
-                  stroke: '#31d0c6',
-                  strokeWidth: 2,
-                  strokeDasharray: '0'
-              },
-              label: {
-                  text: '+',
-                  fill: '#c6c7e2',
-                  fontFamily: 'Roboto Condensed',
-                  fontWeight: 'Normal',
-                  fontSize: 11,
-                  strokeWidth: 0
-              }
+            root: {
+              dataTooltip: t('MBTStore.concurrency'),
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              points: 'calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h) 0,calc(0.5 * h)',
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
+            },
+            label: {
+              text: '+',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
           }
-      },
-
+        },
+        {
+          type: 'standard.Polygon',
+          size: { width: 50, height: 35 },
+          attrs: {
+            root: {
+              dataTooltip: t('MBTStore.branch'),
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              points: 'calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h) 0,calc(0.5 * h)',
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0'
+            },
+            label: {
+              text: 'x',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          }
+        },
       ],
       fsa: [
         {

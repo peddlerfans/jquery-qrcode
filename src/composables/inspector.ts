@@ -11,7 +11,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
 
- import joint from '../../node_modules/@clientio/rappid/rappid.js';
+import joint from '../../node_modules/@clientio/rappid/rappid.js';
 import x from '../assets/no-color-icon.svg'
 import y from '../assets/transparent-icon.svg'
 // console.log(x);
@@ -19,7 +19,7 @@ import y from '../assets/transparent-icon.svg'
 export class InspectorService {
 
     create(cell: joint.dia.Cell): joint.ui.Inspector {
-        
+
         const { groups, inputs } = this.getInspectorConfig()[cell.get('type')];
         return joint.ui.Inspector.create('.inspector-container', { cell, groups, inputs });
     }
@@ -712,8 +712,8 @@ export class InspectorService {
                             textWrap: {
                                 text: {
                                     type: 'content-editable',
-                                    label: 'Wrapped text',
-                                    group: 'text',
+                                    label: 'Expected',
+                                    group: 'Expected',
                                     index: 1
                                 }
                             },
@@ -723,7 +723,7 @@ export class InspectorService {
                                 max: 80,
                                 unit: 'px',
                                 label: 'Font size',
-                                group: 'text',
+                                group: 'Expected',
                                 when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 2
                             },
@@ -731,7 +731,7 @@ export class InspectorService {
                                 type: 'select-box',
                                 options: options.fontFamily,
                                 label: 'Font family',
-                                group: 'text',
+                                group: 'Expected',
                                 when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 3
                             },
@@ -739,7 +739,7 @@ export class InspectorService {
                                 type: 'select-box',
                                 options: options.fontWeight,
                                 label: 'Font thickness',
-                                group: 'text',
+                                group: 'Expected',
                                 when: { ne: { 'attrs/bodyText/text': '' } },
                                 index: 4
                             },
@@ -747,7 +747,7 @@ export class InspectorService {
                                 type: 'color-palette',
                                 options: options.colorPalette,
                                 label: 'Fill',
-                                group: 'text',
+                                group: 'Expected',
                                 when: { ne: { 'attrs/boduText/text': '' } },
                                 index: 5
                             }
@@ -755,8 +755,8 @@ export class InspectorService {
                         headerText: {
                             text: {
                                 type: 'content-editable',
-                                label: 'Text',
-                                group: 'headerText',
+                                label: 'AwPrimary',
+                                group: 'AwPrimary',
                                 index: 1
                             },
                             fontSize: {
@@ -765,7 +765,7 @@ export class InspectorService {
                                 max: 80,
                                 unit: 'px',
                                 label: 'Font size',
-                                group: 'headerText',
+                                group: 'AwPrimary',
                                 when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 2
                             },
@@ -773,7 +773,7 @@ export class InspectorService {
                                 type: 'select-box',
                                 options: options.fontFamily,
                                 label: 'Font family',
-                                group: 'headerText',
+                                group: 'AwPrimary',
                                 when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 3
                             },
@@ -781,7 +781,7 @@ export class InspectorService {
                                 type: 'select-box',
                                 options: options.fontWeight,
                                 label: 'Font thickness',
-                                group: 'headerText',
+                                group: 'AwPrimary',
                                 when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 4
                             },
@@ -789,7 +789,7 @@ export class InspectorService {
                                 type: 'color-palette',
                                 options: options.colorPalette,
                                 label: 'Fill',
-                                group: 'headerText',
+                                group: 'AwPrimary',
                                 when: { ne: { 'attrs/headerText/text': '' } },
                                 index: 5
                             }
@@ -891,8 +891,8 @@ export class InspectorService {
                         label: 'Header',
                         index: 3
                     },
-                    headerText: {
-                        label: 'Header Text',
+                    AwPrimary: {
+                        label: 'AwPrimary',
                         index: 4
                     }
                 }

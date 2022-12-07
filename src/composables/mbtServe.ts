@@ -3,9 +3,9 @@ import * as dagre from 'dagre';
 import { StencilService } from "./stencil";
 import { ToolbarService } from "./Toolbar";
 import { HaloService } from './haloService';
-import {InspectorService} from './inspector'
-import {KeyboardService} from "./keyboard"
-import * as appShapes from '../composables/JointJs/app-shapes';
+import { InspectorService } from './inspector'
+import { KeyboardService } from "./keyboard"
+import * as appShapes from '../composables/jointJs/app-shapes';
 
 class MbtServe {
     el !: any;
@@ -22,7 +22,7 @@ class MbtServe {
 
     stencilService !: StencilService;
     toolbarService !: ToolbarService;
-    haloService !: HaloService; 
+    haloService !: HaloService;
     InspectorService !: InspectorService;
     keyboardService !: KeyboardService;
 
@@ -31,7 +31,7 @@ class MbtServe {
         stencilService: StencilService,
         toolbarService: ToolbarService,
         haloService: HaloService,
-        InspectorService : InspectorService,
+        InspectorService: InspectorService,
         keyboardService: KeyboardService
     ) {
         this.el = el;
@@ -80,9 +80,9 @@ class MbtServe {
             if (keyboard.isActive('shift', evt)) {
                 this.selection.startSelecting(evt);
             } else {
-            this.selection.collection.reset([]);
-            this.paperScroller.startPanning(evt);
-            this.paper.removeTools();
+                this.selection.collection.reset([]);
+                this.paperScroller.startPanning(evt);
+                this.paper.removeTools();
             }
         });
 
@@ -175,6 +175,8 @@ class MbtServe {
         let cell: any
         cell = cellView.model;
         if (cell.isElement()) {
+
+
             this.selectPrimaryElement(<joint.dia.ElementView>cellView);
         } else {
             this.selectPrimaryLink(<joint.dia.LinkView>cellView);
@@ -223,7 +225,7 @@ class MbtServe {
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
 
         const paper = this.paper = new joint.dia.Paper({
-            width: 1000,
+            width: 1100,
             height: 1000,
             gridSize: 10,
             drawGrid: true,
@@ -283,13 +285,12 @@ class MbtServe {
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
             this.selection.collection.reset([elementView.model]);
-            console.log(this.selection);
-            
         });
     }
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
+        console.log(this.toolbarService);
 
         this.toolbarService.toolbar.on({
             'svg:pointerclick': this.openAsSVG.bind(this),

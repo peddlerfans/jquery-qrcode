@@ -91,7 +91,7 @@ body {
     height: 3.15rem;
     line-height: 3.15rem;
     background-color: #fff;
-    
+
 }
 
 .app-body {
@@ -174,7 +174,31 @@ body {
 .joint-stencil .joint-element[data-type="devs.Atomic"] .outPorts text,
 .joint-stencil .joint-element[data-type="pn.Transition"] text,
 .joint-stencil .joint-element .joint-port text {
-    display: none;
+    display: block;
+}
+
+.joint-stencil .joint-layers .joint-cells-layer .rotatable circle {
+    r: 10;
+    fill: rgb(97, 84, 156);
+    stroke-width: 0;
+}
+
+.joint-stencil .joint-layers .joint-cells-layer .scalable .outer {
+    r: 10;
+    fill: rgb(97, 84, 156);
+    stroke-width: 0;
+}
+
+.joint-stencil .joint-layers .joint-cells-layer .scalable .inner {
+    r: 6;
+    fill: rgb(183, 173, 224);
+    stroke-width: 0;
+}
+
+.joint-port circle {
+    r: 6;
+    fill: rgb(97, 84, 156);
+    stroke-width: 0;
 }
 
 .joint-stencil .joint-element.joint-type-uml rect,
@@ -208,7 +232,7 @@ body {
 
 .toolbar-container button.joint-widget[data-type="zoomIn"],
 .toolbar-container button.joint-widget[data-type="zoomOut"] {
-    display: none;
+    display: block;
 }
 
 .joint-dialog.joint-lightbox .fg {

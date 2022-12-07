@@ -9,7 +9,6 @@ import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from "@/composables/JointJs/app-shapes"
 import $ from 'jquery'
 import { onMounted, ref } from 'vue';
 let rappid : MbtServe

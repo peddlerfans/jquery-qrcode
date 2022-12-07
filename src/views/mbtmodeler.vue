@@ -9,16 +9,13 @@ import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from "@/composables/JointJs/app-shapes"
 import $ from 'jquery'
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
-onMounted(()=>{
-  console.log(apps.value.querySelector);
-  
+onMounted(()=>{  
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -28,7 +25,11 @@ onMounted(()=>{
     new KeyboardService()
   )
   rappid.startRappid()
+  
 })
+const saveMbt = () => {
+    console.log(rappid.graph);
+}
 
 </script>
 
@@ -38,7 +39,7 @@ onMounted(()=>{
           <div class="app-title">
             <a-button-group>
               <span>
-            <a-button type="primary" size="small" style="margin-right: 5px">
+            <a-button @click="saveMbt" type="primary" size="small" style="margin-right: 5px">
               {{ $t("common.saveText") }}
             </a-button>
           </span>

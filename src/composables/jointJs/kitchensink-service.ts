@@ -208,6 +208,7 @@ class KitchenSinkService {
         }, this);
     }
 
+    // 右键的方法
     renderContextToolbar(point: joint.dia.Point, cellsToCopy: joint.dia.Cell[] = []) {
         this.selection.collection.reset(cellsToCopy);
         const contextToolbar = new joint.ui.ContextToolbar({
@@ -252,6 +253,7 @@ class KitchenSinkService {
         contextToolbar.render();
     }
 
+    // 选择Stencil时触发的事件
     onSelectionChange() {
         const { paper, selection } = this;
         const { collection } = selection;
