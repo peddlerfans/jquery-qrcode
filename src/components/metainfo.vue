@@ -3,7 +3,10 @@ import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 import { ref, onMounted, toRaw } from "vue";
 
-import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
+import { getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
+import {string2Obj} from "@/views/componentTS/schema-constructor";
+import request from "@/utils/request";
+import {generateSchema} from "@/utils/jsonschemaform";
 // const emit = defineEmits(['submitTemplate'])
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
@@ -22,12 +25,13 @@ const props = defineProps<{
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
 };
-console.log(props.isFormVisible);
 
 let tempschema = ref(props.schema);
+// tempschema.value = string2Obj(tempschema.value)
 let metaformProps = ref(props.metaformProps);
 const isFormVisible = ref(props.isFormVisible);
 let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
+console.log(metatemplatedetailtableData.value)
 let metatemplatecolumns = ref(props.metatemplatecolumns);
 let metatemplatetableData = ref([]);
 
@@ -36,7 +40,6 @@ const isMetaTemplateEmpty = ref(false);
 onMounted(() => {
   
   getAllTemplatesByCategory('meta').then((rst: any[]) => {
-    //   console.log(rst)
     if (rst.length > 0) {
       isMetaTemplateEmpty.value = false;
       let temparr = rst;
@@ -51,6 +54,29 @@ function submitTemplate() {
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
   Object.assign(metaObj, { data: toRaw(metatemplatedetailtableData.value) });
   emit("submitTemplate", metaObj);
+}
+
+async function getTemplate(metaId: string, category: string) {
+  let currentschema = {
+    type: "object",
+    properties: {},
+  };
+  let rst1 = await request.get(`/api/templates/${metaId}`, {
+    params: {q: `category:${category}`, search: ""},
+  });
+  if (rst1.model) {
+    let temparr = rst1.model;
+    let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
+    Object.assign(currentschema, {required: required})
+    if (_.isArray(temparr)) {
+      let schemafileds = generateSchema(temparr);
+      schemafileds.forEach((schemafield: any) => {
+        Object.assign(currentschema.properties, schemafield);
+      });
+    }
+
+    return string2Obj(currentschema, temparr);
+  }
 }
 
 const showJSONSchemeForm = (templdateId: string) => {

@@ -69,7 +69,7 @@ import MBTStore from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
-import {data2schema, getCustomOpts, getCustomProp} from '@/views/componentTS/schema-constructor'
+import {data2schema, getCustomOpts, getCustomProp, getSchemaData} from '@/views/componentTS/schema-constructor'
 import MbtModelerSchema from "@/views/mbt-modeler-schema.vue";
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 
@@ -77,12 +77,6 @@ const { t } = useI18n();
 
 const store = MBTStore()
 
-let customSchemaSelect = ref<Array<any>>([])
-let customFormItemOpt = ref<Array<any>>([])
-function handleChange (arr: any) {
-  customSchemaSelect.value = arr
-  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, arr)
-}
 let awUiSchema: any = {
 
 }
@@ -774,7 +768,7 @@ let chooseAw:any = null
 let chooseAwExpected:any = null
 
 
-function awhandlerSubmit(data:any,schema:any, customSchemaSelect: any) {
+function awhandlerSubmit(data:any,schema:any) {
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -2307,12 +2301,11 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
             // hasAWInfo.value = true
 
           // console.log("success 2   ", cacheprops.get(ev_id).props.primaryprops);
-          awformdata.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.data;
-          awschema.value = cacheprops.get(elementView.model.attributes.id).props.primaryprops.schema;
+          const awProp = cacheprops.get(elementView.model.attributes.id).props.primaryprops
+          awformdata.value = getSchemaData(awProp);
+          awschema.value = awProp.schema;
           // 表单自定义输入设置
-          // customSchemaSelect.value = getCustomProp(awschema.value.properties)
-          // customFormItemOpt.value = getCustomOpts(awschema.value)
-          awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
+          awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2476,9 +2469,7 @@ function showAWInfo(rowobj: any) {
       Object.assign(awschema.value.properties, field);
     });
   }
-  // customSchemaSelect.value = getCustomProp(awschema.value.properties)
-  // customFormItemOpt.value = getCustomOpts(awschema.value)
-  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, customSchemaSelect.value)
+  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
 }
 
 function showAWExpectedInfo(rowobj: any) {
@@ -3309,16 +3300,6 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
 <!--                      :schema="awschema"-->
 <!--                      v-if="isAW && hasAWInfo"-->
 <!--                  ></mbt-modeler-schema>-->
-<!--                  <div class="schema-custom-select" v-if="isAW && hasAWInfo && customFormItemOpt.length">-->
-<!--                    <span>请选择要自定义输入的表单元素：</span>-->
-<!--                    <a-select-->
-<!--                        class="schema-select"-->
-<!--                        v-model:value="customSchemaSelect"-->
-<!--                        mode="multiple"-->
-<!--                        :options="customFormItemOpt"-->
-<!--                        @change="handleChange"-->
-<!--                    ></a-select>-->
-<!--                  </div>-->
                   <VueForm
                     v-model="awformdata"
                     :formProps="awformProps"
@@ -3332,7 +3313,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
                         <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
                       <!-- </span> -->
                       <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema, customSchemaSelect)">{{
+                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
                           $t("common.submitText")
                         }}</a-button>
                       </span>

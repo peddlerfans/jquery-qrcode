@@ -1,7 +1,7 @@
-export function data2schema (awSchema: any, tableColumns: any, customList: any) {
+export function data2schema (awSchema: any, selectList: any) {
     // 可选参数名
     let enumList: Array<any> = []
-    if (Array.isArray(tableColumns)) enumList = tableColumns.map((a: any) => {
+    if (Array.isArray(selectList)) enumList = selectList.map((a: any) => {
         return {
             value: `{{${a.title}}}`,
             title: a.title
@@ -11,44 +11,39 @@ export function data2schema (awSchema: any, tableColumns: any, customList: any) 
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
         let prop = awSchema.properties
-
         prop[a] = {
             "title": a,
-            "anyOf": [
-                {
-                    "type":"string",
-                    "title": "选项输入",
+            "type": "object",
+            "properties": {
+                "inputType": {
+                    "type": "string",
+                    "enum": [
+                        "1",
+                        "2"
+                    ],
+                    "enumNames": [
+                        "选项输入",
+                        "自定义配置"
+                    ],
+                    "ui:width": "20%"
+                },
+                "value": {
+                    "type": "string",
                     "enum": enumList.map((a: any) => a.value),
                     "enumNames": enumList.map((a: any) => a.title),
-                    "custom": false
-                }, {
-                    "type":"string",
-                    "title": "自定义输入",
-                    "custom": true
-                }
-            ],
-            "anyOfSelect": {
-                'ui:widget': "RadioWidget",
-                "ui:title": "输入设置",
-                "ui:options": {},
+                    "ui:hidden": "{{parentFormData.inputType !== '1'}}",
+                    "ui:width": "80%"
+                },
+                "value1": {
+                    "type": "string",
+                    "message": {
+                        "pattern": "输入自定义参数"
+                    },
+                    "ui:hidden": "{{parentFormData.inputType !== '2'}}",
+                    "ui:width": "80%"
+                },
             }
         }
-
-        // if (!customList.includes(a) && !(a.hasOwnProperty('custom') || a.custom)) {
-        //     prop[a] = {
-        //         "type":"string",
-        //         "title": a,
-        //         "enum": enumList.map((a: any) => a.value),
-        //         "enumNames": enumList.map((a: any) => a.title),
-        //         "custom": false
-        //     }
-        // } else {
-        //     prop[a] = {
-        //         "type":"string",
-        //         "title": a,
-        //         "custom": true
-        //     }
-        // }
     })
     return awSchema
 }
@@ -87,4 +82,44 @@ export function getCustomOpts (awSchema: any) {
         }
     }
     return customList
+}
+
+export function getSchemaData (schema: any) {
+    let data = schema.data
+    let customInSchema = getCustomItems(schema.schema)
+    if (customInSchema.length) {
+        customInSchema.forEach((a: any) => {
+            if (typeof data[a] === 'string') {
+                data[a] = {
+                    inputType: '1',
+                    value: data[a],
+                    value1: data[a]
+                }
+            }
+        })
+    }
+    return data
+}
+
+export function string2Obj (schema: any, optionList: Array<any>) {
+    console.log(schema)
+    console.log(optionList)
+    const prop = schema.properties
+    for (let key in prop) {
+        const tar = prop[key]
+        if (tar.type === 'string') {
+            prop[key] = {
+                title: tar.title,
+                type: 'string',
+                enum: getEnumList(tar.title, optionList)
+            }
+        }
+    }
+    return schema
+}
+
+function getEnumList (title: string, optionList: Array<any>) {
+    let res = optionList.filter((a: any) => a.description === title)[0]
+    if (res) return res.enum
+    else return []
 }

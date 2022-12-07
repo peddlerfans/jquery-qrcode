@@ -20,6 +20,133 @@ import { PlusOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { CommonTable } from '@/components/basic/common-table'
+import VueForm from "@lljj/vue3-form-ant";
+let aaa = ["{{url}}", "{{file}}", "{{resolution}}", "{{videotype}}", "{{key}}"]
+let schema = {
+  "title": "AW",
+  "description": "Configuration for the AW",
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string",
+      "ui:hidden": true,
+      "required": true
+    },
+    "name": {
+      "title": "AW Name",
+      "type": "string",
+      "readOnly": true
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "TextAreaWidget"
+    },
+    "template": {
+      "title": "Template",
+      "type": "string",
+      "readOnly": true
+    },
+    "tags": {
+      "title": "Tags",
+      "type": "string",
+      "readOnly": true
+    },
+    "url": {
+      "title": "url",
+      "type": "object",
+      "properties": {
+        "attr": {
+          "type": "string",
+          "enum": [
+            "1",
+            "2",
+          ],
+          "enumNames": [
+            "自定义配置",
+            "选项输入",
+          ],
+          "ui:width": "20%"
+        },
+        "value": {
+          "type": "string",
+          "enum": [
+            "url",
+            "file",
+            "resolution",
+            "videotype",
+            "key"
+          ],
+          "enumNames": [
+            "url",
+            "file",
+            "resolution",
+            "videotype",
+            "key"
+          ],
+          "ui:hidden": "{{parentFormData.attr !== '1'}}",
+          "ui:width": "80%"
+        },
+        "value2": {
+          "type": "string",
+          "ui:hidden": "{{parentFormData.attr !== '2'}}",
+          "ui:width": "80%"
+        },
+      }
+    },
+    "file": {
+      "ui:title": "file",
+      "layoutColumn": "1",
+      "ui:style": {
+        display: "flex",
+        color: "red"
+      },
+      "ui:options": {
+        "style": {
+          display: "flex",
+          color: "red"
+        },
+      },
+      "anyOf": [
+        {
+          "type": "string",
+          "title": '1',
+          "message": {
+            "pattern": "输入自定义参数"
+          },
+          "ui:width": "60%"
+        },
+        {
+          "type": "string",
+          "title": '2',
+          "enum": [
+            "url",
+            "file",
+            "resolution",
+            "videotype",
+            "key"
+          ],
+          "enumNames": [
+            "url",
+            "file",
+            "resolution",
+            "videotype",
+            "key"
+          ],
+          "ui:width": "60%"
+        }
+      ],
+      "anyOfSelect": {
+        "ui:widget": "SelectWidget",
+        "ui:title": "选择选项",
+        "ui:width": "20%",
+        "ui:options": {}
+      }
+    }
+  }
+}
+let schemaVal = ref()
 
 const { t } = useI18n()
 const url = settingsWebHook;
@@ -445,6 +572,11 @@ const handleInputConfirm = () => {
         @detail="(row) => edit(row, true)"
       ></common-table>
     </div>
+    <VueForm
+        v-model="schemaVal"
+        :schema="schema"
+    ></VueForm>
+    <div>{{schemaVal}}</div>
   </main>
 </template>
 <style lang="postcss" scoped>
