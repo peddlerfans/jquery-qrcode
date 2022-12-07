@@ -5,7 +5,7 @@ async function delay(time) {
     });
  }
 test('Success Login', async ({ page }) => {
-  await page.goto('http://localhost:7777/');
+  await page.goto('http://localhost:7777/#/login/');
 
   await page.waitForSelector('#loginForm_username');
   await page.fill('#loginForm_username',"david");
