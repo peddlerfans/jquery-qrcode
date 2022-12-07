@@ -21,9 +21,12 @@ export default {
   next: 'Next',
   preview: 'Preview',
   submitText: 'Submit',
-  close: 'close',
   saveError: "Save failed",
   cloneError: 'Clone failed',
+  close: 'Close',
+  up: 'Up',
+  down: 'Down',
+  detail: 'Detail',
 
   inputText: 'Please enter',
   chooseText: 'Please choose',

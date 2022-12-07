@@ -46,7 +46,12 @@ export default {
     then: 'Then',
     operator: 'Operator',
     topics: 'Topics',
+    default: 'Default',
+
     clone: 'clone',
+
+    isRequire: 'Is required',
+
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'
   },
 
@@ -58,17 +63,26 @@ export default {
     sureDel: 'Sure to delete?',
     sureCancel: 'Sure to cancel?',
     saveSuccess: 'Saved successfully',
+    updateText: 'Update successfully',
 
     dupDescription: 'Duplicate description',
     emptyDescription: 'Please input your description',
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
-    hefaName: "The name format includes Chinese, English, _$",
+    emptyUrl: 'Please input url',
+    realUrl: 'Please input real url',
+    errTip1: 'Please process the data being edited first',
+    hefaName: "The name format includes Chinese, English,Number,_,$",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',
     noLatencyData: 'No Latency Data',
     nothroughputData: 'No Throughput Data',
+
+    cantUpItem: 'Already at the top, unable to move up',
+    cantDownItem: 'already at the bottom, unable to move down',
+
+    tableEditingWarn: 'The data in the table is being edited, please save it first'
   },
 
   route: {

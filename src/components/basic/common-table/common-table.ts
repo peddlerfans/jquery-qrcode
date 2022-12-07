@@ -1,5 +1,8 @@
 import {ref} from "vue";
-import { SelectProps } from "ant-design-vue";
+import {
+    SelectProps,
+    Table
+} from "ant-design-vue";
 
 export interface statesTs {
     tags: Array<string>
@@ -11,23 +14,6 @@ export interface statesTs {
     values: Array<string>,
     valueInputVisible: boolean,
     valueInputValue: string,
-}
-
-export interface DataItem {
-    editing?: any;
-    key?: string;
-    enum: Array<string>;
-    name: string;
-    category: string;
-    description: string;
-    tags: Array<string>;
-}
-
-export interface Props {
-    fetchObj: any,
-    columns: any,
-    tableRef: any,
-    isGlobal: boolean
 }
 
 // 表格 type 可选类型1
@@ -69,3 +55,10 @@ export const typeOptions2 = ref<SelectProps['options']>([
         label: 'Number',
     }
 ])
+
+// 表格复选框设置常量
+export const tableSelectParams = {
+    all: Table.SELECTION_ALL,
+    invert: Table.SELECTION_INVERT,
+    none: Table.SELECTION_NONE
+}

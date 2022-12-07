@@ -3,6 +3,7 @@
 import { AnyARecord } from "dns";
 
 export interface tableSearch {
+    total?: any;
     search: string
     page: number
     perPage: number

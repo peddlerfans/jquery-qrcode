@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { MenuFoldOutlined, LogoutOutlined, TranslationOutlined } from '@ant-design/icons-vue'
+import { MenuFoldOutlined, LogoutOutlined, UserOutlined, TranslationOutlined } from '@ant-design/icons-vue'
 import type { Layout } from 'types/layout'
-import { inject } from 'vue'
+import {inject, ref} from 'vue'
 import { useRouter } from 'vue-router'
 import { userStore } from '@/stores/user'
 import BreadCrumb from './BreadCrumb.vue'
+import request from "@/utils/request";
 import { useLocale } from "@/locales/useLocale";
 
 const sidebarRelated = inject<Layout.SidebarRelated>('sidebarRelated')
@@ -12,12 +13,21 @@ const loading = inject<Layout.Loading>('loading')
 const user = userStore()
 const router = useRouter()
 
+let prev=ref<boolean>(false);
+
+const viewProfile =  () => {
+
+  prev.value=true
+
+}
+
 function logout() {
   if (loading) loading.logout = true
   user.logout().then((_:any) => {
     router.replace('/login')
   })
 }
+
 
 const languageChange = (obj: any) => {
   let changeLocale = useLocale()
@@ -33,6 +43,16 @@ const languageChange = (obj: any) => {
         @click="sidebarRelated && (sidebarRelated.collapsed = !sidebarRelated.collapsed)" />
       <BreadCrumb :withIcons="true"></BreadCrumb>
     </section>
+
+    <a-modal v-model:visible="prev" title="View profile" :width="900">
+
+      <!-- Model meta info -->
+      <h3>Name:</h3> {{user.name}}
+      <h3 style="margin-top: 20px;">Email:</h3> {{user.email}}
+
+    </a-modal>
+
+
     <section>
       <a-dropdown>
         <a class="ant-dropdown-link">
@@ -45,12 +65,27 @@ const languageChange = (obj: any) => {
           </a-menu>
         </template>
       </a-dropdown>
-      <span style="margin-right: 1rem">{{ user.name }}</span>
-      <AButton type="primary" shape="circle" :loading="loading?.logout" @click="logout" :title="$t('layout.header.logOut')">
-        <template #icon>
-          <LogoutOutlined />
+
+      <a-dropdown>
+        <a class="ant-dropdown-link" @click.prevent>
+          <a-avatar v-if="user.avatar_url == ''">
+            <user-outlined />
+          </a-avatar>
+          <a-avatar v-else :src="user.avatar_url" />
+          <span style="margin-left: 5px; margin-right:30px;">{{ user.name }}</span>
+        </a>
+        <template #overlay>
+          <a-menu>
+
+            <a-menu-item>
+              <a @click="viewProfile">View Profile</a>
+            </a-menu-item>
+            <a-menu-item>
+              <a :loading="loading?.logout" @click="logout">Logout</a>
+            </a-menu-item>
+          </a-menu>
         </template>
-      </AButton>
+      </a-dropdown>
     </section>
   </header>
 </template>

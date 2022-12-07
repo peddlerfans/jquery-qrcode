@@ -8,5 +8,6 @@ services:
     image: registry.gitlab.com/itea-tech/itea-oppo/mbt-backend:master
     environment:
       - config=./config-master.yml
+      - CI_BUILD_REF_NAME=master
     ports:
       - "3000:3000"

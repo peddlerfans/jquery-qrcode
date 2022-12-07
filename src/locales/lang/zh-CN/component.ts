@@ -49,6 +49,7 @@ export default {
     then: '则',
     operator: '关系',
     topics: '大纲',
+    default: '默认',
 
     clone: '克隆',
 
@@ -66,17 +67,27 @@ export default {
     sureDel: '确定要删除吗?',
     sureCancel: '确定要取消吗?',
     saveSuccess: '保存成功',
+    updateText: '更新成功',
 
     dupDescription: '描述不能和现有数据的描述重复',
     emptyDescription: '请输入描述',
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
-    hefaName: "名称格式为包含中文,英文,_,$",
+    emptyUrl: '请输入网址',
+    realUrl: '请输入真实网址',
+    errTip1: '请先处理正在编辑的数据',
 
+    hefaName: "名称格式为包含中文,英文,数字,_,$",
+    updateErr:"修改失败",
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',
     noLatencyData: '暂无延迟数据',
     nothroughputData: '暂无吞吐量数据',
+
+    cantUpItem: '已经处于置顶，无法上移',
+    cantDownItem: '已经处于置底，无法下移',
+
+    tableEditingWarn: '表格中的数据正在编辑，请先保存它'
   },
 
   route: {
