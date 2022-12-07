@@ -1,6 +1,6 @@
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from '@/composables/JointJs/app-shapes';
+import * as appShapes from './jointJs/app-shapes';
 import { i18n } from "@/locales";
 const { t } = i18n.global
 export class StencilService {
