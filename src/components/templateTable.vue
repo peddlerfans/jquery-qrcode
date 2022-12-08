@@ -115,33 +115,43 @@ console.log(tableData , '123132123');
 // onBeforeMount(() => {
 //   if (tableData && templateCategory.value == 1) {
 
-    
+
 //     hasData.value = true;
 //     // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
-    
+
 //     dataSource.value = tableData.value as never[];
 //     let cust_columns = tableColumns.value;
 //     columnsOrigin.value = cust_columns;
 //     // console.log("......columns:", columns);
 //     // console.log("......datasource:", dataSource);
 //   } else {
-    
+
 //     updateTable();
-    
+
 //   }
 // });
 
-// 判断后台是否有选中数据
-// const hasTableData = (data:any , category:number) => {
-//   if(data.length>0 && category >0){
-//     hasData.value = true;
-//     dataSource.value = data.value as never[];
-//     let cust_columns = tableColumns.value;
-//     columnsOrigin.value = cust_columns;
-//   }else{
-    
-//   }
-// }
+// 进入组件第一次请求回所有数据
+let staticData: Array<any>
+let staticColumn: Array<any>
+const queryStatic = () => {
+          getAllTemplatesByCategory('static').then((rst: any[]) => {
+          if (rst.length > 0) {
+            staticData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
+let dynamicData: Array<any>
+let dynamicColumn: Array<any>
+const queryDynamic = () => {
+  getAllTemplatesByCategory('dynamic').then((rst: any[]) => {
+          if (rst.length > 0) {
+            dynamicData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
 
 
 async function query(data?: any) {
@@ -156,16 +166,16 @@ async function query(data?: any) {
 
   if (rst.data) {
     // console.log('rst:', rst.data)
-
     dataSource.value = rst.data;
     return rst.data;
   }
 }
 const route = useRoute();
 onMounted(() => {
-  
-
+  queryStatic()
+  queryDynamic()
   let savedDataInfo = localStorage.getItem("mbt_" + route.params._id + route.params.name);
+
   if (savedDataInfo) {
     let tempObj = JSON.parse(savedDataInfo);
     let searchParam: string = "";
@@ -179,53 +189,22 @@ onMounted(() => {
       if (
         templateCategory.value == 1 &&
         tempObj.dataDefinition.data.dataFrom == "static_template"
-      ) {
-       
-        searchParam = "dynamic";
+      ) { 
+            dataSource.value = dynamicData;
 
-        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-          if (rst.length > 0) {
-            let temparr = rst;
-            dataSource.value = temparr;
-            columnsOrigin.value = columnsOrigin2.value;
-          }
-        });
       } else if (
         templateCategory.value == 2 &&
         tempObj.dataDefinition.data.dataFrom == "dynamic_template"
       ) {
-        searchParam = "static";
-
-        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-          if (rst.length > 0) {
-            let temparr = rst;
-            dataSource.value = temparr;
-            columnsOrigin.value = columnsOrigin2.value;
-          }
-        });
+        
+            dataSource.value = staticData;         
       }
     } else {
       let category = templateCategory!.value;
       // console.log("category:", category);
       // searchParam: string = "";
-      if (dataSource) {
-        // console.log("Read data from backend");
-      } else {
-        if (category == 1) {
-          searchParam = "dynamic";
-          url = `/api/templates?q=category:dynamic&search=`;
-        } else if (category == 2) {
-          searchParam = "static";
-          url = `/api/templates?q=category:static&search=`;
-        }
-        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-          if (rst.length > 0) {
-            let temparr = rst;
-            dataSource.value = temparr;
-            
-          }
-            console.log('datasource:',dataSource)
-        });
+      if (dataSource.value.length == 0) {
+       chooseTemplateFunc()
       }
     }
   }

@@ -21,6 +21,9 @@ import { cloneDeep } from "lodash";
 import {useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl } from "@/appConfig";
+import VueForm from "@lljj/vue3-form-ant";
+import { getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
+import _ from "lodash";
 
 
 const { t } = useI18n()
@@ -31,7 +34,7 @@ let isGlobal = ref(true)
 const url = realMBTUrl;
 
 
-const activeKey = ref("2")
+const activeKey = ref("1")
 const isFormVisible = ref(false);
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
@@ -157,12 +160,12 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      anyOf: codegennames.value,
+      enum: codegennames.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      anyOf: codegennames.value,
+      enum: codegennames.value,
     },
   },
 });
@@ -178,35 +181,37 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         value.modelDefinition.hasOwnProperty("cellsinfo") &&
         value.hasOwnProperty('dataDefinition')
       ) {
-        // getAllTemplatesByCategory("codegen").then((rst: any) => {
-        //   if (rst && _.isArray(rst)) {
-        //     rst.forEach((rec: any) => {
-        //       codegennames.value.push({title:rec.name,const:rec._id});
-        //     });
-        //   }
-        // });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        rappid.graph.fromJSON(JSON.parse(tempstr));
+        // rappid.graph.fromJSON(JSON.parse(tempstr));
+        
+        // 判断取出当前mbt的原生内容
+        if (value['name'] && value['description'] && value['_id']) {
+          globalformData.value._id = value['_id']
+          globalformData.value.name = value['name']
+          globalformData.value.descriptions = value['description']
+          if (value.attributes && value.attributes.codegen_text && value.attributes.codegen_script) {
+          globalformData.value._id = value['_id']
+            globalformData.value.codegen_text = value.attributes.codegen_text
+            globalformData.value.codegen_script = value.attributes.codegen_script
+          }
+        }
 
         if (value.modelDefinition.hasOwnProperty("props")) {
           const map = new Map(
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           // cacheprops = map;
-
         }
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
-          rappid.paper.scale(value.modelDefinition.paperscale);
+          // rappid.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
 
         if (value.dataDefinition.meta) {
-
           isFormVisible.value = true;
           // cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
           metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-
         }
 
         if (value.dataDefinition.data) {
@@ -236,20 +241,14 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
         }
         localStorage.setItem("mbt_" + route.params._id + route.params.name , JSON.stringify(value))
-      }else{
-        // getAllTemplatesByCategory('codegen').then((rst:any)=>{
-        //   // console.log('codegen:',rst)
-        //   if(rst && _.isArray(rst)){
-        //     rst.forEach((rec:any)=>{              
-        //       codegennames.value.push(rec.name)
-        //       // globalschema.value.properties.codegen_text.enum.push(rec.name)
-        //       // globalschema.value.properties.codegen_script.enum.push(rec.name)
-        //     })
-
-        //   }
-
-        // })
-      }
+    }
+    getAllTemplatesByCategory('codegen').then((rst: any) => {
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push(rec.name)
+            })
+          }
+    })          
     }).catch((err)=>{console.log(err);
   })
    
@@ -409,18 +408,7 @@ const saveMbt = () => {
   >
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Meta" style="height:550px;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                  @submit-template="submitTemplate"
-                >
-                </metainfo>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Attributes" force-render style="height:550px;">
+              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
                 <a-card style="overflow-y: auto">
                   <div style="padding: 5px" class="attrconfig">
                     <VueForm
@@ -434,6 +422,18 @@ const saveMbt = () => {
                   </div>
                 </a-card>
               </a-tab-pane>
+              <a-tab-pane key="2" tab="Meta" style="height:550px;">
+                <metainfo
+                  :isFormVisible="isFormVisible"
+                  :metatemplatedetailtableData="metatemplatedetailtableData"
+                  :schema="tempschema"
+                  :metaformProps="metaformProps"
+                  :metatemplatecolumns="metatemplatecolumns"
+                  @submit-template="submitTemplate"
+                >
+                </metainfo>
+              </a-tab-pane>
+
               <a-tab-pane key="3" tab="Data Pool" style="height:550px;">
                 <a-radio-group
                   v-model:value="templateRadiovalue"
@@ -443,7 +443,7 @@ const saveMbt = () => {
                   <a-radio :value="2">Static Template</a-radio>
                   <a-radio :value="3">Input directly</a-radio>
                 </a-radio-group>
-
+              <KeepAlive>
                 <template-table
                   v-if="templateRadiovalue === 1"
                   :tableColumns="tableColumnsDynamic"
@@ -452,16 +452,18 @@ const saveMbt = () => {
                   @update="handleDynamicTable"
                   @clear="handleDynamicTableClear"
                 ></template-table>
+                </KeepAlive>
                 <!-- --********---{{tableData}}**
                   ++++{{tableColumns}}########                   -->
-                <template-table
+                <KeepAlive>
+                  <template-table
                   v-if="templateRadiovalue === 2"
                   :tableColumns="tableColumns"
                   :templateCategory="templateCategory"
                   :tableData="tableData"
                   @update="handleStaticTable"
                 ></template-table>
-
+                </KeepAlive>
                 <input-table
                   :tableColumns="tableColumnsDirectInput"
                   :tableData="tableDataDirectInput"
@@ -566,9 +568,6 @@ const saveMbt = () => {
 </a-modal>
 </template>
 
-<style lang="scss">
-
-</style>
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';

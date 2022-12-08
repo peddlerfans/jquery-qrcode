@@ -174,7 +174,7 @@ body {
 .joint-stencil .joint-element[data-type="devs.Atomic"] .outPorts text,
 .joint-stencil .joint-element[data-type="pn.Transition"] text,
 .joint-stencil .joint-element .joint-port text {
-    display: block;
+    display: none;
 }
 
 .joint-stencil .joint-layers .joint-cells-layer .rotatable circle {
@@ -216,7 +216,8 @@ body {
     box-sizing: border-box;
     background-color: #fff;
 }
-.choose-template{
+
+.choose-template {
     display: inline-block;
     position: absolute;
     right: 0;
