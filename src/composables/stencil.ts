@@ -48,7 +48,7 @@ export class StencilService {
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
       standard: { index: 1, label: 'Standard shapes' },
-      fsa: { index: 2, label: 'State machine' }
+      uml: { index: 2, label: 'State machine' }
     };
   }
   getStencilShapes() {
@@ -187,9 +187,9 @@ export class StencilService {
           }
         },
       ],
-      fsa: [
+      uml: [
         {
-          type: 'fsa.StartState',
+          type: 'uml.StartState',
           size: { width: 30, height: 30 },
           preserveAspectRatio: true,
           attrs: {
@@ -215,7 +215,7 @@ export class StencilService {
           }
         },
         {
-          type: 'fsa.EndState',
+          type: 'uml.EndState',
           size: { width: 30, height: 30 },
           preserveAspectRatio: true,
           attrs: {

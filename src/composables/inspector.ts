@@ -182,7 +182,7 @@ export class InspectorService {
 
         return <{ [index: string]: any }>{
 
-            'app.Link': {
+            'standard.Link': {
                 inputs: {
                     attrs: {
                         line: {
@@ -1474,7 +1474,7 @@ export class InspectorService {
                     }
                 }
             },
-            'fsa.StartState': {
+            'uml.StartState': {
                 inputs: {
                     attrs: {
                         circle: {
@@ -1495,7 +1495,7 @@ export class InspectorService {
                     }
                 }
             },
-            'fsa.EndState': {
+            'uml.EndState': {
                 inputs: {
                     attrs: {
                         '.outer': {

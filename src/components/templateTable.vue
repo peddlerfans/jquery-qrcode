@@ -111,7 +111,6 @@ let {
     fetchUrl: url,
   },
 });
-console.log(tableData , '123132123');
 // onBeforeMount(() => {
 //   if (tableData && templateCategory.value == 1) {
 

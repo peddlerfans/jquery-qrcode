@@ -222,8 +222,10 @@ export namespace app {
         };
 
         static connectionPoint(line: any, view: any, magnet: any, opt: any, type: any, linkView: any): joint.g.Point {
+            console.log(linkView);
+            
             const link = linkView.model;
-            const markerWidth = (link.get('type') === 'app.Link') ? link.getMarkerWidth(type) : 0;
+            const markerWidth = (link.get('type') === 'standard.Link') ? link.getMarkerWidth(type) : 0;
             opt = { offset: markerWidth, stroke: true };
             // connection point for UML shapes lies on the root group containing all the shapes components
             const modelType = view.model.get('type');
@@ -235,7 +237,7 @@ export namespace app {
 
         defaults() {
             return joint.util.defaultsDeep({
-                type: 'app.Link',
+                type: 'standard.Link',
                 router: {
                     name: 'normal'
                 },

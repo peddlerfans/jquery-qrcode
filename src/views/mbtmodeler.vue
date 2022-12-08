@@ -21,6 +21,9 @@ import { cloneDeep } from "lodash";
 import {useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl } from "@/appConfig";
+import VueForm from "@lljj/vue3-form-ant";
+import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
+import _ from "lodash";
 
 
 const { t } = useI18n()
@@ -31,7 +34,7 @@ let isGlobal = ref(true)
 const url = realMBTUrl;
 
 
-const activeKey = ref("2")
+const activeKey = ref("1")
 const isFormVisible = ref(false);
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
@@ -193,8 +196,18 @@ async function mbtquery(id?: any, reLoad?: boolean) {
             Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
           );
           // cacheprops = map;
-
         }
+
+        if(value['_id'] && value['name'] && value['description']){
+          globalformData.value._id = value['_id']
+          globalformData.value.descriptions = value['description']
+          globalformData.value.name = value['name']
+          if(value.attributes.codegen_text && value.attributes.codegen_script){
+            globalformData.value.codegen_text = value.attributes.codegen_text
+            globalformData.value.codegen_script = value.attributes.codegen_script
+          }
+        }
+
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(value.modelDefinition.paperscale);
         }
@@ -236,20 +249,15 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
         }
         localStorage.setItem("mbt_" + route.params._id + route.params.name , JSON.stringify(value))
-      }else{
-        // getAllTemplatesByCategory('codegen').then((rst:any)=>{
-        //   // console.log('codegen:',rst)
-        //   if(rst && _.isArray(rst)){
-        //     rst.forEach((rec:any)=>{              
-        //       codegennames.value.push(rec.name)
-        //       // globalschema.value.properties.codegen_text.enum.push(rec.name)
-        //       // globalschema.value.properties.codegen_script.enum.push(rec.name)
-        //     })
-
-        //   }
-
-        // })
       }
+        getAllTemplatesByCategory('codegen').then((rst:any)=>{
+          console.log('codegen:',rst)
+          if(rst && _.isArray(rst)){
+            rst.forEach((rec:any)=>{              
+              codegennames.value.push({title:rec.name , const: rec._id})
+            })
+          }
+        })
     }).catch((err)=>{console.log(err);
   })
    
@@ -343,11 +351,6 @@ const handleOk = () => {
 
 
 onMounted(()=>{  
-  if(route.params._id){
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
-  }
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  mbtquery(idstr)
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -357,6 +360,12 @@ onMounted(()=>{
     new KeyboardService()
   )
   rappid.startRappid()
+  if(route.params._id){
+    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
+  }
+  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+  mbtquery(idstr)
+  
   
 })
 const saveMbt = () => {
@@ -366,8 +375,7 @@ const saveMbt = () => {
 </script>
 
 <template>
-  <a-button ></a-button>
-  <main class="joint-app joint-theme-modern" ref="apps" v-show="!isGlobal">
+  <main class="joint-app joint-theme-modern" ref="apps">
         <div class="app-header">
           <div class="app-title">
             <a-button-group>
@@ -396,31 +404,21 @@ const saveMbt = () => {
 
         </div>
           <div class="app-body">
-            <div ref="stencils" class="stencil-container"></div>
+            <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
             <div class="inspector-container"/>
             <div class="navigator-container"/>
           </div>
+
   </main>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
-  @ok="handleOk"
-  :width="1000"
-  ok-text="save"
-  >
+      @ok="handleOk"
+      :width="1000"
+      ok-text="save"
+      >
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Meta" style="height:550px;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                  @submit-template="submitTemplate"
-                >
-                </metainfo>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Attributes" force-render style="height:550px;">
+              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
                 <a-card style="overflow-y: auto">
                   <div style="padding: 5px" class="attrconfig">
                     <VueForm
@@ -434,6 +432,18 @@ const saveMbt = () => {
                   </div>
                 </a-card>
               </a-tab-pane>
+              <a-tab-pane key="2" tab="Meta" style="height:550px;">
+                <metainfo
+                  :isFormVisible="isFormVisible"
+                  :metatemplatedetailtableData="metatemplatedetailtableData"
+                  :schema="tempschema"
+                  :metaformProps="metaformProps"
+                  :metatemplatecolumns="metatemplatecolumns"
+                  @submit-template="submitTemplate"
+                >
+                </metainfo>
+              </a-tab-pane>
+
               <a-tab-pane key="3" tab="Data Pool" style="height:550px;">
                 <a-radio-group
                   v-model:value="templateRadiovalue"
