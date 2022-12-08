@@ -72,10 +72,12 @@ import { json } from "node:stream/consumers";
 import {data2schema, getCustomOpts, getCustomProp, getSchemaData} from '@/views/componentTS/schema-constructor'
 import MbtModelerSchema from "@/views/mbt-modeler-schema.vue";
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
+import { MbtData } from "@/stores/modules/mbt-data";
 
 const { t } = useI18n();
 
 const store = MBTStore()
+const mbtDataStore = MbtData()
 
 let awUiSchema: any = {
 
@@ -1818,6 +1820,8 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
   if (mbtId) {
     res = mbtquery(mbtId);
     res.then((value: any) => {
+      mbtDataStore.setMetaData(value.dataDefinition.meta.detail, 'detail')
+      mbtDataStore.setMetaData(value.dataDefinition.meta._id, '_id')
       // debugger
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -2723,6 +2727,7 @@ const submitTemplate = (data: any) => {
   let metaObj = {};
   Object.assign(metaObj, { schema: data.schema });
   Object.assign(metaObj, { data: data.data });
+  Object.assign(metaObj, { detail: data.detail });
   cacheDataDefinition.meta = metaObj;
   // console.log('cachedDatadifinition:',cacheDataDefinition)
   onCloseDrawer();

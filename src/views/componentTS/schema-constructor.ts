@@ -1,3 +1,8 @@
+import { MbtData } from "@/stores/modules/mbt-data";
+import cloneDeep from "lodash-es/cloneDeep";
+
+const store = MbtData()
+
 export function data2schema (awSchema: any, selectList: any) {
     // 可选参数名
     let enumList: Array<any> = []
@@ -13,36 +18,13 @@ export function data2schema (awSchema: any, selectList: any) {
         let prop = awSchema.properties
         prop[a] = {
             "title": a,
-            "type": "object",
-            "properties": {
-                "inputType": {
-                    "type": "string",
-                    "enum": [
-                        "1",
-                        "2"
-                    ],
-                    "enumNames": [
-                        "选项输入",
-                        "自定义配置"
-                    ],
-                    "ui:width": "20%"
-                },
-                "value": {
-                    "type": "string",
-                    "enum": enumList.map((a: any) => a.value),
-                    "enumNames": enumList.map((a: any) => a.title),
-                    "ui:hidden": "{{parentFormData.inputType !== '1'}}",
-                    "ui:width": "80%"
-                },
-                "value1": {
-                    "type": "string",
-                    "message": {
-                        "pattern": "输入自定义参数"
-                    },
-                    "ui:hidden": "{{parentFormData.inputType !== '2'}}",
-                    "ui:width": "80%"
-                },
-            }
+            "type": "string",
+            "patternProperties": false,
+            "enum": enumList.map((a: any) => a.value),
+            "enumNames": enumList.map((a: any) => a.title),
+            "ui:options": {
+                mode: 'tags'
+            },
         }
     })
     return awSchema
@@ -101,20 +83,26 @@ export function getSchemaData (schema: any) {
     return data
 }
 
-export function string2Obj (schema: any, optionList: Array<any>) {
-    console.log(schema)
-    console.log(optionList)
+export function string2Obj (schema: any) {
     const prop = schema.properties
+    const optionList: Array<any> = store.getMetaData.detail
+    let temp: Array<string> = []
     for (let key in prop) {
         const tar = prop[key]
         if (tar.type === 'string') {
+            temp.push(key)
             prop[key] = {
                 title: tar.title,
                 type: 'string',
-                enum: getEnumList(tar.title, optionList)
+                "patternProperties": false,
+                "enum": getEnumList(tar.title, optionList),
+                "ui:options": {
+                    mode: 'tags'
+                },
             }
         }
     }
+    store.setMetaData(temp, 'customKeys')
     return schema
 }
 
@@ -122,4 +110,19 @@ function getEnumList (title: string, optionList: Array<any>) {
     let res = optionList.filter((a: any) => a.description === title)[0]
     if (res) return res.enum
     else return []
+}
+
+export function checkDataStructure(data: any) {
+    let temp = cloneDeep(data)
+    let customKeys = store.getMetaData.customKeys
+    for (let a of customKeys) {
+        if (!Array.isArray(temp[a]) || temp[a].length === 0) continue
+        if (temp[a].length > 1) temp[a] = data[a].pop()
+        const tar = temp[a][0]
+        temp[a] = {
+            type: store.checkMetaFormItemIsCustom(a, tar) ? 2 : 1,
+            value: tar
+        }
+    }
+    return temp
 }
