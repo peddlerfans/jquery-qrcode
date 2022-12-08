@@ -22,7 +22,7 @@ const props = defineProps<{
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
 };
-console.log(props.isFormVisible);
+console.log(props.isFormVisible ,props.metatemplatedetailtableData,props.metaformProps);
 
 let tempschema = ref(props.schema);
 let metaformProps = ref(props.metaformProps);
@@ -50,6 +50,8 @@ function submitTemplate() {
   let metaObj = {};
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
   Object.assign(metaObj, { data: toRaw(metatemplatedetailtableData.value) });
+  console.log(metatemplatedetailtableData.value);
+  
   emit("submitTemplate", metaObj);
 }
 
@@ -68,9 +70,9 @@ const onImportFromMetaTemplate = () => {
   if (tempschema && tempschema.value) tempschema.value.properties = {};
 };
 
-// const backFormMetaTemplate=()=>{
-//   isFormVisible.value=true
-// }
+const backFormMetaTemplate=()=>{
+  isFormVisible.value=true
+}
 
 </script>
 <template>
@@ -120,24 +122,24 @@ const onImportFromMetaTemplate = () => {
     </template>
   </a-table>
   </main>
-  <div class="awtable">
+
     <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
       Jump to Meta Template
     </a>
     <a-button type="primary" @click="submitTemplate">Save</a-button>
     <!-- <div> -->
       <a-button
-      style="margin-right: 10px"
+      style="position: absolute; top: -2.25rem; right: 0;"
       v-if="isFormVisible"
-      type="link"
+      type="primary"
       @click="onImportFromMetaTemplate"
       >Choose A Template</a-button>
-      <!-- <a-button
-      style="margin-right: 10px"
+      <a-button
+      style="position: absolute; top: -2.25rem; right: 0;"
       v-if="!isFormVisible"
       danger
       @click="backFormMetaTemplate"
-      >Back</a-button> -->
+      >Back</a-button>
     <!-- </div> -->
-  </div>
+
 </template>

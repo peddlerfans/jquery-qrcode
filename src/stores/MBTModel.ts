@@ -5,12 +5,11 @@ import { message } from "ant-design-vue"
 import { Stores } from "types/stores"
 import { EnumBody } from "@babel/types"
 import {realMBTUrl} from "@/appConfig";
-import { func } from "vue-types"
 
 interface IElementType {
-  type:string
+  aa:any
 }
-interface mbtmodel {
+interface mbtmodel extends  IElementType{
   attributes?:any
   dataDafinition?: any
   modelDefinition?:any
@@ -20,7 +19,7 @@ interface mbtmodel {
   description?:string
 }
 export const MBTStore = defineStore('mbtmodel', {
-  state:  () => {
+  state:  ():mbtmodel => {
     return {
       aa:{
         attributes:{},
@@ -36,14 +35,13 @@ export const MBTStore = defineStore('mbtmodel', {
   }
   ,
   getters:{
-    getAw:(state) => state
+    getDafintion:(state) => state.aa.dataDafinition
   },
   actions: {
     // 获取后台所有的mbt数据
     getMbtmodel(id:any){
       request.get(`${realMBTUrl}/${id}`).then((res)=>{
         this.aa=JSON.parse(JSON.stringify(res))
-        return res
       })
       
     },

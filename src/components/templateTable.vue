@@ -51,6 +51,9 @@ let templateCategory = ref(props.templateCategory);
 let url: string = "";
 let hasData = ref(false);
 let columnsOrigin = ref();
+
+const chosse = ref(false)
+
 columnsOrigin.value = [
   { title: "name", dataIndex: "name", key: "name", width: 40 },
   { title: "description", dataIndex: "description", key: "description", width: 120 },
@@ -111,36 +114,6 @@ let {
     fetchUrl: url,
   },
 });
-// onBeforeMount(() => {
-//   if (tableData && templateCategory.value == 1) {
-
-    
-//     hasData.value = true;
-//     // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
-    
-//     dataSource.value = tableData.value as never[];
-//     let cust_columns = tableColumns.value;
-//     columnsOrigin.value = cust_columns;
-//     // console.log("......columns:", columns);
-//     // console.log("......datasource:", dataSource);
-//   } else {
-    
-//     updateTable();
-    
-//   }
-// });
-
-// 判断后台是否有选中数据
-// const hasTableData = (data:any , category:number) => {
-//   if(data.length>0 && category >0){
-//     hasData.value = true;
-//     dataSource.value = data.value as never[];
-//     let cust_columns = tableColumns.value;
-//     columnsOrigin.value = cust_columns;
-//   }else{
-    
-//   }
-// }
 
 
 async function query(data?: any) {
@@ -308,7 +281,7 @@ const chooseTemplateFunc = () => {
 </script>
 
 <template>
-  <main style="height: 100%; overflow-x: hidden !important">
+  <main style="height: 100%; overflow-x: hidden !important;">
     <ATable
       ref="tableRef"
       class="table"
@@ -352,15 +325,15 @@ const chooseTemplateFunc = () => {
         </template>
       </template>
     </ATable>
-    <div>
-      <a-button style="margin-right: 5px" type="primary" @click="HandleSubmit()"
+
+      <!-- <a-button style="margin-right: 5px" type="primary" @click="HandleSubmit()"
         >Save</a-button
-      >
+      > -->
 
       <a-button
         v-if="chooseTemplate"
-        style="margin-right: 5px"
-        type="link"
+        style="position: absolute; top: -36px; right: 0;"
+        type="primary"
         @click="chooseTemplateFunc()"
         >Choose A Template</a-button
       >
@@ -368,7 +341,7 @@ const chooseTemplateFunc = () => {
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
       > -->
-    </div>
+
     <!-- </section> -->
   </main>
 </template>

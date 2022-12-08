@@ -24,8 +24,9 @@ import { realMBTUrl } from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
+import {MBTStore} from "@/stores/MBTModel"
 
-
+const store = MBTStore()
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -139,8 +140,6 @@ let globalformData = ref<Stores.mbtView>({
 });
 let codegennames: any = ref([]);
 const globalschema = ref({
-  // "title": "MBTConfiguration",
-  // "description": "Configuration for the MBT",
   type: "object",
   properties: {
     name: {
@@ -152,11 +151,6 @@ const globalschema = ref({
       title: "Description",
       type: "string",
     },
-    // tags: {
-    //   title: "Tags",
-    //   type: "string",
-    //   readOnly: true,
-    // },
     codegen_text: {
       title: "Output Text",
       type: "string",
@@ -272,13 +266,7 @@ const chooseTem = () => {
 const submitTemplate = (data: any) => {
 };
 
-// 保存attribute的函数
-const subAttributes=(data:any)=>{
-}
 
-// 取消选择的函数
-const onCloseDrawer = () => {
-};
 
 // 选择动态，静态模板的函数
 const handleRadioChange: any = (v: any) => {
@@ -349,8 +337,35 @@ const handleOk = () => {
   isGlobal.value = false
 }
 
+// 回显数据的地方
+function Datafintion(){
+  if(store.getDafintion && 
+      store.getDafintion.data && 
+      store.dataDafinition.data.tableData
+      ){
+    if(store.dataDafinition.data.dataFrom == 'dynamic'){
+      templateRadiovalue.value = 1;
+      templateCategory.value = 1;
+      tableDataDynamic.value = store.dataDafinition.data.tableData
+      tableColumnsDynamic.value = store.dataDafinition.data.tableColumns
+    }else if(store.dataDafinition.data.dataFrom == 'static'){
+      templateRadiovalue.value = 2;
+      templateCategory.value = 2;
+      tableData.value = store.dataDafinition.data.tableData
+      tableColumns.value = store.dataDafinition.data.tableColumns
+    }else{
+      templateRadiovalue.value = 3;
+      templateCategory.value = 3;
+      tableDataDirectInput.value  = store.dataDafinition.data.tableData
+      tableColumnsDirectInput.value = store.dataDafinition.data.tableColumns
+    }
+  }
+}
+
 
 onMounted(()=>{  
+  Datafintion()
+  
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -364,13 +379,14 @@ onMounted(()=>{
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
   }
   let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  mbtquery(idstr)
+  // mbtquery(idstr)
   
   
 })
 const saveMbt = () => {
     console.log(rappid.graph);
 }
+
 
 </script>
 
@@ -419,20 +435,17 @@ const saveMbt = () => {
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
               <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-                <a-card style="overflow-y: auto">
+      
                   <div style="padding: 5px" class="attrconfig">
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      @submit="subAttributes"
-                      @cancel="onCloseDrawer"
-                      v-if="isGlobal"
+                      
                     >
                     </VueForm>
                   </div>
-                </a-card>
               </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px;">
+              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
                 <metainfo
                   :isFormVisible="isFormVisible"
                   :metatemplatedetailtableData="metatemplatedetailtableData"
@@ -444,7 +457,7 @@ const saveMbt = () => {
                 </metainfo>
               </a-tab-pane>
 
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px;">
+              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
                 <a-radio-group
                   v-model:value="templateRadiovalue"
                   @change="handleRadioChange(templateRadiovalue)"
@@ -582,6 +595,10 @@ const saveMbt = () => {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+
+.infoPanel{
+  position: relative;
+}
 
 .card-container p {
   margin: 0;
