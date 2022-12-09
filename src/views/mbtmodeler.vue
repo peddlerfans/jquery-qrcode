@@ -175,13 +175,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         value.modelDefinition.hasOwnProperty("cellsinfo") &&
         value.hasOwnProperty('dataDefinition')
       ) {
-        // getAllTemplatesByCategory("codegen").then((rst: any) => {
-        //   if (rst && _.isArray(rst)) {
-        //     rst.forEach((rec: any) => {
-        //       codegennames.value.push({title:rec.name,const:rec._id});
-        //     });
-        //   }
-        // });
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         rappid.graph.fromJSON(JSON.parse(tempstr));
 
@@ -339,6 +332,17 @@ const handleOk = () => {
 
 // 回显数据的地方
 function Datafintion(){
+  console.log(store.mbtData);
+  
+  if(store.mbtData._id && store.mbtData.name && store.mbtData.description){
+    globalformData.value._id = store.mbtData._id
+    globalformData.value.descriptions = store.mbtData.description
+    globalformData.value.name = store.mbtData.name
+    if(store.attributes.codegen_text && store.attributes.codegen_script){
+      globalformData.value.codegen_text = store.attributes.codegen_text
+      globalformData.value.codegen_script = store.attributes.codegen_script
+    }
+  }
   if(store.getDafintion && 
       store.getDafintion.data && 
       store.dataDafinition.data.tableData
@@ -364,7 +368,9 @@ function Datafintion(){
 
 
 onMounted(()=>{  
-  Datafintion()
+  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+  store.getMbtmodel(idstr)
+  // Datafintion()
   
   rappid = new MbtServe(
     apps.value,
@@ -378,8 +384,8 @@ onMounted(()=>{
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
   }
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  // mbtquery(idstr)
+  
+  mbtquery(idstr)
   
   
 })

@@ -7,7 +7,7 @@ import { EnumBody } from "@babel/types"
 import {realMBTUrl} from "@/appConfig";
 
 interface IElementType {
-  aa:any
+  mbtData:any
 }
 interface mbtmodel extends  IElementType{
   attributes?:any
@@ -21,7 +21,7 @@ interface mbtmodel extends  IElementType{
 export const MBTStore = defineStore('mbtmodel', {
   state:  ():mbtmodel => {
     return {
-      aa:{
+      mbtData:{
         attributes:{},
         dataDafinition: {},
         modelDefinition:{},
@@ -35,13 +35,13 @@ export const MBTStore = defineStore('mbtmodel', {
   }
   ,
   getters:{
-    getDafintion:(state) => state.aa.dataDafinition
+    getDafintion:(state) => state.mbtData.dataDafinition
   },
   actions: {
     // 获取后台所有的mbt数据
     getMbtmodel(id:any){
       request.get(`${realMBTUrl}/${id}`).then((res)=>{
-        this.aa=JSON.parse(JSON.stringify(res))
+        this.mbtData=JSON.parse(JSON.stringify(res))
       })
       
     },
