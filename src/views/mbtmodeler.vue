@@ -70,9 +70,9 @@ import { storeToRefs } from "pinia";
 import { awStore } from "@/stores/aw";
 import { json } from "node:stream/consumers";
 import {data2schema, getCustomOpts, getCustomProp, getSchemaData} from '@/views/componentTS/schema-constructor'
-import MbtModelerSchema from "@/views/mbt-modeler-schema.vue";
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import { MbtData } from "@/stores/modules/mbt-data";
+import MbtModelerAwSchema from "@/views/mbt-modeler-aw-schema.vue";
 
 const { t } = useI18n();
 
@@ -1820,6 +1820,7 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
   if (mbtId) {
     res = mbtquery(mbtId);
     res.then((value: any) => {
+      mbtDataStore.setAllData(value)
       mbtDataStore.setMetaData(value.dataDefinition.meta.detail, 'detail')
       mbtDataStore.setMetaData(value.dataDefinition.meta._id, '_id')
       // debugger
@@ -2310,6 +2311,8 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           awschema.value = awProp.schema;
           // 表单自定义输入设置
           awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
+          mbtDataStore.setEditingPrimaryAw(awschema.value, 'schema')
+          mbtDataStore.setEditingPrimaryAw(awformdata.value, 'data')
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2474,6 +2477,8 @@ function showAWInfo(rowobj: any) {
     });
   }
   awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
+  mbtDataStore.setEditingPrimaryAw(awschema.value, 'schema')
+  mbtDataStore.setEditingPrimaryAw(awformdata.value, 'data')
 }
 
 function showAWExpectedInfo(rowobj: any) {
@@ -3168,313 +3173,310 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
           :style="{ position: 'absolute', overflow: 'hidden' }"
           @close="onCloseDrawer"
         >
-          <div class="infoPanel" ref="infoPanel" v-if="isAW">
-            <a-tabs v-model:activeKey="awActiveKey">
-              <a-tab-pane key="1" :tab="$t('MBTStore.primary')">
-                <a-row>
-                  <a-col span="18">
-                    <AForm
-                      v-if="!hasAWInfo && isAW"
-                      layout="inline"
-                      class="search_form"
-                      :model="formState"
-                      @finish="handleFinish"
-                      @finishFailed="handleFinishFailed"
-                    >
-                      <a-form-item :wrapper-col="{ span: 24 }">
-                        <a-input v-model:value="formState.search"
-                        :placeholder="$t('awModeler.inputSearch1')"
-                        @change="inputChange"
-                        ref="searchInput"
-                                >
+          <mbt-modeler-aw-schema
+              v-if="isAW"
+              :show="visible && isAW"
+          ></mbt-modeler-aw-schema>
+<!--          <div class="infoPanel" ref="infoPanel" v-if="isAW">-->
+<!--            <a-tabs v-model:activeKey="awActiveKey">-->
+<!--              <a-tab-pane key="1" :tab="$t('MBTStore.primary')">-->
+<!--                <a-row>-->
+<!--                  <a-col span="18">-->
+<!--                    <AForm-->
+<!--                      v-if="!hasAWInfo && isAW"-->
+<!--                      layout="inline"-->
+<!--                      class="search_form"-->
+<!--                      :model="formState"-->
+<!--                      @finish="handleFinish"-->
+<!--                      @finishFailed="handleFinishFailed"-->
+<!--                    >-->
+<!--                      <a-form-item :wrapper-col="{ span: 24 }">-->
+<!--                        <a-input v-model:value="formState.search"-->
+<!--                        :placeholder="$t('awModeler.inputSearch1')"-->
+<!--                        @change="inputChange"-->
+<!--                        ref="searchInput"-->
+<!--                                >-->
 
-                  </a-input>
-                  <a-cascader
-                      v-if="cascder"
-                      :load-data="loadData"
-                      v-model:value="selectOption"
-                      placeholder="Please select"
-                      :options="selectoptions"
-                      @change="onSelectAwChange"
-                  ></a-cascader>
-                      </a-form-item>
-                      <a-form-item :wrapper-col="{ span: 4 }">
-                        <a-button type="primary" html-type="submit">{{
-                          $t("common.searchText")
-                        }}</a-button>
-                      </a-form-item>
-                    </AForm>
-                  </a-col>
-                  <a-col>
-                    <span style="margin-right: 5px">
-                      <a-button
-                        v-if="!hasAWInfo"
-                        type="primary"
-                        @click="onCloseDrawer()"
-                        >{{ $t("common.closeText") }}</a-button
-                      >
-                    </span>
+<!--                  </a-input>-->
+<!--                  <a-cascader-->
+<!--                      v-if="cascder"-->
+<!--                      :load-data="loadData"-->
+<!--                      v-model:value="selectOption"-->
+<!--                      placeholder="Please select"-->
+<!--                      :options="selectoptions"-->
+<!--                      @change="onSelectAwChange"-->
+<!--                  ></a-cascader>-->
+<!--                      </a-form-item>-->
+<!--                      <a-form-item :wrapper-col="{ span: 4 }">-->
+<!--                        <a-button type="primary" html-type="submit">{{-->
+<!--                          $t("common.searchText")-->
+<!--                        }}</a-button>-->
+<!--                      </a-form-item>-->
+<!--                    </AForm>-->
+<!--                  </a-col>-->
+<!--                  <a-col>-->
+<!--                    <span style="margin-right: 5px">-->
+<!--                      <a-button-->
+<!--                        v-if="!hasAWInfo"-->
+<!--                        type="primary"-->
+<!--                        @click="onCloseDrawer()"-->
+<!--                        >{{ $t("common.closeText") }}</a-button-->
+<!--                      >-->
+<!--                    </span>-->
 
-                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{
-                      $t("common.back")
-                    }}</a-button>
-                  </a-col>
-                </a-row>
-                <div class="awtable" v-if="!hasAWInfo && isAW">
-                  <a-row>
-                    <a-table
-                      bordered
-                      row-key="record=>record._id"
-                      :columns="columns"
-                      :data-source="tableData"
-                      class="components-table-demo-nested"
-                      :pagination="pagination"
-                      :loading="tableLoad"
-                    >
-                      <template #headerCell="{ column }">
-                        <span>{{ $t(column.title) }}</span>
-                      </template>
-                      <template #bodyCell="{ column, text, record }">
-                        <template v-if="column.key === 'name'">
-                          <div v-if="record._highlight">
-                            <div v-if="record._highlight.name">
-                              <a-button type="link" @click="showAWInfo(record)">
-                                <p
-                                  v-for="item in record._highlight.name"
-                                  v-html="item"
-                                ></p>
-                              </a-button>
-                            </div>
-                            <div v-else>
-                              <a-button type="link" @click="showAWInfo(record)">
-                                {{ record.name }}</a-button
-                              >
-                            </div>
-                          </div>
-                          <div v-else>
-                            <a-button type="link" @click="showAWInfo(record)">
-                              {{ record.name }}</a-button
-                            >
-                          </div>
-                        </template>
-                        <template v-if="column.key === 'description'">
-                          <div v-if="record._highlight">
-                            <div v-if="record._highlight.description">
-                              <p
-                                v-for="item in record._highlight.description"
-                                v-html="item"
-                              ></p>
-                            </div>
-                            <div v-else>{{ record.description }}</div>
-                          </div>
-                          <div v-else>{{ record.description }}</div>
-                        </template>
-                        <template v-if="column.key === 'template'">
-                          <div v-if="record._highlight">
-                            <div v-if="record._highlight.template">
-                              <p
-                                v-for="item in record._highlight.template"
-                                v-html="item"
-                              ></p>
-                            </div>
-                            <div v-else>{{ record.template }}</div>
-                          </div>
-                          <div v-else>{{ record.template }}</div>
-                        </template>
+<!--                    <a-button danger v-if="!hasAWInfo" @click="onBack()">{{-->
+<!--                      $t("common.back")-->
+<!--                    }}</a-button>-->
+<!--                  </a-col>-->
+<!--                </a-row>-->
+<!--                <div class="awtable" v-if="!hasAWInfo && isAW">-->
+<!--                  <a-row>-->
+<!--                    <a-table-->
+<!--                      bordered-->
+<!--                      row-key="record=>record._id"-->
+<!--                      :columns="columns"-->
+<!--                      :data-source="tableData"-->
+<!--                      class="components-table-demo-nested"-->
+<!--                      :pagination="pagination"-->
+<!--                      :loading="tableLoad"-->
+<!--                    >-->
+<!--                      <template #headerCell="{ column }">-->
+<!--                        <span>{{ $t(column.title) }}</span>-->
+<!--                      </template>-->
+<!--                      <template #bodyCell="{ column, text, record }">-->
+<!--                        <template v-if="column.key === 'name'">-->
+<!--                          <div v-if="record._highlight">-->
+<!--                            <div v-if="record._highlight.name">-->
+<!--                              <a-button type="link" @click="showAWInfo(record)">-->
+<!--                                <p-->
+<!--                                  v-for="item in record._highlight.name"-->
+<!--                                  v-html="item"-->
+<!--                                ></p>-->
+<!--                              </a-button>-->
+<!--                            </div>-->
+<!--                            <div v-else>-->
+<!--                              <a-button type="link" @click="showAWInfo(record)">-->
+<!--                                {{ record.name }}</a-button-->
+<!--                              >-->
+<!--                            </div>-->
+<!--                          </div>-->
+<!--                          <div v-else>-->
+<!--                            <a-button type="link" @click="showAWInfo(record)">-->
+<!--                              {{ record.name }}</a-button-->
+<!--                            >-->
+<!--                          </div>-->
+<!--                        </template>-->
+<!--                        <template v-if="column.key === 'description'">-->
+<!--                          <div v-if="record._highlight">-->
+<!--                            <div v-if="record._highlight.description">-->
+<!--                              <p-->
+<!--                                v-for="item in record._highlight.description"-->
+<!--                                v-html="item"-->
+<!--                              ></p>-->
+<!--                            </div>-->
+<!--                            <div v-else>{{ record.description }}</div>-->
+<!--                          </div>-->
+<!--                          <div v-else>{{ record.description }}</div>-->
+<!--                        </template>-->
+<!--                        <template v-if="column.key === 'template'">-->
+<!--                          <div v-if="record._highlight">-->
+<!--                            <div v-if="record._highlight.template">-->
+<!--                              <p-->
+<!--                                v-for="item in record._highlight.template"-->
+<!--                                v-html="item"-->
+<!--                              ></p>-->
+<!--                            </div>-->
+<!--                            <div v-else>{{ record.template }}</div>-->
+<!--                          </div>-->
+<!--                          <div v-else>{{ record.template }}</div>-->
+<!--                        </template>-->
 
-                        <template v-if="column.key === 'tags'">
-                          <span>
-                            <a-tag
-                              v-for="tag in record.tags"
-                              :key="tag"
-                              :color="tag === 'test' ? 'volcano' : 'red'"
-                            >
-                              {{ tag.toUpperCase() }}
-                            </a-tag>
-                          </span>
-                        </template>
-                      </template>
-                    </a-table>
-                  </a-row>
-                </div>
-                <div style="margin: 5px; width: 80%" class="awconfig">
+<!--                        <template v-if="column.key === 'tags'">-->
+<!--                          <span>-->
+<!--                            <a-tag-->
+<!--                              v-for="tag in record.tags"-->
+<!--                              :key="tag"-->
+<!--                              :color="tag === 'test' ? 'volcano' : 'red'"-->
+<!--                            >-->
+<!--                              {{ tag.toUpperCase() }}-->
+<!--                            </a-tag>-->
+<!--                          </span>-->
+<!--                        </template>-->
+<!--                      </template>-->
+<!--                    </a-table>-->
+<!--                  </a-row>-->
+<!--                </div>-->
+<!--                <div style="margin: 5px; width: 80%" class="awconfig">-->
+<!--                  <VueForm-->
+<!--                    v-model="awformdata"-->
+<!--                    :formProps="awformProps"-->
+<!--                    :schema="awschema"-->
+<!--                    :uischema="awUiSchema"-->
+<!--                    v-if="isAW && hasAWInfo"-->
+<!--                  >-->
+<!--                    <div slot-scope="{ awformdata }" style="position: relative;">-->
+<!--                      &lt;!&ndash; <span style="position: absolute; left: 3rem;top: -27.5rem; "> &ndash;&gt;-->
+<!--                        &lt;!&ndash; <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> &ndash;&gt;-->
+<!--                        &lt;!&ndash; <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> &ndash;&gt;-->
+<!--                      &lt;!&ndash; </span> &ndash;&gt;-->
+<!--                      <span style="margin-right: 5px">-->
+<!--                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{-->
+<!--                          $t("common.submitText")-->
+<!--                        }}</a-button>-->
+<!--                      </span>-->
+<!--                      <span style="margin-right: 5px">-->
+<!--                        <a-button type="primary" @click="handlerCancel()">{{-->
+<!--                          $t("common.chooseAw")-->
+<!--                        }}</a-button>-->
+<!--                      </span>-->
+<!--                      <span style="margin-right: 5px">-->
+<!--                        <a-button danger @click="onExpectedAW()">{{-->
+<!--                        $t("common.chooseEx")-->
+<!--                      }}</a-button>-->
+<!--                      </span>-->
 
-<!--                  <mbt-modeler-schema-->
-<!--                      v-model="awformdata"-->
-<!--                      :formProps="awformProps"-->
-<!--                      :schema="awschema"-->
-<!--                      v-if="isAW && hasAWInfo"-->
-<!--                  ></mbt-modeler-schema>-->
-                  <VueForm
-                    v-model="awformdata"
-                    :formProps="awformProps"
-                    :schema="awschema"
-                    :uischema="awUiSchema"
-                    v-if="isAW && hasAWInfo"
-                  >
-                    <div slot-scope="{ awformdata }" style="position: relative;">
-                      <!-- <span style="position: absolute; left: 3rem;top: -27.5rem; "> -->
-                        <!-- <a danger :href="'/#/awupdate/'+awformdata._id+'/'+awformdata.name+'/'+awUpdate">updateAw</a> -->
-                        <!-- <a-button danger @click="routerAw(awformdata)" size="small">updateAw</a-button> -->
-                      <!-- </span> -->
-                      <span style="margin-right: 5px">
-                        <a-button type="primary" @click="awhandlerSubmit(awformdata,awschema)">{{
-                          $t("common.submitText")
-                        }}</a-button>
-                      </span>
-                      <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerCancel()">{{
-                          $t("common.chooseAw")
-                        }}</a-button>
-                      </span>
-                      <span style="margin-right: 5px">
-                        <a-button danger @click="onExpectedAW()">{{
-                        $t("common.chooseEx")
-                      }}</a-button>
-                      </span>
+<!--                        <a-button danger @click="routerAw(awformdata)">-->
+<!--                          {{$t('common.updateAw')}}-->
+<!--                        </a-button>-->
 
-                        <a-button danger @click="routerAw(awformdata)">
-                          {{$t('common.updateAw')}}
-                        </a-button>
+<!--                    </div>-->
+<!--                  </VueForm>-->
+<!--                </div>-->
+<!--              </a-tab-pane>-->
 
-                    </div>
-                  </VueForm>
-                </div>
-              </a-tab-pane>
+<!--              <a-tab-pane key="2" :tab="$t('MBTStore.expected')" :disabled="isDisabled">-->
+<!--                <AForm-->
+<!--                  v-if="!hasAWExpectedInfo && isAW"-->
+<!--                  layout="inline"-->
+<!--                  class="search_form"-->
+<!--                  :model="formStateExpected"-->
+<!--                  @finish="handleFinishExpected"-->
+<!--                  @finishFailed="handleFinishFailed"-->
+<!--                >-->
+<!--                  <a-form-item :wrapper-col="{ span: 24 }">-->
+<!--                    <a-input v-model:value="formStateExpected.search" placeholder="aw">-->
+<!--                      <template #prefix>-->
+<!--                        <search-outlined />-->
+<!--                      </template>-->
+<!--                    </a-input>-->
+<!--                  </a-form-item>-->
+<!--                  <a-form-item :wrapper-col="{ span: 4 }">-->
+<!--                    <a-button type="primary" html-type="submit">search</a-button>-->
+<!--                  </a-form-item>-->
+<!--                </AForm>-->
 
-              <a-tab-pane key="2" :tab="$t('MBTStore.expected')" :disabled="isDisabled">
-                <AForm
-                  v-if="!hasAWExpectedInfo && isAW"
-                  layout="inline"
-                  class="search_form"
-                  :model="formStateExpected"
-                  @finish="handleFinishExpected"
-                  @finishFailed="handleFinishFailed"
-                >
-                  <a-form-item :wrapper-col="{ span: 24 }">
-                    <a-input v-model:value="formStateExpected.search" placeholder="aw">
-                      <template #prefix>
-                        <search-outlined />
-                      </template>
-                    </a-input>
-                  </a-form-item>
-                  <a-form-item :wrapper-col="{ span: 4 }">
-                    <a-button type="primary" html-type="submit">search</a-button>
-                  </a-form-item>
-                </AForm>
+<!--                <div v-if="!hasAWExpectedInfo && isAW">-->
+<!--                  <a-table-->
+<!--                    bordered-->
+<!--                    row-key="record=>record._id"-->
+<!--                    :columns="columns"-->
+<!--                    :data-source="tableDataExpected"-->
+<!--                    class="components-table-demo-nested"-->
+<!--                    :pagination="paginationExpected"-->
+<!--                  >-->
+<!--                    <template #headerCell="{ column }">-->
+<!--                      <span>{{ $t(column.title) }}</span>-->
+<!--                    </template>-->
+<!--                    <template #bodyCell="{ column, text, record }">-->
+<!--                      <template v-if="column.key === 'name'">-->
+<!--                        <div v-if="record._highlight">-->
+<!--                          <div v-if="record._highlight.name">-->
+<!--                            <a-button type="link" @click="showAWExpectedInfo(record)">-->
+<!--                              <p v-for="item in record._highlight.name" v-html="item"></p>-->
+<!--                            </a-button>-->
+<!--                          </div>-->
+<!--                          <div v-else>-->
+<!--                            <a-button type="link" @click="showAWExpectedInfo(record)">-->
+<!--                              {{ record.name }}</a-button-->
+<!--                            >-->
+<!--                          </div>-->
+<!--                        </div>-->
+<!--                        <div v-else>-->
+<!--                          <a-button type="link" @click="showAWExpectedInfo(record)">-->
+<!--                            {{ record.name }}</a-button-->
+<!--                          >-->
+<!--                        </div>-->
+<!--                      </template>-->
+<!--                      <template v-if="column.key === 'description'">-->
+<!--                        <div v-if="record._highlight">-->
+<!--                          <div v-if="record._highlight.description">-->
+<!--                            <p-->
+<!--                              v-for="item in record._highlight.description"-->
+<!--                              v-html="item"-->
+<!--                            ></p>-->
+<!--                          </div>-->
+<!--                          <div v-else>{{ record.description }}</div>-->
+<!--                        </div>-->
+<!--                        <div v-else>{{ record.description }}</div>-->
+<!--                      </template>-->
+<!--                      <template v-if="column.key === 'template'">-->
+<!--                        <div v-if="record._highlight">-->
+<!--                          <div v-if="record._highlight.template">-->
+<!--                            <p-->
+<!--                              v-for="item in record._highlight.template"-->
+<!--                              v-html="item"-->
+<!--                            ></p>-->
+<!--                          </div>-->
+<!--                          <div v-else>{{ record.template }}</div>-->
+<!--                        </div>-->
+<!--                        <div v-else>{{ record.template }}</div>-->
+<!--                      </template>-->
+<!--                      <template v-if="column.key === 'tags'">-->
+<!--                        <span>-->
+<!--                          <a-tag-->
+<!--                            v-for="tag in record.tags"-->
+<!--                            :key="tag"-->
+<!--                            :color="tag === 'test' ? 'volcano' : 'red'"-->
+<!--                          >-->
+<!--                            {{ tag.toUpperCase() }}-->
+<!--                          </a-tag>-->
+<!--                        </span>-->
+<!--                      </template>-->
+<!--                    </template>-->
+<!--                  </a-table>-->
 
-                <div v-if="!hasAWExpectedInfo && isAW">
-                  <a-table
-                    bordered
-                    row-key="record=>record._id"
-                    :columns="columns"
-                    :data-source="tableDataExpected"
-                    class="components-table-demo-nested"
-                    :pagination="paginationExpected"
-                  >
-                    <template #headerCell="{ column }">
-                      <span>{{ $t(column.title) }}</span>
-                    </template>
-                    <template #bodyCell="{ column, text, record }">
-                      <template v-if="column.key === 'name'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.name">
-                            <a-button type="link" @click="showAWExpectedInfo(record)">
-                              <p v-for="item in record._highlight.name" v-html="item"></p>
-                            </a-button>
-                          </div>
-                          <div v-else>
-                            <a-button type="link" @click="showAWExpectedInfo(record)">
-                              {{ record.name }}</a-button
-                            >
-                          </div>
-                        </div>
-                        <div v-else>
-                          <a-button type="link" @click="showAWExpectedInfo(record)">
-                            {{ record.name }}</a-button
-                          >
-                        </div>
-                      </template>
-                      <template v-if="column.key === 'description'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.description">
-                            <p
-                              v-for="item in record._highlight.description"
-                              v-html="item"
-                            ></p>
-                          </div>
-                          <div v-else>{{ record.description }}</div>
-                        </div>
-                        <div v-else>{{ record.description }}</div>
-                      </template>
-                      <template v-if="column.key === 'template'">
-                        <div v-if="record._highlight">
-                          <div v-if="record._highlight.template">
-                            <p
-                              v-for="item in record._highlight.template"
-                              v-html="item"
-                            ></p>
-                          </div>
-                          <div v-else>{{ record.template }}</div>
-                        </div>
-                        <div v-else>{{ record.template }}</div>
-                      </template>
-                      <template v-if="column.key === 'tags'">
-                        <span>
-                          <a-tag
-                            v-for="tag in record.tags"
-                            :key="tag"
-                            :color="tag === 'test' ? 'volcano' : 'red'"
-                          >
-                            {{ tag.toUpperCase() }}
-                          </a-tag>
-                        </span>
-                      </template>
-                    </template>
-                  </a-table>
-
-                  <a-button
-                    v-if="isAW && hasAWExpectedInfo"
-                    type="primary"
-                    @click="onAWExpectedBack()"
-                    >Back
-                  </a-button>
-                </div>
-                <div style="margin: 5px; width: 80%">
-                  <VueForm
-                    v-model="awformdataExpected"
-                    :schema="awschemaExpected"
-                    :formProps="awformProps"
-                    v-if="isAW && hasAWExpectedInfo"
-                  >
-                    <div slot-scope="{ awformdataExpected }">
-                      <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerEditExpected()">{{
-                          $t("common.chooseEx")
-                        }}</a-button>
-                      </span>
-                      <span style="margin-right: 5px">
-                        <a-button type="primary" @click="handlerConfirmExpected(awformdataExpected,awschemaExpected)"
-                          >{{$t("common.submitText")}}</a-button
-                        >
-                      </span>
-                      <span style="margin-left: 5px">
-                        <a-popconfirm
-                          title="Are you sure clear this form?"
-                          :ok-text="$t('common.yesText')"
-                          :cancel-text="$t('common.noText')"
-                          @confirm="handlerClearExpected()"
-                          @cancel="cancel"
-                        >
-                          <a-button danger>{{$t('common.clear')}}</a-button>
-                        </a-popconfirm>
-                      </span>
-                    </div>
-                  </VueForm>
-                </div>
-              </a-tab-pane>
-            </a-tabs>
-          </div>
+<!--                  <a-button-->
+<!--                    v-if="isAW && hasAWExpectedInfo"-->
+<!--                    type="primary"-->
+<!--                    @click="onAWExpectedBack()"-->
+<!--                    >Back-->
+<!--                  </a-button>-->
+<!--                </div>-->
+<!--                <div style="margin: 5px; width: 80%">-->
+<!--                  <VueForm-->
+<!--                    v-model="awformdataExpected"-->
+<!--                    :schema="awschemaExpected"-->
+<!--                    :formProps="awformProps"-->
+<!--                    v-if="isAW && hasAWExpectedInfo"-->
+<!--                  >-->
+<!--                    <div slot-scope="{ awformdataExpected }">-->
+<!--                      <span style="margin-right: 5px">-->
+<!--                        <a-button type="primary" @click="handlerEditExpected()">{{-->
+<!--                          $t("common.chooseEx")-->
+<!--                        }}</a-button>-->
+<!--                      </span>-->
+<!--                      <span style="margin-right: 5px">-->
+<!--                        <a-button type="primary" @click="handlerConfirmExpected(awformdataExpected,awschemaExpected)"-->
+<!--                          >{{$t("common.submitText")}}</a-button-->
+<!--                        >-->
+<!--                      </span>-->
+<!--                      <span style="margin-left: 5px">-->
+<!--                        <a-popconfirm-->
+<!--                          title="Are you sure clear this form?"-->
+<!--                          :ok-text="$t('common.yesText')"-->
+<!--                          :cancel-text="$t('common.noText')"-->
+<!--                          @confirm="handlerClearExpected()"-->
+<!--                          @cancel="cancel"-->
+<!--                        >-->
+<!--                          <a-button danger>{{$t('common.clear')}}</a-button>-->
+<!--                        </a-popconfirm>-->
+<!--                      </span>-->
+<!--                    </div>-->
+<!--                  </VueForm>-->
+<!--                </div>-->
+<!--              </a-tab-pane>-->
+<!--            </a-tabs>-->
+<!--          </div>-->
 
           <!-- link panel -->
         

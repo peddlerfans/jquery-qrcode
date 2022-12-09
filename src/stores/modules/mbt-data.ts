@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
 
 interface MbtData {
-    editingPrimaryAw: any,
-    editingExpectedAw: any,
+    allData: any,
+    editingPrimaryAw: {
+        data: any,
+        schema: any
+    },
+    editingExpectedAw: {
+        data: any,
+        schema: any
+    },
     mbtMeta: {
         detail: any,
         customKeys: Array<string>
@@ -12,24 +19,41 @@ interface MbtData {
 export const MbtData = defineStore({
     id: 'MbtData',
     state: (): MbtData => ({
-        editingPrimaryAw: null,
-        editingExpectedAw: null,
+        allData: null,
+        editingPrimaryAw: {
+            data: null,
+            schema: null
+        },
+        editingExpectedAw: {
+            data: null,
+            schema: null
+        },
         mbtMeta: {
             detail: null,
             customKeys: []
         }
     }),
     getters: {
-        getMetaData: state => state.mbtMeta
+        getAllData: state => state.allData,
+        getMetaData: state => state.mbtMeta,
+        getPrimaryAw: state => state.editingPrimaryAw,
+        getDataPoolTableColumns: state => state.allData?.dataDefinition?.data?.tableColumns || []
     },
     actions: {
-        setEditingPrimaryAw(data: any) {
-            this.editingPrimaryAw = data
+        setAllData(data: any) {
+            this.allData = data
+        },
+        setEditingPrimaryAw(data: any, key?: string) {
+            if (!key) this.editingPrimaryAw = data
+            else {
+                // @ts-ignore
+                this.editingPrimaryAw[key] = data
+            }
         },
         setEditingExpectedAw(data: any) {
             this.editingExpectedAw = data
         },
-        setMetaData(data: any, key: string) {
+        setMetaData(data: any, key?: string) {
             if (!key) this.mbtMeta = data
             else {
                 // @ts-ignore

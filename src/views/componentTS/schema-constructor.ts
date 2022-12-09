@@ -119,6 +119,7 @@ export function checkDataStructure(data: any) {
         if (!Array.isArray(temp[a]) || temp[a].length === 0) continue
         if (temp[a].length > 1) temp[a] = data[a].pop()
         const tar = temp[a][0]
+        temp[a] = tar
         temp[a] = {
             type: store.checkMetaFormItemIsCustom(a, tar) ? 2 : 1,
             value: tar
