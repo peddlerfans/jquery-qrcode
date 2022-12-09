@@ -111,6 +111,28 @@ let {
     fetchUrl: url,
   },
 });
+// console.log(tableData , '123132123');
+// 进入组件第一次请求回所有数据
+let staticData: Array<any>
+let staticColumn: Array<any>
+const queryStatic = () => {
+          getAllTemplatesByCategory('static').then((rst: any[]) => {
+          if (rst.length > 0) {
+            staticData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
+let dynamicData: Array<any>
+let dynamicColumn: Array<any>
+const queryDynamic = () => {
+  getAllTemplatesByCategory('dynamic').then((rst: any[]) => {
+          if (rst.length > 0) {
+            dynamicData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
 
 
 async function query(data?: any) {

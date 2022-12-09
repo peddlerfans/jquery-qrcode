@@ -201,6 +201,7 @@ export class StencilService {
             circle: {
               width: 30,
               height: 30,
+              r: 10,
               fill: '#61549c',
               'stroke-width': 0
             },
@@ -226,10 +227,12 @@ export class StencilService {
             },
             '.inner': {
               fill: '#6a6c8a',
+              r: 6,
               stroke: 'transparent'
             },
             '.outer': {
               fill: 'transparent',
+              r: 10,
               stroke: '#61549c',
               'stroke-width': 2,
               'stroke-dasharray': '0'

@@ -177,7 +177,7 @@ body {
     display: none;
 }
 
-.joint-stencil .joint-layers .joint-cells-layer .rotatable circle {
+/* .joint-stencil .joint-layers .joint-cells-layer .rotatable circle {
     r: 10;
     fill: rgb(97, 84, 156);
     stroke-width: 0;
@@ -199,7 +199,7 @@ body {
     r: 6;
     fill: rgb(97, 84, 156);
     stroke-width: 0;
-}
+} */
 
 .joint-stencil .joint-element.joint-type-uml rect,
 .joint-stencil .joint-element.joint-type-uml path {
