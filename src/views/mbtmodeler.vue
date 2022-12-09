@@ -15,7 +15,7 @@ import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
-import { computed, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
+import { computed, onBeforeMount, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep } from "lodash";
 import {useRoute} from 'vue-router'
@@ -25,8 +25,11 @@ import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import {MBTStore} from "@/stores/MBTModel"
+import { storeToRefs } from "pinia";
+import { watch } from "fs";
 
 const store = MBTStore()
+// let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -132,11 +135,11 @@ const metatemplatecolumns = reactive<Object[]>([
 
 // attributes的数据
 let globalformData = ref<Stores.mbtView>({
-  _id: "",
-  name: "",
-  descriptions: "",
-  codegen_text: "",
-  codegen_script: "",
+  _id: '',
+  name: '',
+  description: '',
+  codegen_text: '',
+  codegen_script: '',
 });
 let codegennames: any = ref([]);
 const globalschema = ref({
@@ -147,7 +150,7 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
-    descriptions: {
+    description: {
       title: "Description",
       type: "string",
     },
@@ -187,7 +190,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
         if(value['_id'] && value['name'] && value['description']){
           globalformData.value._id = value['_id']
-          globalformData.value.descriptions = value['description']
+          globalformData.value.description = value['description']
           globalformData.value.name = value['name']
           if(value.attributes.codegen_text && value.attributes.codegen_script){
             globalformData.value.codegen_text = value.attributes.codegen_text
@@ -332,45 +335,52 @@ const handleOk = () => {
 }
 
 // 回显数据的地方
-function Datafintion(){
+// function Datafintion(){
     
   
-  if(store.mbtData._id && store.mbtData.name && store.mbtData.description){
-    globalformData.value._id = store.mbtData._id
-    globalformData.value.descriptions = store.mbtData.description
-    globalformData.value.name = store.mbtData.name
-    if(store.mbtData.attributes.codegen_text && store.mbtData.attributes.codegen_script){
-      globalformData.value.codegen_text = store.mbtData.attributes.codegen_text
-      globalformData.value.codegen_script = store.mbtData.attributes.codegen_script
-    }
-  }
-  if(store.getDafintion && 
-      store.getDafintion.data && 
-      store.dataDafinition.data.tableData
-      ){
-    if(store.dataDafinition.data.dataFrom == 'dynamic'){
-      templateRadiovalue.value = 1;
-      templateCategory.value = 1;
-      tableDataDynamic.value = store.dataDafinition.data.tableData
-      tableColumnsDynamic.value = store.dataDafinition.data.tableColumns
-    }else if(store.dataDafinition.data.dataFrom == 'static'){
-      templateRadiovalue.value = 2;
-      templateCategory.value = 2;
-      tableData.value = store.dataDafinition.data.tableData
-      tableColumns.value = store.dataDafinition.data.tableColumns
-    }else{
-      templateRadiovalue.value = 3;
-      templateCategory.value = 3;
-      tableDataDirectInput.value  = store.dataDafinition.data.tableData
-      tableColumnsDirectInput.value = store.dataDafinition.data.tableColumns
-    }
-  }
-}
+//   if(store.mbtData._id && store.mbtData.name && store.mbtData.descriptions){
+//     globalformData.value._id = store.mbtData._id
+//     globalformData.value.descriptions = store.mbtData.descriptions
+//     globalformData.value.name = store.mbtData.name
+//     if(store.mbtData.attributes.codegen_text && store.mbtData.attributes.codegen_script){
+//       globalformData.value.codegen_text = store.mbtData.attributes.codegen_text
+//       globalformData.value.codegen_script = store.mbtData.attributes.codegen_script
+//     }
+//   }
+//   if(store.getDafintion && 
+//       store.getDafintion.data && 
+//       store.mbtData.dataDafinition.data.tableData
+//       ){
+//     if(store.mbtData.dataDafinition.data.dataFrom == 'dynamic'){
+//       templateRadiovalue.value = 1;
+//       templateCategory.value = 1;
+//       tableDataDynamic.value = store.mbtData.dataDafinition.data.tableData
+//       tableColumnsDynamic.value = store.mbtData.dataDafinition.data.tableColumns
+//     }else if(store.mbtData.dataDafinition.data.dataFrom == 'static'){
+//       templateRadiovalue.value = 2;
+//       templateCategory.value = 2;
+//       tableData.value = store.mbtData.dataDafinition.data.tableData
+//       tableColumns.value = store.mbtData.dataDafinition.data.tableColumns
+//     }else{
+//       templateRadiovalue.value = 3;
+//       templateCategory.value = 3;
+//       tableDataDirectInput.value  = store.mbtData.dataDafinition.data.tableData
+//       tableColumnsDirectInput.value = store.mbtData.dataDafinition.data.tableColumns
+//     }
+//   }
+// }
+onMounted(async()=>{  
+  
 
-
-onMounted(()=>{  
   let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  store.getMbtmodel(idstr)
+  await store.getMbtmodel(idstr)
+  console.log(store.changeTemplate);
+  if(store.changeTemplate?._id){
+    globalformData.value = store.changeTemplate
+  }
+  console.log(globalformData.value);
+  
+  
   // Datafintion()
   
   rappid = new MbtServe(
@@ -447,7 +457,7 @@ const saveMbt = () => {
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      
+                      :formFooter="{show:false}"
                     >
                     </VueForm>
                   </div>

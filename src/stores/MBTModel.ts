@@ -8,64 +8,89 @@ import {realMBTUrl} from "@/appConfig";
 
 interface IElementType {
   mbtData:mbtmodel
+  attributesTem:templateattr
 }
 interface templateattr {
   _id:string
   name:string
-  descriptions:string
+  description:string
   condegen_text:string
   condegen_script:string
 }
+interface codegen{
+  codegen_text:string
+  codegen_script:string
+}
+
 interface mbtmodel{
-  attributes?:any
+  attributes:codegen
   dataDafinition?: any
   modelDefinition?:any
-  name?:string
-  _id?:string
+  name:string
+  _id:string
   tags?:Array<string>
-  description?:string,
-  attributesTem:templateattr
+  description:string,
 }
 export const MBTStore = defineStore('mbtmodel', {
   state:  ():IElementType => {
     return {
       mbtData:{
-        attributes:{},
+        attributes:{
+          codegen_script:'',
+          codegen_text:''
+        },
         dataDafinition: {},
         modelDefinition:{},
         name:"",
         _id:"",
         tags:[],
         description:"",
-        attributesTem:{
-          _id:"",
-          name:'',
-          descriptions:'',
-          condegen_script:'',
-          condegen_text:''
-        }
+      },
+      attributesTem:{
+        _id:'',
+        name:'',
+        description:'',
+        condegen_script:'',
+        condegen_text:''
       }
-      
     }
     
   }
   ,
   getters:{
     getDafintion:(state) => state.mbtData.dataDafinition ,
-    // changeTemplate(state){
-    //   if(state.mbtData._id){
-    //     state.mbtData.attributesTem._id = state.mbtData._id
-    //   }
+    changeTemplate(state){
+    //  return state.mbtData._id
+
+      if(state.mbtData._id.length >0 ){
+        // return state.mbtData
+        
+        state.attributesTem._id = state.mbtData._id
+        state.attributesTem.name = state.mbtData.name
+        state.attributesTem.description = state.mbtData.description
+      if(state.mbtData.attributes.codegen_script.length > 0){
+        state.attributesTem.condegen_script = state.mbtData.attributes.codegen_script
+        state.attributesTem.condegen_text = state.mbtData.attributes.codegen_text
+      }
+      return state.attributesTem;
       
-    // }
+      }else{
+        if(state.attributesTem._id.length > 0){
+          return state.attributesTem
+        }
+      }
+      
+    }
   },
   actions: {
     // 获取后台所有的mbt数据
-    getMbtmodel(id:any){
-      request.get(`${realMBTUrl}/${id}`).then((res)=>{
-        this.mbtData=JSON.parse(JSON.stringify(res))
-      })
-      
+    async getMbtmodel(id:any){
+      let res= await request.get(`${realMBTUrl}/${id}`)
+        this.mbtData={...JSON.parse(JSON.stringify(res))}
+        if(this.mbtData._id.length == 0 && res.attributesTem._id.lenght > 0){
+          this.attributesTem = {...res.attributesTem}
+        }
+        
     },
     // 添加和修改link的函数
     

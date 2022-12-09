@@ -218,6 +218,8 @@ class MbtServe {
     }
 
     initializePaper() {
+        console.log(joint);
+        
         const graph = this.graph = new joint.dia.Graph({}, {
             cellNamespace: appShapes
         });
@@ -284,6 +286,8 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
+            
+            
             this.selection.collection.reset([elementView.model]);
         });
     }
