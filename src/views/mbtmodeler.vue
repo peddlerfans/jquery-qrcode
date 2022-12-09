@@ -22,10 +22,11 @@ import {useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl } from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
-import { getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
+import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
+import {MBTStore} from "@/stores/MBTModel"
 
-
+const store = MBTStore()
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -139,8 +140,6 @@ let globalformData = ref<Stores.mbtView>({
 });
 let codegennames: any = ref([]);
 const globalschema = ref({
-  // "title": "MBTConfiguration",
-  // "description": "Configuration for the MBT",
   type: "object",
   properties: {
     name: {
@@ -152,20 +151,15 @@ const globalschema = ref({
       title: "Description",
       type: "string",
     },
-    // tags: {
-    //   title: "Tags",
-    //   type: "string",
-    //   readOnly: true,
-    // },
     codegen_text: {
       title: "Output Text",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      enum: codegennames.value,
+      anyOf: codegennames.value,
     },
   },
 });
@@ -173,8 +167,17 @@ const globalschema = ref({
 // 请求后台的数据
 async function mbtquery(id?: any, reLoad?: boolean) {
   let rst;
-  let dataFrom:any
+  let dataFrom: any
+  getAllTemplatesByCategory('codegen').then((rst:any)=>{
+  if(rst && _.isArray(rst)){
+    rst.forEach((rec:any)=>{              
+      codegennames.value.push({title:rec.name , const: rec._id})
+    })
+  }
+}).catch((err)=>{console.log(err);
+})
   rst = await request.get(url + '/' + id).then((value: any) => {
+
       // debugger
       if (
         value.hasOwnProperty("modelDefinition") &&
@@ -182,7 +185,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
         value.hasOwnProperty('dataDefinition')
       ) {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        // rappid.graph.fromJSON(JSON.parse(tempstr));
+        rappid.graph.fromJSON(JSON.parse(tempstr));
         
         // 判断取出当前mbt的原生内容
         if (value['name'] && value['description'] && value['_id']) {
@@ -202,8 +205,19 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           );
           // cacheprops = map;
         }
+
+        if(value['_id'] && value['name'] && value['description']){
+          globalformData.value._id = value['_id']
+          globalformData.value.descriptions = value['description']
+          globalformData.value.name = value['name']
+          if(value.attributes.codegen_text && value.attributes.codegen_script){
+            globalformData.value.codegen_text = value.attributes.codegen_text
+            globalformData.value.codegen_script = value.attributes.codegen_script
+          }
+        }
+
         if (value.modelDefinition.hasOwnProperty("paperscale")) {
-          // rappid.paper.scale(value.modelDefinition.paperscale);
+          rappid.paper.scale(value.modelDefinition.paperscale);
         }
         //dataDefinition includes meta, datapool and resources
 
@@ -241,14 +255,8 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           }
         }
         localStorage.setItem("mbt_" + route.params._id + route.params.name , JSON.stringify(value))
-    }
-    getAllTemplatesByCategory('codegen').then((rst: any) => {
-          if(rst && _.isArray(rst)){
-            rst.forEach((rec:any)=>{              
-              codegennames.value.push(rec.name)
-            })
-          }
-    })          
+      }
+        
     }).catch((err)=>{console.log(err);
   })
    
@@ -263,13 +271,7 @@ const chooseTem = () => {
 const submitTemplate = (data: any) => {
 };
 
-// 保存attribute的函数
-const subAttributes=(data:any)=>{
-}
 
-// 取消选择的函数
-const onCloseDrawer = () => {
-};
 
 // 选择动态，静态模板的函数
 const handleRadioChange: any = (v: any) => {
@@ -340,13 +342,35 @@ const handleOk = () => {
   isGlobal.value = false
 }
 
+// 回显数据的地方
+function Datafintion(){
+  if(store.getDafintion && 
+      store.getDafintion.data && 
+      store.dataDafinition.data.tableData
+      ){
+    if(store.dataDafinition.data.dataFrom == 'dynamic'){
+      templateRadiovalue.value = 1;
+      templateCategory.value = 1;
+      tableDataDynamic.value = store.dataDafinition.data.tableData
+      tableColumnsDynamic.value = store.dataDafinition.data.tableColumns
+    }else if(store.dataDafinition.data.dataFrom == 'static'){
+      templateRadiovalue.value = 2;
+      templateCategory.value = 2;
+      tableData.value = store.dataDafinition.data.tableData
+      tableColumns.value = store.dataDafinition.data.tableColumns
+    }else{
+      templateRadiovalue.value = 3;
+      templateCategory.value = 3;
+      tableDataDirectInput.value  = store.dataDafinition.data.tableData
+      tableColumnsDirectInput.value = store.dataDafinition.data.tableColumns
+    }
+  }
+}
+
 
 onMounted(()=>{  
-  if(route.params._id){
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
-  }
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  mbtquery(idstr)
+  Datafintion()
+  
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -356,17 +380,23 @@ onMounted(()=>{
     new KeyboardService()
   )
   rappid.startRappid()
+  if(route.params._id){
+    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
+  }
+  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+  mbtquery(idstr)
+  
   
 })
 const saveMbt = () => {
     console.log(rappid.graph);
 }
 
+
 </script>
 
 <template>
-  <a-button ></a-button>
-  <main class="joint-app joint-theme-modern" ref="apps" v-show="!isGlobal">
+  <main class="joint-app joint-theme-modern" ref="apps">
         <div class="app-header">
           <div class="app-title">
             <a-button-group>
@@ -395,34 +425,32 @@ const saveMbt = () => {
 
         </div>
           <div class="app-body">
-            <div ref="stencils" class="stencil-container"></div>
+            <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
             <div class="inspector-container"/>
             <div class="navigator-container"/>
           </div>
+
   </main>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
-  @ok="handleOk"
-  :width="1000"
-  ok-text="save"
-  >
+      @ok="handleOk"
+      :width="1000"
+      ok-text="save"
+      >
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
               <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-                <a-card style="overflow-y: auto">
+      
                   <div style="padding: 5px" class="attrconfig">
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      @submit="subAttributes"
-                      @cancel="onCloseDrawer"
-                      v-if="isGlobal"
+                      
                     >
                     </VueForm>
                   </div>
-                </a-card>
               </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px;">
+              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
                 <metainfo
                   :isFormVisible="isFormVisible"
                   :metatemplatedetailtableData="metatemplatedetailtableData"
@@ -434,7 +462,7 @@ const saveMbt = () => {
                 </metainfo>
               </a-tab-pane>
 
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px;">
+              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
                 <a-radio-group
                   v-model:value="templateRadiovalue"
                   @change="handleRadioChange(templateRadiovalue)"
@@ -571,6 +599,10 @@ const saveMbt = () => {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+
+.infoPanel{
+  position: relative;
+}
 
 .card-container p {
   margin: 0;
