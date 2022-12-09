@@ -327,20 +327,21 @@ function globalhandlerSubmit(data?:any) {
 
 // 关闭模态窗的函数
 const handleOk = () => {
+
   isGlobal.value = false
 }
 
 // 回显数据的地方
 function Datafintion(){
-  console.log(store.mbtData);
+    
   
   if(store.mbtData._id && store.mbtData.name && store.mbtData.description){
     globalformData.value._id = store.mbtData._id
     globalformData.value.descriptions = store.mbtData.description
     globalformData.value.name = store.mbtData.name
-    if(store.attributes.codegen_text && store.attributes.codegen_script){
-      globalformData.value.codegen_text = store.attributes.codegen_text
-      globalformData.value.codegen_script = store.attributes.codegen_script
+    if(store.mbtData.attributes.codegen_text && store.mbtData.attributes.codegen_script){
+      globalformData.value.codegen_text = store.mbtData.attributes.codegen_text
+      globalformData.value.codegen_script = store.mbtData.attributes.codegen_script
     }
   }
   if(store.getDafintion && 
@@ -385,7 +386,7 @@ onMounted(()=>{
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
   }
   
-  mbtquery(idstr)
+  // mbtquery(idstr)
   
   
 })

@@ -7,19 +7,27 @@ import { EnumBody } from "@babel/types"
 import {realMBTUrl} from "@/appConfig";
 
 interface IElementType {
-  mbtData:any
+  mbtData:mbtmodel
 }
-interface mbtmodel extends  IElementType{
+interface templateattr {
+  _id:string
+  name:string
+  descriptions:string
+  condegen_text:string
+  condegen_script:string
+}
+interface mbtmodel{
   attributes?:any
   dataDafinition?: any
   modelDefinition?:any
   name?:string
   _id?:string
   tags?:Array<string>
-  description?:string
+  description?:string,
+  attributesTem:templateattr
 }
 export const MBTStore = defineStore('mbtmodel', {
-  state:  ():mbtmodel => {
+  state:  ():IElementType => {
     return {
       mbtData:{
         attributes:{},
@@ -28,14 +36,28 @@ export const MBTStore = defineStore('mbtmodel', {
         name:"",
         _id:"",
         tags:[],
-        description:""
+        description:"",
+        attributesTem:{
+          _id:"",
+          name:'',
+          descriptions:'',
+          condegen_script:'',
+          condegen_text:''
+        }
       }
+      
     }
     
   }
   ,
   getters:{
-    getDafintion:(state) => state.mbtData.dataDafinition
+    getDafintion:(state) => state.mbtData.dataDafinition ,
+    // changeTemplate(state){
+    //   if(state.mbtData._id){
+    //     state.mbtData.attributesTem._id = state.mbtData._id
+    //   }
+      
+    // }
   },
   actions: {
     // 获取后台所有的mbt数据
