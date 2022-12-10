@@ -13,6 +13,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 import * as joint from '@clientio/rappid';
 import * as appShapes from './app-shapes';
+import {MBTGroup} from '@/composables/customElements/';
 
 export class StencilService {
 
@@ -30,9 +31,9 @@ export class StencilService {
             paperOptions: function () {
                 return {
                     model: new joint.dia.Graph({}, {
-                        cellNamespace: appShapes
+                        cellNamespace:  {...appShapes,... {itea: {mbt:{test: {MBTGroup}}}}}
                     }),
-                    cellViewNamespace: appShapes
+                    cellViewNamespace:  {...appShapes,... {itea: {mbt:{test: {MBTGroup}}}}}
                 };
             },
             search: {
@@ -73,6 +74,8 @@ export class StencilService {
     getStencilShapes() {
         return {
             standard: [
+                {
+                    type: 'itea.mbt.test.group'},
                 {
                     type: 'standard.Rectangle',
                     size: { width: 90, height: 54 },

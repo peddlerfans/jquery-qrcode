@@ -67,7 +67,7 @@ class MbtServe {
         this.selection = new joint.ui.Selection({
             paper: this.paper,
             useModelGeometry: true,
-            translateConnectedLinks: joint.ui.Selection.ConnectedLinksTranslation.SUBGRAPH
+            translateConnectedLinks: joint.ui.Selection.ConnectedLinksTranslation.SUBGRAPH,
         });
         this.selection.collection.on('reset add remove', this.onSelectionChange.bind(this));
 
@@ -237,7 +237,14 @@ class MbtServe {
             defaultConnectionPoint: appShapes.app.Link.connectionPoint,
             interactive: { linkMove: false },
             async: true,
-            sorting: joint.dia.Paper.sorting.APPROX
+            sorting: joint.dia.Paper.sorting.APPROX,
+            embeddingMode:true,
+            validateEmbedding:(cv,pv) => {
+                if (pv.model?.ifEmbedable) {
+                    return pv.model.ifEmbedable(cv.model)
+                }
+                return false
+            }
         });
 
         paper.on('blank:contextmenu', (evt) => {

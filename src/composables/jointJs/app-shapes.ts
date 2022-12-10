@@ -13,6 +13,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const cache = new Map();
+import {MBTGroup} from '@/composables/customElements/';
 export namespace app {
 
     export class CircularModel extends joint.shapes.standard.Ellipse {
@@ -332,7 +333,7 @@ export const NavigatorLinkView = joint.dia.LinkView.extend({
 
     update: joint.util.noop
 });
-
+Object.assign(joint.shapes,{itea:{mbt:{MBTGroup}}})
 // re-export build-in shapes from rappid
 export const basic = joint.shapes.basic;
 export const standard = joint.shapes.standard;
@@ -341,4 +342,6 @@ export const pn = joint.shapes.pn;
 export const erd = joint.shapes.erd;
 export const uml = joint.shapes.uml;
 export const org = joint.shapes.org;
+export const shapes = joint.shapes;
+
 
