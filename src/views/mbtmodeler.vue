@@ -15,7 +15,7 @@ import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
-import { computed, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep } from "lodash";
 import {useRoute} from 'vue-router'
@@ -25,8 +25,10 @@ import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import {MBTStore} from "@/stores/MBTModel"
+import { storeToRefs } from "pinia";
 
 const store = MBTStore()
+// let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -132,11 +134,11 @@ const metatemplatecolumns = reactive<Object[]>([
 
 // attributes的数据
 let globalformData = ref<Stores.mbtView>({
-  _id: "",
-  name: "",
-  descriptions: "",
-  codegen_text: "",
-  codegen_script: "",
+  _id: '',
+  name: '',
+  description: '',
+  codegen_text: '',
+  codegen_script: '',
 });
 let codegennames: any = ref([]);
 const globalschema = ref({
@@ -147,7 +149,7 @@ const globalschema = ref({
       type: "string",
       readOnly: true,
     },
-    descriptions: {
+    description: {
       title: "Description",
       type: "string",
     },
@@ -186,18 +188,6 @@ async function mbtquery(id?: any, reLoad?: boolean) {
       ) {
         let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
         rappid.graph.fromJSON(JSON.parse(tempstr));
-        
-        // 判断取出当前mbt的原生内容
-        if (value['name'] && value['description'] && value['_id']) {
-          globalformData.value._id = value['_id']
-          globalformData.value.name = value['name']
-          globalformData.value.descriptions = value['description']
-          if (value.attributes && value.attributes.codegen_text && value.attributes.codegen_script) {
-          globalformData.value._id = value['_id']
-            globalformData.value.codegen_text = value.attributes.codegen_text
-            globalformData.value.codegen_script = value.attributes.codegen_script
-          }
-        }
 
         if (value.modelDefinition.hasOwnProperty("props")) {
           const map = new Map(
@@ -208,7 +198,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
 
         if(value['_id'] && value['name'] && value['description']){
           globalformData.value._id = value['_id']
-          globalformData.value.descriptions = value['description']
+          globalformData.value.description = value['description']
           globalformData.value.name = value['name']
           if(value.attributes.codegen_text && value.attributes.codegen_script){
             globalformData.value.codegen_text = value.attributes.codegen_text
@@ -339,38 +329,70 @@ function globalhandlerSubmit(data?:any) {
 
 // 关闭模态窗的函数
 const handleOk = () => {
-  isGlobal.value = false
+  store.saveattr(globalformData.value)
+  console.log(store.attributesTem);
+  
+  // isGlobal.value = false
 }
 
 // 回显数据的地方
-function Datafintion(){
-  if(store.getDafintion && 
-      store.getDafintion.data && 
-      store.dataDafinition.data.tableData
-      ){
-    if(store.dataDafinition.data.dataFrom == 'dynamic'){
+function Datafintion(data: any) {  
+  console.log(data);
+  
+  if(data.dataDefinition &&
+      data.dataDafinition.data &&
+      data.dataDafinition.data.tableData
+  ) {
+    console.log(123);
+    
+    if(data.dataDafinition.data.dataFrom == 'dynamic'){
       templateRadiovalue.value = 1;
       templateCategory.value = 1;
-      tableDataDynamic.value = store.dataDafinition.data.tableData
-      tableColumnsDynamic.value = store.dataDafinition.data.tableColumns
-    }else if(store.dataDafinition.data.dataFrom == 'static'){
+      tableDataDynamic.value = data.dataDafinition.data.tableData
+      tableColumnsDynamic.value = data.dataDafinition.data.tableColumns
+    }else if(data.dataDafinition.data.dataFrom == 'static'){
       templateRadiovalue.value = 2;
       templateCategory.value = 2;
-      tableData.value = store.dataDafinition.data.tableData
-      tableColumns.value = store.dataDafinition.data.tableColumns
+      tableData.value = data.dataDafinition.data.tableData
+      tableColumns.value = data.dataDafinition.data.tableColumns
     }else{
       templateRadiovalue.value = 3;
       templateCategory.value = 3;
-      tableDataDirectInput.value  = store.dataDafinition.data.tableData
-      tableColumnsDirectInput.value = store.dataDafinition.data.tableColumns
+      tableDataDirectInput.value  = data.dataDafinition.data.tableData
+      tableColumnsDirectInput.value = data.dataDafinition.data.tableColumns
     }
+  }
+  if (data.dataDafinition.meta.schema) {
+    tempschema.value = data.dataDafinition.meta.data
+  } 
+  if (data.dataDafinition.meta.data) {
+    metatemplatedetailtableData.value = data.dataDafinition.meta.data
   }
 }
 
+onMounted(async()=>{  
+    getAllTemplatesByCategory('codegen').then((rst:any)=>{
+  if(rst && _.isArray(rst)){
+    rst.forEach((rec:any)=>{              
+      codegennames.value.push({title:rec.name , const: rec._id})
+    })
+  }
+    }).catch((err) => { console.log(err); })
 
-onMounted(()=>{  
-  Datafintion()
-  
+  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+  await store.getMbtmodel(idstr)
+  // Datafintion(store.mbtData)
+  if(store.changeTemplate?._id){
+    globalformData.value = store.changeTemplate
+  }
+  if (store.showMetaSchema) {
+    tempschema.value = store.showMetaSchema
+    console.log(tempschema.value);
+    
+  }
+  if (store.showMetaData) {
+    metatemplatedetailtableData.value = store.showMetaSchema
+  }
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -383,11 +405,18 @@ onMounted(()=>{
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
   }
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  mbtquery(idstr)
-  
-  
 })
+
+// const meta = computed(() => store.showMeta)
+// watch(() => meta.value, (val: any) => {
+//   console.log(val);
+  
+//   if (val.schema) {
+//     tempschema.value = val.schema
+//   } else if (val.data) {
+//     metatemplatedetailtableData.value = val.data
+//   }
+// } ,{deep : true})
 const saveMbt = () => {
     console.log(rappid.graph);
 }
@@ -445,7 +474,7 @@ const saveMbt = () => {
                     <VueForm
                       v-model="globalformData"
                       :schema="globalschema"
-                      
+                      :formFooter="{show:false}"
                     >
                     </VueForm>
                   </div>
@@ -456,6 +485,7 @@ const saveMbt = () => {
                   :metatemplatedetailtableData="metatemplatedetailtableData"
                   :schema="tempschema"
                   :metaformProps="metaformProps"
+                  :formFooter="{show:false}"
                   :metatemplatecolumns="metatemplatecolumns"
                   @submit-template="submitTemplate"
                 >

@@ -65,9 +65,9 @@ const showJSONSchemeForm = (templdateId: string) => {
 const onImportFromMetaTemplate = () => {
   isFormVisible.value = false;
 
-  metatemplatedetailtableData.value = {};
+  // metatemplatedetailtableData.value = {};
 
-  if (tempschema && tempschema.value) tempschema.value.properties = {};
+  // if (tempschema && tempschema.value) tempschema.value.properties = {};
 };
 
 const backFormMetaTemplate=()=>{
