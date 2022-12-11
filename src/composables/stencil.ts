@@ -17,8 +17,10 @@ export class StencilService {
       groups: this.getStencilGroups(),
       dropAnimation: true,
       groupsToggleButtons: true,
+      
       paperOptions: function () {
         return {
+          // background: { color: '#2B2C30' },
           model: new joint.dia.Graph({}, {
             cellNamespace: {...appShapes,...{itea: {mbt:{test:{...{MBTAW},...{MBTGroup}}}}}}
           }),
@@ -51,7 +53,7 @@ export class StencilService {
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
       standard: { index: 1, label: 'Standard shapes' },
-      uml: { index: 2, label: 'State machine' }
+      // uml: { index: 2, label: 'State machine' }
     };
   }
   getStencilShapes() {
@@ -100,7 +102,7 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'ellipse',
+              text: 'Group',
               fill: '#c6c7e2',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
@@ -108,13 +110,13 @@ export class StencilService {
               strokeWidth: 0
             }
           },
-          ports: {
-            items: [
-              { group: 'in' },
-              { group: 'in' },
-              { group: 'out' }
-            ]
-          }
+          // ports: {
+          //   items: [
+          //     { group: 'in' },
+          //     { group: 'in' },
+          //     { group: 'out' }
+          //   ]
+          // }
         },
         {
           type: 'app.CircularModel',

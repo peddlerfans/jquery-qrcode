@@ -13,11 +13,14 @@ export class MBTGroup extends joint.shapes.bpmn2.Activity implements MBTShapeInt
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
-        this.prop('isStep',true)
+        
         this.attr(   {
-
-          'icon': { iconType: 'receive' },
+          // 'background': { fill: '#454549' },
+          // 'icon': { iconType: 'receive' },
           'label': { text: 'Group' },
+          markers: {
+            iconTypes: [ 'sub-process'],
+        }
 
       })
     this.on('change',(evt:any)=> {

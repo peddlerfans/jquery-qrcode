@@ -49,7 +49,9 @@ class MbtServe {
     }
     startRappid() {
 
-        joint.setTheme('modern');
+        joint.setTheme('material');
+        // joint.setTheme('dark');
+        // joint.setTheme('modern');
 
         this.initializePaper();
         this.initializeStencil();
