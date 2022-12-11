@@ -13,14 +13,15 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
-        
+
         this.attr(   {
           // 'background': { fill: '#454549' },
-          // 'icon': { iconType: 'receive' },
+          'icon': { iconType: 'parallel' },
           'label': { text: 'ParallelGateway' },
         //   markers: {
         //     iconTypes: [ 'sub-process'],
         // }
+        
 
       })
     this.on('change',(evt:any)=> {

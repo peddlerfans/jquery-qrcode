@@ -21,7 +21,7 @@ export class MBTEndEvent extends joint.shapes.bpmn2.Event implements MBTShapeInt
           'border': 
           {
                 borderType: 'thick',
-                // borderStyle: 'dashed'
+                borderStyle: 'dashed'
             },
           'label': { text: 'endevent' },
           // 'stroke': '#fe854f',

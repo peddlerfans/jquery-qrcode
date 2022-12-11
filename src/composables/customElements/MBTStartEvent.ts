@@ -15,13 +15,23 @@ export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeI
       super(e,o);
         
         this.attr(   {
-          // 'background': { fill: '#454549' },
-          // 'icon': { iconType: 'receive' },
-          'label': { text: 'startevent' },
-          markers: {
-            iconTypes: [ 'ad-hoc'],
-        }
-
+        // 'background': { fill: '#454549' },
+        // 'icon': { iconType: 'link2' },
+        // {  borderType: 'double'},
+        // 'border': 
+        // {
+        //       borderType: 'thick',
+        //       borderStyle: 'dashed'
+        //   },
+        'label': { text: 'startevent' },
+        // 'stroke': '#fe854f',
+        // 'body': {
+        //   stroke: '#fe854f',
+        //   border: {
+        //     borderType: 'double',
+        //     borderStyle: 'dashed'
+        // }
+      // },
       })
     this.on('change',(evt:any)=> {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {

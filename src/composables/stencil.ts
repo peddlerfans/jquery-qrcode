@@ -148,7 +148,7 @@ export class StencilService {
         },
         {
           type: 'itea.mbt.test.MBTStartEvent',
-          size: { width: 50, height: 35 },
+          size: { width: 35, height: 35 },
           allowOrthogonalResize: false,
           attrs: {
             root: {
@@ -175,17 +175,17 @@ export class StencilService {
         },
         {
           type: 'itea.mbt.test.MBTEndEvent',
-          size: { width: 50, height: 35 },
+          size: { width: 35, height: 35 },
           allowOrthogonalResize: false,
           attrs: {
-            background: {
-                fill: '#ffc2a7',
-            },
+            // background: {
+            //     fill: '#ffc2a7',
+            // },
             border: {
                 borderType: 'double',
-                borderStyle: 'dashed',
+                borderStyle: 'thick',
                 fill: '#ffc2a7',
-                stroke: '#fe854f'
+                // stroke: '#fe854f'
             },
             icon: {
                 iconColor: '#ffffff',

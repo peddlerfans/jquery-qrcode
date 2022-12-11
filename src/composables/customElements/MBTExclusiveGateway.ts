@@ -16,7 +16,7 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
         
         this.attr(   {
           // 'background': { fill: '#454549' },
-          // 'icon': { iconType: 'receive' },
+          'icon': { iconType: 'exclusive' },
           'label': { text: 'ExclusiveGateway' },
         //   markers: {
         //     iconTypes: [ 'sub-process'],
