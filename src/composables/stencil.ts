@@ -1,8 +1,11 @@
+
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from './jointJs/app-shapes';
+import * as appShapes from '@/composables/JointJs/app-shapes';
+import {MBTGroup,MBTAW} from '@/composables/customElements/';
 import { i18n } from "@/locales";
 const { t } = i18n.global
+// console.log('dddddddd',MBTGroup)
 export class StencilService {
 
   stencil !: joint.ui.Stencil
@@ -14,12 +17,14 @@ export class StencilService {
       groups: this.getStencilGroups(),
       dropAnimation: true,
       groupsToggleButtons: true,
+      
       paperOptions: function () {
         return {
+          // background: { color: '#2B2C30' },
           model: new joint.dia.Graph({}, {
-            cellNamespace: appShapes
+            cellNamespace: {...appShapes,...{itea: {mbt:{test:{...{MBTAW},...{MBTGroup}}}}}}
           }),
-          cellViewNamespace: appShapes
+          cellViewNamespace:  {...appShapes,...{itea: {mbt:{test:{...{MBTAW},...{MBTGroup}}}}}}
         };
       },
       search: {
@@ -48,12 +53,71 @@ export class StencilService {
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
       standard: { index: 1, label: 'Standard shapes' },
-      uml: { index: 2, label: 'State machine' }
+      // uml: { index: 2, label: 'State machine' }
     };
   }
   getStencilShapes() {
     return {
       standard: [
+        {
+          type: 'itea.mbt.test.MBTAW',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'AW',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'ellipse',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          }
+        },
+        {
+          type: 'itea.mbt.test.MBTGroup',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Group',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'Group',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          },
+          // ports: {
+          //   items: [
+          //     { group: 'in' },
+          //     { group: 'in' },
+          //     { group: 'out' }
+          //   ]
+          // }
+        },
         {
           type: 'app.CircularModel',
           size: { width: 50, height: 35 },
