@@ -18,7 +18,12 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
-
+      this.attr(   {
+        // 'background': { fill: '#454549' },
+        // 'icon': { iconType: 'receive' },
+        'label': { text: 'AW' },
+ 
+      },)
       this.prop('isStep',true)
       this.on('change',(evt:any)=> {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
