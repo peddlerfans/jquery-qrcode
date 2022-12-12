@@ -296,7 +296,6 @@ class MbtServe {
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
             
-            
             this.selection.collection.reset([elementView.model]);
         });
     }
@@ -311,10 +310,10 @@ class MbtServe {
             'to-front:pointerclick': this.applyOnSelection.bind(this, 'toFront'),
             'to-back:pointerclick': this.applyOnSelection.bind(this, 'toBack'),
             'layout:pointerclick': this.layoutDirectedGraph.bind(this),
-            'snapline:change': this.changeSnapLines.bind(this),
+            // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
             'print:pointerclick': this.paper.print.bind(this.paper),
-            'grid-size:change': this.paper.setGridSize.bind(this.paper)
+            // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });
 
         this.renderPlugin('.toolbar-container', this.toolbarService.toolbar);

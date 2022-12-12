@@ -1,6 +1,5 @@
 
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-
 export class ToolbarService {
 
     toolbar: joint.ui.Toolbar = new joint.ui.Toolbar;
@@ -27,12 +26,11 @@ export class ToolbarService {
                 'undo-redo': { index: 1 },
                 'clear': { index: 2 },
                 'export': { index: 3 },
-                'print': { index: 4 },
-                'fullscreen': { index: 5 },
-                'order': { index: 6 },
+                'fullscreen': { index: 4 },
+                'order': { index: 5 },
                 'layout': { index: 7 },
                 'zoom': { index: 8 },
-                'grid': { index: 9 },
+                'grid': { index: 9 ,default :10},
                 'snapline': { index: 10 }
             },
 
@@ -102,54 +100,14 @@ export class ToolbarService {
                         }
                     }
                 },
-                {
-                    type: 'button',
-                    name: 'print',
-                    group: 'print',
-                    attrs: {
-                        button: {
-                            id: 'btn-print',
-                            'data-tooltip': 'Open a Print Dialog',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                },
-                {
-                    type: 'button',
-                    name: 'to-front',
-                    group: 'order',
-                    text: 'Send To Front',
-                    attrs: {
-                        button: {
-                            id: 'btn-to-front',
-                            'data-tooltip': 'Bring Object to Front',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                },
-                {
-                    type: 'button',
-                    name: 'to-back',
-                    group: 'order',
-                    text: 'Send To Back',
-                    attrs: {
-                        button: {
-                            id: 'btn-to-back',
-                            'data-tooltip': 'Send Object to Back',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                },
+
                 {
                     type: 'button',
                     group: 'layout',
                     name: 'layout',
                     attrs: {
                         button: {
-                            id: 'btn-layout',
+                            // id: 'btn-layout',
                             'data-tooltip': 'Auto-layout Graph',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
@@ -203,66 +161,66 @@ export class ToolbarService {
                         }
                     }
                 },
-                {
-                    type: 'separator',
-                    group: 'grid'
-                },
-                {
-                    type: 'label',
-                    name: 'grid-size-label',
-                    group: 'grid',
-                    text: 'Grid size:',
-                    attrs: {
-                        label: {
-                            'data-tooltip': 'Change Grid Size',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                },
-                {
-                    type: 'range',
-                    name: 'grid-size',
-                    group: 'grid',
-                    text: 'Grid size:',
-                    min: 1,
-                    max: 50,
-                    step: 1,
-                    value: 10
-                },
-                {
-                    type: 'separator',
-                    group: 'snapline'
-                },
-                {
-                    type: 'checkbox',
-                    name: 'snapline',
-                    group: 'snapline',
-                    label: 'Snaplines:',
-                    value: true,
-                    attrs: {
-                        input: {
-                            id: 'snapline-switch'
-                        },
-                        label: {
-                            'data-tooltip': 'Enable/Disable Snaplines',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                },
-                {
-                    type: 'fullscreen',
-                    name: 'fullscreen',
-                    group: 'fullscreen',
-                    attrs: {
-                        button: {
-                            'data-tooltip': 'Toggle Fullscreen Mode',
-                            'data-tooltip-position': 'top',
-                            'data-tooltip-position-selector': '.toolbar-container'
-                        }
-                    }
-                }
+                // {
+                //     type: 'separator',
+                //     group: 'grid'
+                // },
+                // {
+                //     type: 'label',
+                //     name: 'grid-size-label',
+                //     group: 'grid',
+                //     text: 'Grid size:',
+                //     attrs: {
+                //         label: {
+                //             'data-tooltip': 'Change Grid Size',
+                //             'data-tooltip-position': 'top',
+                //             'data-tooltip-position-selector': '.toolbar-container'
+                //         }
+                //     }
+                // },
+                // {
+                //     type: 'range',
+                //     name: 'grid-size',
+                //     group: 'grid',
+                //     text: 'Grid size:',
+                //     min: 1,
+                //     max: 50,
+                //     step: 1,
+                //     value: 10
+                // },
+                // {
+                //     type: 'separator',
+                //     group: 'snapline'
+                // },
+                // {
+                //     type: 'checkbox',
+                //     name: 'snapline',
+                //     group: 'snapline',
+                //     label: 'Snaplines:',
+                //     value: true,
+                //     attrs: {
+                //         input: {
+                //             id: 'snapline-switch'
+                //         },
+                //         label: {
+                //             'data-tooltip': 'Enable/Disable Snaplines',
+                //             'data-tooltip-position': 'top',
+                //             'data-tooltip-position-selector': '.toolbar-container'
+                //         }
+                //     }
+                // },
+                // {
+                //     type: 'fullscreen',
+                //     name: 'fullscreen',
+                //     group: 'fullscreen',
+                //     attrs: {
+                //         button: {
+                //             'data-tooltip': 'Toggle Fullscreen Mode',
+                //             'data-tooltip-position': 'top',
+                //             'data-tooltip-position-selector': '.toolbar-container'
+                //         }
+                //     }
+                // }
             ]
         };
     }

@@ -66,6 +66,26 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     font-weight: Bold;
 }
 
+
+.joint-widget.joint-theme-material[data-name="clear"]:after {
+    background-position: -46px -100px;
+}
+
+.joint-widget.joint-theme-material[data-name="layout"]:after {
+    background-position: -5px -99px;
+}
+
+.joint-widget.joint-theme-material[data-name="clear"]:after,
+.joint-widget.joint-theme-material[data-name="layout"]:after{
+    display: block;
+    width: 33px;
+    height: 33px;
+    content: ' ';
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-image: url(../../assets/toolbar-icons-material.png);
+}
+
 html,
 body,
 .joint-app {
@@ -102,6 +122,8 @@ body {
 }
 
 .app-title {
+    position: absolute;
+    right: 150px;
     display: inline-block;
     width: 200px;
     height: 100%;
@@ -177,30 +199,6 @@ body {
     display: none;
 }
 
-/* .joint-stencil .joint-layers .joint-cells-layer .rotatable circle {
-    r: 10;
-    fill: rgb(97, 84, 156);
-    stroke-width: 0;
-}
-
-.joint-stencil .joint-layers .joint-cells-layer .scalable .outer {
-    r: 10;
-    fill: rgb(97, 84, 156);
-    stroke-width: 0;
-}
-
-.joint-stencil .joint-layers .joint-cells-layer .scalable .inner {
-    r: 6;
-    fill: rgb(183, 173, 224);
-    stroke-width: 0;
-}
-
-.joint-port circle {
-    r: 6;
-    fill: rgb(97, 84, 156);
-    stroke-width: 0;
-} */
-
 .joint-stencil .joint-element.joint-type-uml rect,
 .joint-stencil .joint-element.joint-type-uml path {
     stroke: #4a4d6e;
@@ -211,8 +209,8 @@ body {
     display: inline-block;
     position: absolute;
     height: 100%;
-    left: 200px;
-    right: 150px;
+    left: 0;
+    right: 350px;
     box-sizing: border-box;
     background-color: #fff;
 }

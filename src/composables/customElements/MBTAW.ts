@@ -302,7 +302,29 @@ throw new Error("Method not implemented.");
           text: {
               label: 'Text',
               index: 2
+          },
+          body:{
+            label: 'body',
+              index: 3
           }
+      },
+      schema : {
+        type: "object",
+        properties: {
+            name: {
+            title: "MBT Name",
+            type: "string",
+            readOnly: true,
+            default : '123'
+            },
+            descriptions: {
+            title: "Description",
+            type: "string",
+            datault : '456'
+            },
+            
+        },
+
       }
   }
 

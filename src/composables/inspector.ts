@@ -25,6 +25,8 @@ export class InspectorService {
     //     return joint.ui.Inspector.create('.inspector-container', { cell, groups, inputs });
     // }
     const shape = <MBTShapeInterface><unknown>cell;
+    console.log(shape.getInspectorSchema());
+    
         if(shape.getInspectorSchema ){
             return joint.ui.Inspector.create('.inspector-container', {...shape.getInspectorSchema(), cell });
         }
