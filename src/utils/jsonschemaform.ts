@@ -15,7 +15,7 @@
 //    }]
 import * as _ from "lodash";
 
-const generateSchema = (inputArr: Array<Object>) => {
+const generateSchema = (inputArr: Array<Object>,metaId:string) => {
 
   let outputArr: any[] = [];
 
@@ -141,6 +141,7 @@ const generateSchema = (inputArr: Array<Object>) => {
 
 
     }
+    Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
     outputArr.push(tempobj);
   });
 

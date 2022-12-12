@@ -31,6 +31,8 @@ import {
 } from "@/api/mbt/index";
 import { tableDataSource } from "@/composables/getTable";
 import { ColumnsType } from "ant-design-vue/es/table";
+import { MBTStore } from "@/stores/MBTModel";
+let store = MBTStore()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
@@ -155,8 +157,8 @@ const route = useRoute();
 onMounted(() => {
   let savedDataInfo = localStorage.getItem("mbt_" + route.params._id + route.params.name);
 
-  if (savedDataInfo) {
-    let tempObj = JSON.parse(savedDataInfo);
+  if (store.mbtData.dataDefinition.data) {
+    let tempObj = store.mbtData
     let searchParam: string = "";
     if (
       tempObj.dataDefinition &&
@@ -169,14 +171,27 @@ onMounted(() => {
         templateCategory.value == 1 &&
         tempObj.dataDefinition.data.dataFrom == "static_template"
       ) { 
-            dataSource.value = dynamicData;
+        searchParam = "dynamic";
+        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+          if (rst.length > 0) {
+            let temparr = rst;
+            dataSource.value = temparr;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+        });
 
       } else if (
-        templateCategory.value == 2 &&
+        templateCategory.value ==2  &&  
         tempObj.dataDefinition.data.dataFrom == "dynamic_template"
       ) {
-        
-            dataSource.value = staticData;         
+        searchParam = "static";
+        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
+          if (rst.length > 0) {
+            let temparr = rst;
+            dataSource.value = temparr;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+        });   
       }
     } else {
       let category = templateCategory!.value;
@@ -231,6 +246,35 @@ function HandleSubmit() {
   Object.assign(obj, { tableColumns: columnsOrigin.value });
   emit("update", obj);
 }
+// 定义函数用来判断是否选择其中的模板
+function isChoose(data:any) : boolean{
+  let b = false
+  data.forEach((item:any)=>{
+    if(item['_id']){
+      b =  false
+    }else{
+      b = true
+    }
+  })
+  return b
+}
+
+let watchData = computed(()=>{dataSource.value , columnsOrigin.value})
+watch(()=>watchData.value , (val:any)=>{
+  console.log(val);
+  
+  let dataFrom = ''
+    if(templateCategory.value = 1){
+      dataFrom = "dynamic_template"
+    }else if(templateCategory.value = 2){
+      dataFrom = 'static_template'
+    }
+    if(isChoose(dataSource.value)){
+      store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+    }    
+
+} , {deep:true})
+
 
 function HandleClear() {
   let obj = {};
@@ -240,6 +284,10 @@ function HandleClear() {
   chooseTemplate.value = true;
   hasData.value = false;
 }
+
+
+
+
 const chooseTemplate = ref(true);
 const chooseTemplateFunc = () => {
   
@@ -311,25 +359,31 @@ const chooseTemplateFunc = () => {
         </template>
       </template>
     </ATable>
-    <div>
-      <a-button style="margin-right: 5px" type="primary" @click="HandleSubmit()"
+
+    <!-- </section> -->
+  </main>
+
+      <a-button 
+      style="position: absolute; top: -2.25rem; right: 9rem;"
+       type="primary" 
+       size="small"
+       @click="HandleSubmit()"
         >Save</a-button
       >
 
       <a-button
         v-if="chooseTemplate"
-        style="margin-right: 5px"
-        type="link"
+        style="position: absolute; top: -2.25rem; right: 0;"
+        type="primary"
+        size="small"
         @click="chooseTemplateFunc()"
-        >Choose A Template</a-button
+        >choose template</a-button
       >
       
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
       > -->
-    </div>
-    <!-- </section> -->
-  </main>
+
 </template>
 <style lang="postcss" scoped>
 main {

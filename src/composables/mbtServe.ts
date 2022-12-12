@@ -6,6 +6,10 @@ import { HaloService } from './haloService';
 import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from '../composables/jointJs/app-shapes';
+import { MBTShapeInterface } from './customElements/MBTShapeInterface';
+import { defineEmits } from 'vue'
+
+const emit = defineEmits(['awschemaDa'])
 
 class MbtServe {
     el !: any;
@@ -221,7 +225,7 @@ class MbtServe {
 
     initializePaper() {
         console.log(joint);
-        
+
         const graph = this.graph = new joint.dia.Graph({}, {
             cellNamespace: appShapes
         });
@@ -240,12 +244,24 @@ class MbtServe {
             interactive: { linkMove: false },
             async: true,
             sorting: joint.dia.Paper.sorting.APPROX,
-            embeddingMode:true,
-            validateEmbedding:(cv,pv) => {
+            embeddingMode: true,
+            validateEmbedding: (cv, pv) => {
                 if (pv.model?.ifEmbedable) {
                     return pv.model.ifEmbedable(cv.model)
                 }
                 return false
+            },
+            validateConnection: function (cellViewS, _magnetS, cellViewT, _magnetT, end, _linkView) {
+
+                const shape = <MBTShapeInterface><unknown>cellViewT.model;
+                if (shape.ifDisallowLink && shape.ifDisallowLink()) {
+                    return false;
+
+
+                }
+
+
+                return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
             }
         });
 
@@ -295,8 +311,7 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
-            
-            
+
             this.selection.collection.reset([elementView.model]);
         });
     }
@@ -311,10 +326,10 @@ class MbtServe {
             'to-front:pointerclick': this.applyOnSelection.bind(this, 'toFront'),
             'to-back:pointerclick': this.applyOnSelection.bind(this, 'toBack'),
             'layout:pointerclick': this.layoutDirectedGraph.bind(this),
-            'snapline:change': this.changeSnapLines.bind(this),
+            // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
             'print:pointerclick': this.paper.print.bind(this.paper),
-            'grid-size:change': this.paper.setGridSize.bind(this.paper)
+            // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });
 
         this.renderPlugin('.toolbar-container', this.toolbarService.toolbar);
@@ -382,6 +397,10 @@ class MbtServe {
     // 初始化目标paper上的事件
     initializeToolsAndInspector() {
         this.paper.on('cell:pointerup', (cellView: joint.dia.CellView) => {
+            const shape = <MBTShapeInterface><unknown>cellView.model;
+            // emit('awschemaDa', shape.getInspectorSchema())
+            console.log(joint.shapes);
+
             const cell = cellView.model;
             const { collection } = this.selection;
             if (collection.includes(cell)) { return; }

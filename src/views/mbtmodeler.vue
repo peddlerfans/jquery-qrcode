@@ -10,14 +10,14 @@ import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import metainfo from "@/components/metainfo.vue";
 import inputTable from "@/components/inputTable.vue";
-import { CloseOutlined } from '@ant-design/icons-vue'
+import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined} from '@ant-design/icons-vue'
 import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
 import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { cloneDeep } from "lodash";
+import { cloneDeep, sortedIndex } from "lodash";
 import {useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl } from "@/appConfig";
@@ -26,6 +26,8 @@ import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/a
 import _ from "lodash";
 import {MBTStore} from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
+import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
+const shape = <MBTShapeInterface><unknown>null
 
 const store = MBTStore()
 // let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
@@ -39,7 +41,7 @@ const url = realMBTUrl;
 
 const activeKey = ref("1")
 const isFormVisible = ref(false);
-let metatemplatedetailtableData = ref({});
+let metatemplateData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
 // 静态模板的数据
@@ -66,20 +68,7 @@ interface columnDefinition {
   dataIndex: string;
   width?: string;
 }
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
-  {
-    key: "0",
-    alias: "Phone 0",
-    class: "1",
-    resourcetype: "phone",
-  },
-  {
-    key: "1",
-    alias: "Phone 2",
-    class: "2",
-    resourcetype: "phone",
-  },
-]);
+const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([]);
 const resourcescolumns: columnDefinition[] = [
   {
     title: "alias",
@@ -215,7 +204,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           isFormVisible.value = true;
           // cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
-          metatemplatedetailtableData.value = value.dataDefinition.meta.data;
+          metatemplateData.value = value.dataDefinition.meta.data;
         }
 
         if (value.dataDefinition.data) {
@@ -258,8 +247,9 @@ const chooseTem = () => {
 }
 
 // 保存meta的函数
-const submitTemplate = (data: any) => {
-};
+// const submitTemplate = (data: any) => {
+//   store.saveMeta(data.schema , data.data)
+// };
 
 
 
@@ -270,6 +260,8 @@ const handleRadioChange: any = (v: any) => {
 
 // 保存动态模板的函数
 const handleDynamicTable = (data: any) => {
+  console.log(data);
+  
 };
 
 // 清除动态模板的函数
@@ -329,51 +321,58 @@ function globalhandlerSubmit(data?:any) {
 
 // 关闭模态窗的函数
 const handleOk = () => {
-  store.saveattr(globalformData.value)
-  store.saveMeta(metatemplatedetailtableData.value,tempschema.value)
-  console.log(tempschema.value);
+  store.saveattr(globalformData.value);
+  if(resourcesdataSource.value.length>0){
+    store.saveResources(resourcesdataSource.value)
+  }
+  console.log(store.mbtData);
   
   // isGlobal.value = false
 }
 
 // 回显数据的地方
 function Datafintion(data: any) {  
-  console.log(data);
+  if(store.changeTemplate?._id){
+    globalformData.value = {...store.changeTemplate}
+  }
+  if (store.showMetaSchema) {
+    tempschema.value = computed(()=>store.showMetaSchema).value
+    isFormVisible.value = true    
+  }
+  if (store.showMetaData) {
+    metatemplateData.value = store.showMetaData
+  }
+  if(store.mbtData.dataDefinition.resources.length>0){
+    resourcesdataSource.value = store.mbtData.dataDefinition.resources
+  }
   
   if(data.dataDefinition &&
-      data.dataDafinition.data &&
-      data.dataDafinition.data.tableData
+      data.dataDefinition.data &&
+      data.dataDefinition.data.tableData
   ) {
-    console.log(123);
-    
-    if(data.dataDafinition.data.dataFrom == 'dynamic'){
+    if(data.dataDefinition.data.dataFrom == 'dynamic_template'){
       templateRadiovalue.value = 1;
       templateCategory.value = 1;
-      tableDataDynamic.value = data.dataDafinition.data.tableData
-      tableColumnsDynamic.value = data.dataDafinition.data.tableColumns
-    }else if(data.dataDafinition.data.dataFrom == 'static'){
+      tableDataDynamic.value = data.dataDefinition.data.tableData
+      tableColumnsDynamic.value = data.dataDefinition.data.tableColumns
+    }else if(data.dataDefinition.data.dataFrom == 'static_template'){
       templateRadiovalue.value = 2;
       templateCategory.value = 2;
-      tableData.value = data.dataDafinition.data.tableData
-      tableColumns.value = data.dataDafinition.data.tableColumns
+      tableData.value = data.dataDefinition.data.tableData
+      tableColumns.value = data.dataDefinition.data.tableColumns
     }else{
       templateRadiovalue.value = 3;
       templateCategory.value = 3;
-      tableDataDirectInput.value  = data.dataDafinition.data.tableData
-      tableColumnsDirectInput.value = data.dataDafinition.data.tableColumns
+      tableDataDirectInput.value  = data.dataDefinition.data.tableData
+      tableColumnsDirectInput.value = data.dataDefinition.data.tableColumns
     }
-  }
-  if (data.dataDafinition.meta.schema) {
-    tempschema.value = data.dataDafinition.meta.data
-  } 
-  if (data.dataDafinition.meta.data) {
-    metatemplatedetailtableData.value = data.dataDafinition.meta.data
   }
 }
 
-onMounted(async () => {  
-  console.log('123');
-  
+onMounted(async()=>{  
+  if(route.params._id){
+    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
+  }
     getAllTemplatesByCategory('codegen').then((rst:any)=>{
   if(rst && _.isArray(rst)){
     rst.forEach((rec:any)=>{              
@@ -384,16 +383,9 @@ onMounted(async () => {
 
   let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
-  // Datafintion(store.mbtData)
-  if(store.changeTemplate?._id){
-    globalformData.value = store.changeTemplate
-  }
-  if (store.showMetaSchema) {
-    isFormVisible.value = true;
-    tempschema.value = store.showMetaSchema    
-  }
-  if (store.showMetaData) {
-    metatemplatedetailtableData.value = store.showMetaData
+
+  if(store.mbtData.dataDefinition.data){
+    Datafintion(store.mbtData)
   }
   rappid = new MbtServe(
     apps.value,
@@ -404,25 +396,28 @@ onMounted(async () => {
     new KeyboardService()
   )
   rappid.startRappid()
-  if(route.params._id){
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
+  
+  
+  
+  if(store.mbtData.modelDefinition.cellsinfo.cells){
+    rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
+    
   }
+  if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+          rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+        }
+    
 })
 
-// const meta = computed(() => store.showMeta)
-// watch(() => meta.value, (val: any) => {
-//   console.log(val);
-  
-//   if (val.schema) {
-//     tempschema.value = val.schema
-//   } else if (val.data) {
-//     metatemplatedetailtableData.value = val.data
-//   }
-// } ,{deep : true})
 const saveMbt = () => {
     console.log(rappid.graph);
 }
 
+// 获取AWschema的函数
+const awschemaDa = (data: any) => {
+  console.log(data);
+  
+}
 
 </script>
 
@@ -449,7 +444,9 @@ const saveMbt = () => {
           </a-button-group>
 
           </div>
-          <div class="toolbar-container"></div>
+          <div class="toolbar-container">
+            
+          </div>
           <div class="choose-template">
             <a-button type="primary" @click="chooseTem">Choose Template</a-button>
           </div>
@@ -458,7 +455,11 @@ const saveMbt = () => {
           <div class="app-body">
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
-            <div class="inspector-container"/>
+            <div>
+              <!-- <div class="inspector-container"/> -->
+              <VueForm ></VueForm>
+            </div>
+
             <div class="navigator-container"/>
           </div>
 
@@ -484,12 +485,10 @@ const saveMbt = () => {
               <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
                 <metainfo
                   :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
+                  :metatemplateData="metatemplateData"
                   :schema="tempschema"
                   :metaformProps="metaformProps"
-                  :formFooter="{show:false}"
                   :metatemplatecolumns="metatemplatecolumns"
-                  @submit-template="submitTemplate"
                 >
                 </metainfo>
               </a-tab-pane>

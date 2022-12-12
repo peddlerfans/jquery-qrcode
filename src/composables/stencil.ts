@@ -2,10 +2,10 @@
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import * as appShapes from '@/composables/JointJs/app-shapes';
-import {MBTGroup,MBTAW} from '@/composables/customElements/';
+import { MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
 import { i18n } from "@/locales";
 const { t } = i18n.global
-// console.log('dddddddd',MBTGroup)
+
 export class StencilService {
 
   stencil !: joint.ui.Stencil
@@ -17,14 +17,14 @@ export class StencilService {
       groups: this.getStencilGroups(),
       dropAnimation: true,
       groupsToggleButtons: true,
-      
+
       paperOptions: function () {
         return {
           // background: { color: '#2B2C30' },
           model: new joint.dia.Graph({}, {
-            cellNamespace: {...appShapes,...{itea: {mbt:{test:{...{MBTAW},...{MBTGroup}}}}}}
+            cellNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
           }),
-          cellViewNamespace:  {...appShapes,...{itea: {mbt:{test:{...{MBTAW},...{MBTGroup}}}}}}
+          cellViewNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
         };
       },
       search: {
@@ -76,7 +76,7 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'ellipse',
+              text: 'AW',
               fill: '#c6c7e2',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
@@ -118,13 +118,14 @@ export class StencilService {
           //   ]
           // }
         },
+
         {
-          type: 'app.CircularModel',
+          type: 'itea.mbt.test.MBTSection',
           size: { width: 50, height: 35 },
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'Ellipse with ports',
+              dataTooltip: 'Section',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
@@ -135,7 +136,7 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'ellipse',
+              text: 'Section',
               fill: '#c6c7e2',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
@@ -143,174 +144,133 @@ export class StencilService {
               strokeWidth: 0
             }
           },
-          ports: {
-            items: [
-              { group: 'in' },
-              { group: 'in' },
-              { group: 'out' }
-            ]
-          }
+
         },
         {
-          type: 'standard.HeaderedRectangle',
-          size: { width: 50, height: 35 },
+          type: 'itea.mbt.test.MBTStartEvent',
+          size: { width: 35, height: 35 },
+          allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'Rectangle with header',
+              dataTooltip: 'Start',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
             body: {
               fill: 'transparent',
               stroke: '#31d0c6',
-              strokeWidth: 2,
-              strokeDasharray: '0'
-            },
-            header: {
-              stroke: '#31d0c6',
-              fill: '#31d0c6',
               strokeWidth: 2,
               strokeDasharray: '0',
-              height: 20
             },
-            bodyText: {
-              textWrap: {
-                text: 'Put your expected results',
-                width: -10,
-                height: -20,
-                ellipsis: true
-              },
-              fill: '#c6c7e2',
+            label: {
+              text: 'Start',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
-              strokeWidth: 0,
-              refY2: 12,
-            },
-            headerText: {
-              text: 'Aw',
-              fill: '#f6f6f6',
-              fontFamily: 'Roboto Condensed',
-              fontWeight: 'Normal',
-              fontSize: 11,
-              strokeWidth: 0,
-              refY: 12
+              strokeWidth: 0
             }
           },
+
         },
         {
-          type: 'standard.Polygon',
-          size: { width: 50, height: 35 },
+          type: 'itea.mbt.test.MBTEndEvent',
+          size: { width: 35, height: 35 },
+          allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: t('MBTStore.concurrency'),
+              dataTooltip: 'End',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
             body: {
-              points: 'calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h) 0,calc(0.5 * h)',
               fill: 'transparent',
               stroke: '#31d0c6',
               strokeWidth: 2,
-              strokeDasharray: '0'
+              strokeDasharray: '0',
             },
             label: {
-              text: '+',
-              fill: '#c6c7e2',
+              text: 'End',
+              fill: 'black',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            },
+            border: {
+              borderType: 'double'
+            }
+          },
+          //   attrs: {
+          //     // background: {
+          //     //     fill: '#ffc2a7',
+          //     // },
+          //     border: {
+          //         borderType: 'double',
+          //         // borderStyle: 'thick',
+          //         fill: '#ffc2a7',
+          //         // stroke: '#fe854f'
+          //     },
+
+
+          // }
+
+        },
+        {
+          type: 'itea.mbt.test.MBTParallelGateway',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Parallel',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: 'black',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'Parallel',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
               strokeWidth: 0
             }
-          }
+          },
+
         },
         {
-          type: 'standard.Polygon',
+          type: 'itea.mbt.test.MBTExclusiveGateway',
           size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: t('MBTStore.branch'),
+              dataTooltip: 'Conditional',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
             body: {
-              points: 'calc(0.5 * w),0 calc(w),calc(0.5 * h) calc(0.5 * w),calc(h) 0,calc(0.5 * h)',
               fill: 'transparent',
-              stroke: '#31d0c6',
+              stroke: 'black',
               strokeWidth: 2,
-              strokeDasharray: '0'
+              strokeDasharray: '0',
             },
             label: {
-              text: 'x',
-              fill: '#c6c7e2',
+              text: 'Conditional',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
               strokeWidth: 0
             }
-          }
+          },
+
         },
-      ],
-      uml: [
-        {
-          type: 'uml.StartState',
-          size: { width: 30, height: 30 },
-          preserveAspectRatio: true,
-          attrs: {
-            root: {
-              dataTooltip: t('MBTStore.start'),
-              dataTooltipPosition: 'left',
-              dataTooltipPositionSelector: '.joint-stencil'
-            },
-            circle: {
-              width: 30,
-              height: 30,
-              r: 10,
-              fill: '#61549c',
-              'stroke-width': 0
-            },
-            text: {
-              text: 'startState',
-              fill: '#c6c7e2',
-              'font-family': 'Roboto Condensed',
-              'font-weight': 'Normal',
-              'font-size': 11,
-              'stroke-width': 0
-            }
-          }
-        },
-        {
-          type: 'uml.EndState',
-          size: { width: 30, height: 30 },
-          preserveAspectRatio: true,
-          attrs: {
-            root: {
-              dataTooltip: t('MBTStore.end'),
-              dataTooltipPosition: 'left',
-              dataTooltipPositionSelector: '.joint-stencil'
-            },
-            '.inner': {
-              fill: '#6a6c8a',
-              r: 6,
-              stroke: 'transparent'
-            },
-            '.outer': {
-              fill: 'transparent',
-              r: 10,
-              stroke: '#61549c',
-              'stroke-width': 2,
-              'stroke-dasharray': '0'
-            },
-            text: {
-              text: 'endState',
-              fill: '#c6c7e2',
-              'font-family': 'Roboto Condensed',
-              'font-weight': 'Normal',
-              'font-size': 11,
-              'stroke-width': 0
-            }
-          }
-        },
+
       ]
     };
   }

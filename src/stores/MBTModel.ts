@@ -22,8 +22,9 @@ interface codegen {
   codegen_script: string
 }
 interface dataDafinition {
-  data?: data
+  data: data
   meta: meta
+  resources: any
 }
 
 interface data {
@@ -45,6 +46,7 @@ interface mbtmodel {
   _id: string
   tags?: Array<string>
   description: string,
+
 }
 export const MBTStore = defineStore('mbtmodel', {
   state: (): IElementType => {
@@ -63,7 +65,8 @@ export const MBTStore = defineStore('mbtmodel', {
           meta: {
             schema: {},
             data: {}
-          }
+          },
+          resources: []
         },
         modelDefinition: {},
         name: "",
@@ -85,21 +88,24 @@ export const MBTStore = defineStore('mbtmodel', {
   getters: {
     getDafintion: (state) => state.mbtData.dataDefinition,
     changeTemplate(state) {
+      let obj = {
+        _id: "",
+        name: '',
+        description: '',
+        codegen_script: '',
+        codegen_text: ''
+      }
       //  return state.mbtData._id
       if (state.mbtData._id.length > 0) {
         // return state.mbtData
-        state.attributesTem._id = state.mbtData._id
-        state.attributesTem.name = state.mbtData.name
-        state.attributesTem.description = state.mbtData.description
+        obj._id = state.mbtData._id
+        obj.name = state.mbtData.name
+        obj.description = state.mbtData.description
         if (state.mbtData.attributes.codegen_script.length > 0) {
-          state.attributesTem.codegen_script = state.mbtData.attributes.codegen_script
-          state.attributesTem.codegen_text = state.mbtData.attributes.codegen_text
+          obj.codegen_script = state.mbtData.attributes.codegen_script
+          obj.codegen_text = state.mbtData.attributes.codegen_text
         }
-        return state.attributesTem;
-      } else {
-        if (state.attributesTem._id.length > 0) {
-          return state.attributesTem
-        }
+        return obj;
       }
     },
     showMetaSchema(state) {
@@ -128,12 +134,25 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     // 添加attributes的函数
     saveattr(data: any) {
-      this.attributesTem = { ...data }
+      this.mbtData._id = data._id
+      this.mbtData.name = data.name
+      this.mbtData.description = data.description
+      if (data.codegen_text) {
+        this.mbtData.attributes.codegen_script = data.codegen_script
+        this.mbtData.attributes.codegen_text = data.codegen_text
+      }
     },
-    // 添加meta的函数
-    saveMeta(data: any, schema: any) {
-      this.mbtData.dataDefinition.meta.data = { ...data }
-      this.mbtData.dataDefinition.meta.schema = { ...schema }
+    saveMeta(schema: any, data: any) {
+      this.mbtData.dataDefinition.meta.schema = schema
+      this.mbtData.dataDefinition.meta.data = data
+    },
+    saveData(data: any, column: any, dataFrom: string) {
+      this.mbtData.dataDefinition.data.dataFrom = dataFrom
+      this.mbtData.dataDefinition.data.tableData = data
+      this.mbtData.dataDefinition.data.tableColumns = column
+    },
+    saveResources(data: any) {
+      this.mbtData.dataDefinition.resources = data
     }
   }
 })
@@ -152,3 +171,5 @@ export default MBTStore
 // vim 为编辑文件内容
 //ls -ltr查看当前文件夹中的文件
 //zai  code下直接执行  ./redeploy.sh
+
+  // modelSchema

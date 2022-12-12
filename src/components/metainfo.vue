@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-import { ref, onMounted, toRaw } from "vue";
-
+import { ref, onMounted, toRaw, computed } from "vue";
+import {MBTStore} from "@/stores/MBTModel"
 import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
+import { watch } from "vue";
 // const emit = defineEmits(['submitTemplate'])
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
 }>();
 
-
+let store = MBTStore()
 const props = defineProps<{
   isFormVisible?: boolean;
-  metatemplatedetailtableData?: object;
+  metatemplateData?: object;
   schema?: IJSONSchema;
   metaformProps?: object;
 
@@ -22,12 +23,12 @@ const props = defineProps<{
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
 };
-console.log(props.isFormVisible ,props.metatemplatedetailtableData,props.metaformProps);
+console.log(props.isFormVisible ,props.metatemplateData,props.metaformProps);
 
 let tempschema = ref(props.schema);
 let metaformProps = ref(props.metaformProps);
 const isFormVisible = ref(props.isFormVisible);
-let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
+let metatemplateData = ref(props.metatemplateData);
 let metatemplatecolumns = ref(props.metatemplatecolumns);
 let metatemplatetableData = ref([]);
 
@@ -47,10 +48,10 @@ onMounted(() => {
 });
 
 function submitTemplate() {
-  let metaObj = {};
+
+  let metaObj = {schema : {} ,data : {}};
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
-  Object.assign(metaObj, { data: toRaw(metatemplatedetailtableData.value) });
-  console.log(metatemplatedetailtableData.value);
+  Object.assign(metaObj, { data: toRaw(metatemplateData.value) });
   
   emit("submitTemplate", metaObj);
 }
@@ -59,6 +60,8 @@ const showJSONSchemeForm = (templdateId: string) => {
   isFormVisible.value = !isFormVisible.value;
   getTemplate(templdateId,'meta').then((schema: any) => {
     tempschema.value = schema;
+    console.log(tempschema.value);
+    
   });
 };
 
@@ -73,13 +76,19 @@ const onImportFromMetaTemplate = () => {
 const backFormMetaTemplate=()=>{
   isFormVisible.value=true
 }
+let watchData = computed(()=>{tempschema.value , metatemplateData.value})
+watch(()=>watchData.value , (val:any)=>{
+
+    store.saveMeta(tempschema.value , metatemplateData.value)
+
+} , {deep:true})
 
 </script>
 <template>
   <div style="margin: 5px; padding: 5px">
     <VueForm
       v-if="isFormVisible"
-      v-model="metatemplatedetailtableData"
+      v-model="metatemplateData"
       :schema="tempschema"
       :formProps="metaformProps"
       :formFooter="formExpectedFooter"
@@ -123,17 +132,21 @@ const backFormMetaTemplate=()=>{
   </a-table>
   </main>
 
-    <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
+    <!-- <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
       Jump to Meta Template
-    </a>
-    <a-button type="primary" @click="submitTemplate">Save</a-button>
+    </a> -->
+    <!-- <a-button type="primary" 
+    style="position: absolute; top: -2.25rem; right: 9rem;"
+    size="small"
+    @click="submitTemplate">save</a-button> -->
     <!-- <div> -->
       <a-button
       style="position: absolute; top: -2.25rem; right: 0;"
       v-if="isFormVisible"
       type="primary"
+      size="small"
       @click="onImportFromMetaTemplate"
-      >Choose A Template</a-button>
+      >choose template</a-button>
       <a-button
       style="position: absolute; top: -2.25rem; right: 0;"
       v-if="!isFormVisible"
