@@ -129,7 +129,7 @@ const generateSchema = (inputArr: Array<Object>,metaId:string) => {
 
 
     }
-    Object.assign(tempobj , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
+    Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
     outputArr.push(tempobj);
   });
 
