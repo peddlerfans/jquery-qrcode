@@ -1,3 +1,4 @@
+import { BoxPackProperty } from "csstype";
 
 export interface MBTShapeInterface {
     // static namespace:string,
@@ -5,6 +6,6 @@ export interface MBTShapeInterface {
     setInspectorData:()=>any;
     getPropertiesSchema?:()=>any;
     setPropertiesData?:()=>any;
-    ifDisallowLink?:() =>any;
+    ifDisallowLink?:() =>boolean;
   }
 

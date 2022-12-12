@@ -4,12 +4,12 @@ import {i18n} from "@/locales";
 import { f } from "vitest/dist/index-60e2a8e1";
 import {MBTShapeInterface} from "./MBTShapeInterface"
 const { t } = i18n.global
-
+import { MBTGroupBase } from "./MBTGroupBase";
 window.joint = joint
 
 export const name = 'section';
 export const namespace='itea.mbt.test'+name;
-export class MBTSection extends joint.shapes.bpmn2.Activity implements MBTShapeInterface  {
+export class MBTSection extends MBTGroupBase {
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
@@ -34,16 +34,22 @@ export class MBTSection extends joint.shapes.bpmn2.Activity implements MBTShapeI
  
    this.updateRectangles();
   }
-  ifEmbedable(child?:any){
-    return true;
+  ifEmbedable(child?:any):boolean{
+    return super.ifEmbedable()
+    // return true;
   }
-  // static namespace = 'itea.mbt.test.group';
+  ifDisallowLink():boolean{
+  //  return true;
+   return super.ifDisallowLink()
+  }
+
   getInspectorSchema(){
-    
+    super.getInspectorSchema()
 
   }
 
   setInspectorData(){
+    super.setInspectorData()
     
   }
   
@@ -68,12 +74,7 @@ setSizeFromContent() {
   this.resize(width, height);
 }
   defaults() {
-    return {
-        ...super.defaults,
-        type: 'itea.mbt.test'
-     
-   
-    }
+    return super.defaults()
   }
 
 }

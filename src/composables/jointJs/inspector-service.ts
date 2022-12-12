@@ -26,7 +26,7 @@ export class InspectorService {
         const options = {
 
             colorPalette: [
-                { content: 'transparent', icon: '/assets/transparent-icon.svg' },
+                { content: 'transparent', icon: '../assets/transparent-icon.svg' },
                 { content: '#f6f6f6' },
                 { content: '#dcd7d7' },
                 { content: '#8f8f8f' },

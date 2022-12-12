@@ -12,27 +12,27 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 
 import joint from '../../node_modules/@clientio/rappid/rappid.js';
-import x from '../assets/no-color-icon.svg'
-import y from '../assets/transparent-icon.svg'
-import { MBTShapeInterface } from '@/composables/customElements/MBTShapeInterface'
+import x from '@/assets/no-color-icon.svg'
+import y from '@/assets/transparent-icon.svg'
+import {MBTShapeInterface} from '@/composables/customElements/MBTShapeInterface'
 // console.log(x);
 
 export class InspectorService {
 
     create(cell: joint.dia.Cell): joint.ui.Inspector {
 
-        //     const { groups, inputs } = this.getInspectorConfig()[cell.get('type')];
-        //     return joint.ui.Inspector.create('.inspector-container', { cell, groups, inputs });
-        // }
-        const shape = <MBTShapeInterface><unknown>cell;
-        console.log(shape.getInspectorSchema());
-
-        if (shape.getInspectorSchema) {
-            return joint.ui.Inspector.create('.inspector-container', { ...shape.getInspectorSchema(), cell });
+    //     const { groups, inputs } = this.getInspectorConfig()[cell.get('type')];
+    //     return joint.ui.Inspector.create('.inspector-container', { cell, groups, inputs });
+    // }
+    const shape = <MBTShapeInterface><unknown>cell;
+    // console.log(shape.getInspectorSchema());
+    
+        if(shape.getInspectorSchema ){
+            return joint.ui.Inspector.create('.inspector-container', {...shape.getInspectorSchema(), cell });
         }
         const { groups, inputs } = this.getInspectorConfig()[cell.get('type')];
-
-        return joint.ui.Inspector.create('.inspector-container', { cell, inputs, groups });
+        
+        return joint.ui.Inspector.create('.inspector-container', { cell,inputs,groups });
     }
 
 

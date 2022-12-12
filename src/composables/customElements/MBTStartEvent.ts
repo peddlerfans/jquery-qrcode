@@ -49,7 +49,7 @@ export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeI
   getInspectorSchema(){
     const options = {
       colorPalette: [
-        { content: 'transparent', icon: '../../assets/transparent-icon.svg' },
+        { content: 'transparent', icon: '../src/assets/transparent-icon.svg' },
         { content: '#f6f6f6' },
         { content: '#dcd7d7' },
         { content: '#8f8f8f' },
