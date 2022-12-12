@@ -53,7 +53,7 @@ export class StencilService {
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
       standard: { index: 1, label: 'Standard shapes' },
-      // uml: { index: 2, label: 'State machine' }
+      grouprelated: { index: 2, label: 'Group shapes' }
     };
   }
   getStencilShapes() {
@@ -85,67 +85,7 @@ export class StencilService {
             }
           }
         },
-        {
-          type: 'itea.mbt.test.MBTGroup',
-          size: { width: 50, height: 35 },
-          allowOrthogonalResize: false,
-          attrs: {
-            root: {
-              dataTooltip: 'Group',
-              dataTooltipPosition: 'left',
-              dataTooltipPositionSelector: '.joint-stencil'
-            },
-            body: {
-              fill: 'transparent',
-              stroke: '#31d0c6',
-              strokeWidth: 2,
-              strokeDasharray: '0',
-            },
-            label: {
-              text: 'Group',
-              fill: '#c6c7e2',
-              fontFamily: 'Roboto Condensed',
-              fontWeight: 'Normal',
-              fontSize: 11,
-              strokeWidth: 0
-            }
-          },
-          // ports: {
-          //   items: [
-          //     { group: 'in' },
-          //     { group: 'in' },
-          //     { group: 'out' }
-          //   ]
-          // }
-        },
 
-        {
-          type: 'itea.mbt.test.MBTSection',
-          size: { width: 50, height: 35 },
-          allowOrthogonalResize: false,
-          attrs: {
-            root: {
-              dataTooltip: 'Section',
-              dataTooltipPosition: 'left',
-              dataTooltipPositionSelector: '.joint-stencil'
-            },
-            body: {
-              fill: 'transparent',
-              stroke: '#31d0c6',
-              strokeWidth: 2,
-              strokeDasharray: '0',
-            },
-            label: {
-              text: 'Section',
-              fill: '#c6c7e2',
-              fontFamily: 'Roboto Condensed',
-              fontWeight: 'Normal',
-              fontSize: 11,
-              strokeWidth: 0
-            }
-          },
-
-        },
         {
           type: 'itea.mbt.test.MBTStartEvent',
           size: { width: 35, height: 35 },
@@ -271,6 +211,69 @@ export class StencilService {
 
         },
 
+      ],
+      grouprelated: [
+        {
+          type: 'itea.mbt.test.MBTGroup',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Group',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'Group',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          },
+          // ports: {
+          //   items: [
+          //     { group: 'in' },
+          //     { group: 'in' },
+          //     { group: 'out' }
+          //   ]
+          // }
+        },
+
+        {
+          type: 'itea.mbt.test.MBTSection',
+          size: { width: 50, height: 35 },
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'Section',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'Section',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          },
+
+        },
       ]
     };
   }
