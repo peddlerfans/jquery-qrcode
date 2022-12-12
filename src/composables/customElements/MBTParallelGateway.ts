@@ -17,7 +17,7 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
         this.attr(   {
           // 'background': { fill: '#454549' },
           'icon': { iconType: 'parallel' },
-          'label': { text: 'ParallelGateway' },
+          'label': { text: 'Parallel' },
         //   markers: {
         //     iconTypes: [ 'sub-process'],
         // }

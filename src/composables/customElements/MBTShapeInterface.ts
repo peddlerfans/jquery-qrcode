@@ -5,4 +5,6 @@ export interface MBTShapeInterface {
     setInspectorData:()=>any;
     getPropertiesSchema?:()=>any;
     setPropertiesData?:()=>any;
+    ifDisallowLink?:() =>any;
   }
+

@@ -12,14 +12,22 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
+import { MBTShapeInterface } from "./customElements/MBTShapeInterface";
 const Position = joint.ui.Halo.HandlePosition;
 
 export class HaloService {
 
     create(cellView: joint.dia.CellView) {
+        let haloConfig = this.getHaloConfig();
+        const shape = <MBTShapeInterface><unknown>cellView.model;
+        if(shape.ifDisallowLink && shape.ifDisallowLink() ){
+            haloConfig = haloConfig.filter(d=>['link','fork','clone'].indexOf(d.name)==-1
+                
+            )
+        }
         new joint.ui.Halo({
             cellView,
-            handles: this.getHaloConfig(),
+            handles: haloConfig,
             useModelGeometry: true
         }).render();
     }
@@ -92,19 +100,19 @@ export class HaloService {
                     }
                 }
             },
-            {
-                name: 'rotate',
-                position: Position.SW,
-                events: { pointerdown: 'startRotating', pointermove: 'doRotate', pointerup: 'stopBatch' },
-                attrs: {
-                    '.handle': {
-                        'data-tooltip-class-name': 'small',
-                        'data-tooltip': 'Click and drag to rotate the object',
-                        'data-tooltip-position': 'right',
-                        'data-tooltip-padding': 15
-                    }
-                }
-            }
+            // {
+            //     name: 'rotate',
+            //     position: Position.SW,
+            //     events: { pointerdown: 'startRotating', pointermove: 'doRotate', pointerup: 'stopBatch' },
+            //     attrs: {
+            //         '.handle': {
+            //             'data-tooltip-class-name': 'small',
+            //             'data-tooltip': 'Click and drag to rotate the object',
+            //             'data-tooltip-position': 'right',
+            //             'data-tooltip-padding': 15
+            //         }
+            //     }
+            // }
         ];
     }
 }

@@ -1,7 +1,7 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const { dia, g } = joint
 import {i18n} from "@/locales";
-import { f } from "vitest/dist/index-60e2a8e1";
+import { f, m } from "vitest/dist/index-60e2a8e1";
 import {MBTShapeInterface} from "./MBTShapeInterface"
 const { t } = i18n.global
 
@@ -13,18 +13,30 @@ export class MBTGroup extends joint.shapes.bpmn2.Activity implements MBTShapeInt
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
-        
+        console.log(this.markup)
+        debugger
         this.attr(   {
           // 'background': { fill: '#454549' },
           // 'icon': { iconType: 'receive' },
-          'label': { text: 'Group' },
+          'label': { 
+            refY:'10',
+            // 'text-anchor':'middle',
+          // y:'-3em',
+          // dy:0,
+          // x:20,
+          // y:-30,
+          // 'tspan':{dy:10},
+          // r: 'calc(0.15*d)',
+          // cx: 'calc(0.15*w)',
+          // cy: 'calc(0.55*h)',
+          text: 'Loop' },
           'border': 
           {
                 // borderType: 'thick',
                 borderStyle: 'dashed'
             },
           markers: {
-            iconTypes: [ 'sub-process'],
+            iconTypes: [ 'loop'],
         }
 
       })
@@ -42,6 +54,7 @@ export class MBTGroup extends joint.shapes.bpmn2.Activity implements MBTShapeInt
   ifEmbedable(child?:any){
     return true;
   }
+  ifDisallowLink(){return true;}
   // static namespace = 'itea.mbt.test.group';
   getInspectorSchema(){
     

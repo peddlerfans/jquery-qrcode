@@ -6,6 +6,7 @@ import { HaloService } from './haloService';
 import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from '../composables/jointJs/app-shapes';
+import { MBTShapeInterface } from './customElements/MBTShapeInterface';
 
 class MbtServe {
     el !: any;
@@ -246,6 +247,18 @@ class MbtServe {
                     return pv.model.ifEmbedable(cv.model)
                 }
                 return false
+            },
+            validateConnection: function(cellViewS, _magnetS, cellViewT, _magnetT, end, _linkView) {
+
+                const shape = <MBTShapeInterface><unknown>cellViewT.model;
+                if(shape.ifDisallowLink && shape.ifDisallowLink() ){
+                    return false;
+                        
+                    
+                }           
+             
+
+                return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
             }
         });
 
