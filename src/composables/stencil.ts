@@ -152,7 +152,7 @@ export class StencilService {
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'StartEvent',
+              dataTooltip: 'Start',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
@@ -163,8 +163,8 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'StartEvent',
-              fill: '#c6c7e2',
+              text: 'Start',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
@@ -179,7 +179,7 @@ export class StencilService {
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'EndEvent',
+              dataTooltip: 'End',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
@@ -190,8 +190,8 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'EndEvent',
-              fill: '#c6c7e2',
+              text: 'End',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
@@ -222,19 +222,19 @@ export class StencilService {
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'ParallelGateway',
+              dataTooltip: 'Parallel',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
             body: {
               fill: 'transparent',
-              stroke: '#31d0c6',
+              stroke: 'black',
               strokeWidth: 2,
               strokeDasharray: '0',
             },
             label: {
-              text: 'ParallelGateway',
-              fill: '#c6c7e2',
+              text: 'Parallel',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
@@ -249,19 +249,19 @@ export class StencilService {
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'ExclusiveGateway',
+              dataTooltip: 'Conditional',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
             body: {
               fill: 'transparent',
-              stroke: '#31d0c6',
+              stroke: 'black',
               strokeWidth: 2,
               strokeDasharray: '0',
             },
             label: {
-              text: 'ExclusiveGateway',
-              fill: '#c6c7e2',
+              text: 'Conditional',
+              fill: 'black',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
               fontSize: 11,
