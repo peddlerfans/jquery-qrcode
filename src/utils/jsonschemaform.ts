@@ -52,6 +52,18 @@ const generateSchema = (inputArr: Array<Object>) => {
       typeinschema == "string"
     ) {
       enumVal = _.split(mod.enum, ",");
+      if (mod._id) {
+        tempobj = {
+          [mod._id]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            "ui:hidden": true,
+            title: mod._id,
+            // enum: enumVal,
+            // enumNames: enumVal,
+          },
+        };
+      }
       if (mod.description) {
         tempobj = {
           [mod.description]: {

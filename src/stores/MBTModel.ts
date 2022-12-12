@@ -23,7 +23,7 @@ interface codegen {
 }
 interface dataDafinition {
   data?: data
-  meta?: meta
+  meta: meta
 }
 
 interface data {
@@ -39,7 +39,7 @@ interface meta {
 
 interface mbtmodel {
   attributes: codegen
-  dataDefinition?: dataDafinition
+  dataDefinition: dataDafinition
   modelDefinition?: any
   name: string
   _id: string
@@ -129,6 +129,11 @@ export const MBTStore = defineStore('mbtmodel', {
     // 添加attributes的函数
     saveattr(data: any) {
       this.attributesTem = { ...data }
+    },
+    // 添加meta的函数
+    saveMeta(data: any, schema: any) {
+      this.mbtData.dataDefinition.meta.data = { ...data }
+      this.mbtData.dataDefinition.meta.schema = { ...schema }
     }
   }
 })

@@ -330,7 +330,8 @@ function globalhandlerSubmit(data?:any) {
 // 关闭模态窗的函数
 const handleOk = () => {
   store.saveattr(globalformData.value)
-  console.log(store.attributesTem);
+  store.saveMeta(metatemplatedetailtableData.value,tempschema.value)
+  console.log(tempschema.value);
   
   // isGlobal.value = false
 }
@@ -370,7 +371,9 @@ function Datafintion(data: any) {
   }
 }
 
-onMounted(async()=>{  
+onMounted(async () => {  
+  console.log('123');
+  
     getAllTemplatesByCategory('codegen').then((rst:any)=>{
   if(rst && _.isArray(rst)){
     rst.forEach((rec:any)=>{              
@@ -386,12 +389,11 @@ onMounted(async()=>{
     globalformData.value = store.changeTemplate
   }
   if (store.showMetaSchema) {
-    tempschema.value = store.showMetaSchema
-    console.log(tempschema.value);
-    
+    isFormVisible.value = true;
+    tempschema.value = store.showMetaSchema    
   }
   if (store.showMetaData) {
-    metatemplatedetailtableData.value = store.showMetaSchema
+    metatemplatedetailtableData.value = store.showMetaData
   }
   rappid = new MbtServe(
     apps.value,
