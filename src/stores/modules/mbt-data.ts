@@ -4,7 +4,8 @@ interface MbtData {
     allData: any,
     editingPrimaryAw: {
         data: any,
-        schema: any
+        schema: any,
+        uiParams: null
     },
     editingExpectedAw: {
         data: any,
@@ -22,11 +23,12 @@ export const MbtData = defineStore({
         allData: null,
         editingPrimaryAw: {
             data: null,
-            schema: null
+            schema: null,
+            uiParams: null
         },
         editingExpectedAw: {
             data: null,
-            schema: null
+            schema: null,
         },
         mbtMeta: {
             detail: null,

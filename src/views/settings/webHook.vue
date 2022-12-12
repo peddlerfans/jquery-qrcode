@@ -21,31 +21,26 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { CommonTable } from '@/components/basic/common-table'
 import VueForm from "@lljj/vue3-form-ant";
+import schemaItem from '@/components/basic/itea-schema-item/input-select-item.vue'
 
 let schema = {
-  type: "object",
-  "properties": {
-    "用例编号": {
-      "title": "用例编号（string类型）",
-      "type": "object",
-      "properties": {
-        "value": {
-          "type": "string",
-          "patternProperties": false,
-          "enum": [ "2", "3" ],
-          "ui:width": "80%",
-          "ui:options": {
-            mode: 'tags',
-            "multiple-limit": '1'
-          }
-        },
-        "value1": {
-          "type": "string",
-          "message": { "pattern": "输入自定义参数" },
-          "ui:width": "80%"
-        }
-      }
+  title: '',
+  type: 'object',
+  properties: {
+    inputText: {
+      title: '自定义widget',
+      "patternProperties": false,
+      type: 'string',
     }
+  }
+}
+let uiSchema = {
+  inputText: {
+    "ui:widget": schemaItem,
+    "ui:options": [{
+      value: 'lucy',
+      label: 'Lucy',
+    }]
   }
 }
 let schemaVal = ref()
@@ -477,6 +472,7 @@ const handleInputConfirm = () => {
     <VueForm
         v-model="schemaVal"
         :schema="schema"
+        :ui-schema="uiSchema"
     ></VueForm>
     <div>{{schemaVal}}</div>
   </main>

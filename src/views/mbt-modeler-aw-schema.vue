@@ -18,6 +18,8 @@ interface Props {
   show: boolean
 }
 
+const emit = defineEmits(['save'])
+
 const props = withDefaults(defineProps<Props>(), {
   show: false
 })
@@ -28,6 +30,7 @@ watch(
       if (store.getPrimaryAw.schema) {
         schema.value = store.getPrimaryAw.schema
         schemaValue.value = store.getPrimaryAw.data || {}
+        primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
         isEdit.value = true
       }
     }
@@ -68,6 +71,7 @@ const defaultAWSchema = {
 
 let schema = ref(defaultAWSchema)
 let schemaValue = ref<any>({})
+let primaryUiSchema = ref({})
 let ExpectedSchema = ref(defaultAWSchema)
 let ExpectedSchemaValue = ref<any>({})
 const formProps = {
@@ -76,7 +80,6 @@ const formProps = {
   labelWidth: '75px',
   labelSuffix: ':',
 }
-let awUiSchema: any = {}
 const store = MbtData()
 const { t } = useI18n()
 let isEdit = ref(false)
@@ -121,9 +124,13 @@ onMounted(() => {
   getTableData()
 })
 
+function setSchema (schema: any, columns: any, uiSchema: any) {
+  const temp = data2schema(schema, columns, uiSchema)
+  schema.value = temp.schema
+  primaryUiSchema.value = temp.uiSchema
+}
+
 function showAw (row: any) {
-  console.log(row)
-  return
   isEdit.value = true
   schemaValue.value.name = row.name
   schemaValue.value.description = row.description
@@ -141,7 +148,7 @@ function showAw (row: any) {
       Object.assign(schema.value.properties, field)
     })
   }
-  schema.value = data2schema(schema.value, store.getDataPoolTableColumns)
+  setSchema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
   store.setEditingPrimaryAw(schema.value, 'schema')
   store.setEditingPrimaryAw(schemaValue.value, 'data')
 }
@@ -160,7 +167,12 @@ function tablePageChange (query: any) {
 
 // AW operation
 function saveAW () {
-
+  store.setEditingExpectedAw({
+    data: schemaValue.value,
+    schema: schema.value,
+    uiParams: primaryUiSchema.value
+  })
+  emit('save')
 }
 
 function changAW () {
@@ -187,9 +199,10 @@ function updateAW () {
         v-model="schemaValue"
         :schema="schema"
         :formProps="formProps"
-        :uischema="awUiSchema">
+        :uiSchema="primaryUiSchema">
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
+      <div>{{ schemaValue }}</div>
       <div class="btn-line">
         <a-button type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
         <a-button type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>

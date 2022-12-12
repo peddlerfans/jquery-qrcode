@@ -1,15 +1,16 @@
 import { MbtData } from "@/stores/modules/mbt-data";
 import cloneDeep from "lodash-es/cloneDeep";
+import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
 
 const store = MbtData()
 
-export function data2schema (awSchema: any, selectList: any) {
+export function data2schema (awSchema: any, selectList: any, uiSchema?: any) {
     // 可选参数名
     let enumList: Array<any> = []
     if (Array.isArray(selectList)) enumList = selectList.map((a: any) => {
         return {
             value: `{{${a.title}}}`,
-            title: a.title
+            label: a.title
         }
     })
     // 获取属性里面可自定义的表单项
@@ -20,14 +21,16 @@ export function data2schema (awSchema: any, selectList: any) {
             "title": a,
             "type": "string",
             "patternProperties": false,
-            "enum": enumList.map((a: any) => a.value),
-            "enumNames": enumList.map((a: any) => a.title),
-            "ui:options": {
-                mode: 'tags'
-            },
+        }
+        if (uiSchema) uiSchema[a] = {
+            "ui:widget": schemaItem,
+            "ui:options": enumList
         }
     })
-    return awSchema
+    return {
+        schema: awSchema,
+        uiSchema
+    }
 }
 
 // 获取 schema.properties 里面自定义编辑的元素
@@ -83,7 +86,7 @@ export function getSchemaData (schema: any) {
     return data
 }
 
-export function string2Obj (schema: any) {
+export function string2Obj (schema: any, uiSchema: any) {
     const prop = schema.properties
     const optionList: Array<any> = store.getMetaData.detail
     let temp: Array<string> = []
@@ -95,18 +98,22 @@ export function string2Obj (schema: any) {
                 title: tar.title,
                 type: 'string',
                 "patternProperties": false,
-                "enum": getEnumList(tar.title, optionList),
-                "ui:options": {
-                    mode: 'tags'
-                },
+            }
+            uiSchema[key] = {
+                "ui:widget": schemaItem,
+                "ui:options": getEnumList(tar.title, optionList)
             }
         }
     }
     store.setMetaData(temp, 'customKeys')
-    return schema
+    return {
+        schema,
+        uiSchema
+    }
 }
 
 function getEnumList (title: string, optionList: Array<any>) {
+    if (!optionList) return []
     let res = optionList.filter((a: any) => a.description === title)[0]
     if (res) return res.enum
     else return []

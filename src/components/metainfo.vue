@@ -27,7 +27,15 @@ const formExpectedFooter = {
 };
 
 let tempschema = ref(props.schema);
-tempschema.value = string2Obj(tempschema.value)
+let uiSchema = ref({})
+
+function setSchema (schema: any, uiSchema: any) {
+  const temp = string2Obj(tempschema.value, uiSchema.value)
+  tempschema.value = temp.schema
+  uiSchema.value = temp.uiSchema
+}
+
+setSchema(tempschema.value, uiSchema)
 let metaformProps = ref(props.metaformProps);
 const isFormVisible = ref(props.isFormVisible);
 let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
@@ -89,7 +97,7 @@ async function getTemplate(metaId: string, category: string) {
       });
     }
 
-    return string2Obj(currentschema);
+    return string2Obj(currentschema, uiSchema.value).schema;
   }
 }
 
@@ -121,9 +129,9 @@ const onImportFromMetaTemplate = () => {
       :schema="tempschema"
       :formProps="metaformProps"
       :formFooter="formExpectedFooter"
+      :uiSchema="uiSchema"
     >
     </VueForm>
-    <div>{{ metatemplatedetailtableData }}</div>
   </div>
   <a-table
     v-if="!isFormVisible"

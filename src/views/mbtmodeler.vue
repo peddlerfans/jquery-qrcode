@@ -770,7 +770,11 @@ let chooseAw:any = null
 let chooseAwExpected:any = null
 
 
-function awhandlerSubmit(data:any,schema:any) {
+function awhandlerSubmit(data:any,schema:any,  from?: string) {
+  if (from === '1') {
+    awformdata.value = mbtDataStore.getPrimaryAw.data
+    awschema.value = mbtDataStore.getPrimaryAw.schema
+  }
   isAW.value = true;
   isLink.value = false;
   isGlobal.value = false;
@@ -1672,7 +1676,7 @@ async function saveMBT(route?: any) {
   // console.log(mbtCache);
   leaveRouter.value = false
     saveMbtData = getmbtData()
-    await updateMBT(url + `/${mbtCache["_id"]}`, getmbtData())
+    await updateMBT(url + `/${mbtCache["_id"]}`,saveMbtData)
   message.success(t("component.message.saveSuccess"));
 }
 
@@ -2310,9 +2314,11 @@ localStorage.setItem("mbt_" + route.params.name,paramsName);
           awformdata.value = getSchemaData(awProp);
           awschema.value = awProp.schema;
           // 表单自定义输入设置
-          awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
+          const temp = data2schema(awschema.value, cacheDataDefinition.data.tableColumns, {})
+          awschema.value = temp.schema
           mbtDataStore.setEditingPrimaryAw(awschema.value, 'schema')
           mbtDataStore.setEditingPrimaryAw(awformdata.value, 'data')
+          mbtDataStore.setEditingPrimaryAw(temp.uiSchema, 'uiParams')
           let tempformdata2 = generateObj(awformdata);
           let tempawschema = generateObj(awschema);
           // console.log(".....111....", tempformdata2, ".....schema....:", tempawschema);
@@ -2476,7 +2482,7 @@ function showAWInfo(rowobj: any) {
       Object.assign(awschema.value.properties, field);
     });
   }
-  awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
+  // awschema.value = data2schema(awschema.value, cacheDataDefinition.data.tableColumns)
   mbtDataStore.setEditingPrimaryAw(awschema.value, 'schema')
   mbtDataStore.setEditingPrimaryAw(awformdata.value, 'data')
 }
@@ -3176,6 +3182,7 @@ const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
           <mbt-modeler-aw-schema
               v-if="isAW"
               :show="visible && isAW"
+              @save="() => awhandlerSubmit(null, null, '1')"
           ></mbt-modeler-aw-schema>
 <!--          <div class="infoPanel" ref="infoPanel" v-if="isAW">-->
 <!--            <a-tabs v-model:activeKey="awActiveKey">-->
