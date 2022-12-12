@@ -16,13 +16,13 @@ export class MBTEndEvent extends joint.shapes.bpmn2.Event implements MBTShapeInt
         
         this.attr(   {
           // 'background': { fill: '#454549' },
-          'icon': { iconType: 'link2' },
+          // 'icon': { iconType: 'link2' },
           // {  borderType: 'double'},
-          'border': 
-          {
-                borderType: 'thick',
-                // borderStyle: 'dashed'
-            },
+          // 'border': 
+          // {
+          //       borderType: 'thick',
+          //       // borderStyle: 'dashed'
+          //   },
           'label': { text: 'endevent' },
           // 'stroke': '#fe854f',
           // 'body': {

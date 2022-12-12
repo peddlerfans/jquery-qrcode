@@ -18,6 +18,11 @@ export class MBTGroup extends joint.shapes.bpmn2.Activity implements MBTShapeInt
           // 'background': { fill: '#454549' },
           // 'icon': { iconType: 'receive' },
           'label': { text: 'Group' },
+          'border': 
+          {
+                // borderType: 'thick',
+                borderStyle: 'dashed'
+            },
           markers: {
             iconTypes: [ 'sub-process'],
         }

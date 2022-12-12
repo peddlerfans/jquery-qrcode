@@ -20,7 +20,7 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
       super(e,o);
       this.attr(   {
         // 'background': { fill: '#454549' },
-        // 'icon': { iconType: 'receive' },
+        'icon': { iconType: 'user' },
         'label': { text: 'AW' },
  
       },)

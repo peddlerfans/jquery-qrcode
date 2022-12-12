@@ -178,23 +178,42 @@ export class StencilService {
           size: { width: 35, height: 35 },
           allowOrthogonalResize: false,
           attrs: {
-            // background: {
-            //     fill: '#ffc2a7',
-            // },
-            border: {
-                borderType: 'double',
-                borderStyle: 'thick',
-                fill: '#ffc2a7',
-                // stroke: '#fe854f'
+            root: {
+              dataTooltip: 'EndEvent',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
             },
-            icon: {
-                iconColor: '#ffffff',
-                iconType: name,
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
             },
             label: {
-                text: `icon: ${name}\ntype: intermediate\ninterrupting: no`
+              text: 'EndEvent',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            },
+            border: {
+                      borderType: 'double'
             }
-        }
+          },
+        //   attrs: {
+        //     // background: {
+        //     //     fill: '#ffc2a7',
+        //     // },
+        //     border: {
+        //         borderType: 'double',
+        //         // borderStyle: 'thick',
+        //         fill: '#ffc2a7',
+        //         // stroke: '#fe854f'
+        //     },
+
+
+        // }
 
         },
         {
