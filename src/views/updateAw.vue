@@ -9,23 +9,51 @@ import { routerKey, useRoute, useRouter } from "vue-router";
 import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 import { AnyKindOfDictionary } from "lodash";
 import { identifier } from "@babel/types";
+import { CommonTable } from '@/components/basic/common-table'
+
 const { t } = useI18n()
 
-let route=useRoute()
-let router=useRouter()
-async function query(data?:any){
+async function query (data?:any) {
   let rsts=await request.get(`/api/hlfs/${data}`)
   if(rsts){
-    modelstates.value = { ...rsts } as any
+    modelstates.value={...rsts} as any
     if(!modelstates.value.returnType)modelstates.value.returnType = []
+    awParamsTable.value.setTableData(modelstates.value.params)
     states.tags=rsts.tags!
     sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
   }
 }
+let route=useRoute()
+
+let router=useRouter()
 
 // 判断是否是详情还是编辑操作
 let canEdit = ref(!router.currentRoute.value.query?.canEdit)
-// console.log(canEdit)
+
+// table data
+let awParamsTable = ref<any>(null)
+let awParamsColumn: any = [
+  { title: "name", width: 280 },
+  { title: "description", width: 100 },
+  { title: "type", width: 60, option: '1' },
+  { title: "enum", width: 100 },
+  { title: "default", width: 100 }
+]
+
+if (canEdit.value) awParamsColumn.push({
+  title: "action",
+  width: 140,
+  actionList: ['edit', 'delete', 'check', 'up', 'down']
+})
+
+const deleteParams = (row: any) => {
+  let tableData = awParamsTable.value.getTableData()
+  const index= tableData.findIndex((e: any) => JSON.stringify(e) === JSON.stringify(row))
+  if (index === -1) return
+  tableData.splice(index,1)
+  awParamsTable.value.setTableData(tableData)
+  message.success(t('component.message.delText'))
+}
 
 
 
@@ -57,95 +85,26 @@ let modelstates = ref<ModelState>({
   tags:[],
   path:""
 });
-// 点击添加params的函数
-let obj = ref<paramsobj>({
-  required:false,
-  name: "",
-  description: "",
-  type: "",
-  enum: [],
-  inputVisible: false,
-  inputValue: '',
-  editing: false,
-})
 
-// params的表格结构
-const paramsColum = [
-  {
-    title: 'component.table.required',
-    dataIndex: 'required',
-    key: 'required',
-    width:10
-  },
-  {
-    title: 'component.table.paramsName',
-    dataIndex: 'name',
-    key: 'name',
-    width:280
-  },
-  {
-    title: 'component.table.description',
-    dataIndex:'description',
-    key:'description',
-    width:100
-  },
-  {
-    title: 'component.table.type',
-    dataIndex: 'type',
-    key: 'type',
-    width:60
-  },
-  {
-    title: 'component.table.enum',
-    dataIndex: 'enum',
-    key: 'enum',
-    width:180
-  }
-]
-if (canEdit) paramsColum.push( {
-  title: 'component.table.action',
-  dataIndex: 'action',
-  key: 'action',
-  width:100
-})
+
 // 新添加一条params数据
 const addNewParams = () => {
-  modelstates.value.params.unshift({
+  awParamsTable.value.createNewRow({
     required :false,
     name : '',
     description : '',
     type : '',
-    enum : [],
-    editing: true,
-    inputVisible: true,
-    inputValue: '',
+    enum : []
   })
 }
-// 添加params的enu
-const handleCloseTag = (record: any, removedTag: any) => {
-  const tags = record.enum.filter((tag: AnyKindOfDictionary) => tag !== removedTag);
-  record.enum = tags;
-};
 
 const handleReturnClose = (removedTag: string) => {
   const tags = modelstates.value.returnType.filter((tag: string) => tag !== removedTag);
   modelstates.value.returnType = tags;
 };
 
-const handleFactorValueConfirm = (record: any) => {
-  let values = record.enum;
-  if (values && record.inputValue && values.indexOf(record.inputValue) === -1) {
-    values = [...values, record.inputValue];
-  }
-  Object.assign(record, {
-    enum: values,
-    inputVisible: false,
-    inputValue: '',
-  });
-}
-
 const handleReturnConfirm = () => {
-  let tags: Array<String> = modelstates.value.returnType;    
+  let tags: Array<String> = modelstates.value.returnType;
   if (returnInput.value ) {
     if (tags.length > 0) {
       if (tags.indexOf(returnInput.value) === -1) {
@@ -155,34 +114,11 @@ const handleReturnConfirm = () => {
       modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
     }
   }
-  
-  returnInput.value = '',
+
+  returnInput.value = ''
   returnVisibal.value = false
 }
-// 点击取消修改或添加params的函数
-const cancelparams = (record:any) => {
-  if (obj.value.name === ''){
-    const index= modelstates.value.params.findIndex(e => e === record)
-    modelstates.value.params.splice(index,1);
-  } else {
-    record.description=obj.value.description
-    record.required=obj.value.required
-    record.name = obj.value.name
-    record.type = obj.value.type
-    states.tags=obj.value.enum
-    record.editing = false
-  }
-  clearFactorState()
-}
-let inputRefs = ref()
-let returnType = ref()
-const newFactorValueInput = (record: any) => {
-  record.inputVisible = true;
 
-  nextTick(() => {
-    inputRefs.value.focus();
-  })
-};
 const showreturnInput = () => {
   returnVisibal.value = true;
   nextTick(() => {
@@ -191,41 +127,6 @@ const showreturnInput = () => {
 };
 
 
-// 清空赋值params单行的数据
-const clearFactorState = () => {
-  obj.value.name = ''
-  obj.value.description = ''
-  obj.value.required = false,
-      obj.value.type = ''
-  obj.value.enum = []
-  obj.value.editing = true
-  obj.value.inputVisible = false
-  obj.value.inputValue = ''
-  // (instance?.refs.refFactorForm as any).resetFields();
-}
-// 点击保存params的函数
-const saveparams = async (record: any) => {
-  record.editing = false
-  clearFactorState()
-}
-// 点击修改params触发的函数
-const editparams = (record: any) => {
-  // console.log(record);
-
-  if (!canEdit.value) return
-  obj.value.description=record.description
-  obj.value.required=record.required
-  obj.value.name = record.name
-  obj.value.type = record.type
-  obj.value.enum = record.values
-  record.editing = true
-}
-// 点击删除params的函数
-const delmodel = (record: any) => {
-  const index= modelstates.value.params.findIndex(e => e === record)
-  modelstates.value.params.splice(index,1);
-  message.success(t('component.message.delText'));
-}
 // 添加的表单tags
 let inputRef = ref();
 let states = reactive<statesTs>({
@@ -266,21 +167,21 @@ let getmbtname=localStorage.getItem("mbt_" +route.params.mbtname+"aw" )
 async function updateAw(url:string,data:any) {
   delete data._id
   let rst = await request.put(url, data)
-  // console.log(JSON.parse(getupdate));
-  if (rst) {
-    modelstates.value = rst as any
+  if(rst){
     canEdit.value=false
+    awParamsColumn = awParamsColumn.filter((a: any) => a.title !== 'action')
+    awParamsTable.value.changeColumn(awParamsColumn)
   }
 
 }
 
 let refForm=ref()
-// const validator = new Schema(descriptor);
 const onFinishForm = () => {
-  // console.log(modelstates.value);
-
   refForm.value.validate().then(async (res:any)=>{
     modelstates.value.tags=states.tags
+    modelstates.value.params = awParamsTable.value.getTableData()
+    if (modelstates.value.params.some((a: any) => a.editing))
+      return message.warning(t('component.message.tableEditingWarn'))
     await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
@@ -290,8 +191,6 @@ const onFinishForm = () => {
 
 }
 const onFinishFailedForm = (errorInfo: any) => {
-  console.log(getmbtId,getmbtname);
-  
   if(JSON.parse(getupdate)=="awmodeler"){
     router.push("/awmodeler/index")
   }else if(JSON.parse(getupdate)=="mbtAW"){
@@ -304,37 +203,15 @@ const onFinishFailedForm = (errorInfo: any) => {
     })
   }
 };
-// 模态窗表单
-const optiones = ref<SelectProps['options']>([
-  {
-    value: 'str',
-    label: 'str',
-  },
-  {
-    value: 'float',
-    label: 'float',
-  },
-  {
-    value: 'boolean',
-    label: 'boolean',
-  },
-  {
-    value: 'number',
-    label: 'number',
-  },
-  {
-    value: 'int',
-    label: 'int',
-  },
-  {
-    value: 'SUT',
-    label:'SUT'
-  }
-]);
+
 const editAw = () => {
-  // if (canEdit) {
   canEdit.value=true
-  // }
+  awParamsColumn.push({
+    title: "action",
+    width: 140,
+    actionList: ['edit', 'delete', 'check', 'up', 'down']
+  })
+  awParamsTable.value.changeColumn(awParamsColumn)
 }
 
 
@@ -504,7 +381,7 @@ let rules: Record<string, Rule[]> = {
               @blur="handleReturnConfirm"
               @keyup.enter="handleReturnConfirm"
           />
-          <a-tag 
+          <a-tag
           v-show="!returnVisibal && canEdit"
            style="background: #fff; border-style: dashed"
                   @click="showreturnInput">
@@ -519,93 +396,12 @@ let rules: Record<string, Rule[]> = {
         <a-button @click="addNewParams" v-if="canEdit">{{$t('awModeler.addParams')}}</a-button>
       </a-form-item>
     </a-form>
-
-    <a-table v-if="modelstates.params.length>0" :columns="paramsColum" :data-source="modelstates.params" bordered>
-      <template #headerCell="{ column }">
-        <span>{{ $t(column.title) }}</span>
-      </template>
-      <template #bodyCell="{column,text,record}">
-        <template v-if='column.key==="required"'>
-          <a-checkbox v-if="record.editing" v-model:checked="record.required"></a-checkbox>
-          <a-checkbox v-else v-model:checked="record.required" :disabled="true"></a-checkbox>
-        </template>
-        <template v-if='column.key==="name"'>
-          <a-input v-if="record.editing" v-model:value.trim="record.name" style="margin: -5px 0" />
-          <template v-else>
-            {{text}}
-          </template>
-        </template>
-        <template v-if='column.key==="description"'>
-          <a-input v-if="record.editing" v-model:value.trim="record.description" style="margin: -5px 0" />
-          <template v-else>
-            {{text}}
-          </template>
-        </template>
-        <template v-if='column.key==="type"'>
-          <div>
-            <a-select ref="select" v-if="record.editing" v-model:value.trim="record.type" :options="optiones"
-            ></a-select>
-            <template v-else>
-              {{ text }}
-            </template>
-          </div>
-        </template>
-        <template v-if="column.key === 'enum'">
-          <div>
-            <template v-if="record.editing">
-              <template v-for="(tag) in record.enum" :key="tag">
-                <a-tooltip v-if="tag.length > 20" :title="tag">
-                  <a-tag :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                    {{ `${tag.slice(0, 20)}...` }}
-                  </a-tag>
-                </a-tooltip>
-                <a-tag v-else-if="tag.length==0"></a-tag>
-                <a-tag v-else :closable="true" :visible="true" @close="handleCloseTag(record, tag)">
-                  {{tag}}
-                </a-tag>
-              </template>
-              <a-input v-if="record.inputVisible || record.type=='string'" ref="inputRefs" v-model:value.trim="record.inputValue" type="text"
-                       size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-                       @keyup.enter="handleFactorValueConfirm(record)" />
-              <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRefs" v-model:value.number="record.inputValue" type="text"
-                              size="small" :style="{ width: '78px' }" @blur="handleFactorValueConfirm(record)"
-                              @keyup.enter="handleFactorValueConfirm(record)" />
-              <a-tag v-else style="background: #fff; border-style: dashed" @click="newFactorValueInput(record)">
-                <plus-outlined />
-                {{ $t('common.newValue') }}
-              </a-tag>
-            </template>
-
-            <span v-else>
-            <a-tag v-for="tag in record.enum" :key="tag" color="cyan">
-              {{ tag }}
-            </a-tag>
-          </span>
-          </div>
-        </template>
-
-        <template v-if="column.key === 'action'">
-          <div class="editable-row-operations">
-            <span v-if="record.editing">
-              <a-typography-link type="danger" @click="saveparams(record)" style="font-size:16px">{{ $t('common.saveText' )}}</a-typography-link>
-              <a-divider type="vertical" />
-            <a @click="cancelparams(record)">{{$t('common.cancelText') }}</a>
-            </span>
-            <span v-else>
-              <a-button type="link" @click="editparams(record)" :disabled="!canEdit">{{ $t('component.table.edit') }}</a-button>
-              <a-divider type="vertical" />
-              <a-popconfirm
-                  :title="$t('component.message.sureDel')"
-                  @confirm="delmodel(record)"
-                  :cancel-text="$t('common.cancelText')"
-                  :ok-text="$t('common.okText')">
-              <a-button type="link"  style="margin-left:10px;margin-right:10px;font-size:16px;" :disabled="!canEdit">{{ $t('common.delText') }}</a-button>
-            </a-popconfirm>
-            </span>
-          </div>
-        </template>
-      </template>
-    </a-table>
+    <common-table
+        ref="awParamsTable"
+        :columns="awParamsColumn"
+        tableRef="awParamsTable"
+        @delete="deleteParams"
+    ></common-table>
     <div v-if="modelstates.validationError" style="color:red">
       <p>{{modelstates.validationError}}</p>
     </div>

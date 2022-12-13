@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import DefineOptions from 'unplugin-vue-define-options/vite'
 import vue from '@vitejs/plugin-vue'
+import { viteCommonjs } from '@originjs/vite-plugin-commonjs'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
@@ -9,7 +10,6 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import postcssNesting from 'postcss-nesting'
 import autoprefixer from 'autoprefixer'
 import flexbugsFixes from 'postcss-flexbugs-fixes'
-// import { viteMockServe } from "vite-plugin-mock";
 
 function resolvePath(src: string) {
   return path.resolve(__dirname, src)
@@ -21,6 +21,7 @@ export default defineConfig({
   plugins: [
     vue(),
     DefineOptions(),
+    viteCommonjs(),
     // viteMockServe({
     //   supportTs: true, 
     // }),
@@ -33,7 +34,9 @@ export default defineConfig({
       symbolId: 'svg-[dir]-[name]',
     })
   ],
-
+  optimizeDeps: {
+    include: ['backbone']
+  },
 
   css: {
     preprocessorOptions: {
@@ -71,15 +74,14 @@ export default defineConfig({
     port: 7777,
     proxy: {
       "/api": {
-        // target: 'https://mbt-dev.oppo.itealab.net/api',
-        // target: 'https://mbt-test.oppo.itealab.net/api',
-        target: 'http://localhost:3000/',
+        target: 'https://mbt-dev.oppo.itealab.net/api',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path: string) => {
           return path.replace(/^\/api/, '')
         }
       },
+
       // "/auth": {
       //   target: 'http://localhost:3000/auth',
       //   changeOrigin: true,

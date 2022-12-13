@@ -90,7 +90,7 @@ export async function getTemplate(metaId: string, category: string) {
     let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
     Object.assign(currentschema, { required: required })
     if (_.isArray(temparr)) {
-      let schemafileds = generateSchema(temparr);
+      let schemafileds = generateSchema(temparr,metaId);
       schemafileds.forEach((schemafield: any) => {
         Object.assign(currentschema.properties, schemafield);
       });

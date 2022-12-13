@@ -28,7 +28,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 *.png
-n
 # auto generate file
 components.d.ts
 playwright-report/
@@ -37,3 +36,4 @@ allure-results/
 package-lock.json
 package-lock*
 yarn.lock*
+yarn.lock
