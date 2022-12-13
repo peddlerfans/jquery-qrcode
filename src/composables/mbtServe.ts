@@ -79,16 +79,16 @@ class MbtServe {
 
         // Initiate selecting when the user grabs the blank area of the paper while the Shift key is pressed.
         // Otherwise, initiate paper pan.
-        this.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+        // this.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
 
-            if (keyboard.isActive('shift', evt)) {
-                this.selection.startSelecting(evt);
-            } else {
-                this.selection.collection.reset([]);
-                this.paperScroller.startPanning(evt);
-                // this.paper.removeTools();
-            }
-        });
+        //     if (keyboard.isActive('shift', evt)) {
+        //         this.selection.startSelecting(evt);
+        //     } else {
+        //         this.selection.collection.reset([]);
+        //         this.paperScroller.startPanning(evt);
+        //         // this.paper.removeTools();
+        //     }
+        // });
 
         this.paper.on('element:pointerdown', (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
 
@@ -190,7 +190,7 @@ class MbtServe {
         }
         this.InspectorService.create(cell);
         // 获取到当前元素的schema
-        console.log(cell.getInspectorSchema());
+        // console.log(cell.getInspectorSchema());
 
     }
 

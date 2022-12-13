@@ -157,8 +157,8 @@ const globalschema = ref({
 });
 
 // 发送各组件的事件
-let awSchema: any =ref(null)
-
+let awSchema: any = ref(null)
+let awData :any = ref()
 // 请求后台的数据
 async function mbtquery(id?: any, reLoad?: boolean) {
   let rst;
@@ -409,16 +409,21 @@ onMounted(async()=>{
         }
         
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      let el: any
+      el = elementView.model
       // console.log(elementView.model?.getInspectorSchema());
-      
+      // el.getInspectorSchema().awData = awData.value
       awSchema.value = elementView.model?.getInspectorSchema().schema
+      
     })
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-
-    rappid.selection.collection.reset([]);
+    console.log(rappid.selection.collection);
+    
+    // rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
-    // this.paper.removeTools();
-    awSchema.value = null
+    rappid.paper.removeTools();
+      awSchema.value = null
+    
 });
 })
 
@@ -466,7 +471,7 @@ const saveMbt = () => {
               <!-- <div class="inspector-container"> -->
               <!-- <VueForm :schema="awSchema"></VueForm> -->
             <!-- </div> -->
-            <schema :awSchema="awSchema" :rappid="rappid" v-if="awSchema"></schema>
+            <schema :awSchema="awSchema" v-if="awSchema"></schema>
             <div class="navigator-container"/>
           </div>
 
@@ -642,8 +647,7 @@ const saveMbt = () => {
   position: relative;
 }
 .joint-inspector {
-  overflow: auto;
-  position: relative;
+  top: 3.125rem;
 }
 
 .card-container p {
