@@ -1,7 +1,7 @@
 
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import * as appShapes from '@/composables/JointJs/app-shapes';
+import * as appShapes from '../composables/jointJs/app-shapes';
 import { MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
 import { i18n } from "@/locales";
 const { t } = i18n.global

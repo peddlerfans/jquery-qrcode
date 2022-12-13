@@ -1,7 +1,6 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 
 import {i18n} from "@/locales";
-import { f } from "vitest/dist/index-60e2a8e1";
 import {MBTShapeInterface} from "./MBTShapeInterface"
 const { t } = i18n.global
 

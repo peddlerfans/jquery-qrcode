@@ -9,6 +9,7 @@ import { realMBTUrl } from "@/appConfig";
 interface IElementType {
   mbtData: mbtmodel
   schema: any
+  awData: any
 }
 
 interface codegen {
@@ -71,19 +72,29 @@ export const MBTStore = defineStore('mbtmodel', {
       schema: {
         type: "object",
         properties: {
+          _id: {
+            title: 'Aw id',
+            type: 'string',
+            'ui:hidden': true,
+          },
           name: {
             title: "MBT Name",
             type: "string",
             readOnly: true,
             default: '123'
           },
-          descriptions: {
+          description: {
             title: "Description",
             type: "string",
             datault: '456'
           },
         },
 
+      },
+      awData: {
+        _id: '',
+        name: "",
+        description: ''
       }
     }
 
@@ -154,6 +165,10 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     saveResources(data: any) {
       this.mbtData.dataDefinition.resources = data
+    },
+    saveAwData(data: any, schema: any) {
+      this.schema = schema
+      this.awData = data
     }
   }
 })
