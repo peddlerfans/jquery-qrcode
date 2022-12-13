@@ -13,7 +13,6 @@ const emit = defineEmits(['awschemaDa'])
 
 class MbtServe {
     el !: any;
-
     graph!: joint.dia.Graph;
     paper!: joint.dia.Paper;
     paperScroller!: joint.ui.PaperScroller;
@@ -29,7 +28,7 @@ class MbtServe {
     haloService !: HaloService;
     InspectorService !: InspectorService;
     keyboardService !: KeyboardService;
-
+    checkSchema:any
     constructor(
         el: HTMLElement,
         stencilService: StencilService,
@@ -68,7 +67,7 @@ class MbtServe {
 
     }
     initializeSelection() {
-
+        
         this.clipboard = new joint.ui.Clipboard();
         this.selection = new joint.ui.Selection({
             paper: this.paper,
@@ -88,7 +87,8 @@ class MbtServe {
             } else {
                 this.selection.collection.reset([]);
                 this.paperScroller.startPanning(evt);
-                this.paper.removeTools();
+                this.checkSchema = null
+                // this.paper.removeTools();
             }
         });
 
@@ -98,9 +98,12 @@ class MbtServe {
             if (keyboard.isActive('ctrl meta', evt)) {
                 this.selection.collection.add(elementView.model);
             }
-
+            this.checkSchema = elementView.model?.getInspectorSchema()
+            // 获取到当前元素的schema
+            // console.log(elementView.model?.getInspectorSchema());
+            
         });
-
+        
         this.graph.on('remove', (cell: joint.dia.Cell) => {
 
             // If element is removed from the graph, remove from the selection too.
@@ -129,6 +132,7 @@ class MbtServe {
             }
 
         }, this);
+        
     }
 
     // keyboard初始化
@@ -188,6 +192,9 @@ class MbtServe {
             this.selectPrimaryLink(<joint.dia.LinkView>cellView);
         }
         this.InspectorService.create(cell);
+        // 获取到当前元素的schema
+        console.log(cell.getInspectorSchema());
+        
     }
 
     selectPrimaryElement(elementView: joint.dia.ElementView) {
@@ -398,10 +405,6 @@ class MbtServe {
     initializeToolsAndInspector() {
         this.paper.on('cell:pointerup', (cellView: joint.dia.CellView) => {
             
-            const shape = <MBTShapeInterface><unknown>cellView.model;
-            // emit('awschemaDa', shape.getInspectorSchema())
-            console.log(joint.shapes);
-
             const cell = cellView.model;
             const { collection } = this.selection;
             if (collection.includes(cell)) { return; }

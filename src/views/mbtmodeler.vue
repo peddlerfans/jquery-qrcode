@@ -156,6 +156,9 @@ const globalschema = ref({
   },
 });
 
+// 发送各组件的事件
+let awSchema: any =ref(null)
+
 // 请求后台的数据
 async function mbtquery(id?: any, reLoad?: boolean) {
   let rst;
@@ -397,10 +400,6 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  
-  console.log(joint.shapes);
-  
-  
   if(store.mbtData.modelDefinition.cellsinfo.cells){
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
     
@@ -408,35 +407,27 @@ onMounted(async()=>{
   if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
-    
+        console.log(rappid.selectPrimaryCell);
+        
+    rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      // console.log(elementView.model?.getInspectorSchema());
+      console.log(rappid.checkSchema);
+      
+      awSchema.value = elementView.model?.getInspectorSchema().schema
+    })
+    rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+
+
+    rappid.selection.collection.reset([]);
+    rappid.paperScroller.startPanning(evt);
+    // this.paper.removeTools();
+    awSchema.value = null
+});
 })
 
 const saveMbt = () => {
-    console.log(rappid.graph);
+    console.log(rappid.graph.getCells());
 }
-
-// 获取AWschema的函数
-const awschemaDa = (data: any) => {
-  console.log(data);
-  
-}
-let awSchema = {
-        type: "object",
-        properties: {
-            name: {
-                title: "MBT Name",
-                type: "string",
-                readOnly: true,
-                default: '123'
-            },
-            descriptions: {
-                title: "Description",
-                type: "string",
-                datault: '456'
-            },
-
-        },
-    }
 
 </script>
 
@@ -475,11 +466,10 @@ let awSchema = {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-              <div class="inspector-container">
-              <div></div>
+              <!-- <div class="inspector-container"> -->
               <!-- <VueForm :schema="awSchema"></VueForm> -->
-            </div>
-            <!-- <schema class="inspector-container"></schema> -->
+            <!-- </div> -->
+            <schema :awSchema="awSchema" v-if="awSchema"></schema>
             <div class="navigator-container"/>
           </div>
 
@@ -652,6 +642,10 @@ let awSchema = {
 @import '../composables/css/style.css';
 
 .infoPanel{
+  position: relative;
+}
+.joint-inspector {
+  overflow: auto;
   position: relative;
 }
 
