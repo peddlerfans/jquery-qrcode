@@ -6,7 +6,7 @@
         <div class="inspector-container"></div>
     </a-tab-pane>
     <a-tab-pane key="2" tab="Tab 2" force-render>
-        <VueForm :schema="awSchema"></VueForm>
+        <VueForm :schema="props.awSchema"></VueForm>
     </a-tab-pane>
         
     
@@ -18,8 +18,12 @@
 import VueForm from "@lljj/vue3-form-ant";
 import { ref } from "vue";
 import { defineProps } from 'vue'
-let props = defineProps(['awSchema'])
+import { MBTStore } from "@/stores/MBTModel"
+import { MbtModeler } from "@/composables/MbtModeler";
+let store = MBTStore()
+let props = defineProps(['awSchema','rappid'])
 console.log(props.awSchema);
+
 
 const activeKey = ref('1')
 let awSchema = {
@@ -36,7 +40,6 @@ let awSchema = {
                 type: "string",
                 datault: '456'
             },
-
         },
     }
 </script>

@@ -28,7 +28,6 @@ class MbtServe {
     haloService !: HaloService;
     InspectorService !: InspectorService;
     keyboardService !: KeyboardService;
-    checkSchema:any
     constructor(
         el: HTMLElement,
         stencilService: StencilService,
@@ -67,7 +66,7 @@ class MbtServe {
 
     }
     initializeSelection() {
-        
+
         this.clipboard = new joint.ui.Clipboard();
         this.selection = new joint.ui.Selection({
             paper: this.paper,
@@ -87,7 +86,6 @@ class MbtServe {
             } else {
                 this.selection.collection.reset([]);
                 this.paperScroller.startPanning(evt);
-                this.checkSchema = null
                 // this.paper.removeTools();
             }
         });
@@ -98,12 +96,11 @@ class MbtServe {
             if (keyboard.isActive('ctrl meta', evt)) {
                 this.selection.collection.add(elementView.model);
             }
-            this.checkSchema = elementView.model?.getInspectorSchema()
             // 获取到当前元素的schema
             // console.log(elementView.model?.getInspectorSchema());
-            
+
         });
-        
+
         this.graph.on('remove', (cell: joint.dia.Cell) => {
 
             // If element is removed from the graph, remove from the selection too.
@@ -132,7 +129,7 @@ class MbtServe {
             }
 
         }, this);
-        
+
     }
 
     // keyboard初始化
@@ -194,7 +191,7 @@ class MbtServe {
         this.InspectorService.create(cell);
         // 获取到当前元素的schema
         console.log(cell.getInspectorSchema());
-        
+
     }
 
     selectPrimaryElement(elementView: joint.dia.ElementView) {
@@ -322,6 +319,9 @@ class MbtServe {
             this.selection.collection.reset([elementView.model]);
         });
     }
+    saveData() {
+        console.log('oooooooo data:', this.paper.model.toJSON())
+    }
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
@@ -336,6 +336,8 @@ class MbtServe {
             // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
             'print:pointerclick': this.paper.print.bind(this.paper),
+            'save:pointerclick': this.saveData.bind(this),
+
             // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });
 
@@ -404,7 +406,7 @@ class MbtServe {
     // 初始化目标paper上的事件
     initializeToolsAndInspector() {
         this.paper.on('cell:pointerup', (cellView: joint.dia.CellView) => {
-            
+
             const cell = cellView.model;
             const { collection } = this.selection;
             if (collection.includes(cell)) { return; }
@@ -412,8 +414,8 @@ class MbtServe {
         });
 
         this.paper.on('link:mouseenter', (linkView: joint.dia.LinkView) => {
-            
-            
+
+
             // Open tool only if there is none yet
             if (linkView.hasTools()) { return; }
 

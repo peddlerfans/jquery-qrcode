@@ -5,9 +5,9 @@ import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 // import * as joint from '@clientio/rappid';
 const { dia, g,ui,shapes } = joint
 console.log('shapes xxxxx:',shapes)
-import {i18n} from "@/locales";
-import { f } from "vitest/dist/index-60e2a8e1";
-
+import { i18n } from "@/locales";
+import { MBTStore } from "@/stores/MBTModel"
+const store = MBTStore()
 const { t } = i18n.global
 
 window.joint = joint
@@ -308,9 +308,22 @@ throw new Error("Method not implemented.");
               index: 3
           }
       },
-      schema : {
-
-
+    //   schema : store.schema? store.schema:{}
+        schema: {
+            type: "object",
+            properties: {
+                name: {
+                    title: "AW Name",
+                    type: "string",
+                    readOnly: true,
+                    default: '123'
+                },
+                descriptions: {
+                    title: "Description",
+                    type: "string",
+                    datault: '456'
+                },
+            },
       }
   }
 
@@ -362,6 +375,7 @@ setSizeFromContent() {
         prop : {
           isStep : true,
           custom : {
+            //传输后台的数据
             step : {
 
             },

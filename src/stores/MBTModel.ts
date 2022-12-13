@@ -8,15 +8,9 @@ import { realMBTUrl } from "@/appConfig";
 
 interface IElementType {
   mbtData: mbtmodel
-  attributesTem: templateattr
+  schema: any
 }
-interface templateattr {
-  _id: string
-  name: string
-  description: string
-  codegen_text: string
-  codegen_script: string
-}
+
 interface codegen {
   codegen_text: string
   codegen_script: string
@@ -74,12 +68,22 @@ export const MBTStore = defineStore('mbtmodel', {
         tags: [],
         description: "",
       },
-      attributesTem: {
-        _id: '',
-        name: '',
-        description: '',
-        codegen_script: '',
-        codegen_text: ''
+      schema: {
+        type: "object",
+        properties: {
+          name: {
+            title: "MBT Name",
+            type: "string",
+            readOnly: true,
+            default: '123'
+          },
+          descriptions: {
+            title: "Description",
+            type: "string",
+            datault: '456'
+          },
+        },
+
       }
     }
 
@@ -122,9 +126,6 @@ export const MBTStore = defineStore('mbtmodel', {
   actions: {
     setMbtData(data: any) {
       this.mbtData = { ...JSON.parse(JSON.stringify(data)) }
-      if (this.mbtData._id.length == 0 && data.attributesTem._id.lenght > 0) {
-        this.attributesTem = { ...data.attributesTem }
-      }
     },
     // 获取后台所有的mbt数据
     async getMbtmodel(id: any) {

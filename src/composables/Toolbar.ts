@@ -31,7 +31,8 @@ export class ToolbarService {
                 'layout': { index: 7 },
                 'zoom': { index: 8 },
                 'grid': { index: 9 ,default :10},
-                'snapline': { index: 10 }
+                'snapline': { index: 10 },
+                'save': { index: 11 }
             },
 
             tools: [
@@ -209,18 +210,32 @@ export class ToolbarService {
                 //         }
                 //     }
                 // },
-                // {
-                //     type: 'fullscreen',
-                //     name: 'fullscreen',
-                //     group: 'fullscreen',
-                //     attrs: {
-                //         button: {
-                //             'data-tooltip': 'Toggle Fullscreen Mode',
-                //             'data-tooltip-position': 'top',
-                //             'data-tooltip-position-selector': '.toolbar-container'
-                //         }
-                //     }
-                // }
+                {
+                    type: 'fullscreen',
+                    name: 'fullscreen',
+                    group: 'fullscreen',
+                    attrs: {
+                        button: {
+                            'data-tooltip': 'Toggle Fullscreen Mode',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'save',
+                    group: 'export',
+                    text: 'Save',
+                    attrs: {
+                        button: {
+                            id: 'btn-save',
+                            'data-tooltip': 'Save data to backend',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
             ]
         };
     }

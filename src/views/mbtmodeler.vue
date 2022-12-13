@@ -407,16 +407,13 @@ onMounted(async()=>{
   if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
-        console.log(rappid.selectPrimaryCell);
         
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
       // console.log(elementView.model?.getInspectorSchema());
-      console.log(rappid.checkSchema);
       
       awSchema.value = elementView.model?.getInspectorSchema().schema
     })
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-
 
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
@@ -469,7 +466,7 @@ const saveMbt = () => {
               <!-- <div class="inspector-container"> -->
               <!-- <VueForm :schema="awSchema"></VueForm> -->
             <!-- </div> -->
-            <schema :awSchema="awSchema" v-if="awSchema"></schema>
+            <schema :awSchema="awSchema" :rappid="rappid" v-if="awSchema"></schema>
             <div class="navigator-container"/>
           </div>
 
