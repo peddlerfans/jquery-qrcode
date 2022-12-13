@@ -50,24 +50,6 @@ throw new Error("Method not implemented.");
 setPropertiesata() {
 throw new Error("Method not implemented.");
     }
-
-    static awSchema = {
-        type: "object",
-        properties: {
-            name: {
-                title: "MBT Name",
-                type: "string",
-                readOnly: true,
-                default: '123'
-            },
-            descriptions: {
-                title: "Description",
-                type: "string",
-                datault: '456'
-            },
-
-        },
-    }
  
   getInspectorSchema(){
     const options = {
