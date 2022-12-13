@@ -27,6 +27,7 @@ import _ from "lodash";
 import {MBTStore} from "@/stores/MBTModel"
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
+import  schema  from '@/components/schema.vue'
 const shape = <MBTShapeInterface><unknown>null
 
 const store = MBTStore()
@@ -397,6 +398,7 @@ onMounted(async()=>{
   )
   rappid.startRappid()
   
+  console.log(joint.shapes);
   
   
   if(store.mbtData.modelDefinition.cellsinfo.cells){
@@ -418,6 +420,23 @@ const awschemaDa = (data: any) => {
   console.log(data);
   
 }
+let awSchema = {
+        type: "object",
+        properties: {
+            name: {
+                title: "MBT Name",
+                type: "string",
+                readOnly: true,
+                default: '123'
+            },
+            descriptions: {
+                title: "Description",
+                type: "string",
+                datault: '456'
+            },
+
+        },
+    }
 
 </script>
 
@@ -455,11 +474,12 @@ const awschemaDa = (data: any) => {
           <div class="app-body">
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
-            <div>
-              <!-- <div class="inspector-container"/> -->
-              <VueForm ></VueForm>
-            </div>
 
+              <div class="inspector-container">
+              <div></div>
+              <!-- <VueForm :schema="awSchema"></VueForm> -->
+            </div>
+            <!-- <schema class="inspector-container"></schema> -->
             <div class="navigator-container"/>
           </div>
 

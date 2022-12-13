@@ -63,6 +63,7 @@ declare module '@vue/runtime-core' {
     MovableArea: typeof import('./src/components/MovableArea.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Schema: typeof import('./src/components/schema.vue')['default']
     Scrollbar: typeof import('./src/components/Scrollbar.vue')['default']
     Shadow: typeof import('./src/components/Shadow.vue')['default']
     SplitPanel: typeof import('./src/components/basic/split-panel/index.vue')['default']

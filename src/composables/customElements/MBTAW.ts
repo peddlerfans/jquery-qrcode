@@ -225,125 +225,111 @@ throw new Error("Method not implemented.");
   };
 
     return {
-    //   inputs: {
-    //       attrs: {
-    //           label: {
-    //               text: {
-    //                   type: 'content-editable',
-    //                   label: 'Text',
-    //                   group: 'text',
-    //                   index: 1
-    //               },
-    //               fontSize: {
-    //                   type: 'range',
-    //                   min: 5,
-    //                   max: 80,
-    //                   unit: 'px',
-    //                   label: 'Font size',
-    //                   group: 'text',
-    //                   when: { ne: { 'attrs/label/text': '' } },
-    //                   index: 2
-    //               },
-    //               fontFamily: {
-    //                   type: 'select-box',
-    //                   options: options.fontFamily,
-    //                   label: 'Font family',
-    //                   group: 'text',
-    //                   when: { ne: { 'attrs/label/text': '' } },
-    //                   index: 3
-    //               },
-    //               fontWeight: {
-    //                   type: 'select-box',
-    //                   options: options.fontWeight,
-    //                   label: 'Font thickness',
-    //                   group: 'text',
-    //                   when: { ne: { 'attrs/label/text': '' } },
-    //                   index: 4
-    //               },
-    //               fill: {
-    //                   type: 'color-palette',
-    //                   options: options.colorPalette,
-    //                   label: 'Fill',
-    //                   group: 'text',
-    //                   when: { ne: { 'attrs/label/text': '' } },
-    //                   index: 5
-    //               }
-    //           },
-    //           body: {
-    //               fill: {
-    //                   type: 'color-palette',
-    //                   options: options.colorPalette,
-    //                   label: 'Fill',
-    //                   group: 'presentation',
-    //                   index: 1
-    //               },
-    //               stroke: {
-    //                   type: 'color-palette',
-    //                   options: options.colorPalette,
-    //                   label: 'Outline',
-    //                   group: 'presentation',
-    //                   index: 2
-    //               },
-    //               strokeWidth: {
-    //                   type: 'range',
-    //                   min: 0,
-    //                   max: 30,
-    //                   step: 1,
-    //                   defaultValue: 1,
-    //                   unit: 'px',
-    //                   label: 'Outline thickness',
-    //                   group: 'presentation',
-    //                   when: { ne: { 'attrs/body/stroke': 'transparent' } },
-    //                   index: 3
-    //               },
-    //               strokeDasharray: {
-    //                   type: 'select-box',
-    //                   options: options.strokeStyle,
-    //                   label: 'Outline style',
-    //                   group: 'presentation',
-    //                   when: {
-    //                       and: [
-    //                           { ne: { 'attrs/body/stroke': 'transparent' } },
-    //                           { ne: { 'attrs/body/strokeWidth': 0 } }
-    //                       ]
-    //                   },
-    //                   index: 4
-    //               }
-    //           }
-    //       }
-    //   },
-    //   groups: {
-    //       presentation: {
-    //           label: 'Presentation',
-    //           index: 1
-    //       },
-    //       text: {
-    //           label: 'Text',
-    //           index: 2
-    //       },
-    //       body:{
-    //         label: 'body',
-    //           index: 3
-    //       }
-    //   },
-    //   schema : {
-        type: "object",
-        properties: {
-            name: {
-            title: "MBT Name",
-            type: "string",
-            readOnly: true,
-            default : '123'
-            },
-            descriptions: {
-            title: "Description",
-            type: "string",
-            datault : '456'
-            },
-            
-        },
+      inputs: {
+          attrs: {
+              label: {
+                  text: {
+                      type: 'content-editable',
+                      label: 'Text',
+                      group: 'text',
+                      index: 1
+                  },
+                  fontSize: {
+                      type: 'range',
+                      min: 5,
+                      max: 80,
+                      unit: 'px',
+                      label: 'Font size',
+                      group: 'text',
+                      when: { ne: { 'attrs/label/text': '' } },
+                      index: 2
+                  },
+                  fontFamily: {
+                      type: 'select-box',
+                      options: options.fontFamily,
+                      label: 'Font family',
+                      group: 'text',
+                      when: { ne: { 'attrs/label/text': '' } },
+                      index: 3
+                  },
+                  fontWeight: {
+                      type: 'select-box',
+                      options: options.fontWeight,
+                      label: 'Font thickness',
+                      group: 'text',
+                      when: { ne: { 'attrs/label/text': '' } },
+                      index: 4
+                  },
+                  fill: {
+                      type: 'color-palette',
+                      options: options.colorPalette,
+                      label: 'Fill',
+                      group: 'text',
+                      when: { ne: { 'attrs/label/text': '' } },
+                      index: 5
+                  }
+              },
+              body: {
+                  fill: {
+                      type: 'color-palette',
+                      options: options.colorPalette,
+                      label: 'Fill',
+                      group: 'presentation',
+                      index: 1
+                  },
+                  stroke: {
+                      type: 'color-palette',
+                      options: options.colorPalette,
+                      label: 'Outline',
+                      group: 'presentation',
+                      index: 2
+                  },
+                  strokeWidth: {
+                      type: 'range',
+                      min: 0,
+                      max: 30,
+                      step: 1,
+                      defaultValue: 1,
+                      unit: 'px',
+                      label: 'Outline thickness',
+                      group: 'presentation',
+                      when: { ne: { 'attrs/body/stroke': 'transparent' } },
+                      index: 3
+                  },
+                  strokeDasharray: {
+                      type: 'select-box',
+                      options: options.strokeStyle,
+                      label: 'Outline style',
+                      group: 'presentation',
+                      when: {
+                          and: [
+                              { ne: { 'attrs/body/stroke': 'transparent' } },
+                              { ne: { 'attrs/body/strokeWidth': 0 } }
+                          ]
+                      },
+                      index: 4
+                  }
+              }
+          }
+      },
+      groups: {
+          presentation: {
+              label: 'Presentation',
+              index: 1
+          },
+          text: {
+              label: 'Text',
+              index: 2
+          },
+          body:{
+            label: 'body',
+              index: 3
+          }
+      },
+      schema : {
 
-    //   }
+
+      }
   }
 
   }

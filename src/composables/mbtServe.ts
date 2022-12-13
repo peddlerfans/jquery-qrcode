@@ -397,6 +397,7 @@ class MbtServe {
     // 初始化目标paper上的事件
     initializeToolsAndInspector() {
         this.paper.on('cell:pointerup', (cellView: joint.dia.CellView) => {
+            
             const shape = <MBTShapeInterface><unknown>cellView.model;
             // emit('awschemaDa', shape.getInspectorSchema())
             console.log(joint.shapes);
@@ -408,7 +409,8 @@ class MbtServe {
         });
 
         this.paper.on('link:mouseenter', (linkView: joint.dia.LinkView) => {
-
+            
+            
             // Open tool only if there is none yet
             if (linkView.hasTools()) { return; }
 
