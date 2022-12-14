@@ -1,4 +1,4 @@
-<!-- <script setup lang="ts">
+<script setup lang="ts">
 import {
   LeftOutlined,
   RightOutlined,
@@ -101,4 +101,4 @@ const close = () => {
     cursor: pointer;
   }
 }
-</style> -->
+</style>
