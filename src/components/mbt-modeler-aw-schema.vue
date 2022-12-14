@@ -17,12 +17,14 @@ import {data2schema} from "@/views/componentTS/schema-constructor";
 
 interface Props {
   show: boolean
+  schema: any
 }
 
 const emit = defineEmits(['save'])
 
 const props = withDefaults(defineProps<Props>(), {
-  show: false
+  show: false,
+  schema:null
 })
 
 watch(
@@ -266,10 +268,10 @@ function updateAW () {
       </VueForm>
       <div>{{ schemaValue }}</div>
       <div class="btn-line">
-        <a-button type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
-        <a-button type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
-        <a-button danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
-        <a-button danger @click="updateAW">{{ t('common.updateAw') }}</a-button>
+        <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
+        <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
+        <a-button size="small" danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
+        <a-button size="small" danger @click="updateAW">{{ t('common.updateAw') }}</a-button>
       </div>
     </div>
     <div v-show="!isEdit">

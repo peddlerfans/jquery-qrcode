@@ -52,7 +52,7 @@ export const MbtData = defineStore({
                 this.editingPrimaryAw[key] = data
             }
         },
-        setEditingExpectedAw(data: any, key:string) {
+        setEditingExpectedAw(data: any, key: string) {
             this.editingExpectedAw = data
         },
         setMetaData(data: any, key?: string) {
@@ -67,6 +67,11 @@ export const MbtData = defineStore({
             if (!temp) return false
             let enums = temp.enum
             return !enums.includes(val)
+        },
+        resetEditingExpectedAw() {
+            this.editingPrimaryAw.data = null
+            this.editingPrimaryAw.schema = undefined
+            this.editingPrimaryAw.uiParams = null
         }
     }
 })

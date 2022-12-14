@@ -24,13 +24,14 @@ import { realMBTUrl } from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
-import {MBTStore} from "@/stores/MBTModel"
+import { MBTStore } from "@/stores/MBTModel"
+import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import  schema  from '@/components/schema.vue'
-const shape = <MBTShapeInterface><unknown>null
+import mbtModelerAwschema from "@/components/mbt-modeler-aw-schema.vue"
 
 const store = MBTStore()
+const storeAw = MbtData()
 // let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
 const { t } = useI18n()
 const route = useRoute()
@@ -42,6 +43,9 @@ const url = realMBTUrl;
 
 const activeKey = ref("1")
 const isFormVisible = ref(false);
+// Aw组件的数据
+let activeSchema = ref('1')
+let show = ref(false)
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -157,99 +161,13 @@ const globalschema = ref({
 });
 
 // 发送各组件的事件
-let awSchema: any = ref(null)
+let schema: any = ref(null)
 let awData :any = ref()
-// 请求后台的数据
-async function mbtquery(id?: any, reLoad?: boolean) {
-  let rst;
-  let dataFrom: any
-  getAllTemplatesByCategory('codegen').then((rst:any)=>{
-  if(rst && _.isArray(rst)){
-    rst.forEach((rec:any)=>{              
-      codegennames.value.push({title:rec.name , const: rec._id})
-    })
-  }
-}).catch((err)=>{console.log(err);
-})
-  rst = await request.get(url + '/' + id).then((value: any) => {
-
-      // debugger
-      if (
-        value.hasOwnProperty("modelDefinition") &&
-        value.modelDefinition.hasOwnProperty("cellsinfo") &&
-        value.hasOwnProperty('dataDefinition')
-      ) {
-        let tempstr = JSON.stringify(value.modelDefinition.cellsinfo);
-        rappid.graph.fromJSON(JSON.parse(tempstr));
-
-        if (value.modelDefinition.hasOwnProperty("props")) {
-          const map = new Map(
-            Object.entries(JSON.parse(JSON.stringify(value.modelDefinition.props)))
-          );
-          // cacheprops = map;
-        }
-
-        if(value['_id'] && value['name'] && value['description']){
-          globalformData.value._id = value['_id']
-          globalformData.value.description = value['description']
-          globalformData.value.name = value['name']
-          if(value.attributes.codegen_text && value.attributes.codegen_script){
-            globalformData.value.codegen_text = value.attributes.codegen_text
-            globalformData.value.codegen_script = value.attributes.codegen_script
-          }
-        }
-
-        if (value.modelDefinition.hasOwnProperty("paperscale")) {
-          rappid.paper.scale(value.modelDefinition.paperscale);
-        }
-        //dataDefinition includes meta, datapool and resources
-
-        if (value.dataDefinition.meta) {
-          isFormVisible.value = true;
-          // cacheDataDefinition.meta = value.dataDefinition.meta;
-          tempschema.value = value.dataDefinition.meta.schema;
-          metatemplatedetailtableData.value = value.dataDefinition.meta.data;
-        }
-
-        if (value.dataDefinition.data) {
-          // console.log('has data info ',value.dataDefinition.data.tableData)
-          // cacheDataDefinition.data = value.dataDefinition.data;
-          // tableData.value = value.dataDefinition.data.tableData;
-          // condataName.value = value.dataDefinition.data.tableColumns
-          // conditionalValue.value = value.dataDefinition.data.tableData
-          dataFrom = value.dataDefinition.data.dataFrom;
-          if (dataFrom == "direct_input") {
-            templateRadiovalue.value = 3;
-            templateCategory.value = 3;
-            tableDataDirectInput.value = value.dataDefinition.data.tableData;
-            tableColumnsDirectInput.value = value.dataDefinition.data.tableColumns;
-          } else if (dataFrom == "dynamic_template") {
-            templateRadiovalue.value = 1;
-            templateCategory.value = 1;
-            tableDataDynamic.value = value.dataDefinition.data.tableData;
-            tableColumnsDynamic.value = value.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key');
-            console.log(tableDataDynamic.value);
-            
-          } else {
-            templateRadiovalue.value = 2;
-            templateCategory.value = 2;
-            tableData.value = value.dataDefinition.data.tableData;
-            tableColumns.value = value.dataDefinition.data.tableColumns;
-          }
-        }
-        localStorage.setItem("mbt_" + route.params._id + route.params.name , JSON.stringify(value))
-      }
-        
-    }).catch((err)=>{console.log(err);
-  })
-   
-  } 
 
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value=true
 }
-
 // 保存meta的函数
 // const submitTemplate = (data: any) => {
 //   store.saveMeta(data.schema , data.data)
@@ -374,7 +292,8 @@ function Datafintion(data: any) {
     }
   }
 }
-
+// 当前关闭的cell
+let closeCell: null = null
 onMounted(async()=>{  
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
@@ -416,22 +335,44 @@ onMounted(async()=>{
       // console.log(elementView.model?.getInspectorSchema());
       // el.getInspectorSchema().awData = awData.value
       if(elementView.model?.getInspectorSchema() && elementView.model?.getInspectorSchema().schema){
-        awSchema.value = elementView.model?.getInspectorSchema().schema
+        schema.value = elementView.model?.getInspectorSchema().schema
       }
       console.log(elementView);
       
       
     })
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-    console.log(rappid.selection.collection.toArray());
+      let Nowcell = rappid.selection.collection.take()
+      // 判断子组件的pinia，awDataschema是否有值，有值就将其赋值给当前cell，然后清空
+      if (Nowcell && 
+          Nowcell.attributes &&
+          Nowcell.attributes.type == 'itea.mbt.test.MBTAW' &&
+          storeAw.editingPrimaryAw.schema) {
+          Nowcell.attributes.prop['schema'] = storeAw.editingPrimaryAw.schema
+          Nowcell.attributes.prop['data'] = storeAw.editingPrimaryAw.data
+          Nowcell.getInspectorSchema().schema = storeAw.editingPrimaryAw.schema.value
+          console.log(Nowcell.getInspectorSchema());
+        
+      }
+      console.log(rappid.selection.collection.take());
+      if (rappid.selection.collection.toArray()[0].model) {
+      closeCell = rappid.selection.collection.toArray()[0]
+    }
     
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
-    rappid.paper.removeTools();
-      awSchema.value = null
-    
+      rappid.paper.removeTools();
+    storeAw.resetEditingExpectedAw()  
+      schema.value = null
 });
 })
+const save = (data: any) => {
+  if (closeCell) {
+    
+  }
+  console.log(data);
+  
+}
 
 const saveMbt = () => {
     console.log(rappid.graph.getCells());
@@ -474,10 +415,19 @@ const saveMbt = () => {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-              <!-- <div class="inspector-container"> -->
-              <!-- <VueForm :schema="awSchema"></VueForm> -->
-            <!-- </div> -->
-            <schema :awSchema="awSchema" v-if="awSchema"></schema>
+          <a-tabs v-if="schema" v-model:activeKey="activeSchema" class="AwtabInspector">
+            <a-tab-pane key="1" tab="Tab 1">
+                <div class="inspector-container"></div>
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="Tab 2" force-render>
+                <mbtModelerAwschema 
+                :schema="schema" 
+                :show="show"
+                @hook:destoroyed="save"
+                ></mbtModelerAwschema>
+            </a-tab-pane>
+        </a-tabs>
+
             <div class="navigator-container"/>
           </div>
 
@@ -648,6 +598,24 @@ const saveMbt = () => {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+.AwtabInspector{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    /* navigator height */
+    width: 300px;
+    box-sizing: border-box;
+    .ant-tabs-content-holder > .ant-tabs-content{
+    height: 100%!important
+}
+}
+
+.inspector-container {
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
 
 .infoPanel{
   position: relative;
