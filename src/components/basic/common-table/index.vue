@@ -223,7 +223,7 @@ const checkName = async (_rule: Rule, value: string) => {
   let reg1 = /^[\u4e00-\u9fa5_a-zA-Z0-9$]+$/
   if (!value) {
     return Promise.reject(t('templateManager.nameinput'))
-  } else if (tempRow._id && tempRow.name === value) {
+  } else if (tempRow && tempRow._id && tempRow.name === value) {
     return Promise.resolve()
   } else if (!reg.test(value) && !reg1.test(value)) {
     return Promise.reject(t('templateManager.namehefa'))
@@ -236,6 +236,7 @@ const checkName = async (_rule: Rule, value: string) => {
     }
   }
 }
+
 
 const checkDescription = async (_rule: Rule, value: string) => {
   if (!value) {

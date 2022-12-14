@@ -400,11 +400,13 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData.modelDefinition.cellsinfo.cells){
+  console.log(store.mbtData)
+  debugger
+  if(store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
     
   }
-  if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
         
@@ -413,6 +415,9 @@ onMounted(async()=>{
       el = elementView.model
       // console.log(elementView.model?.getInspectorSchema());
       // el.getInspectorSchema().awData = awData.value
+      console.log(elementView.model)
+      debugger
+      if(elementView.model?.getInspectorSchema() && elementView.model?.getInspectorSchema().schema )
       awSchema.value = elementView.model?.getInspectorSchema().schema
       
     })
