@@ -402,11 +402,11 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
+  if(store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
     
   }
-  if  (store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
         
