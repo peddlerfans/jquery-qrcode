@@ -6,14 +6,10 @@
         <div class="inspector-container"></div>
     </a-tab-pane>
     <a-tab-pane key="2" tab="Tab 2" force-render>
-        <VueForm @save="" :schema="props.awSchema" v-model="awData" v-if="props.awSchema"></VueForm>
+        <!-- <VueForm @save="" :schema="props.awSchema" v-model="awData" v-if="props.awSchema"></VueForm>
         <div slot-scope="{ awData }" style="position: relative;">
-             <span style="margin-right: 5px">
-            <a-button type="primary" @click="awhandlerSubmit(awData,props.awSchema)">
-                保存    
-            </a-button>
-            </span>
-        </div>
+        </div> -->
+        <mbtModelerAwschema :show="show"></mbtModelerAwschema>
     </a-tab-pane>
         
     
@@ -27,11 +23,12 @@ import { ref } from "vue";
 import { defineProps , defineEmits } from 'vue'
 import { MBTStore } from "@/stores/MBTModel"
 import { MbtModeler } from "@/composables/MbtModeler";
+import mbtModelerAwschema from "@/components/mbt-modeler-aw-schema.vue"
 let store = MBTStore()
 let props = defineProps(['awSchema'])
 let emit = defineEmits([])
 let awData = ref()
-
+let show = false
 const awhandlerSubmit = (data:any , schema:any) => {
     store.saveAwData(data,schema)
 }
@@ -55,7 +52,7 @@ let awSchema = {
     }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 .AwtabInspector{
     position: absolute;
@@ -63,9 +60,13 @@ let awSchema = {
     right: 0;
     bottom: 120px;
     /* navigator height */
-    width: 240px;
+    width: 300px;
     box-sizing: border-box;
+    .ant-tabs-content-holder > .ant-tabs-content{
+    height: 100%!important
 }
+}
+
 .inspector-container {
     overflow: auto;
     height: 100%;

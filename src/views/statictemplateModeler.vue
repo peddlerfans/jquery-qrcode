@@ -260,7 +260,7 @@ const query = async (data?: any) => {
 
     tableData.value = rst.model.data;
 
-    dynamiccolumns.value = rst.model.schema;
+    if (rst.model.schema) dynamiccolumns.value = rst.model.schema;
   } else {
     // console.log('No model in the backend system')
   }

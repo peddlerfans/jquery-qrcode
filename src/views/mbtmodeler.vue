@@ -42,7 +42,7 @@ const url = realMBTUrl;
 
 const activeKey = ref("1")
 const isFormVisible = ref(false);
-let metatemplateData = ref({});
+let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
 // 静态模板的数据
@@ -208,7 +208,7 @@ async function mbtquery(id?: any, reLoad?: boolean) {
           isFormVisible.value = true;
           // cacheDataDefinition.meta = value.dataDefinition.meta;
           tempschema.value = value.dataDefinition.meta.schema;
-          metatemplateData.value = value.dataDefinition.meta.data;
+          metatemplatedetailtableData.value = value.dataDefinition.meta.data;
         }
 
         if (value.dataDefinition.data) {
@@ -344,13 +344,15 @@ function Datafintion(data: any) {
     isFormVisible.value = true    
   }
   if (store.showMetaData) {
-    metatemplateData.value = store.showMetaData
+    metatemplatedetailtableData.value = store.showMetaData
   }
-  if(store.mbtData.dataDefinition.resources.length>0){
-    resourcesdataSource.value = store.mbtData.dataDefinition.resources
+  if(data.dataDefinition.resources.length>0){
+    resourcesdataSource.value = data.dataDefinition.resources
   }
   
-  if(data.dataDefinition &&
+  if(
+    data &&
+    data.dataDefinition &&
       data.dataDefinition.data &&
       data.dataDefinition.data.tableData
   ) {
@@ -388,7 +390,7 @@ onMounted(async()=>{
   let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
 
-  if(store.mbtData.dataDefinition.data){
+  if(store.mbtData._id){
     Datafintion(store.mbtData)
   }
   rappid = new MbtServe(
@@ -400,11 +402,11 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData.modelDefinition.cellsinfo.cells){
+  if(store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
     
   }
-  if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+  if  (store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
         
@@ -413,13 +415,17 @@ onMounted(async()=>{
       el = elementView.model
       // console.log(elementView.model?.getInspectorSchema());
       // el.getInspectorSchema().awData = awData.value
-      awSchema.value = elementView.model?.getInspectorSchema().schema
+      if(elementView.model?.getInspectorSchema() && elementView.model?.getInspectorSchema().schema){
+        awSchema.value = elementView.model?.getInspectorSchema().schema
+      }
+      console.log(elementView);
+      
       
     })
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-    console.log(rappid.selection.collection);
+    console.log(rappid.selection.collection.toArray());
     
-    // rappid.selection.collection.reset([]);
+    rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
     rappid.paper.removeTools();
       awSchema.value = null
@@ -497,7 +503,7 @@ const saveMbt = () => {
               <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
                 <metainfo
                   :isFormVisible="isFormVisible"
-                  :metatemplateData="metatemplateData"
+                  :metatemplatedetailtableData="metatemplatedetailtableData"
                   :schema="tempschema"
                   :metaformProps="metaformProps"
                   :metatemplatecolumns="metatemplatecolumns"
@@ -649,7 +655,9 @@ const saveMbt = () => {
 .joint-inspector {
   top: 3.125rem;
 }
-
+.joint-navigator{
+  width: 300px;
+}
 .card-container p {
   margin: 0;
 }
