@@ -167,10 +167,10 @@ function showAw (row: any) {
       })
     }
     if (_.isArray(row.params) && row.params.length > 0) {
-      let appEndedSchema = generateSchema(row.params, row._id)
-      appEndedSchema.forEach((field: any) => {
-        Object.assign(schema.value.properties, field)
-      })
+      // let appEndedSchema = generateSchema(row.params, row._id)
+      // appEndedSchema.forEach((field: any) => {
+      //   Object.assign(schema.value.properties, field)
+      // })
     }
     setSchema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
     store.setEditingPrimaryAw(schema.value, 'schema')
