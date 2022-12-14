@@ -9,9 +9,9 @@
         <VueForm @save="" :schema="props.awSchema" v-model="awData" v-if="props.awSchema"></VueForm>
         <div slot-scope="{ awData }" style="position: relative;">
              <span style="margin-right: 5px">
-            <a-button type="primary" @click="awhandlerSubmit(awData,props.awSchema)">
+            <!-- <a-button type="primary" @click="awhandlerSubmit(awData,props.awSchema)">
                 保存    
-            </a-button>
+            </a-button> -->
             </span>
         </div>
     </a-tab-pane>

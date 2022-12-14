@@ -166,7 +166,7 @@ onMounted(() => {
       tempObj.dataDefinition.data.tableData.length > 0
     ) {
       dataSource.value = tempObj.dataDefinition.data.tableData;
-      columnsOrigin.value = tempObj.dataDefinition.data.tableColumns;
+      columnsOrigin.value = tempObj.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key')
       if (
         templateCategory.value == 1 &&
         tempObj.dataDefinition.data.dataFrom == "static_template"

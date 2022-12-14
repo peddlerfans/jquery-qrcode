@@ -346,11 +346,13 @@ function Datafintion(data: any) {
   if (store.showMetaData) {
     metatemplateData.value = store.showMetaData
   }
-  if(store.mbtData.dataDefinition.resources.length>0){
-    resourcesdataSource.value = store.mbtData.dataDefinition.resources
+  if(data.dataDefinition.resources.length>0){
+    resourcesdataSource.value = data.dataDefinition.resources
   }
   
-  if(data.dataDefinition &&
+  if(
+    data &&
+    data.dataDefinition &&
       data.dataDefinition.data &&
       data.dataDefinition.data.tableData
   ) {
@@ -388,7 +390,7 @@ onMounted(async()=>{
   let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
 
-  if(store.mbtData.dataDefinition.data){
+  if(store.mbtData._id){
     Datafintion(store.mbtData)
   }
   rappid = new MbtServe(
@@ -400,11 +402,11 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData.modelDefinition.cellsinfo.cells){
+  if(store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
     
   }
-  if (store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+  if  (store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
           rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
         }
         
@@ -413,13 +415,16 @@ onMounted(async()=>{
       el = elementView.model
       // console.log(elementView.model?.getInspectorSchema());
       // el.getInspectorSchema().awData = awData.value
-      awSchema.value = elementView.model?.getInspectorSchema().schema
+      if(elementView.model?.getInspectorSchema() && elementView.model?.getInspectorSchema().schema){
+        awSchema.value = elementView.model?.getInspectorSchema().schema
+      }
+      
       
     })
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-    console.log(rappid.selection.collection);
+    // console.log(rappid.selection.collection);
     
-    // rappid.selection.collection.reset([]);
+    rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
     rappid.paper.removeTools();
       awSchema.value = null
