@@ -23,7 +23,7 @@ export const MbtData = defineStore({
         allData: null,
         editingPrimaryAw: {
             data: null,
-            schema: null,
+            schema: undefined,
             uiParams: null
         },
         editingExpectedAw: {

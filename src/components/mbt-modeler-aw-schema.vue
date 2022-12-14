@@ -46,8 +46,8 @@ function getSchema () {
   schema.value = store.getPrimaryAw.schema
   const nameProp = schema.value.properties.name
   const descProp = schema.value.properties.description
-  if (nameProp) delete schema.value.properties.name
-  if (descProp) delete schema.value.properties.description
+  // if (schema.value.properties && nameProp) delete schema.value.properties.name
+  // if (descProp) delete schema.value.properties.description
   schema.value.title = store.getPrimaryAw.data.name
   schema.value.description = store.getPrimaryAw.data.description
 }
