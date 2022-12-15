@@ -430,7 +430,7 @@ const change = () => {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-          <a-tabs v-show="show" v-model:activeKey="activeSchema" @change="change" class="AwtabInspector">
+          <a-tabs v-show="show" v-model:activeKey="activeSchema" @change="(key:any) => { activeSchema = key }" class="AwtabInspector">
             <a-tab-pane key="1" tab="样式修改">
                 <div class="inspector-container"></div>
             </a-tab-pane>
@@ -442,7 +442,7 @@ const change = () => {
             <a-tab-pane key="1" tab="样式修改">
                 <div class="inspector-container"></div>
             </a-tab-pane>
-            <a-tab-pane key="2" tab="数据编辑">
+            <a-tab-pane key="2" tab="数据编辑" force-render>
                 <VueForm 
                 :schema="schemaGroup"
                 v-model:value="DataGroup"
