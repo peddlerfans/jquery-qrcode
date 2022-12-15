@@ -228,8 +228,6 @@ class MbtServe {
     }
 
     initializePaper() {
-        console.log(joint);
-
         const graph = this.graph = new joint.dia.Graph({}, {
             cellNamespace: appShapes
         });
@@ -315,7 +313,15 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
+            var type = elementView.model?.get('type');
+            console.log(type);
 
+
+            if (type == 'itea.mbt.test.MBTAW') {
+                elementView.model?.set('size', { width: 120, height: 70 })
+            } else if (type == 'itea.mbt.test.MBTGroup') {
+                elementView.model?.set('size', { width: 150, height: 100 })
+            }
             this.selection.collection.reset([elementView.model]);
         });
     }

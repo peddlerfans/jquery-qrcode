@@ -339,12 +339,12 @@ function deleteExpected() {
       </div>
       <div>{{ schemaValue }}</div>
       <div class="btn-line">
-        <a-button type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
-        <a-button type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
-        <a-button danger @click="updateAW('primary')">{{ t('common.updateAw') }}</a-button>
-        <a-button danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
-        <a-button danger @click="updateAW('expected')">修改预期</a-button>
-        <a-button danger @click="deleteExpected()">删除预期</a-button>
+        <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
+        <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
+        <a-button size="small" danger @click="updateAW('primary')">{{ t('common.updateAw') }}</a-button>
+        <a-button size="small" danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
+        <a-button size="small" danger @click="updateAW('expected')">修改预期</a-button>
+        <a-button size="small" danger @click="deleteExpected()">删除预期</a-button>
       </div>
     </div>
     <div v-show="!isEdit">

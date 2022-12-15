@@ -21,26 +21,25 @@ export class MBTGroup extends MBTGroupBase {
       // 'icon': { iconType: 'receive' },
       'label': {
         refY: '10',
-
-        text: 'Loop'
+        text: ''
       },
-      'border':
-      {
-
+      'border': {
         borderStyle: 'dashed'
       },
       markers: {
         iconTypes: ['loop'],
       }
-
     })
+    this.set('prop', { groupName: null, loopCount: null })
     this.on('change', (evt: any) => {
+      // console.log(evt);
+
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
-        this.attr('label/text/0', "test")
-      }
+        // this.attr('label/text/0', "test")
 
+      }
     })
 
     this.updateRectangles();
@@ -53,32 +52,60 @@ export class MBTGroup extends MBTGroupBase {
     //  return true;
     return super.ifDisallowLink()
   }
+  setPropertiesData(value: any) {
+    if (value) {
+      this.prop('prop', value)
+      this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
+    }
+  }
 
   getInspectorSchema() {
     return {
-      attrs: {
-        'label/text': {
-          type: 'textarea',
-          label: 'Name',
-          group: 'general',
-          index: 1
-        },
-        'body/stroke': {
-          type: 'color',
-          label: 'Line Color',
-          group: 'appearance',
-          index: 1
+      inputs: {
+        attrs: {
+          'label/text': {
+            type: 'textarea',
+            label: 'Loop Count',
+            group: 'general',
+            index: 1
+          },
+          'body/stroke': {
+            type: 'color',
+            label: 'Line Color',
+            group: 'appearance',
+            index: 1
+          }
+        }
+      },
+      schema: {
+        type: "object",
+        description: '',
+        properties: {
+          groupName: {
+            title: "groupName",
+            type: "string",
+          },
+          loopCount: {
+            title: "Loop Count",
+            type: "string",
+          }
         }
       }
     }
-    //   schema : store.schema? store.schema:{}
-
 
   }
 
   setInspectorData() {
-    super.setInspectorData()
+  }
 
+  getPropertiesData() {
+    return this.attributes.prop
+  }
+
+  updataLabel() {
+    let attrs = this.get("attrs")
+    this.prop('prop', { loop: attrs?.label?.text })
+    this.attributes.attrs!.lable!.text = 'loopCount' + attrs
   }
 
   updateRectangles() {
@@ -102,16 +129,14 @@ export class MBTGroup extends MBTGroupBase {
     this.resize(width, height);
   }
   defaults() {
-    return {
-      ...super.defaults,
-      type: namespace,
-      prop: {
-        isStep: true,
-        loop: {}
-      }
+    return super.defaults()
+    // return {
+    //   ...super.defaults,
+    //   type: namespace
 
-    }
-
+    // }
   }
+
 }
+
 

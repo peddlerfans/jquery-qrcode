@@ -18,12 +18,13 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
       this.attr(   {
         // 'background': { fill: '#454549' },
         'icon': { iconType: 'user' },
-        'label': { text: 'AW' },
+        'label': { text: 'AW' ,fontSize: 16},
  
       },)
       this.prop('isStep',true)
-      this.on('change',(evt:any)=> {
-      if (evt.changed && evt.changed.custom && evt.changed.custom) {
+      this.on('change', (evt: any) => {
+          if (evt.changed && evt.changed.custom && evt.changed.custom) {
+              
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
         this.attr('label/text/0',"test")
@@ -298,7 +299,10 @@ throw new Error("Method not implemented.");
   }
   setInspectorData(schema?:any,data?:any,uiParams?:any){
       if (data.name) {
-          this.prop('label/text',{text:data.name})
+          this.attr({
+              'label': { text: data.name, fontSize: 16 },
+              'icon': { iconType: '' },
+          })
         }
         MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
         // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
