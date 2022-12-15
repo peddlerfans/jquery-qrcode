@@ -28,7 +28,7 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import mbtModelerAwschema from "@/components/mbt-modeler-aw-schema.vue"
+import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -159,12 +159,6 @@ const globalschema = ref({
     },
   },
 });
-// 打开inspector的变量
-let isInspector = ref<boolean>(false)
-// 发送各组件的事件
-let schema: any = ref({})
-let schemaValue:any = ref({})
-let awData :any = ref()
 
 // 选择模板的函数
 const chooseTem = () => {
@@ -249,6 +243,7 @@ const handleOk = () => {
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
+  isGlobal.value = false
   console.log(store.mbtData);
   
   // isGlobal.value = false
@@ -294,7 +289,6 @@ function Datafintion(data: any) {
     }
   }
 }
-
 onMounted(async()=>{  
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
@@ -312,6 +306,7 @@ onMounted(async()=>{
 
   if(store.mbtData._id){
     Datafintion(store.mbtData)
+    storeAw.setAllData(store.mbtData)
   }
   rappid = new MbtServe(
     apps.value,
@@ -331,39 +326,41 @@ onMounted(async()=>{
         }
         
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      isInspector.value = true
+      
       let el: any
       el = elementView.model
-      // console.log(elementView.model?.getInspectorSchema());
-      // el.getInspectorSchema().awData = awData.value
-      if (elementView.model?.getInspectorSchema()
-        && elementView.model?.getInspectorSchema().schema &&
-        elementView.model.getInspectorSchema().schema.hasOwnProperty('type')
-      ) {
-        schema.value = elementView.model?.getInspectorSchema().schema
-        schemaValue.value = elementView.model?.getInspectorSchema().schemaValue
+      console.log(el);
+      
+      console.log(elementView.model?.attributes.type == 'itea.mbt.test.MBTAW');
+      if(el.attributes.type == 'itea.mbt.test.MBTAW'){
+        show.value = true
+        if(elementView.model?.getPropertiesSchema() && JSON.stringify(elementView.model?.getPropertiesSchema().schema) !== '{}'){
+        storeAw.setEditingPrimaryAw(elementView.model.getPropertiesSchema())
+        console.log("pinia",storeAw.editingPrimaryAw);
+      }
+      }else{
+        console.log(123);
+        
+        show.value = false
       }
     })
+
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-      isInspector.value = false
       let Nowcell = rappid.selection.collection.take()
-      // 判断子组件的pinia，awDataschema是否有值，有值就将其赋值给当前cell，然后清空
-      if (Nowcell && 
-          Nowcell.attributes &&
-          Nowcell.attributes.type == 'itea.mbt.test.MBTAW' &&
-          storeAw.editingPrimaryAw.schema) {
-          Nowcell.attributes.prop['data'] = storeAw.editingPrimaryAw.data
-          Nowcell.getInspectorSchema().schema = storeAw.editingPrimaryAw.schema.value
-          console.log(Nowcell.getInspectorSchema());
-        
-      }    
+      if (Nowcell && Nowcell.isElement()){
+        show.value = false
+        saveAw()
+      if(storeAw.editingPrimaryAw.schema !== null) {        
+          Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
+          storeAw.resetEditingExpectedAw()
+        }
+      }
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
-      rappid.paper.removeTools();
-    storeAw.resetEditingExpectedAw()  
-      schema.value = null
+    rappid.paper.removeTools();
 });
 })
+const saveAw = () => {}
 
 
 const saveMbt = () => {
@@ -407,21 +404,32 @@ const saveMbt = () => {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-          <a-tabs v-if="isInspector" v-model:activeKey="activeSchema" class="AwtabInspector">
-            <a-tab-pane key="1" tab="样式调整">
+          <a-tabs v-show="show" v-model:activeKey="activeSchema" class="AwtabInspector">
+            <a-tab-pane key="1" tab="样式修改">
+                <div class="inspector-container"></div>
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="数据编辑">
+                <mbtModelerAwschema 
+                :show="show"
+                @hook:destoroyed="saveAw"
+                ></mbtModelerAwschema>
+            </a-tab-pane>
+        </a-tabs>
+        <!-- <a-tabs v-show="show" v-model:activeKey="activeSchema" class="AwtabInspector">
+            <a-tab-pane key="1" tab="样式修改">
                 <div class="inspector-container"></div>
             </a-tab-pane>
             <a-tab-pane key="2" tab="数据编辑" force-render>
                 <mbtModelerAwschema 
-                :schema="schema" 
-                :schemaValue="schemaValue"
                 :show="show"
+                @hook:destoroyed="saveAw"
                 ></mbtModelerAwschema>
             </a-tab-pane>
-        </a-tabs>
-
+        </a-tabs> -->
+          <div v-show="!show" class="inspector-container"></div>
             <div class="navigator-container"/>
           </div>
+
 
   </main>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
@@ -601,20 +609,22 @@ const saveMbt = () => {
     .ant-tabs-content-holder > .ant-tabs-content{
     height: 100%!important
 }
-}
-
 .inspector-container {
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
 }
+.joint-inspector {
+  top: 3.125rem;
+}
+}
+
+
 
 .infoPanel{
   position: relative;
 }
-.joint-inspector {
-  top: 3.125rem;
-}
+
 .joint-navigator{
   width: 300px;
 }

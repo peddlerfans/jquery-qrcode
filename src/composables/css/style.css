@@ -162,6 +162,15 @@ body {
 .joint-inspector-select-box-options {
     width: 190px;
 }
+.inspector-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    bottom: 120px;
+    width: 300px;
+    box-sizing: border-box;
+}
 
 /*  Navigator  */
 .navigator-container {

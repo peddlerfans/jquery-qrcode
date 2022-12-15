@@ -524,4 +524,3 @@ class MbtServe {
 }
 
 export default MbtServe
-

@@ -48,7 +48,47 @@ export class MBTEndEvent extends joint.shapes.bpmn2.Event implements MBTShapeInt
 
   // static namespace = 'itea.mbt.test.group';
   getInspectorSchema(){
-    
+    const options = {
+      colorPalette: [
+        { content: 'transparent', icon: '../src/assets/transparent-icon.svg' },
+        { content: '#f6f6f6' },
+        { content: '#dcd7d7' },
+        { content: '#8f8f8f' },
+        { content: '#c6c7e2' },
+        { content: '#feb663' },
+        { content: '#fe854f' },
+        { content: '#b75d32' },
+        { content: '#31d0c6' },
+        { content: '#7c68fc' },
+        { content: '#61549c' },
+        { content: '#6a6c8a' },
+        { content: '#4b4a67' },
+        { content: '#3c4260' },
+        { content: '#33334e' },
+        { content: '#222138' }
+    ],
+    }
+    return {
+      inputs: {
+        attrs: {
+            circle: {
+                fill: {
+                    type: 'color-palette',
+                    options: options.colorPalette,
+                    label: 'Fill',
+                    group: 'presentation',
+                    index: 1
+                }
+            }
+        }
+    },
+    groups: {
+        presentation: {
+            label: 'Presentation',
+            index: 1
+        }
+    }
+    }
 
   }
 
