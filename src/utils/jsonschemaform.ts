@@ -15,7 +15,7 @@
 //    }]
 import * as _ from "lodash";
 
-const generateSchema = (inputArr: Array<Object>,metaId:string) => {
+const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
 
   let outputArr: any[] = [];
 
