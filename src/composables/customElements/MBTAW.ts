@@ -5,6 +5,7 @@ const { dia, g,ui,shapes } = joint
 
 import { i18n } from "@/locales";
 import { MBTStore } from "@/stores/MBTModel"
+import { objectPick } from "@vueuse/core";
 const store = MBTStore()
 const { t } = i18n.global
 
@@ -14,6 +15,7 @@ export const namespace='itea.mbt.test';
 
 export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInterface  {
   static shapeName = name;
+
   constructor(e : Element,o: any) {
       super(e,o);
       this.attr(   {
@@ -35,17 +37,23 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
    this.updateRectangles();
   }
   
- 
+  static awData = {schema:{},data:{},uiParams:{}}
 // clone():any  {
 //   // debugger
 //   console.log('function good')
 //   return super.clone();
 // }
-setPropertiesData?: (() => any) | undefined;
+// setPropertiesData?: (() => any) | undefined;
+
 getPropertiesSchema() {
+    const throwData = MBTAW.awData
+    return throwData
 throw new Error("Method not implemented.");
 }
-setPropertiesata() {
+setPropertiesData() {
+    // 实现传递的数据把规定
+        
+
 throw new Error("Method not implemented.");
     }
  
@@ -307,30 +315,17 @@ throw new Error("Method not implemented.");
           }
       },
     //   schema : store.schema? store.schema:{}
-        schema: {
-            type: "object",
-            properties: {
-                name: {
-                    title: "AW Name",
-                    type: "string",
-                    readOnly: true,
-                    default: '123'
-                },
-                descriptions: {
-                    title: "Description",
-                    type: "string",
-                    datault: '456'
-                },
-            },
-        },
-        awData:{}
+   
   }
 
   }
 
-  setInspectorData(){
-
-  }
+  setInspectorData(schema?:any,data?:any,uiParams?:any){
+        console.log(schema,data,this.awData);
+        MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
+        // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
+        this.prop('prop/custom/step',{schema:schema,data:data})
+    }
 
 
   updateRectangles() {

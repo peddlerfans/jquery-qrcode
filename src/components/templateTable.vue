@@ -32,7 +32,9 @@ import {
 import { tableDataSource } from "@/composables/getTable";
 import { ColumnsType } from "ant-design-vue/es/table";
 import { MBTStore } from "@/stores/MBTModel";
+import { MbtData } from "@/stores/modules/mbt-data"
 let store = MBTStore()
+let storeAw = MbtData()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
@@ -271,6 +273,7 @@ watch(()=>watchData.value , (val:any)=>{
     }
     if(isChoose(dataSource.value)){
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+      storeAw.setAllData(store.mbtData)
     }    
 
 } , {deep:true})

@@ -69,33 +69,8 @@ export const MBTStore = defineStore('mbtmodel', {
         tags: [],
         description: "",
       },
-      schema: {
-        type: "object",
-        properties: {
-          _id: {
-            title: 'Aw id',
-            type: 'string',
-            'ui:hidden': true,
-          },
-          name: {
-            title: "MBT Name",
-            type: "string",
-            readOnly: true,
-            default: '123'
-          },
-          description: {
-            title: "Description",
-            type: "string",
-            datault: '456'
-          },
-        },
-
-      },
-      awData: {
-        _id: '',
-        name: "",
-        description: ''
-      }
+      schema: {},
+      awData: {}
     }
 
   }
@@ -166,9 +141,17 @@ export const MBTStore = defineStore('mbtmodel', {
 
     },
     saveData(data: any, column: any, dataFrom: string) {
-      this.mbtData.dataDefinition.data.dataFrom = dataFrom
+      if(this.mbtData.dataDefinition &&
+         this.mbtData.dataDefinition.data &&
+         this.mbtData.dataDefinition.data.dataFrom
+         ){
+          this.mbtData.dataDefinition.data.dataFrom = dataFrom
       this.mbtData.dataDefinition.data.tableData = data
       this.mbtData.dataDefinition.data.tableColumns = column
+         }else{
+          this.mbtData.dataDefinition['data'] = {dataFrom:dataFrom,tableData:data,tableColumns:column}
+         }
+      
     },
     saveResources(data: any) {
       this.mbtData.dataDefinition.resources = data
