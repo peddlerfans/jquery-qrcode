@@ -116,7 +116,9 @@ export const MBTStore = defineStore('mbtmodel', {
         obj._id = state.mbtData._id
         obj.name = state.mbtData.name
         obj.description = state.mbtData.description
-        if (state.mbtData.attributes.codegen_script.length > 0) {
+        if (state.mbtData.attributes && 
+          state.mbtData.attributes.codegen_script &&
+          state.mbtData.attributes.codegen_script.length > 0) {
           obj.codegen_script = state.mbtData.attributes.codegen_script
           obj.codegen_text = state.mbtData.attributes.codegen_text
         }
@@ -142,7 +144,6 @@ export const MBTStore = defineStore('mbtmodel', {
     async getMbtmodel(id: any) {
       let res = await request.get(`${realMBTUrl}/${id}`)
       this.setMbtData(res)
-
     },
     // 添加attributes的函数
     saveattr(data: any) {
@@ -155,8 +156,14 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     saveMeta(schema: any, data: any) {
-      this.mbtData.dataDefinition.meta.schema = schema
-      this.mbtData.dataDefinition.meta.data = data
+      
+      if(this.mbtData.dataDefinition.hasOwnProperty('meta') ){
+        this.mbtData.dataDefinition.meta['schema'] = {...schema}
+        this.mbtData.dataDefinition.meta['data'] = {...data}
+      }else{
+        this.mbtData.dataDefinition['meta'] = {schema:schema,data:data}
+      }
+
     },
     saveData(data: any, column: any, dataFrom: string) {
       this.mbtData.dataDefinition.data.dataFrom = dataFrom

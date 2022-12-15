@@ -20,6 +20,30 @@ import { PlusOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { CommonTable } from '@/components/basic/common-table'
+import VueForm from "@lljj/vue3-form-ant";
+import schemaItem from '@/components/basic/itea-schema-item/input-select-item.vue'
+
+let schema = {
+  title: '',
+  type: 'object',
+  properties: {
+    inputText: {
+      title: '自定义widget',
+      "patternProperties": false,
+      type: 'string',
+    }
+  }
+}
+let uiSchema = {
+  inputText: {
+    "ui:widget": schemaItem,
+    "ui:options": [{
+      value: 'lucy',
+      label: 'Lucy',
+    }]
+  }
+}
+let schemaVal = ref()
 
 const { t } = useI18n()
 const url = settingsWebHook;
@@ -445,6 +469,12 @@ const handleInputConfirm = () => {
         @detail="(row) => edit(row, true)"
       ></common-table>
     </div>
+    <VueForm
+        v-model="schemaVal"
+        :schema="schema"
+        :ui-schema="uiSchema"
+    ></VueForm>
+    <div>{{schemaVal}}</div>
   </main>
 </template>
 <style lang="postcss" scoped>
