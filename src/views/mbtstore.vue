@@ -80,7 +80,7 @@ const showModal = () => {
 
 let searchInput = ref()
 let cascder = ref(false)
-let selectvalue = ref("")
+let selectvalue:any = ref("")
 let selectoptions:any = ref([
    {
     value: 'tags:',

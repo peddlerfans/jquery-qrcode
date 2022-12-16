@@ -14,35 +14,27 @@ import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
-import {useRoute, useRouter} from "vue-router";
 
 interface Props {
   show: boolean
+  schema: any
 }
 
 const emit = defineEmits(['save'])
 
 const props = withDefaults(defineProps<Props>(), {
-  show: false
+  show: false,
+  schema:{}
 })
-const router = useRouter()
-const route = useRoute()
 
 watch(
     () => props.show,
     () => {
       if (store.getPrimaryAw.schema) {
-        schema.value = store.getPrimaryAw.schema
-        schema.value = getSchema(schema.value)
+        getSchema()
         schemaValue.value = store.getPrimaryAw.data || {}
         primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
         isEdit.value = true
-      }
-      if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
-        expectedSchema.value = store.getExpectedAw.schema
-        expectedSchema.value = getSchema(expectedSchema.value)
-        expectedSchemaValue.value = store.getExpectedAw.data || {}
-        expectedUiSchema.value = store.getExpectedAw.uiParams || {}
       }
     }
 )
@@ -52,18 +44,14 @@ watch(
  * 把表单的 name 转化为 schema 的 title
  * 表单 description 转化为 schema 的 description
  * */
-function getSchema (schema: any, row?: any) {
-  const nameProp = schema.properties.name
-  const descProp = schema.properties.description
-  const tempProp = schema.properties.template
-  const tagsProp = schema.properties.tags
-  if (nameProp) delete schema.properties.name
-  if (descProp) delete schema.properties.description
-  if (tempProp) delete schema.properties.template
-  if (tagsProp) delete schema.properties.tags
-  schema.title = row ? row.name : store.getPrimaryAw.data.name
-  schema.description = row ? row.description : store.getPrimaryAw.data.description
-  return schema
+function getSchema () {
+  schema.value = store.getPrimaryAw.schema
+  const nameProp = schema.value.properties.name
+  const descProp = schema.value.properties.description
+  // if (schema.value.properties && nameProp) delete schema.value.properties.name
+  // if (descProp) delete schema.value.properties.description
+  schema.value.title = store.getPrimaryAw.data.name
+  schema.value.description = store.getPrimaryAw.data.description
 }
 
 const defaultAWSchema = {
@@ -100,7 +88,7 @@ const defaultAWSchema = {
   }
 }
 
-let selectAwTar: string = '1'
+let selectAwTar: string = ''
 let schema = ref(defaultAWSchema)
 let schemaValue = ref<any>({})
 let primaryUiSchema = ref({})
@@ -149,86 +137,71 @@ function getTableData () {
       total: data.total
     })
   }).finally(() => {
-    awTable.value.loading = false
+    awTable.value['loading'] = false
   })
 }
 
 onMounted(() => {
+
+  if (props.schema) {
+    isEdit.value = true
+  }
   getTableData()
 })
 
 const hasExpected = computed(() => {
-  return !_.isEmpty(store.getExpectedAw.schema)
+  // return !_.isEmpty(store.geExpectedAw.schema)
 })
 
-function setSchema (tar: string) {
-  let temp: any = {}
-  if (tar === 'primary') {
-    temp = data2schema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
-    schema.value = temp.schema
-    primaryUiSchema.value = temp.uiSchema
-  } else if (tar === 'expected') {
-    temp = data2schema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
-    expectedSchema.value = temp.schema
-    expectedUiSchema.value = temp.uiSchema
-  }
+function setSchema (schema: any, columns: any, uiSchema: any) {
+  const temp = data2schema(schema, columns, uiSchema)
+  schema.value = temp.schema
+  primaryUiSchema.value = temp.uiSchema
 }
-
 
 function showAw (row: any) {
   isEdit.value = true
-  
   if (selectAwTar === '1') {
-    schema.value = _.cloneDeep(defaultAWSchema)
-    schemaValue.value = {
-      name: row.name,
-      description: row.description,
-      tags: '',
-      template: row.template,
-      _id: row._id
-    }
+    schemaValue.value.name = row.name
+    schemaValue.value.description = row.description
+    schemaValue.value.tags = ""
+    schemaValue.value.template = row.template
+    schemaValue.value._id = row._id
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value: any) {
         schemaValue.value.tags += value + " "
       })
     }
-    if (_.isArray(row.params) && row.params.length > 0) {
-      let appEndedSchema = generateSchema(row.params)
-      appEndedSchema.forEach((field: any) => {
-        Object.assign(schema.value.properties, field)
-      })
-    }
-    setSchema('primary')
-    schema.value = getSchema(schema.value, row)
+    setSchema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
   } else if (selectAwTar === '2') {
     // hasAWExpectedInfo.value = true;
-    expectedSchema.value = _.cloneDeep(defaultAWSchema)
-    store.setExpectedTableRow(row)
-    expectedSchemaValue.value = {
-      name: row.name,
-      description: row.description,
-      tags: '',
-      template: row.template,
-      _id: row._id
-    }
+
+    // store.setExpectedTableRow(row)
+    expectedSchemaValue.value.name = row.name
+    expectedSchemaValue.value.description = row.description
+    expectedSchemaValue.value.tags = ''
+    expectedSchemaValue.value.template = row.template
+    expectedSchemaValue.value._id = row._id
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value, key) {
         expectedSchemaValue.value.tags += value + ' '
       })
     }
+    debugger
     if (_.isArray(row.params)) {
       let appEndedSchema = generateSchema(row.params)
       appEndedSchema.forEach((field: any) => {
         Object.assign(expectedSchema.value.properties, field)
       })
     }
-    setSchema('expected')
-    expectedSchema.value = getSchema(expectedSchema.value, row)
+    setSchema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   }
+  console.log(schema.value);
+  
 }
 
 function search (searchText: string) {
@@ -253,11 +226,11 @@ function saveAW () {
   store.setEditingPrimaryAw(editingPrimaryAw)
   if (!_.isEmpty(expectedSchemaValue)) {
     const editingExpectedAw = {
-      data: expectedSchemaValue.value,
-      schema: expectedSchema.value,
+      data: expectedSchema.value,
+      schema: expectedSchemaValue.value,
       uiParams: expectedUiSchema.value
     }
-    store.setEditingExpectedAw(editingExpectedAw)
+    // store.setEditingExpectedAw(editingExpectedAw)
   }
   emit('save')
 }
@@ -272,40 +245,8 @@ function changeExpAW () {
   selectAwTar = '2'
 }
 
-function updateAW (tar: string) {
-  let _id: string = ''
-  let name: string = ''
-  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
-  if (tar === 'primary') {
-   _id = schemaValue.value._id
-   name = schemaValue.value.name
-  } else if (tar === 'expected') {
-    _id = expectedSchemaValue.value._id
-    name = expectedSchemaValue.value.name
-  }
-  router.push({
-    name: 'awupdate',
-    params: {
-      _id,
-      name,
-      awupdate: 'mbtAW',
-      mbtid: mbtId,
-      mbtname: localStorage.getItem('mbt_' + route.params.name)
-    }
-  })
-}
+function updateAW () {
 
-function deleteExpected() {
-  expectedSchema.value = _.cloneDeep(defaultAWSchema)
-  expectedUiSchema.value = {}
-  expectedSchemaValue.value = {}
-  store.setEditingExpectedAw({
-    editingExpectedAw: {
-      data: null,
-      schema: null,
-      uiParams: null
-    }
-  })
 }
 
 </script>
@@ -315,9 +256,7 @@ function deleteExpected() {
     <div class="title">
       设置AW
     </div>
-    <a-divider />
     <div v-show="isEdit" class="aw-wrap">
-      <div class="title">Primary AW</div>
       <VueForm
         v-model="schemaValue"
         :schema="schema"
@@ -325,26 +264,20 @@ function deleteExpected() {
         :uiSchema="primaryUiSchema">
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
-      <div v-show="hasExpected">
-        <a-divider />
-        <div class="title">Expected AW</div>
-        <VueForm
-            v-model="expectedSchemaValue"
-            :schema="expectedSchema"
-            :formProps="formProps"
-            :uiSchema="expectedUiSchema">
-          <div slot-scope="{ schemaValue }">
-          </div>
-        </VueForm>
-      </div>
+      <VueForm
+          v-show="hasExpected"
+          v-model="expectedSchemaValue"
+          :schema="expectedSchema"
+          :formProps="formProps"
+          :uiSchema="expectedUiSchema">
+        <div slot-scope="{ schemaValue }"></div>
+      </VueForm>
       <div>{{ schemaValue }}</div>
       <div class="btn-line">
         <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
         <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
-        <a-button size="small" danger @click="updateAW('primary')">{{ t('common.updateAw') }}</a-button>
         <a-button size="small" danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
-        <a-button size="small" danger @click="updateAW('expected')">修改预期</a-button>
-        <a-button size="small" danger @click="deleteExpected()">删除预期</a-button>
+        <a-button size="small" danger @click="updateAW">{{ t('common.updateAw') }}</a-button>
       </div>
     </div>
     <div v-show="!isEdit">
@@ -370,14 +303,11 @@ function deleteExpected() {
   height: 100%;
   overflow: auto;
   .title {
-    font-size: 18px;
+    font-size: 16px;
     margin-top: 8px;
     margin-bottom: 12px;
   }
   .aw-wrap {
-    .title {
-      font-size: 16px;
-    }
     .btn-line {
       .ant-btn {
         margin-right: 8px;

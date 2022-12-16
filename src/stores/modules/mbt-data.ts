@@ -83,7 +83,7 @@ export const MbtData = defineStore({
         },
         resetEditingExpectedAw() {
             this.editingPrimaryAw.data = null
-            this.editingPrimaryAw.schema = undefined
+            this.editingPrimaryAw.schema = null
             this.editingPrimaryAw.uiParams = null
         }
     }

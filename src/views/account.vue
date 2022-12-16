@@ -13,9 +13,15 @@ import $ from 'jquery'
 import { onMounted, ref } from 'vue';
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
-onMounted(()=>{
-  console.log(apps.value.querySelector);
-  
+onMounted(() => {
+  let s = undefined
+  if (s) {
+    console.log(13);
+    
+  } else {
+    console.log(456);
+    
+  }
   rappid = new MbtServe(
     apps.value,
     new StencilService(),

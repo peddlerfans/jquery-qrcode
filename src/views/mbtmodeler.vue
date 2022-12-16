@@ -45,7 +45,10 @@ const activeKey = ref("1")
 const isFormVisible = ref(false);
 // Aw组件的数据
 let activeSchema = ref('1')
+let activeGroup = ref('1')
 let show = ref(false)
+let showGroup = ref(false)
+let showSection =ref(false)
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -289,6 +292,11 @@ function Datafintion(data: any) {
     }
   }
 }
+let schemaGroup = ref()
+let DataGroup = ref({
+  groupName: '',
+  loopCount:''
+})
 onMounted(async()=>{  
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
@@ -329,31 +337,46 @@ onMounted(async()=>{
       
       let el: any
       el = elementView.model
-      console.log(elementView.model?.attributes.type == 'itea.mbt.test.MBTAW');
-      if(el.attributes.type == 'itea.mbt.test.MBTAW'){
+      let type = elementView.model?.get('type');
+      if(type == 'itea.mbt.test.MBTAW'){
         show.value = true
-        if(elementView.model?.getPropertiesSchema() && JSON.stringify(elementView.model?.getPropertiesSchema().schema) !== '{}'){
-        storeAw.setEditingPrimaryAw(elementView.model.getPropertiesSchema())
+        if(el.getPropertiesSchema() && JSON.stringify(el.getPropertiesSchema().schema) !== '{}'){
+        storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
         console.log("pinia",storeAw.editingPrimaryAw);
-        
       }
-      }else{
-        console.log(123);
-        
-        show.value = false
+      }else if(type == 'itea.mbt.test.MBTGroup'){        
+        showGroup.value = true
+        schemaGroup.value = el.getInspectorSchema().schema
+        if (el.getPropertiesData().groupName || el.getPropertiesData().loopCount) {
+          DataGroup.value = {...el.getPropertiesData()}
+        }
+      } if (type == 'itea.mbt.test.MBTGroup') {
+          showSection.value = true
       }
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
       let Nowcell = rappid.selection.collection.take()
-      if (Nowcell.isElement()){
-        show.value = false
-        saveAw()
-      if(storeAw.editingPrimaryAw.schema !== null) {        
-          Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
-          storeAw.resetEditingExpectedAw()
+      
+      
+      if (Nowcell) {
+        let type = Nowcell.model?.get('type');
+          if(type == 'itea.mbt.test.MBTAW') {
+            show.value = false
+            saveAw()
+          if(storeAw.editingPrimaryAw.schema !== null) {        
+              Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
+              storeAw.resetEditingExpectedAw()
+            }
+          } else if (type == 'itea.mbt.test.MBTGroup') {
+            showGroup.value = false
+          Nowcell.setPropertiesData(DataGroup.value)
+          } else if (type == 'itea.mbt.test.MBTSection') {
+            showSection.value = false
+          Nowcell.setPropertiesData()
         }
       }
+
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
     rappid.paper.removeTools();
@@ -361,8 +384,13 @@ onMounted(async()=>{
 })
 const saveAw = () => {}
 
+
 const saveMbt = () => {
     console.log(rappid.graph.getCells());
+}
+const change = () => {
+  console.log(123);
+  
 }
 
 </script>
@@ -402,20 +430,29 @@ const saveMbt = () => {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-          <a-tabs v-show="show" v-model:activeKey="activeSchema" class="AwtabInspector">
+          <a-tabs v-show="show" v-model:activeKey="activeSchema" @change="(key:any) => { activeSchema = key }" class="AwtabInspector">
             <a-tab-pane key="1" tab="样式修改">
                 <div class="inspector-container"></div>
             </a-tab-pane>
             <a-tab-pane key="2" tab="数据编辑" force-render>
-                <mbtModelerAwschema 
-                :show="show"
-                @hook:destoroyed="saveAw"
-                ></mbtModelerAwschema>
+              <mbtModelerAwschema :show="show"></mbtModelerAwschema>
             </a-tab-pane>
         </a-tabs>
-            <div v-show="!show" class="inspector-container"></div>
+          <a-tabs v-show="showGroup" v-model:activeKey="activeGroup" class="AwtabInspector">
+            <a-tab-pane key="1" tab="样式修改">
+                <div class="inspector-container"></div>
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="数据编辑" force-render>
+                <VueForm 
+                :schema="schemaGroup"
+                v-model:value="DataGroup"
+                ></VueForm>
+            </a-tab-pane>
+        </a-tabs>
+        <!-- <div v-if="showSection" class="inspector-container"></div> -->
             <div class="navigator-container"/>
           </div>
+
 
   </main>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
