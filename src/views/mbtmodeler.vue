@@ -46,7 +46,7 @@ const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
 let activeSchema = ref('2')
-let activeLink = ref('1')
+let activeLink = ref('2')
 let activeGroup = ref('2')
 let show = ref(false)
 let showDrawer = ref(false)
@@ -301,23 +301,62 @@ let DataGroup = ref({
   groupName: '',
   loopCount:''
 })
-let cell:any = null
-onMounted(async()=>{  
-  if(route.params._id){
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
-  }
-    getAllTemplatesByCategory('codegen').then((rst:any)=>{
-  if(rst && _.isArray(rst)){
-    rst.forEach((rec:any)=>{              
-      codegennames.value.push({title:rec.name , const: rec._id})
-    })
-  }
-    }).catch((err) => { console.log(err); })
+let cell: any = null
 
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+let linktype = "exclusivegateway";
+function getLinkType(linkView: any): string {
+  if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
+
+    if (rappid.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
+      console.log(linkView.model.linktype);
+
+      return linkView.model["linktype"];
+    }
+  }
+  return "";
+}
+
+function setLinkType(el: any, cell: any) {
+    if (el && el.attributes && el.attributes.source && el.attributes.source.id)
+      try {
+        
+        let linksource:any = rappid.graph.getCell(el.attributes.source.id);
+        // console.log('type:',linksource.attributes.type)
+        if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
+          
+          if (linksource.attributes.attrs.label.text == "x") {
+            // console.log(' source exclusive gateway    ',linksource.id)
+            Object.assign(cell, { linktype: "exclusivegateway" });
+            console.log("exclusive link", cell);
+          } else {
+            Object.assign(cell, { linktype: "parallelgateway" });
+            console.log("exclusive link", cell);
+          }
+        }
+      } catch (e) {
+        console.log("e:", e);
+      }
+  }
+
+let idstr: any = null
+
+
+onMounted(async () => {
+  if (route.params._id) {
+    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
+  }
+  getAllTemplatesByCategory('codegen').then((rst: any) => {
+    if (rst && _.isArray(rst)) {
+      rst.forEach((rec: any) => {
+        codegennames.value.push({ title: rec.name, const: rec._id })
+      })
+    }
+  }).catch((err) => { console.log(err); })
+
+  idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
 
-  if(store.mbtData._id){
+  if (store.mbtData._id) {
     Datafintion(store.mbtData)
     storeAw.setAllData(store.mbtData)
   }
@@ -330,16 +369,29 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
-    
+
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-          rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-        }
-        
+    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+  }
+
+  rappid.graph.on("add", function (el: any) {
+    if (el && el.hasOwnProperty("id")) {
+      try {
+        let cell:any = rappid.graph.getCell(el.id);
+        if (cell.isLink()) {
+          setLinkType(el, cell);
+        } else {}
+      } catch (e) {
+        console.log("error:", e);
+      }
+     }      
+  })
+
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      
+      setLinkType(elementView.model,elementView.model)
       let el: any
       el = elementView.model
       cell = el
@@ -367,15 +419,19 @@ onMounted(async()=>{
         show.value = false
         showGroup.value = false
         showSection.value = true
-      }else if(type == 'itea.mbt.testlink'){
+      } else if (type == 'itea.mbt.testlink') {
         showLink.value = true
-      }
+        if(getLinkType(elementView) == "exclusivegateway"){}
+        
+        showDrawer.value = true
+      } 
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+      console.log(rappid.paper);
+      
       let Nowcell = rappid.selection.collection.take()
-      
-      
+
       if (Nowcell) {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
@@ -404,7 +460,16 @@ onMounted(async()=>{
 })
 const saveAw = () => {}
 const saveMbt = () => {
-    console.log(rappid.graph.getCells());
+  store.setGraph(rappid.paper.model.toJSON())
+  if (idstr) {
+    
+    
+    request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
+          return '保存成功'
+        }).catch(() => {
+          return '保存失败'
+        })
+  }
 }
 const change = () => {
   if(cell){

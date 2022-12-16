@@ -32,11 +32,15 @@ interface meta {
   schema: any
   data: object
 }
+interface cellsinfo {
+  paperscale: any
+  cellsinfo: any
+}
 
 interface mbtmodel {
   attributes: codegen
   dataDefinition: dataDafinition
-  modelDefinition?: any
+  modelDefinition: cellsinfo
   name: string
   _id: string
   tags?: Array<string>
@@ -63,7 +67,10 @@ export const MBTStore = defineStore('mbtmodel', {
           },
           resources: []
         },
-        modelDefinition: {},
+        modelDefinition: {
+          cellsinfo: {},
+          paperscale: ''
+        },
         name: "",
         _id: "",
         tags: [],
@@ -76,6 +83,7 @@ export const MBTStore = defineStore('mbtmodel', {
   }
   ,
   getters: {
+    getAlldata: state => state.mbtData,
     getDafintion: (state) => state.mbtData.dataDefinition,
     changeTemplate(state) {
       let obj = {
@@ -91,7 +99,7 @@ export const MBTStore = defineStore('mbtmodel', {
         obj._id = state.mbtData._id
         obj.name = state.mbtData.name
         obj.description = state.mbtData.description
-        if (state.mbtData.attributes && 
+        if (state.mbtData.attributes &&
           state.mbtData.attributes.codegen_script &&
           state.mbtData.attributes.codegen_script.length > 0) {
           obj.codegen_script = state.mbtData.attributes.codegen_script
@@ -120,6 +128,17 @@ export const MBTStore = defineStore('mbtmodel', {
       let res = await request.get(`${realMBTUrl}/${id}`)
       this.setMbtData(res)
     },
+    // 存入后台的数据
+    async saveMbtData() {
+      if (this.mbtData._id) {
+        request.put(`${realMBTUrl}/${this.mbtData._id}`, this.mbtData).then(() => {
+          return '保存成功'
+        }).catch(() => {
+          return '保存失败'
+        })
+      }
+
+    },
     // 添加attributes的函数
     saveattr(data: any) {
       this.mbtData._id = data._id
@@ -131,27 +150,27 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     saveMeta(schema: any, data: any) {
-      
-      if(this.mbtData.dataDefinition.hasOwnProperty('meta') ){
-        this.mbtData.dataDefinition.meta['schema'] = {...schema}
-        this.mbtData.dataDefinition.meta['data'] = {...data}
-      }else{
-        this.mbtData.dataDefinition['meta'] = {schema:schema,data:data}
+
+      if (this.mbtData.dataDefinition.hasOwnProperty('meta')) {
+        this.mbtData.dataDefinition.meta['schema'] = { ...schema }
+        this.mbtData.dataDefinition.meta['data'] = { ...data }
+      } else {
+        this.mbtData.dataDefinition['meta'] = { schema: schema, data: data }
       }
 
     },
     saveData(data: any, column: any, dataFrom: string) {
-      if(this.mbtData.dataDefinition &&
-         this.mbtData.dataDefinition.data &&
-         this.mbtData.dataDefinition.data.dataFrom
-         ){
-          this.mbtData.dataDefinition.data.dataFrom = dataFrom
-      this.mbtData.dataDefinition.data.tableData = data
-      this.mbtData.dataDefinition.data.tableColumns = column
-         }else{
-          this.mbtData.dataDefinition['data'] = {dataFrom:dataFrom,tableData:data,tableColumns:column}
-         }
-      
+      if (this.mbtData.dataDefinition &&
+        this.mbtData.dataDefinition.data &&
+        this.mbtData.dataDefinition.data.dataFrom
+      ) {
+        this.mbtData.dataDefinition.data.dataFrom = dataFrom
+        this.mbtData.dataDefinition.data.tableData = data
+        this.mbtData.dataDefinition.data.tableColumns = column
+      } else {
+        this.mbtData.dataDefinition['data'] = { dataFrom: dataFrom, tableData: data, tableColumns: column }
+      }
+
     },
     saveResources(data: any) {
       this.mbtData.dataDefinition.resources = data
@@ -159,6 +178,16 @@ export const MBTStore = defineStore('mbtmodel', {
     saveAwData(data: any, schema: any) {
       this.schema = schema
       this.awData = data
+    },
+    setGraph(value: any) {
+      if (value &&
+        this.mbtData.modelDefinition &&
+        this.mbtData.modelDefinition.cellsinfo
+      ) {
+        this.mbtData.modelDefinition.cellsinfo = value
+      } else {
+        this.mbtData['modelDefinition'] = { cellsinfo: value, paperscale: 1 }
+      }
     }
   }
 })
