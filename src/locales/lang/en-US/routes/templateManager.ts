@@ -6,13 +6,21 @@ export default {
     // meta template
     searchText: "input {'@'} to search tags, input name to search meta template",
     metaSearchText: "input {'@'} to search tags, input name to search meta template",
+    metaName: "Meta Name",
+    metaDescription: "Meta Description",
+    nameinput: "place input your name",
+    namehefa: "Must start with a letter, underscore, Chinese or dollar sign $, followed by letters, underscore, dollar sign $, Chinese and numbers",
+    duplicate: "Duplicate name",
+    description: "place input your description",
 
     // static template
     staticSearchText: "input {'@'} to search tags, input name to search static template",
     // static modeler
     addColumn: 'Add column',
+    StaticName: "Static Name",
 
     // dynamic template
+    dynamicName: "dynamic Name",
     dynamicSearchText: "input {'@'} to search tags, input name to search dynamic template",
     createModelSuccess: 'Created a model successfully',
     updateModelSuccess: 'Updated a model successfully',
@@ -23,6 +31,7 @@ export default {
     template: 'modal',
     delDynamicTemp: 'Are you sure to delete this Dynamic Template?',
     // dynamicModel
+    dynamicDelText: 'Please complete the following editing first',
     optionLabel: 'Option (required)',
     strategyLabel: 'Strategy',
     factorsLabel: 'Factors (required)',
@@ -38,6 +47,8 @@ export default {
     delFactor: 'Are you sure to delete this factor?',
 
     // codegen template
+    codegenName: "Codegen Name",
+    codegenDes: "Codegen Description",
     codegenSearchText: "input {'@'} to search tags, input name to search CodeGen Templates",
     newCodegenTemp: 'Create a New CodeGen Template',
     updateCodegenTemp: 'Update a CodeGen Template',

@@ -3,13 +3,12 @@ export default {name: 'Dashboard'}
 </script>
 
 <script setup lang="ts">
-import { h, onMounted, reactive, ref } from 'vue';
+import {  onMounted, ref } from 'vue';
 import EchartsModel from '@/components/EchartsModel.vue'
-import RequestData from '@/components/RequestData.vue'
 import { message } from 'ant-design-vue';
 import request from "@/utils/request"
 import {dashboradUrl}from "@/appConfig"
-import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
+// import {red, volcano, gold, yellow,lime,green,cyan,blue,geekblue,purple,magenta,grey,} from "@ant-design/colors";
 import { SelectValue } from 'ant-design-vue/lib/select';
 import { useI18n } from "vue-i18n";
 
@@ -124,12 +123,15 @@ const search={
 let cpuCharts:string="cpu(%)" 
 let cpuColor="#EE6666"
 let cpuData:any=ref([])
+let cpu=ref([])
 let memorycharts:string="memory(GB)"
 let memoryColor="#5470C6"
 let memory:any=ref([])
+let neicun=ref([])
 let throughputTitle:string="throughput(tps)"
 let throughputColor="#97CC71"
 let throughput:any=ref([])
+let tuntuliang=ref([])
 let sendXdata=ref([])
 let lineCharts:string="latency(seconds)"
 let lineColors:any=ref(["#EE6666","#5470C6","#97CC71","#8FD5F3","#F6DC7D"])
@@ -145,7 +147,6 @@ function TimeTrans(timestamp: string | number | Date){
     return date.substring(5,16)
 
 }
-let aa:any=ref([])
 
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
@@ -154,24 +155,25 @@ async function query(){
   
   if(rst){
     sendXdata.value=rst.map((item:any)=>{
-      
       return TimeTrans(item.key_as_string)
     })
-    let cpu=rst.map((item:any)=>{
-      return item.cpu.value*10000
+
+     cpu.value=rst.map((item:any)=>{
+      return item.cpu.value*1000
     })
-    cpuData.value.push({data:cpu,type:"line",name:"cpu(%)"})
-    console.log(cpuData.value);
+    cpuData.value=[{data:cpu.value,type:"line",name:"cpu(%)"}]
     
-    let neicun=rst.map((item:any)=>{
+     neicun.value=rst.map((item:any)=>{
       return item.memory_free.value/1024/1024/1024
     })
-    memory.value.push({data:neicun,type:"line",name:"memory(GB)"})
+    memory.value=[{data:neicun.value,type:"line",name:"memory(GB)"}]
+
     let requestData=rst.map((item:any)=>{
         return item.terms
       })      
       lineDatas.value=lineData(requestData)
-    let tuntuliang=rst.map((item:any)=>{
+
+     tuntuliang.value=rst.map((item:any)=>{
       if(search.interval=="1m"){
         return item.transations.value
       }else if(search.interval=="1h"){
@@ -180,8 +182,11 @@ async function query(){
         return item.transations.value/1440
       }
     })
-    throughput.value.push({data:tuntuliang,type:"line",name:"throughput(tps)"})
+    throughput.value=[{data:tuntuliang.value,type:"line",name:"throughput(tps)"}]
   }
+
+  
+  
 }
 onMounted(()=>{
   querys()
@@ -196,7 +201,12 @@ const options=ref([
   {label:"Last 30 day",value:"Last 30 days"},
 ])
 const choseData:any=ref("Last 7 days")
-const datachange=async (value:SelectValue)=>{  
+const datachange=async (value:SelectValue)=>{
+  // sendXdata.value=[]
+  // cpuData.value=[]
+  // memory.value=[]
+  // lineDatas.value=[]
+  // throughput.value=[]
   choseData.value=value
   if(value=="Last 30 minutes"){
     search.start=timeFormat(endDate,30,"minutes")
@@ -216,6 +226,7 @@ const datachange=async (value:SelectValue)=>{
     search.interval="1d"
   }
   await query()
+  console.log(sendXdata.value,cpuData.value,memory.value,lineDatas.value,throughput.value);
 }
 
 
@@ -354,7 +365,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
     <a-row style="height:19.75rem;display: flex; justify-content: space-around;margin-top: 20px;">
       <a-col :span="11" >
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 || lineDatas.length>0 " 
           :sendXdata="sendXdata"
           :cpuData="cpuData"
           :chartstype="cpuCharts"
@@ -366,7 +377,7 @@ const dataZoom=(val1:any,val2:any)=>{
           <div v-else class="noData">{{ $t('component.message.nocpuData') }}</div>
       </a-col>
       <a-col :span="11" >
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0  || lineDatas.length>0 "
           :sendXdata="sendXdata"
           :cpuData="memory"
           :chartstype="memorycharts"
@@ -381,7 +392,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
     <a-row style="height:19.75rem; margin-top: 20px;display: flex; justify-content: space-around;">
       <a-col :span="11">
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0"
           :sendXdata="sendXdata"
           :cpuData="lineDatas"
           :chartstype="lineCharts"
@@ -393,7 +404,7 @@ const dataZoom=(val1:any,val2:any)=>{
           <div v-else class="noData">{{ $t('component.message.noLatencyData') }}</div>
         </a-col>
       <a-col :span="11">
-        <echarts-model v-if="sendXdata.length>0 || cpuData.length>0 || memory.length>0"
+        <echarts-model v-if="sendXdata.length>0 ||  lineDatas.length>0 "
           :sendXdata="sendXdata"
           :cpuData="throughput"
           :chartstype="throughputTitle"

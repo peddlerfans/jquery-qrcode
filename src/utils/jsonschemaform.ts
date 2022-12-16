@@ -15,9 +15,10 @@
 //    }]
 import * as _ from "lodash";
 
-const generateSchema = (inputArr: Array<Object>) => {
-  
+const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
+
   let outputArr: any[] = [];
+
   inputArr.forEach((mod: any) => {
     // let keyname = mod.name;
     let typeinschema = "";
@@ -51,14 +52,26 @@ const generateSchema = (inputArr: Array<Object>) => {
       typeinschema == "string"
     ) {
       enumVal = _.split(mod.enum, ",");
+      if (mod._id) {
+        tempobj = {
+          [mod._id]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            "ui:hidden": true,
+            title: mod._id,
+            // enum: enumVal,
+            // enumNames: enumVal,
+          },
+        };
+      }
       if (mod.description) {
         tempobj = {
           [mod.description]: {
             type: `${typeinschema}`,
             // description: mod.description,
             title: mod.description,
-            enum: enumVal,
-            enumNames: enumVal,
+            // enum: enumVal,
+            // enumNames: enumVal,
           },
         };
       } else if (mod.name) {
@@ -67,8 +80,8 @@ const generateSchema = (inputArr: Array<Object>) => {
             type: `${typeinschema}`,
             // description: mod.description,
             title: mod.name,
-            enum: enumVal,
-            enumNames: enumVal,
+            // enum: enumVal,
+            // enumNames: enumVal,
           },
         };
       }
@@ -76,57 +89,59 @@ const generateSchema = (inputArr: Array<Object>) => {
       mod.hasOwnProperty("enum") &&
       mod.enum.length > 0 &&
       typeinschema == "number"
+
     ) {
       let tempenumVal = _.split(mod.enum, ",");
       let len = tempenumVal.length;
       for (let i = 0; i < len; i++) {
         enumVal.push(parseInt(tempenumVal[i]));
       }
-      if(mod.description){
+      if (mod.description) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title: mod.description ,
-            enum: enumVal,
-            enumNames: enumVal,
+            title: mod.description,
+            // enum: enumVal,
+            // enumNames: enumVal,
           },
         };
-        
-      }else{
+
+      } else {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title:  mod.name,
-            enum: enumVal,
-            enumNames: enumVal,
+            title: mod.name,
+            // enum: enumVal,
+            // enumNames: enumVal,
           },
         };
 
       }
-      
+
     } else {
-      if(mod.description){
+      if (mod.description) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title: mod.description ,
+            title: mod.description,
           }
         }
-      }else {
+      } else {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title:  mod.name,
+            title: mod.name,
           }
         }
       }
-      
-      
+
+
     }
+    Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
     outputArr.push(tempobj);
   });
 
@@ -136,23 +151,24 @@ const generateSchema = (inputArr: Array<Object>) => {
 // let ss = ref(true)
 
 const generateObj = (refObj: any) => {
-  
-  let obj={};
-  if(typeof refObj=='object' && refObj.hasOwnProperty('_rawValue') && refObj.hasOwnProperty('_value')){
-    _.keys(refObj['_value']).forEach((k:string)=>{
-      
-      
-        // console.log('kkkkkkkk   ',refObj['_value'][k]);
-        let tempobj = {
-        [k]:refObj['_value'][k]
-        }
-        Object.assign(obj,tempobj);
-      
+
+
+  let obj = {};
+  if (typeof refObj == 'object' && refObj.hasOwnProperty('_rawValue') && refObj.hasOwnProperty('_value')) {
+    _.keys(refObj['_value']).forEach((k: string) => {
+
+
+      // console.log('kkkkkkkk   ', [k], refObj['_value'][k]);
+      let tempobj = {
+        [k]: refObj['_value'][k]
+      }
+
+      Object.assign(obj, tempobj);
+
 
     })
-    
+
   }
-  
   return obj;
 }
-export { generateSchema,generateObj };
+export { generateSchema, generateObj };

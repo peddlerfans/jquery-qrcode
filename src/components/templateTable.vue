@@ -16,7 +16,7 @@ import {
   onUpdated,
   nextTick,
 } from "vue";
-import type { FormProps, SelectProps, TableProps, TreeProps } from "ant-design-vue";
+import { FormProps, message, SelectProps, TableProps, TreeProps } from "ant-design-vue";
 import { tableSearch, FormState } from "@/views/componentTS/mbtmodeler";
 
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
@@ -31,6 +31,10 @@ import {
 } from "@/api/mbt/index";
 import { tableDataSource } from "@/composables/getTable";
 import { ColumnsType } from "ant-design-vue/es/table";
+import { MBTStore } from "@/stores/MBTModel";
+import { MbtData } from "@/stores/modules/mbt-data"
+let store = MBTStore()
+let storeAw = MbtData()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
@@ -111,23 +115,29 @@ let {
     fetchUrl: url,
   },
 });
+// console.log(tableData , '123132123');
+// 进入组件第一次请求回所有数据
+let staticData: Array<any>
+let staticColumn: Array<any>
+const queryStatic = () => {
+          getAllTemplatesByCategory('static').then((rst: any[]) => {
+          if (rst.length > 0) {
+            staticData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
+let dynamicData: Array<any>
+let dynamicColumn: Array<any>
+const queryDynamic = () => {
+  getAllTemplatesByCategory('dynamic').then((rst: any[]) => {
+          if (rst.length > 0) {
+            dynamicData = rst;
+            columnsOrigin.value = columnsOrigin2.value;
+          }
+  });
+}
 
-onBeforeMount(() => {
-  if (tableData && templateCategory.value == 1) {
-    hasData.value = true;
-    // console.log("********tableData,", tableData,'templateCategory.value :',templateCategory.value );
-    
-    dataSource.value = tableData.value as never[];
-    let cust_columns = tableColumns.value;
-    columnsOrigin.value = cust_columns;
-    // console.log("......columns:", columns);
-    // console.log("......datasource:", dataSource);
-  } else {
-    
-    updateTable();
-    
-  }
-});
 
 async function query(data?: any) {
   let rst;
@@ -141,19 +151,16 @@ async function query(data?: any) {
 
   if (rst.data) {
     // console.log('rst:', rst.data)
-
     dataSource.value = rst.data;
     return rst.data;
   }
 }
 const route = useRoute();
 onMounted(() => {
-  
-
   let savedDataInfo = localStorage.getItem("mbt_" + route.params._id + route.params.name);
-  
-  if (_.isString(savedDataInfo)) {
-    let tempObj = JSON.parse(savedDataInfo);
+
+  if (store.mbtData.dataDefinition.data) {
+    let tempObj = store.mbtData
     let searchParam: string = "";
     if (
       tempObj.dataDefinition &&
@@ -161,14 +168,12 @@ onMounted(() => {
       tempObj.dataDefinition.data.tableData.length > 0
     ) {
       dataSource.value = tempObj.dataDefinition.data.tableData;
-      columnsOrigin.value = tempObj.dataDefinition.data.tableColumns;
+      columnsOrigin.value = tempObj.dataDefinition.data.tableColumns.filter((a: any) => a.title !== 'key')
       if (
         templateCategory.value == 1 &&
         tempObj.dataDefinition.data.dataFrom == "static_template"
-      ) {
-       
+      ) { 
         searchParam = "dynamic";
-
         getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
           if (rst.length > 0) {
             let temparr = rst;
@@ -176,42 +181,26 @@ onMounted(() => {
             columnsOrigin.value = columnsOrigin2.value;
           }
         });
+
       } else if (
-        templateCategory.value == 2 &&
+        templateCategory.value ==2  &&  
         tempObj.dataDefinition.data.dataFrom == "dynamic_template"
       ) {
         searchParam = "static";
-
         getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
           if (rst.length > 0) {
             let temparr = rst;
             dataSource.value = temparr;
             columnsOrigin.value = columnsOrigin2.value;
           }
-        });
+        });   
       }
     } else {
       let category = templateCategory!.value;
       // console.log("category:", category);
       // searchParam: string = "";
-      if (dataSource) {
-        // console.log("Read data from backend");
-      } else {
-        if (category == 1) {
-          searchParam = "dynamic";
-          url = `/api/templates?q=category:dynamic&search=`;
-        } else if (category == 2) {
-          searchParam = "static";
-          url = `/api/templates?q=category:static&search=`;
-        }
-        getAllTemplatesByCategory(searchParam).then((rst: any[]) => {
-          if (rst.length > 0) {
-            let temparr = rst;
-            dataSource.value = temparr;
-            
-          }
-          //   console.log('datasource:',dataSource)
-        });
+      if (dataSource.value.length == 0) {
+       chooseTemplateFunc()
       }
     }
   }
@@ -228,6 +217,8 @@ function showDetailInfo(data: any) {
       columnsOrigin.value = cust_columns;
       dataSource.value = dat;
       // columnsOrigin.value = dat.model.schema;
+    }).catch(()=>{
+      message.warning("Please configure this template first")
     });
   } else if (data && data._id && data.category == "static") {
     // console.log(data.model)
@@ -235,7 +226,7 @@ function showDetailInfo(data: any) {
       dataSource.value = data.model.data;
       columnsOrigin.value = data.model.schema;
     } else {
-      console.log("Pleaes define the params in static template.");
+      message.warning("Pleaes define the params in static template.");
     }
   }
 }
@@ -257,6 +248,36 @@ function HandleSubmit() {
   Object.assign(obj, { tableColumns: columnsOrigin.value });
   emit("update", obj);
 }
+// 定义函数用来判断是否选择其中的模板
+function isChoose(data:any) : boolean{
+  let b = false
+  data.forEach((item:any)=>{
+    if(item['_id']){
+      b =  false
+    }else{
+      b = true
+    }
+  })
+  return b
+}
+
+let watchData = computed(()=>{dataSource.value , columnsOrigin.value})
+watch(()=>watchData.value , (val:any)=>{
+  console.log(val);
+  
+  let dataFrom = ''
+    if(templateCategory.value = 1){
+      dataFrom = "dynamic_template"
+    }else if(templateCategory.value = 2){
+      dataFrom = 'static_template'
+    }
+    if(isChoose(dataSource.value)){
+      store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+      storeAw.setDataDefinition(watchData.value)
+    }    
+
+} , {deep:true})
+
 
 function HandleClear() {
   let obj = {};
@@ -266,6 +287,10 @@ function HandleClear() {
   chooseTemplate.value = true;
   hasData.value = false;
 }
+
+
+
+
 const chooseTemplate = ref(true);
 const chooseTemplateFunc = () => {
   
@@ -287,6 +312,7 @@ const chooseTemplateFunc = () => {
     }
    
   });
+  chooseTemplate.value=true
   updateTable();
 };
 </script>
@@ -301,6 +327,7 @@ const chooseTemplateFunc = () => {
       :columns="columnsOrigin"
       :pagination="pagination"
       :loading="tableLoading"
+      :scroll="{ x: true }"
       bordered
       @resizeColumn="tableResize"
     >
@@ -335,25 +362,31 @@ const chooseTemplateFunc = () => {
         </template>
       </template>
     </ATable>
-    <div>
-      <a-button style="margin-right: 5px" type="primary" @click="HandleSubmit()"
+
+    <!-- </section> -->
+  </main>
+
+      <a-button 
+      style="position: absolute; top: -2.25rem; right: 9rem;"
+       type="primary" 
+       size="small"
+       @click="HandleSubmit()"
         >Save</a-button
       >
 
       <a-button
-        v-if="chooseTemplate || !hasData"
-        style="margin-right: 5px"
-        type="link"
+        v-if="chooseTemplate"
+        style="position: absolute; top: -2.25rem; right: 0;"
+        type="primary"
+        size="small"
         @click="chooseTemplateFunc()"
-        >Choose A Template</a-button
+        >choose template</a-button
       >
-
+      
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
         >Clear</a-button
       > -->
-    </div>
-    <!-- </section> -->
-  </main>
+
 </template>
 <style lang="postcss" scoped>
 main {

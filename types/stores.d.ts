@@ -1,9 +1,9 @@
 export namespace Stores {
   interface user {
     name: string
-    age: number | null
-    sex?: 'male' | 'female' | 'unknown'
-    token?: string
+    token?: string,
+    email?: string,
+    avatar_url?: string,
   }
 
   interface aw {
@@ -57,7 +57,7 @@ export namespace Stores {
   interface mbtView {
     _id: string,
     name: string,
-    descriptions: string,
+    description: string,
     tags?: string,
     codegen_text?:any,
     codegen_script?:any,

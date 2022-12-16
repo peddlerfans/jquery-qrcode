@@ -1,7 +1,10 @@
 import { message } from 'ant-design-vue'
 import axios from 'axios'
-import { getCookie } from '.'
+import { getCookie, setCookie } from '.'
+// import { useRoute, useRouter } from "vue-router";
+import router from '@/router'
 
+// const router = useRouter()
 const request = axios.create({
   // baseURL: import.meta.env.VITE_APP_BASE_API,
   // withCredentials: true,
@@ -25,6 +28,7 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   response => {
+
     const { code, msg } = response.data
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)
@@ -35,8 +39,12 @@ request.interceptors.response.use(
     }
   },
   error => {
-    console.error(error)
-    // message.error(error.message, 5)
+        console.log('request-error')
+      // let router = useRouter()
+      if (error.response?.status == 401 && error.request?.custom.options.url != '/api/auth/login'){
+          console.log("401##"+error.request?.custom.options.url)
+          router.push({name:'Login', query:{redirect_url:window.location.href}})
+      }
     return Promise.reject(error)
   }
 )

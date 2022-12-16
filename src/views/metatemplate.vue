@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, reactive, UnwrapRef, onMounted, nextTick } from 'vue';
-import { FormProps, message  } from 'ant-design-vue';
+import { ref, reactive, UnwrapRef, onMounted, nextTick, unref, watch } from 'vue';
+import { CascaderProps, FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
 import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
@@ -8,263 +8,159 @@ import cloneDeep from 'lodash-es/cloneDeep';
 import { useI18n } from "vue-i18n";
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
-// import { FormState } from './componentTS/awmodeler';
+import { RadarChart } from 'echarts/charts';
+import { CommonTable } from '@/components/basic/common-table'
+
+// table data
+let metaTable = ref<any>(null)
+const column = [
+  { title: "name", width: 40, link: 'metaModeler', require: true },
+  { title: "description", width: 120, require: true },
+  { title: "tags", width: 100 },
+  { title: "action", width: 100, actionList: ['edit', 'delete', 'clone'] },
+]
+
+const metaTableQuery = {
+  url: '/api/templates',
+  searchText: '',
+  createParams: 'meta'
+}
+
 const { t } = useI18n()
 // 表单查询的数据
 const formState: UnwrapRef<FormState> = reactive({
       search: '',
       q:'category:meta'
 });
+
+watch(
+    () => formState.search,
+    (value) => {
+      metaTableQuery.searchText = value
+    }
+)
+
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search=``
-  query(formState)
+  formState.search = ''
+  metaTable.value.query(formState.search)
 };
 // 表单失败后的回调
 const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
       console.log(errors);
 };
-// 表格的数据
-let tableData= ref<Array<any>>([])
-let searchobj: tableSearch = reactive({
-  search: "",
-  page: 1,
-  perPage:10,
-  q:'category:meta'
-})
-const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
-async function query(data?:any){
- let rst= await request.get("/api/templates",{params:data || searchobj})
- console.log(rst.data);
- 
- tableData.value=arr(rst.data)
-}
-onMounted(()=>{
-  query()
-})
-// 分页的数据
-let pagination=ref( {
-        pageNo: 1,
-        pageSize: 10, // 默认每页显示数量
-        showQuickJumper: true,
-        showSizeChanger: true, // 显示可改变每页数量
-        pageSizeOptions: ['10', '20', '50', '100'], // 每页数量选项
-        showTotal: (total: any) => `共 ${total} 条`, // 显示总数
-        onShowSizeChange: (current: any, pageSize: any) => onSizeChange(current, pageSize), // 改变每页数量时更新显示
-        onChange:(page: any,pageSize: any)=>onPageChange(page,pageSize),//点击页码事件
-        total:0 //总条数
-       })
 
-const onPageChange = async(page: number, pageSize: any) => {
-  pagination.value.pageNo = page
-  pagination.value.pageSize=pageSize
-  // searchobj.page= page
-  // searchobj.perPage = pageSize
-  if (formState.search) {
-    searchobj.search=formState.search
-  } else {
-    searchobj.search=''
-  }
-       await query()
-   }
-  //  分页的数据
-const onSizeChange =async (current: any, pageSize: number) => {
-        pagination.value.pageNo = current
-        pagination.value.pageSize=pageSize
-      //  searchobj.page= current
-  // searchobj.perPage = pageSize
-      if (formState.search) {
-    searchobj.search=formState.search
-      } else {
-    searchobj.search=''
-  }
-     await query()
-   }
-   const expend = (isExpand:any,rected:any) => {
-  console.log(isExpand,rected);
-  
-}
-interface DataItem {
-  name: string;
-  category:string
-  description: string;
-  tags: Array<string>;
-  editing:boolean,
-  inputVisible:boolean,
-  inputValue:string
-}
-let editableData: UnwrapRef<Record<string, DataItem>> = reactive({});
-let editData=reactive<DataItem>({
-  name:'',
-  description:'',
-  category:'',
-  tags:[],
-  editing: true,
-  inputVisible: false,
-  inputValue: '',
-})
-  // 点击修改meta的方法
-const updMeta=async (data:any)=>{
-  let rst=await request.put(`/api/templates/${data._id}`,data)
-  console.log(rst);
-}
-let showAddFactorBtn = ref(true)
-// 点击Edit触发的函数
-const edit = (record:any) => {
-  
-  editData.name = record.name,
-  editData.description = record.description,
-  editData.tags = record.tags
-  record.editing=true
-  showAddFactorBtn.value=false
-};
-const clearFactorState = () => {
-  editData.name = '',
-  editData.description = '',
-  editData.tags = []
-  editData.editing = true
-  editData.inputVisible = false
-  editData.inputValue = '';
-
-  // (instance?.refs.refFactorForm as any).resetFields();
-}
-
-// 点击save触发的函数
-const save =async (record:any) => {
-  record.editing=false
-  
-  if(record._id){
-    await updMeta(record)
-  }else{
-    
-  console.log(tableData.value);
-    await request.post("/api/templates",record)
-  }
-  clearFactorState()
-  showAddFactorBtn.value=true
-}
-
-
-const createMeta=()=>{
-
-  showAddFactorBtn.value=false
-  tableData.value.unshift({
-    name:'',
-    description:'',
-    category:'meta',
-    tags:[],
-    editing: true,
-    inputVisible: true,
-    inputValue: ''
+const createMeta = () => {
+  metaTable.value.createNewRow({
+    name: '',
+    description: '',
+    category: 'meta',
+    tags: []
   })
 }
-// 点击删除的方法
-const delmodel =async (obj: any) => {
-  if(obj._id){
-    let rst=await request.delete(`/api/templates/${obj._id}`)
-    query()
-  }else{
-    const index= tableData.value.findIndex(e => e === obj)
-  tableData.value.splice(index,1);
-  }
-};
 
-// 点击取消的函数
-const cancel=(record:any)=>{
-  if(editData.name===''){
-   const index=tableData.value.findIndex(e=>e===record)
-   tableData.value.splice(index,1)
-  }else{
-    record.name = editData.name
-    record.description = editData.description
-    record.tags = editData.tags
-
-    record.editing = false
-  }
-  showAddFactorBtn.value=true
-
-}
-// 表格的结构
-const columns = reactive<Object[]>(
-  [
+let searchInput = ref()
+let cascder = ref(false)
+let selectvalue:any = ref("")
+let selectoptions:any = ref([
   {
-    title: 'component.table.name',
-    dataIndex: 'name',
-    key: 'name',
+    value: 'tags:',
+    label: 'tags:',
+    isLeaf: false,
   },
   {
-    title: 'component.table.description',
-    dataIndex: 'description',
-    key: 'description',
-    },
+    value: 'name:',
+    label: 'name:',
 
-   {
-      title: 'component.table.tags',
-      dataIndex: 'tags',
-    key:'tags'
-    },
-  {
-    title: 'component.table.action',
-    dataIndex: 'action',
-    key: 'action',
-  }]
-)
-// 获取新建tags的dom
-let inputRef = ref();
-// 添加的表单tags
-let states = reactive<statesTs>({
-  tags: [],
-  inputVisible: false,
-  inputValue: '',
-});
-// 点击添加标签的方法
-const showInput = (record:any) => {
-  record.inputVisible = true;
+  },
+])
+const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
+  console.log(selectedOptions);
+  let rst = await request.get("/api/templates/_tags", { params: { q: "category:meta" } })
+  const targetOption = selectedOptions[0];
+  targetOption.loading = true
+  if (rst.length > 0) {
+    rst = rst.map((item: any) => ({ value: item, label: item }))
+    targetOption.children = rst
+  }
+  targetOption.loading = false;
+  selectoptions.value = [...selectoptions.value];
+};
+const onSelectChange = async (value: any) => {
+  if (value) {
+    let reg = new RegExp("," ,"g")
+    formState.search += value.toString().replace(reg,'')
+  }
+  selectvalue.value = ''
+  cascder.value = false
   nextTick(() => {
-    inputRef.value.focus();
-    })
-};
-// tag标签失去焦点之后添加的tags
-const handleInputConfirm = (record:any) => {
-    let tags = record.tags;
-  if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
-    tags = [...tags, record.inputValue];
-  }
-  Object.assign(record, {
-    tags:tags,
-    inputVisible: false,
-    inputValue: '',
- });  
-  
+    searchInput.value.focus()
+  })
 }
-// 移除tags
-const handleClose = (record:any,removedTag: string) => {
-      const tags = record.tags.filter((tag: string) => tag !== removedTag);
-      record.tags = tags;
-};
-// onBeforeRouteLeave(async (to,form)=>{
-// console.log("to", to , "form", form);
-// if(to.path==`/metaModeler/${to.params._id}`){
-//   let rst=await request.get(`/api/templates/${to.params._id}`,{params:{category:'meta'}})
-//   to.meta.title=`MetaModel ${rst.name}`
-// }
-// })
+const inputChange = (value: any) => {
+  if (formState.search == "@") {
+    cascder.value = true
+  }
+}
+
 let checkName=async (_rule:Rule,value:string)=>{
-  console.log(123);
-
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
+  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
-    return Promise.reject("place input your name")
-  }else if(reg.test(value)){
-    return Promise.reject("Please enter the correct name")
+    return Promise.reject(t('templateManager.nameinput'))
+  }else if(!reg.test(value) && !reg1.test(value)){
+    return Promise.reject(t('templateManager.namehefa'))
   }else{
-    return Promise.resolve()
+    let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
+      if(rst.data && rst.data.length>0 && rst.data[0].name==value){
+        // message.error("Duplicate name")
+        // modelstates.value.name=""
+
+        return Promise.reject(t('templateManager.duplicate'))
+      }else{
+
+        return Promise.resolve();
+      
+      }
   }
 }
-let rules:Record<string,Rule[]>={
-  name:[{required:true,validator:checkName,trigger:'blur'}]
-}
 
+
+let refCopy=ref()
+let copyRule:Record<string,Rule[]>={
+  name:[{required:true,validator:checkName,trigger:'blur'}],
+}
+let copyData:any = ref ({
+  name:""
+})
+let copyVisible = ref<boolean>(false)
+const clone = (record:any) => {
+
+    copyData.value.name = `${record.name}_clone`
+    
+    
+    copyData.value = {...record,name:copyData.value.name}
+    copyVisible.value = true
+}
+const copyOk=()=>{
+  unref(refCopy).validate().then(async ()=>{
+    delete copyData.value._id
+   request.post('/api/templates',copyData.value).then((rst :any)=>{
+    let tableData = metaTable.value.getTableData()
+    tableData.unshift(rst)
+    metaTable.value.setTableData(tableData)
+    // let tableindex = metaTable.value.indexOf(copyData.value)
+    if(rst && rst._id){
+      // metaTable.value[tableindex]._id=rst._id
+      copyVisible.value = false
+    }
+   })
+   
+  })
+}
+const clearValida =()=>{
+  refCopy.value.clearValidate()
+}
 
 
 </script>
@@ -278,22 +174,28 @@ let rules:Record<string,Rule[]>={
             @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
             <a-col :span="20">
 
-              <a-input
-                  v-model:value="formState.search"
-                  :placeholder="$t('templateManager.metaSearchText')">
-                <!-- <a-mentions-option value="tags:">
-                  tags:
-                </a-mentions-option> -->
-              </a-input>
+            <a-input v-model:value="formState.search"
+            :placeholder="$t('awModeler.inputSearch1')"
+            @change="inputChange"
+            ref="searchInput"
+            >
+            </a-input>
+            <a-cascader
+            v-if="cascder"
+            :load-data="loadData"
+            v-model:value="selectvalue"
+            placeholder="Please select"
+            :options="selectoptions"
+            @change="onSelectChange"
+            ></a-cascader>
             </a-col>
-
             <a-col :span="4">
               <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
             </a-col>
           </AForm>
         </a-col>
         <a-col :span="4">
-          <a-button type="primary" @click="createMeta" v-if="showAddFactorBtn">
+          <a-button type="primary" @click="createMeta">
             <template #icon>
               <plus-outlined />
             </template>
@@ -301,108 +203,21 @@ let rules:Record<string,Rule[]>={
         </a-col>
       </a-row>
       </header>
-      
-      <a-table :columns="columns" :data-source="tableData" bordered>
-        <template #headerCell="{ column }">
-          <span>{{ $t(column.title) }}</span>
-        </template>
-      <template #bodyCell="{ column, text, record }">
-      <template v-if='column.key==="name"'>
-        <div>
-          <a-form :model="record" v-if="record.editing" :rules="rules">
-            <a-form-item name="name">
-              <a-input
-              placeholder="Meta Name"
-              v-model:value="record.name"
-              style="margin: -5px 0"
-              />
-            </a-form-item>
-          </a-form>
+    <common-table
+        ref="metaTable"
+        :columns="column"
+        tableRef="metaTemplateTable"
+        :fetchObj="metaTableQuery"
+        @clone="clone"
+    ></common-table>
+    <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')" @cancel="clearValida">
+      <AForm :model="copyData" ref="refCopy" :rules="copyRule">
+          <a-form-item name="name" :label="$t('component.table.name')">
+            <a-input v-model:value="copyData.name"></a-input>
+          </a-form-item>
+      </AForm>
+    </a-modal>
 
-          <template v-else>
-            <a :href="'/#/metaModeler/'+record._id+'/'+record.name">{{text}}</a>
-          </template>
-        </div>
-        </template>
-        <template v-if='column.key==="description"'>
-        <div>
-          <a-form v-if="record.editing" :model="record" :rules="rules">
-            <a-form-item name="description">
-              <a-input
-
-            v-model:value="record.description"
-            style="margin: -5px 0"
-          />
-            </a-form-item>
-          </a-form>
-
-          <template v-else>
-            {{ text }}
-          </template>
-        </div>
-        </template>
-          <template v-if="column.key === 'tags'">
-            <template v-if="record.editing">
-                  <template v-for="(tag, index) in record.tags" :key="tag">
-                  <a-tooltip v-if="tag.length > 20" :title="tag">
-                    <a-tag :closable="true" @close="handleClose(record,tag)">
-                      {{ `${tag.slice(0, 20)}...` }}
-                    </a-tag>
-                  </a-tooltip>
-                  <a-tag v-else-if="tag.length==0"></a-tag>
-                  <a-tag v-else :closable="true" :visible="true"  @close="handleClose(record,tag)">
-                    {{tag}}
-                  </a-tag>  
-                </template>
-                <a-input
-                  v-if="record.inputVisible"
-                  ref="inputRef"
-                  v-model:value="record.inputValue"
-                  type="text"
-                  size="small"
-                  :style="{ width: '78px' }"
-                  @blur="handleInputConfirm(record)"
-                  @keyup.enter="handleInputConfirm(record)"
-                />
-              <a-tag v-else style="background: #fff; border-style: dashed" 
-              @click="showInput(record)">
-                <plus-outlined />
-                {{ $t('common.newTag') }}
-              </a-tag>
-            </template>
-              <span v-else>
-                <a-tag
-                  v-for="tag in record.tags"
-                  :key="tag"
-                  :color="tag === 'test' ? 'volcano' : 'red'"
-                >
-                  {{ tag.toUpperCase() }}
-                </a-tag>
-              </span>
-          </template>
-          <template v-else-if="column.dataIndex === 'action'">
-        <div class="editable-row-operations">
-          <span v-if="record.editing">
-            <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
-
-            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
-
-          </span>
-          <span v-else>
-            <a @click="edit(record)">{{ $t('component.table.edit') }}</a>
-              <a-popconfirm
-                  :title="$t('component.message.sureDel')"
-                  @confirm="delmodel(record)"
-                  :cancel-text="$t('common.cancelText')"
-                  :ok-text="$t('common.okText')">
-              <a style="margin-left:0.625rem;">{{ $t('common.delText') }}         </a>
-            </a-popconfirm>
-          </span>
-        </div>
-      </template>
-    </template>
-  </a-table>
-      
   </main>
 </template>
 

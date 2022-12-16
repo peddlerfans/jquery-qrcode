@@ -19,28 +19,30 @@ let recordobj=ref()
 async function query (data?:any){
   //  let rst=await request.get('/api/templates',{params:{q:'category:meta', search:data}})
   let rst=await request.get(`/api/templates/${data}`,{params:{q:'category:meta',search:''}})
-   console.log(rst);
+
    route.params.name=rst.name
-   recordobj.value=rst   
-          
+   recordobj.value=rst
+
           recordobj.value.model=rst.model
-          if(rst.model){
+          if(rst.model && rst.model.length>0){
             tableData.value=arr(rst.model)
           }
       ;
-   
+
 }
 // 给每条数据添加条属性
 const arr=(dataArr:any)=> dataArr.map((item: any,index: string)=>({...item,editing: false, inputVisible: false, inputValue: ''}))
 onMounted(()=>{
   let getId:any=sessionStorage.getItem('meta_'+route.params._id)
 console.log(JSON.parse(getId));
-  
+
     query(JSON.parse(getId))
 })
+
 // 表格的数据
 let tableData=ref<Array<any>>([])
 interface DataItem {
+  required:boolean
   name: string;
   description:string
   type: string;
@@ -54,18 +56,27 @@ let editData=reactive<DataItem>({
   name:"",
   description:"",
   type:"",
-  enum:[],
+  enum: [],
+  required:false,
   editing:true,
   inputVisible:false,
-  inputValue:""
+  inputValue: ""
+
 })
+let getid=sessionStorage.getItem('meta_'+route.params._id)
 // 修改meta的方法
 const updMeta=async (data:any)=>{
+  // console.log(data.value);
+
   if(data.__v){
     delete data.__v
-  }
-  let rst=await request.put(`/api/templates/${data._id}`,data)
+  }else{
+    let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,{model:data})
   message.success('Modification succeeded')
+  showAddFactorBtn.value=true
+  clearFactorState()
+  }
+
 }
 let showAddFactorBtn=ref(true)
 const edit = (record: any) => {
@@ -73,6 +84,7 @@ const edit = (record: any) => {
   editData.description = record.description,
   editData.type = record.type
   editData.enum = record.enum
+  editData.required=record.required
   record.editing=true
   showAddFactorBtn.value=false
 
@@ -81,7 +93,8 @@ const clearFactorState = () => {
   editData.name = '',
   editData.description = '',
   editData.type = '',
-  editData.enum = []
+    editData.enum = []
+    editData.required=false
   editData.editing = true
   editData.inputVisible = false
   editData.inputValue = '';
@@ -90,24 +103,25 @@ const clearFactorState = () => {
 }
 
 // 点击save触发的函数
-const save =async (obj:any) => {
+const save = async (obj: any) => {
+  console.log(obj);
+
   obj.editing=false
-  
-  await updMeta(obj.value)
-  
+  await updMeta(tableData.value)
+
 }
 // 点击删除的方法
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
-  tableData.value=tableData.value.filter((item:any)=>item==obj)
+  tableData.value=tableData.value.filter((item:any)=>item !==obj)
   console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
   if(recordobj.value.__v){
     delete recordobj.value.__v
   }
-  let rst=await request.put(`/api/templates/${recordobj.value._id}`,recordobj.value)
-  query()
-  
+  let rst=await request.put(`/api/templates/${JSON.parse(getid!)}`,recordobj.value)
+  // query()
+
 };
 // 点击取消的函数
 const cancel=(record:any)=>{
@@ -121,7 +135,7 @@ const cancel=(record:any)=>{
     record.editing = false
   }
   showAddFactorBtn.value=true
-
+  clearFactorState()
 }
 // 点击添加数据
 const saveModel=()=>{
@@ -132,7 +146,8 @@ const saveModel=()=>{
     enum:"",
     editing: true,
     inputVisible: true,
-    inputValue: ''
+    inputValue: '',
+    required:false
   })
 }
 // 定义属性判断输入框该输入的数据类型
@@ -140,11 +155,11 @@ let inputType=ref()
 
 const changeType=(value:any)=>{
   if(inputType.value=="int"){
-    let reg = /^[0-9]+$/; 
-    if(value!=""&&!reg.test(value)){ 
-        alert('只能输入整数！'); 
-        return false; 
-    } 
+    let reg = /^[0-9]+$/;
+    if(value!=""&&!reg.test(value)){
+        alert('只能输入整数！');
+        return false;
+    }
   }
   // if(inputType.value=='number'){
   //   let type=typeof value
@@ -153,11 +168,11 @@ const changeType=(value:any)=>{
   //     return false
   //   }
   // }
-  
+
 }
 
 // 获取新建tags的dom
-let inputRef = ref();
+
 // 添加的表单tags
 let state = reactive<statesTs>({
   inputVisible: false,
@@ -170,6 +185,7 @@ interface statesTs {
   inputVisible: Boolean;
   inputValue: string
 }
+let inputRef = ref();
 // 点击添加标签的方法
 const showInput = (record:any) => {
   record.inputVisible = true;
@@ -179,25 +195,35 @@ const showInput = (record:any) => {
 };
 // tag标签失去焦点之后添加的tags
 const handleInputConfirm = (record:any) => {
-  let tags = record.enum;
-  if (record.inputValue && tags.indexOf(record.inputValue) === -1) {
-    tags = [...tags, record.inputValue];
+  let values = record.enum;
+  if (record.inputValue && values.indexOf(record.inputValue) === -1) {
+    values = [...values, record.inputValue];
+    console.log(values);
+
   }
   Object.assign(record, {
-    enum:tags,
+    enum:values,
     inputVisible: false,
     inputValue: '',
  });
+ console.log(record);
+
 }
 // 移除tags
 const handleCloseTag = (record:any,removedTag: string) => {
   const tags = record.enum.filter((tag: string) => tag !== removedTag);
       record.enum = tags;
-      
+
 };
 // 表格的数据结构
 const columns=reactive<Object[]>(
   [
+  {
+    title: 'component.table.required',
+    dataIndex: 'required',
+    key: 'required',
+    width:10
+  },
   {
     title: 'component.table.name',
     dataIndex: 'name',
@@ -238,7 +264,7 @@ const optiones = ref<SelectProps['options']>([
       {
         value: 'float',
         label: 'float',
-      },  
+      },
       {
         value: 'boolean',
         label: 'boolean',
@@ -261,7 +287,7 @@ const optiones = ref<SelectProps['options']>([
 </script>
 
 <template>
-   <main style="height:100%;overflow-x: hidden!important;">      
+   <main style="height:100%;overflow-x: hidden!important;">
     <a-table :columns="columns" :data-source="tableData" bordered>
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
@@ -272,13 +298,17 @@ const optiones = ref<SelectProps['options']>([
         </template>
       </template>
       <template #bodyCell="{ column, text, record }">
+        <template v-if='column.key==="required"'>
+          <a-checkbox v-if="record.editing" v-model:checked="record.required"></a-checkbox>
+          <a-checkbox v-else v-model:checked="record.required" :disabled="true"></a-checkbox>
+        </template>
         <template v-if='column.key==="name"'>
           <div>
             <a-input
             v-if="record.editing"
               v-model:value="record.name"
               style="margin: -5px 0"
-            />           
+            />
             <template v-else>
               {{ text }}
             </template>
@@ -290,7 +320,7 @@ const optiones = ref<SelectProps['options']>([
             v-if="record.editing"
               v-model:value="record.description"
               style="margin: -5px 0"
-            />           
+            />
             <template v-else>
               {{ text }}
             </template>
@@ -321,10 +351,10 @@ const optiones = ref<SelectProps['options']>([
                 {{tag}}
               </a-tag>
             </template>
-            <a-input v-if="state.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="state.inputValue" type="text"
+            <a-input v-if="record.inputVisible && record.type=='str'" ref="inputRef" v-model:value.trim="record.inputValue" type="text"
                      size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
                      @keyup.enter="handleInputConfirm(record)" />
-            <a-input-number v-else-if="state.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="state.inputValue" type="text"
+            <a-input-number v-else-if="record.inputVisible && record.type=='number'" ref="inputRef" v-model:value.number="record.inputValue" type="text"
             size="small" :style="{ width: '78px' }" @blur="handleInputConfirm(record)"
             @keyup.enter="handleInputConfirm(record)" />
             <a-tag v-else style="background: #fff; border-style: dashed" @click="showInput(record)">
@@ -338,17 +368,19 @@ const optiones = ref<SelectProps['options']>([
               {{ tag }}
             </a-tag>
           </span>
-        
+
     </template>
             <template v-if="column.dataIndex === 'action'">
           <div class="editable-row-operations">
             <span v-if="record.editing">
               <a style="color:red" @click="save(record)">{{ $t('common.saveText') }} </a>
-            <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
-          </span>
+            <a-divider type="vertical" />
+              <a style="margin-left:0.625rem;" @click="cancel(record)">{{ $t('common.cancelText') }}</a>
+            </span>
             <span v-else>
               <a @click="edit(record)">{{ $t('common.editText') }}</a>
-               <a-popconfirm
+
+              <a-popconfirm
                    :title="$t('component.message.sureDel')"
                    :ok-text="$t('common.yesText')"
                    :cancel-text="$t('common.noText')"
@@ -356,11 +388,12 @@ const optiones = ref<SelectProps['options']>([
               <a style="margin-left:0.625rem;">{{ $t('common.delText') }}</a>
             </a-popconfirm>
             </span>
+
           </div>
         </template>
       </template>
   </a-table>
-      
+
   </main>
 </template>
 

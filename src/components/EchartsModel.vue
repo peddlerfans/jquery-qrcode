@@ -95,20 +95,20 @@ function dataZoom() {
 watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,props.zoomin,props.zoomout],(newval:any)=>{
  // let myChart = echarts.init(main.value);
  option = {
- color: props.datacolor,
+ color: newval[3],
  title: {
    left: 'left',
-   text: props.chartstype,
+   text: newval[2],
    textStyle:{
      fontWeight:700,
      fontSize:14
    }
  },
  tooltip: {
-   trigger: 'none',
-   axisPointer: {
-     type: 'cross'
-   }
+   trigger: 'axis',
+  //  axisPointer: {
+  //    type: 'cross'
+  //  }
  },
  toolbox: {
    feature: {
@@ -160,10 +160,10 @@ watch(() => [props.sendXdata,props.cpuData,props.chartstype,props.datacolor,prop
      },
      // prettier-ignore
      data: newval[0],
-     axisLabel:{
-      show:true,
-      interval:0
-     }
+    //  axisLabel:{
+    //   show:true,
+    //   interval:0
+    //  }
    },
  ],
  yAxis: [
@@ -192,10 +192,10 @@ option = {
    }
  },
  tooltip: {
-   trigger: 'none',
-   axisPointer: {
-     type: 'cross'
-   }
+   trigger: 'axis',
+  //  axisPointer: {
+  //    type: 'cross'
+  //  }
  },
  toolbox: {
    feature: {
@@ -245,10 +245,10 @@ option = {
      },
      // prettier-ignore
      data: props.sendXdata,
-     axisLabel:{
-      show:true,
-      interval:0
-     }
+    //  axisLabel:{
+    //   show:true,
+    //   interval:0
+    //  }
    },
  ],
  yAxis: [

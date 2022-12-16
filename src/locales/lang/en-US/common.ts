@@ -7,18 +7,26 @@ export default {
   delText: 'Delete',
   configText: 'config',
   editText: 'Edit',
+  chooseAw: 'chooseAw',
+  updateAw: 'updateAw',
+  chooseEx: 'choose Expected',
   resetText: 'Reset',
   searchText: 'Search',
   queryText: 'Search',
   updateText: 'Update',
   yesText: 'Yes',
-  NoText: 'No',
+  noText: 'No',
   loadText: 'Load',
   prev: 'Previous',
   next: 'Next',
   preview: 'Preview',
   submitText: 'Submit',
-  close: 'close',
+  saveError: "Save failed",
+  cloneError: 'Clone failed',
+  close: 'Close',
+  up: 'Up',
+  down: 'Down',
+  detail: 'Detail',
 
   inputText: 'Please enter',
   chooseText: 'Please choose',
@@ -30,5 +38,7 @@ export default {
   dark: 'Dark',
 
   newTag: 'Add a New Tag',
-  newValue: 'Add a New Value'
+  newValue: 'Add a New Value',
+  clear: 'clear',
+  clone: 'clone'
 };

@@ -1,34 +1,42 @@
 // 定义数据双向绑定的数据
 
+import { AnyARecord } from "dns";
+
 export interface tableSearch {
+    total?: any;
     search: string
     page: number
     perPage: number
-    q:string
+    q: string
 }
 // 查询表单的数据
 export interface FormState {
     search: string;
+    q: string
 }
 // 模态窗表单
 export interface paramsobj {
-    inputVisible:boolean
+    inputVisible: boolean
     name: string,
     type: string;
-    enum:Array<any>
-    editing:boolean
-    inputValue:string
+    required: boolean
+    description: string
+    enum: Array<any>
+    editing: boolean
+    inputValue: any
 }
 export interface ModelState {
-    key?:number
+    key?: number
     name: string;
     description: string;
     template: string;
+    returnType: any
     template_en: string
     _id: string;
+    validationError?: string
     tags: Array<string>;
     params: Array<paramsobj>
-    path?:string
+    path?: string
 }
 // 添加的表单tags
 export interface statesTs {

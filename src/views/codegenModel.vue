@@ -39,7 +39,7 @@ import {
   Model, ModelState,
 } from "./componentTS/codegen";
 import dayjs from 'dayjs';
-import {SHA256} from 'crypto-js';
+import {SHA256} from "crypto-js";
 import { VAceEditor } from 'vue3-ace-editor';
 
 import "./componentTS/ace-config";
@@ -154,6 +154,7 @@ const states = reactive<AceState>({
   lang: 'json',
   result: '',
 });
+// console.log(states.theme);
 
 
 onMounted(() => {
@@ -254,10 +255,11 @@ const saveModel = async () => {
     anno.setAnnotations([])
 
     try {
-      console.log("Preview "+route.params._id)
-      console.log(toRaw(modelState.model.data))
+      // console.log("Preview "+route.params._id)
+      // console.log(toRaw(modelState.model.data))
       let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
-
+      // console.log(res);
+      
 
       states.result=res.data
       message.success("Preview successful!")
@@ -494,7 +496,7 @@ footer {
 .ace-template, .ace-result, .ace-data {
   flex: 1;
   margin-top: 15px;
-  font-size: 18px;
+  /*font-size: 18px;*/
   border: 1px solid;
   height: 70vh;
 }
