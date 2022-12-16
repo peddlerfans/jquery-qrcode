@@ -22,7 +22,11 @@ interface MbtData {
 export const MbtData = defineStore({
     id: 'MbtData',
     state: (): MbtData => ({
-        allData: null,
+        allData: {
+            dataDefinition: {
+                data: {}
+            }
+        },
         editingPrimaryAw: {
             data: null,
             schema: null,
@@ -45,6 +49,7 @@ export const MbtData = defineStore({
         getPrimaryAw: state => state.editingPrimaryAw,
         getExpectedAw: state => state.editingExpectedAw,
         getDataPoolTableColumns: state => state.allData?.dataDefinition?.data?.tableColumns || [],
+        getDataPoolTableData: state => state.allData?.dataDefinition?.data?.tableData || [],
         getExpectTableRow: state => state.expectedTableRow
     },
     actions: {
@@ -81,7 +86,10 @@ export const MbtData = defineStore({
         setExpectedTableRow(row: any) {
             this.expectedTableRow = row
         },
-        resetEditingExpectedAw() {
+        setDataDefinition(data: any) {
+            this.allData.dataDefinition.data = data
+        },
+        resetEditingExpectedAw(){
             this.editingPrimaryAw.data = null
             this.editingPrimaryAw.schema = null
             this.editingPrimaryAw.uiParams = null

@@ -339,7 +339,7 @@ function deleteExpected() {
       </div>
       <div>{{ schemaValue }}</div>
       <div class="btn-line">
-        <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button>
+        <!-- <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button> -->
         <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
         <a-button size="small" danger @click="updateAW('primary')">{{ t('common.updateAw') }}</a-button>
         <a-button size="small" danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>

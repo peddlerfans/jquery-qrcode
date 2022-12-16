@@ -12,7 +12,7 @@ const { dia, g } = joint
 
 
   
-export {MBTAW} from './MBTAW';
+export {MBTAW , namespace as NS_MBTAW} from './MBTAW';
 
 export {MBTGroup} from './MBTGroup';
 export {MBTSection} from './MBTSection';

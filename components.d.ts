@@ -60,6 +60,7 @@ declare module '@vue/runtime-core' {
     InputTable: typeof import('./src/components/inputTable.vue')['default']
     JsonSchemaForm: typeof import('./src/components/JsonSchemaForm.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
+    MbtModelerAwSchema: typeof import('./src/components/mbt-modeler-aw-schema.vue')['default']
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']
     Metainfo: typeof import('./src/components/metainfo.vue')['default']
     MovableArea: typeof import('./src/components/MovableArea.vue')['default']

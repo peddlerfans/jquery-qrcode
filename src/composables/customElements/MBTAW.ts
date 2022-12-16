@@ -307,6 +307,7 @@ throw new Error("Method not implemented.");
         MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
         // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
         this.prop('prop/custom/step',{schema:schema,data:data})
+        MBTAW.awData = {schema:{},data:{},uiParams:{}}
     }
   updateRectangles() {
     var attrs = this.get('attrs');

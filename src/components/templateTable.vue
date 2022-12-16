@@ -273,7 +273,7 @@ watch(()=>watchData.value , (val:any)=>{
     }
     if(isChoose(dataSource.value)){
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
-      storeAw.setAllData(store.mbtData)
+      storeAw.setDataDefinition(watchData.value)
     }    
 
 } , {deep:true})

@@ -5,8 +5,9 @@ import { ToolbarService } from "./Toolbar";
 import { HaloService } from './haloService';
 import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
-import * as appShapes from '../composables/jointJs/app-shapes';
+import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
+import {MBTLink} from "@/composables/customElements"
 import { defineEmits } from 'vue'
 
 const emit = defineEmits(['awschemaDa'])
@@ -241,8 +242,8 @@ class MbtServe {
             drawGrid: true,
             model: graph,
             cellViewNamespace: appShapes,
-            defaultLink: <joint.dia.Link>new appShapes.app.Link(),
-            defaultConnectionPoint: appShapes.app.Link.connectionPoint,
+            defaultLink: <joint.dia.Link>new MBTLink(),
+            defaultConnectionPoint: MBTLink.connectionPoint,
             interactive: { linkMove: false },
             async: true,
             sorting: joint.dia.Paper.sorting.APPROX,
@@ -314,7 +315,7 @@ class MbtServe {
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
             var type = elementView.model?.get('type');
-            console.log(type);
+            console.log(elementView);
 
 
             if (type == 'itea.mbt.test.MBTAW') {
