@@ -29,6 +29,7 @@ import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
+import mbtModelerLink from "./mbt-modeler-link-schema.vue"
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -41,13 +42,16 @@ let isGlobal = ref(false)
 const url = realMBTUrl;
 
 
-const activeKey = ref("1")
+const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
-let activeSchema = ref('1')
-let activeGroup = ref('1')
+let activeSchema = ref('2')
+let activeLink = ref('1')
+let activeGroup = ref('2')
 let show = ref(false)
+let showDrawer = ref(false)
 let showGroup = ref(false)
+let showLink = ref(false)
 let showSection =ref(false)
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
@@ -297,6 +301,7 @@ let DataGroup = ref({
   groupName: '',
   loopCount:''
 })
+let cell:any = null
 onMounted(async()=>{  
   if(route.params._id){
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
@@ -337,21 +342,33 @@ onMounted(async()=>{
       
       let el: any
       el = elementView.model
+      cell = el
       let type = elementView.model?.get('type');
+      console.log(el);
+      
       if(type == 'itea.mbt.test.MBTAW'){
         show.value = true
+        showGroup.value = false
+        showSection.value = false
         if(el.getPropertiesSchema() && JSON.stringify(el.getPropertiesSchema().schema) !== '{}'){
-        storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
-        console.log("pinia",storeAw.editingPrimaryAw);
+          console.log("pinia123123",storeAw.editingPrimaryAw);
+          storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
+        
       }
       }else if(type == 'itea.mbt.test.MBTGroup'){        
+        show.value = false
         showGroup.value = true
+        showSection.value = false
         schemaGroup.value = el.getInspectorSchema().schema
         if (el.getPropertiesData().groupName || el.getPropertiesData().loopCount) {
           DataGroup.value = {...el.getPropertiesData()}
         }
-      } if (type == 'itea.mbt.test.MBTGroup') {
-          showSection.value = true
+      }else if (type == 'itea.mbt.test.MBTSection') {
+        show.value = false
+        showGroup.value = false
+        showSection.value = true
+      }else if(type == 'itea.mbt.testlink'){
+        showLink.value = true
       }
     })
 
@@ -360,38 +377,47 @@ onMounted(async()=>{
       
       
       if (Nowcell) {
-        let type = Nowcell.model?.get('type');
+        let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
-            show.value = false
             saveAw()
           if(storeAw.editingPrimaryAw.schema !== null) {        
               Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
+              
               storeAw.resetEditingExpectedAw()
             }
           } else if (type == 'itea.mbt.test.MBTGroup') {
-            showGroup.value = false
+            
           Nowcell.setPropertiesData(DataGroup.value)
           } else if (type == 'itea.mbt.test.MBTSection') {
-            showSection.value = false
+            
           Nowcell.setPropertiesData()
         }
       }
-
+      show.value = false
+      showGroup.value = false
+      showSection.value = false
+      showLink.value = false
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
     rappid.paper.removeTools();
 });
 })
 const saveAw = () => {}
-
-
 const saveMbt = () => {
     console.log(rappid.graph.getCells());
 }
 const change = () => {
-  console.log(123);
+  if(cell){
+      cell.setPropertiesData(DataGroup.value)
+  }
+}
+const saveLink = () =>{
+  if(cell && storeAw.LinkData.linkSchemaValue){
+    cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
+  }
   
 }
+
 
 </script>
 
@@ -430,26 +456,42 @@ const change = () => {
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
 
-          <a-tabs v-show="show" v-model:activeKey="activeSchema" @change="(key:any) => { activeSchema = key }" class="AwtabInspector">
+          <a-tabs v-show="show" v-model:activeKey="activeSchema" class="AwtabInspector">
             <a-tab-pane key="1" tab="样式修改">
-                <div class="inspector-container"></div>
+                <!-- <div class="inspector-container"></div> -->
             </a-tab-pane>
             <a-tab-pane key="2" tab="数据编辑" force-render>
               <mbtModelerAwschema :show="show"></mbtModelerAwschema>
             </a-tab-pane>
         </a-tabs>
-          <a-tabs v-show="showGroup" v-model:activeKey="activeGroup" class="AwtabInspector">
+          <a-tabs v-show="showGroup" v-model:activeKey="activeGroup" class="GroupInspector">
             <a-tab-pane key="1" tab="样式修改">
-                <div class="inspector-container"></div>
+              <div>
+                <!-- <div class="inspector-container"></div> -->
+              </div>
+                
             </a-tab-pane>
             <a-tab-pane key="2" tab="数据编辑" force-render>
                 <VueForm 
                 :schema="schemaGroup"
-                v-model:value="DataGroup"
+                v-model="DataGroup"
+                @change = 'change'
+                
                 ></VueForm>
             </a-tab-pane>
         </a-tabs>
-        <!-- <div v-if="showSection" class="inspector-container"></div> -->
+        <a-tabs v-show="showLink" v-model:activeKey="activeLink" class="GroupInspector">
+            <a-tab-pane key="1" tab="样式修改">
+              <div>
+                <div class="inspector-container"></div>
+              </div>
+                
+            </a-tab-pane>
+            <a-tab-pane key="2" tab="数据编辑" force-render>
+                <mbtModelerLink @change="saveLink" :showDrawer="showDrawer" ></mbtModelerLink>
+            </a-tab-pane>
+        </a-tabs>
+        <div v-show = 'showSection' class="inspector-container"></div>
             <div class="navigator-container"/>
           </div>
 
@@ -641,7 +683,26 @@ const change = () => {
   top: 3.125rem;
 }
 }
-
+.GroupInspector{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    /* navigator height */
+    width: 300px;
+    box-sizing: border-box;
+    .ant-tabs-content-holder > .ant-tabs-content{
+    height: 100%!important
+}
+.inspector-container {
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+.joint-inspector {
+  top: 3.125rem;
+}
+}
 
 
 .infoPanel{

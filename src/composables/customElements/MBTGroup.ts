@@ -32,17 +32,15 @@ export class MBTGroup extends MBTGroupBase {
     })
     this.set('prop', { groupName: null, loopCount: null })
     this.on('change', (evt: any) => {
-      // console.log(evt);
+      console.log(evt.changed);
 
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        this.updateRectangles();
         // this.attr('label/text/0', "test")
 
       }
     })
 
-    this.updateRectangles();
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable()
@@ -54,8 +52,10 @@ export class MBTGroup extends MBTGroupBase {
   }
   setPropertiesData(value: any) {
     if (value) {
-      this.prop('prop', value)
-      this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
+      this.prop('prop', {...value})
+      this.prop('attrs/label/text' , value.description + value.loopCount)
+      this.prop('attrs/label/fontSize' , 16)
+      // this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
     }
   }
 
@@ -81,8 +81,8 @@ export class MBTGroup extends MBTGroupBase {
         type: "object",
         description: '',
         properties: {
-          groupName: {
-            title: "groupName",
+          description: {
+            title: "Description",
             type: "string",
           },
           loopCount: {
@@ -108,18 +108,6 @@ export class MBTGroup extends MBTGroupBase {
     this.attributes.attrs!.lable!.text = 'loopCount' + attrs
   }
 
-  updateRectangles() {
-
-    var attrs = this.get('attrs');
-    var rects = [
-      { type: 'step', text: this.prop('custom/step') || 'BBB' },
-      { type: 'expectation', text: this.prop('custom/expectation') },
-      // { type: 'methods', text: this.get('methods') }
-    ];
-
-    var offsetY = 0;
-
-  }
   setSizeFromContent() {
     // delete this.cache.layout;
     const {

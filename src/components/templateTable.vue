@@ -262,9 +262,7 @@ function isChoose(data:any) : boolean{
 }
 
 let watchData = computed(()=>{dataSource.value , columnsOrigin.value})
-watch(()=>watchData.value , (val:any)=>{
-  console.log(val);
-  
+watch(()=>watchData.value , (val:any)=>{  
   let dataFrom = ''
     if(templateCategory.value = 1){
       dataFrom = "dynamic_template"
@@ -273,7 +271,7 @@ watch(()=>watchData.value , (val:any)=>{
     }
     if(isChoose(dataSource.value)){
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
-      storeAw.setAllData(store.mbtData)
+      storeAw.setDataDefinition(watchData.value)
     }    
 
 } , {deep:true})

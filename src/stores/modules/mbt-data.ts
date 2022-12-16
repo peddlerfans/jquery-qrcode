@@ -17,12 +17,20 @@ interface MbtData {
         detail: any,
         customKeys: Array<string>
     }
+    LinkData:{
+        linkSchemaValue:any
+        rulesData:any
+    }
 }
 
 export const MbtData = defineStore({
     id: 'MbtData',
     state: (): MbtData => ({
-        allData: null,
+        allData: {
+            dataDefinition: {
+                data: {}
+            }
+        },
         editingPrimaryAw: {
             data: null,
             schema: null,
@@ -37,6 +45,10 @@ export const MbtData = defineStore({
             detail: null,
             customKeys: []
         },
+        LinkData:{
+            linkSchemaValue:null,
+            rulesData:null
+        },
         expectedTableRow: {}
     }),
     getters: {
@@ -45,7 +57,9 @@ export const MbtData = defineStore({
         getPrimaryAw: state => state.editingPrimaryAw,
         getExpectedAw: state => state.editingExpectedAw,
         getDataPoolTableColumns: state => state.allData?.dataDefinition?.data?.tableColumns || [],
-        getExpectTableRow: state => state.expectedTableRow
+        getDataPoolTableData: state => state.allData?.dataDefinition?.data?.tableData || [],
+        getExpectTableRow: state => state.expectedTableRow,
+        getLinkData: state => state.LinkData
     },
     actions: {
         setAllData(data: any) {
@@ -81,7 +95,14 @@ export const MbtData = defineStore({
         setExpectedTableRow(row: any) {
             this.expectedTableRow = row
         },
-        resetEditingExpectedAw() {
+        setDataDefinition(data: any) {
+            this.allData.dataDefinition.data = data
+        },
+        setLinkData(schema:any,ruledata:any){
+            this.LinkData.linkSchemaValue = schema
+            this.LinkData.rulesData = ruledata
+        },
+        resetEditingExpectedAw(){
             this.editingPrimaryAw.data = null
             this.editingPrimaryAw.schema = null
             this.editingPrimaryAw.uiParams = null
