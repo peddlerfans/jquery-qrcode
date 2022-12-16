@@ -46,7 +46,7 @@ const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
 let activeSchema = ref('2')
-let activeLink = ref('2')
+let activeLink = ref('1')
 let activeGroup = ref('2')
 let show = ref(false)
 let showDrawer = ref(false)
@@ -344,7 +344,7 @@ onMounted(async()=>{
       el = elementView.model
       cell = el
       let type = elementView.model?.get('type');
-      console.log(type);
+      console.log(el);
       
       if(type == 'itea.mbt.test.MBTAW'){
         show.value = true
@@ -363,10 +363,12 @@ onMounted(async()=>{
         if (el.getPropertiesData().groupName || el.getPropertiesData().loopCount) {
           DataGroup.value = {...el.getPropertiesData()}
         }
-      } if (type == 'itea.mbt.test.MBTSection') {
+      }else if (type == 'itea.mbt.test.MBTSection') {
         show.value = false
         showGroup.value = false
         showSection.value = true
+      }else if(type == 'itea.mbt.testlink'){
+        showLink.value = true
       }
     })
 
@@ -394,6 +396,7 @@ onMounted(async()=>{
       show.value = false
       showGroup.value = false
       showSection.value = false
+      showLink.value = false
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
     rappid.paper.removeTools();
@@ -404,11 +407,15 @@ const saveMbt = () => {
     console.log(rappid.graph.getCells());
 }
 const change = () => {
-  console.log(DataGroup.value);
-  
   if(cell){
       cell.setPropertiesData(DataGroup.value)
   }
+}
+const saveLink = () =>{
+  if(cell && storeAw.LinkData.linkSchemaValue){
+    cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
+  }
+  
 }
 
 
@@ -476,12 +483,12 @@ const change = () => {
         <a-tabs v-show="showLink" v-model:activeKey="activeLink" class="GroupInspector">
             <a-tab-pane key="1" tab="样式修改">
               <div>
-                <!-- <div class="inspector-container"></div> -->
+                <div class="inspector-container"></div>
               </div>
                 
             </a-tab-pane>
             <a-tab-pane key="2" tab="数据编辑" force-render>
-                <mbtModelerLink :showDrawer="showDrawer" ></mbtModelerLink>
+                <mbtModelerLink @change="saveLink" :showDrawer="showDrawer" ></mbtModelerLink>
             </a-tab-pane>
         </a-tabs>
         <div v-show = 'showSection' class="inspector-container"></div>

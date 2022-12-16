@@ -5,6 +5,7 @@ import {
 } from 'vue'
 import VueForm from "@lljj/vue3-form-ant";
 import { MbtData } from "@/stores/modules/mbt-data";
+import { watch } from 'vue';
 
 const emit = defineEmits(['save'])
 
@@ -93,6 +94,18 @@ function submit () {
     rulesData: rulesData.value
   })
 }
+let watchData = computed(()=>{linkSchemaValue.value,rulesData.value})
+watch(()=>watchData.value , (val:any) => {
+    console.log(123);
+    
+    if(linkSchemaValue.value){
+        store.setLinkData(linkSchemaValue.value , rulesData.value)
+    }
+    
+
+} , {deep:true})
+
+
 
 function closeDrawer () {
   rulesData.value = [rulesDataDefaultItem]

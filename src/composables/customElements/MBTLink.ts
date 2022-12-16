@@ -10,18 +10,18 @@ export const name = 'link';
 export const namespace='itea.mbt.test'+name;
 export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterface  {
   static shapeName = name;
-          static connectionPoint(line: any, view: any, magnet: any, opt: any, type: any, linkView: any): joint.g.Point {
-            
-            const link = linkView.model;
-            // const markerWidth = (link.get('type') === 'standard.Link') ? link.getMarkerWidth(type) : 0;
-            opt = { offset: 1, stroke: true };
-            // connection point for UML shapes lies on the root group containing all the shapes components
-            const modelType = view.model.get('type');
-            if (modelType.indexOf('standard') === 0) { opt.selector = 'root'; }
-            // taking the border stroke-width into account
-            if (modelType === 'standard.InscribedImage') { opt.selector = 'border'; }
-            return joint.connectionPoints.boundary.call(this, line, view, magnet, opt, type, linkView);
-        }
+  static connectionPoint(line: any, view: any, magnet: any, opt: any, type: any, linkView: any): joint.g.Point {
+    
+    const link = linkView.model;
+    // const markerWidth = (link.get('type') === 'standard.Link') ? link.getMarkerWidth(type) : 0;
+    opt = { offset: 1, stroke: true };
+    // connection point for UML shapes lies on the root group containing all the shapes components
+    const modelType = view.model.get('type');
+    if (modelType.indexOf('standard') === 0) { opt.selector = 'root'; }
+    // taking the border stroke-width into account
+    if (modelType === 'standard.InscribedImage') { opt.selector = 'border'; }
+    return joint.connectionPoints.boundary.call(this, line, view, magnet, opt, type, linkView);
+}
   constructor(e? : Element,o?: any) {
       super(e,o);
         
@@ -34,6 +34,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
         // }
 
       })
+      this.prop('prop',{condition:'',rulesData:[]})
     this.on('change',(evt:any)=> {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -217,75 +218,77 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
                 index: 3
             }
         },
+        
         labels: {
-            type: 'list',
-            group: 'labels',
-            label: 'Labels',
-            attrs: {
-                label: {
-                    'data-tooltip': 'Set (possibly multiple) labels for the link',
-                    'data-tooltip-position': 'right',
-                    'data-tooltip-position-selector': '.joint-inspector'
-                }
-            },
-            item: {
-                type: 'object',
-                properties: {
-                    attrs: {
-                        text: {
-                            text: {
-                                type: 'content-editable',
-                                label: 'text',
-                                defaultValue: 'label',
-                                index: 1,
-                                attrs: {
-                                    label: {
-                                        'data-tooltip': 'Set text of the label',
-                                        'data-tooltip-position': 'right',
-                                        'data-tooltip-position-selector': '.joint-inspector'
-                                    }
-                                }
-                            },
-                            fill: {
-                                type: 'color-palette',
-                                options: options.colorPaletteReset,
-                                label: 'Text Color',
-                                index: 5
-                            }
-                        },
-                        rect: {
-                            fill: {
-                                type: 'color-palette',
-                                options: options.colorPaletteReset,
-                                label: 'Fill',
-                                index: 3
-                            },
-                            stroke: {
-                                type: 'color-palette',
-                                options: options.colorPaletteReset,
-                                label: 'Outline',
-                                index: 4
-                            }
-                        }
-                    },
-                    position: {
-                        type: 'select-box',
-                        options: options.labelPosition || [],
-                        defaultValue: 0.5,
-                        label: 'Position',
-                        placeholder: 'Custom',
-                        index: 2,
-                        attrs: {
-                            label: {
-                                'data-tooltip': 'Position the label relative to the source of the link',
-                                'data-tooltip-position': 'right',
-                                'data-tooltip-position-selector': '.joint-inspector'
-                            }
-                        }
-                    }
-                }
-            }
+          type: 'list',
+          group: 'labels',
+          label: 'Labels',
+          attrs: {
+              label: {
+                  'data-tooltip': 'Set (possibly multiple) labels for the link',
+                  'data-tooltip-position': 'right',
+                  'data-tooltip-position-selector': '.joint-inspector'
+              }
+          },
+          item: {
+              type: 'object',
+              properties: {
+                  attrs: {
+                      text: {
+                          text: {
+                              type: 'content-editable',
+                              label: 'text',
+                              defaultValue: 'label',
+                              index: 1,
+                              attrs: {
+                                  label: {
+                                      'data-tooltip': 'Set text of the label',
+                                      'data-tooltip-position': 'right',
+                                      'data-tooltip-position-selector': '.joint-inspector'
+                                  }
+                              }
+                          },
+                          fill: {
+                              type: 'color-palette',
+                              options: options.colorPaletteReset,
+                              label: 'Text Color',
+                              index: 5
+                          }
+                      },
+                      rect: {
+                          fill: {
+                              type: 'color-palette',
+                              options: options.colorPaletteReset,
+                              label: 'Fill',
+                              index: 3
+                          },
+                          stroke: {
+                              type: 'color-palette',
+                              options: options.colorPaletteReset,
+                              label: 'Outline',
+                              index: 4
+                          }
+                      }
+                  },
+                  position: {
+                      type: 'select-box',
+                      options: options.labelPosition || [],
+                      defaultValue: 0.5,
+                      label: 'Position',
+                      placeholder: 'Custom',
+                      index: 2,
+                      attrs: {
+                          label: {
+                              'data-tooltip': 'Position the label relative to the source of the link',
+                              'data-tooltip-position': 'right',
+                              'data-tooltip-position-selector': '.joint-inspector'
+                          }
+                      }
+                  }
+              }
+          }
         }
+        
     },
     groups: {
         connection: {
@@ -312,7 +315,11 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   setInspectorData(){
     
   }
-  
+  setPropertiesData(value?:any , ruleData?:any){
+    this.prop('prop/condition',value)
+    this.prop('prop/ruleData' , ruleData)
+    this.prop('attrs/text/text' , value.label)
+  }
 
 setSizeFromContent() {
   // delete this.cache.layout;
@@ -323,7 +330,10 @@ setSizeFromContent() {
   this.resize(width, height);
 }
   defaults() {
-    return super.defaults()
+    return {
+        ...super.defaults,
+        type: namespace
+    }
   }
 
 }
