@@ -52,7 +52,8 @@ let show = ref(false)
 let showDrawer = ref(false)
 let showGroup = ref(false)
 let showLink = ref(false)
-let showSection =ref(false)
+let showSection = ref(false)
+let showpaper =ref(false)
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -303,7 +304,6 @@ let DataGroup = ref({
 })
 let cell: any = null
 
-let linktype = "exclusivegateway";
 function getLinkType(linkView: any): string {
   if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
 
@@ -317,6 +317,8 @@ function getLinkType(linkView: any): string {
 }
 
 function setLinkType(el: any, cell: any) {
+  console.log("el",el ,"cell",cell);
+  
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
         
@@ -324,15 +326,18 @@ function setLinkType(el: any, cell: any) {
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
           
-          if (linksource.attributes.attrs.label.text == "x") {
+          // if (linksource.attributes.attrs.label.text == "x") {
             // console.log(' source exclusive gateway    ',linksource.id)
             Object.assign(cell, { linktype: "exclusivegateway" });
             console.log("exclusive link", cell);
-          } else {
+          // } else {
+            // Object.assign(cell, { linktype: "parallelgateway" });
+            // console.log("exclusive link", cell);
+          // }
+        } else {
             Object.assign(cell, { linktype: "parallelgateway" });
             console.log("exclusive link", cell);
           }
-        }
       } catch (e) {
         console.log("e:", e);
       }
@@ -370,7 +375,8 @@ onMounted(async () => {
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
+    
+    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getcells)));
 
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
@@ -395,8 +401,8 @@ onMounted(async () => {
       let el: any
       el = elementView.model
       cell = el
+      showpaper.value = true
       let type = elementView.model?.get('type');
-      console.log(el);
       
       if(type == 'itea.mbt.test.MBTAW'){
         show.value = true
@@ -405,7 +411,6 @@ onMounted(async () => {
         if(el.getPropertiesSchema() && JSON.stringify(el.getPropertiesSchema().schema) !== '{}'){
           console.log("pinia123123",storeAw.editingPrimaryAw);
           storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
-        
       }
       }else if(type == 'itea.mbt.test.MBTGroup'){        
         show.value = false
@@ -420,15 +425,18 @@ onMounted(async () => {
         showGroup.value = false
         showSection.value = true
       } else if (type == 'itea.mbt.testlink') {
+        if (getLinkType(elementView) == "exclusivegateway") {
+          console.log(123);
+          
+          showDrawer.value = true
+        }
         showLink.value = true
-        if(getLinkType(elementView) == "exclusivegateway"){}
+        showDrawer.value = false
         
-        showDrawer.value = true
       } 
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-      console.log(rappid.paper);
       
       let Nowcell = rappid.selection.collection.take()
 
@@ -449,21 +457,21 @@ onMounted(async () => {
           Nowcell.setPropertiesData()
         }
       }
+      showpaper.value = false
       show.value = false
       showGroup.value = false
       showSection.value = false
       showLink.value = false
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
-    rappid.paper.removeTools();
+      rappid.paper.removeTools();
+    tabchange(0)
 });
 })
 const saveAw = () => {}
 const saveMbt = () => {
   store.setGraph(rappid.paper.model.toJSON())
   if (idstr) {
-    
-    
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
           return '保存成功'
         }).catch(() => {
@@ -480,7 +488,17 @@ const saveLink = () =>{
   if(cell && storeAw.LinkData.linkSchemaValue){
     cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
   }
-  
+}
+let inspectorstyle1 = ref()
+let inspectorstyle2 = ref()
+const tabchange = (n: number) => {
+  if (n == 0) {    
+    inspectorstyle1.value = {display:'block'}
+    inspectorstyle2.value = {display:'none'}
+  } else {
+    inspectorstyle1.value = {display:'none'}
+    inspectorstyle2.value = {display:'block'}
+  }
 }
 
 
@@ -520,42 +538,33 @@ const saveLink = () =>{
           <div class="app-body">
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
+            <div class="AwtabInspector" v-show="showpaper">
+              <ul class="tab_ul">
+                    <li @click="tabchange(0)">样式修改</li>
+                    <li @click="tabchange(1)"
+                    v-if="show || showGroup || showSection || showLink"
+                    >数据编辑</li>
+              </ul>
 
-          <a-tabs v-show="show" v-model:activeKey="activeSchema" class="AwtabInspector">
-            <a-tab-pane key="1" tab="样式修改">
-                <!-- <div class="inspector-container"></div> -->
-            </a-tab-pane>
-            <a-tab-pane key="2" tab="数据编辑" force-render>
-              <mbtModelerAwschema :show="show"></mbtModelerAwschema>
-            </a-tab-pane>
-        </a-tabs>
-          <a-tabs v-show="showGroup" v-model:activeKey="activeGroup" class="GroupInspector">
-            <a-tab-pane key="1" tab="样式修改">
-              <div>
-                <!-- <div class="inspector-container"></div> -->
-              </div>
-                
-            </a-tab-pane>
-            <a-tab-pane key="2" tab="数据编辑" force-render>
-                <VueForm 
+              <div  :style="inspectorstyle1" class="inspector-container"></div>
+              <div class="dataStyle" :style="inspectorstyle2">
+                <mbtModelerAwschema class="dataStyle" v-show="show" :show="show"></mbtModelerAwschema>
+                <VueForm
+                class="dataStyle" 
+                v-show="showGroup"
                 :schema="schemaGroup"
                 v-model="DataGroup"
                 @change = 'change'
-                
                 ></VueForm>
-            </a-tab-pane>
-        </a-tabs>
-        <a-tabs v-show="showLink" v-model:activeKey="activeLink" class="GroupInspector">
-            <a-tab-pane key="1" tab="样式修改">
-              <div>
-                <div class="inspector-container"></div>
+                 <mbtModelerLink
+                 class="dataStyle"
+                  v-show="showLink"
+                  @change="saveLink"
+                  :showDrawer="showDrawer" 
+                  ></mbtModelerLink>
               </div>
-                
-            </a-tab-pane>
-            <a-tab-pane key="2" tab="数据编辑" force-render>
-                <mbtModelerLink @change="saveLink" :showDrawer="showDrawer" ></mbtModelerLink>
-            </a-tab-pane>
-        </a-tabs>
+              
+            </div>
         <div v-show = 'showSection' class="inspector-container"></div>
             <div class="navigator-container"/>
           </div>
@@ -728,6 +737,27 @@ const saveLink = () =>{
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+
+.app-header{
+  background-color: #717D98;
+}
+
+			ul {
+				list-style: none;
+			}
+			.tab_ul {
+				background-color: #717D98;
+				overflow: hidden;
+			}
+			.tab_ul li {
+				float: left;
+				padding: 15px;
+				cursor: pointer;
+			}
+			.tab_ul .active {
+				color: #ec1818;
+			}
+
 .AwtabInspector{
     position: absolute;
     top: 0;
@@ -736,17 +766,18 @@ const saveLink = () =>{
     /* navigator height */
     width: 300px;
     box-sizing: border-box;
-    .ant-tabs-content-holder > .ant-tabs-content{
+    .dataStyle{
     height: 100%!important
 }
 .inspector-container {
+  top:50px;
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
 }
-.joint-inspector {
-  top: 3.125rem;
-}
+// .joint-inspector {
+//   top: 3.125rem;
+// }
 }
 .GroupInspector{
     position: absolute;

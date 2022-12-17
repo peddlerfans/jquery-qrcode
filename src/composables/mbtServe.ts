@@ -7,8 +7,9 @@ import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
-import {MBTLink} from "@/composables/customElements"
+import { MBTLink } from "@/composables/customElements"
 import { defineEmits } from 'vue'
+import { MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
 
 const emit = defineEmits(['awschemaDa'])
 
@@ -230,7 +231,7 @@ class MbtServe {
 
     initializePaper() {
         const graph = this.graph = new joint.dia.Graph({}, {
-            cellNamespace: appShapes
+            cellNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
@@ -314,10 +315,9 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
+            console.log(appShapes);
+
             var type = elementView.model?.get('type');
-            console.log(elementView);
-
-
             if (type == 'itea.mbt.test.MBTAW') {
                 elementView.model?.set('size', { width: 120, height: 70 })
             } else if (type == 'itea.mbt.test.MBTGroup') {

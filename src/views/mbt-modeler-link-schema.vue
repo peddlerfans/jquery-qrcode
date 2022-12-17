@@ -15,6 +15,11 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   showDrawer: false
 })
+watch(() => props.showDrawer, (val: any) => {
+  console.log(123);
+  
+  props.showDrawer = val
+})
 
 const keys = 1
 

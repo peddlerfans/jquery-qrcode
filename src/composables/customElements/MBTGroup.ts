@@ -21,7 +21,7 @@ export class MBTGroup extends MBTGroupBase {
       // 'icon': { iconType: 'receive' },
       'label': {
         refY: '10',
-        text: ''
+        text: this.get('prop')?.custom?.groupName ? this.get('prop').custom?.groupName : 'Group'
       },
       'border': {
         borderStyle: 'dashed'
@@ -32,8 +32,6 @@ export class MBTGroup extends MBTGroupBase {
     })
     this.set('prop', { groupName: null, loopCount: null })
     this.on('change', (evt: any) => {
-      console.log(evt.changed);
-
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         // this.attr('label/text/0', "test")
@@ -52,9 +50,9 @@ export class MBTGroup extends MBTGroupBase {
   }
   setPropertiesData(value: any) {
     if (value) {
-      this.prop('prop', {...value})
-      this.prop('attrs/label/text' , value.description + value.loopCount)
-      this.prop('attrs/label/fontSize' , 16)
+      this.prop('prop/custom', { ...value })
+      this.prop('attrs/label/text', value.description + value.loopCount)
+      this.prop('attrs/label/fontSize', 16)
       // this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
     }
   }

@@ -17,7 +17,7 @@ export class MBTSection extends MBTGroupBase {
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': {refY: '10', text: 'Section' },
+      'label': { refY: '10', text: this.get('prop')?.custom?.sectionName ? this.get('prop').custom?.sectionName : 'Section' },
       markers: {
         iconTypes: ['ad-hoc'],
       }
@@ -66,11 +66,11 @@ export class MBTSection extends MBTGroupBase {
     }
 
   }
-  setPropertiesData(value?:any) {
-    this.prop('size',{ width: 150, height: 100 })
-    this.prop('prop', { sectionName: value })
-    this.prop('attrs/label/text' , value)
-    this.prop('attrs/label/fontSize' , 16)
+  setPropertiesData(value?: any) {
+    this.prop('size', { width: 150, height: 100 })
+    this.prop('prop/custom', { sectionName: value })
+    this.prop('attrs/label/text', value)
+    this.prop('attrs/label/fontSize', 16)
   }
 
   setInspectorData() {

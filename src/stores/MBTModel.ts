@@ -84,6 +84,7 @@ export const MBTStore = defineStore('mbtmodel', {
   ,
   getters: {
     getAlldata: state => state.mbtData,
+    getcells: state => state.mbtData.modelDefinition.cellsinfo,
     getDafintion: (state) => state.mbtData.dataDefinition,
     changeTemplate(state) {
       let obj = {

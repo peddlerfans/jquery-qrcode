@@ -18,9 +18,10 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
       this.attr(   {
         // 'background': { fill: '#454549' },
         'icon': { iconType: 'user' },
-        'label': { text: 'AW' ,fontSize: 16},
+          'label': { text: this.get('prop')?.custom.step?.data?.name ? this.get('prop').custom.step?.data?.name:'AW' ,fontSize: 16},
  
       },)
+
       this.prop('isStep',true)
       this.on('change', (evt: any) => {
           if (evt.changed && evt.changed.custom && evt.changed.custom) {
@@ -36,15 +37,14 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
   }
   
   static awData = {schema:{},data:{},uiParams:{}}
-// clone():any  {
-//   // debugger
-//   console.log('function good')
-//   return super.clone();
-// }
-// setPropertiesData?: (() => any) | undefined;
 getPropertiesSchema() {
     const throwData = MBTAW.awData
-    return throwData
+    if (JSON.stringify(this.get('prop').custom.step) !== '{}') {
+        return this.get('prop').custom.step
+    } else {
+        return throwData
+    }
+    return this.get('prop').custom.step
 throw new Error("Method not implemented.");
 }
 setPropertiesData() {
@@ -310,22 +310,14 @@ throw new Error("Method not implemented.");
         MBTAW.awData = {schema:{},data:{},uiParams:{}}
     }
   updateRectangles() {
-    var attrs = this.get('attrs');
-    var rects = [
-        { type: 'step', text: this.prop('custom/step') || 'NNN'},
-        { type: 'expectation', text: this.prop('custom/expectation') },
-        // { type: 'methods', text: this.get('methods') }
-    ];
-    var offsetY = 0;
-    // rects.forEach(function(rect) {
-    //   // debugger;
-    //     var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-    //     var rectHeight = lines.length * 20 + 20;
-    //     attrs!['.mbt-step-' + rect.type + '-text']!.text = lines.join('\n');
-    //     attrs!['.mbt-step-' + rect.type + '-rect']!.height = rectHeight;
-    //     attrs!['.mbt-step-' + rect.type + '-rect']!.transform = 'translate(0,' + offsetY + ')';
-    //     offsetY += rectHeight;
-    // });
+          if (this.get('prop').custom.step?.data?.name) {
+          this.attr({
+              // 'background': { fill: '#454549' },
+              'icon': { iconType: '' },
+              'label': { text: this.get('prop').custom.step?.data?.name, fontSize: 16 },
+
+          },)
+      }
 }
 setSizeFromContent() {
   // delete this.cache.layout;
