@@ -11,12 +11,11 @@ import { KeyboardService } from "@/composables/keyboard";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
 import { onMounted, ref } from 'vue';
+import { func } from "vue-types";
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
-onMounted(()=>{
-  console.log(apps.value.querySelector);
-  
-  rappid = new MbtServe(
+onMounted(() => {
+ rappid = new MbtServe(
     apps.value,
     new StencilService(),
     new ToolbarService(),
@@ -26,7 +25,46 @@ onMounted(()=>{
   )
   rappid.startRappid()
 })
+			var tabList:any = document.querySelectorAll('.lili');
+			var tabChild = document.querySelectorAll('.tab_child');
+      
+// 			console.log(tabList);
 
+// 			for (let i = 0; i < tabList.length; i++) {
+
+// 				tabList[i].oncliick = () => {
+// 				console.log(i);
+// 					tabInit()
+// 					tabList[i].classList.add('active');
+// 					tabChild[i].setAttribute('style', 'display:block');
+// 				}
+// 			}
+// 			//初始化tab
+// 			function tabInit() {
+// 				for (let i = 0; i < tabList.length; i++) {
+// 					tabList[i].classList.remove('active')
+// 					tabChild[i].setAttribute('style', 'display:none')
+// 				}
+// }
+let li:any = ref()
+let style1: any = ref([])
+let style2: any = ref({})
+let show = ref(false)
+function qqq(n: any) {
+	if (n == 0) {
+		li.value.style.color =  '#ec1818'
+		console.log();
+		show.value = true
+		style1.value = {display:'block'}
+		style2.value = {display:'none'}
+		
+	} else {
+		
+		style1.value = {display:'none'}
+		style2.value = {display:'block'}
+		
+	}
+}
 </script>
 
 <template>
@@ -37,7 +75,21 @@ onMounted(()=>{
           <div class="app-body">
             <div ref="stencils" class="stencil-container"></div>
             <div class="paper-container"/>
-            <div class="inspector-container"/>
+            <div class="container" v-show="show">
+                <ul class="tab_ul">
+                  <li class="active lili" @click="qqq(0)" ref="li">选项一</li>
+                  <li @click="qqq(1)" ref="li">选项二</li>
+                </ul>
+                <div class="tab_content" >
+                  <div :style="style1" >
+                    <div class="inspector-container"/>
+                  </div>
+                  <div  :style="style2">
+                    <p>我上了那么多年学，熬了那么多夜，做那么多习题</p>
+                  </div>
+                  
+                </div>
+              </div>
             <div class="navigator-container"/>
           </div>
 
@@ -51,6 +103,64 @@ onMounted(()=>{
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 
+.container{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    /* navigator height */
+    width: 300px;
+    box-sizing: border-box;
+    .ant-tabs-content-holder > .ant-tabs-content{
+    height: 100%!important
+}
+.inspector-container {
+    overflow: auto;
+    height: 100%;
+	top:50px;
+    box-sizing: border-box;
+}
+.joint-inspector {
+  top: 3.125rem;
+}
+}
 
+ul {
+				list-style: none;
+			}
+			.tab_ul {
+				background-color: #717D98;
+				overflow: hidden;
+			}
+			.tab_ul li {
+				float: left;
+				padding: 15px;
+				cursor: pointer;
+			}
+			.tab_ul .active {
+				color: #ec1818;
+			}
+			.tab_content {
+				background-color: #F6F6F6;
+				min-height: 250px;
+				padding: 15px;
+				overflow: hidden;
+			}
+			.tab_child {
+				display: none;
+				animation: hideTab 0.5s;
+				-moz-animation: hideTab 0.6s;/* Firefox */
+				-webkit-animation: hideTab 0.6s;/* Safari and Chrome */
+			}
+			@keyframes hideTab {
+				0% {
+					opacity: 0;
+					transform: translate(200px, 0)
+				}
+				100% {
+					opacity: 1;
+					transform: translate(0, 0)
+				}
+			}
 
 </style>

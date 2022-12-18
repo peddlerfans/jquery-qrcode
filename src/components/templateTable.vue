@@ -32,7 +32,9 @@ import {
 import { tableDataSource } from "@/composables/getTable";
 import { ColumnsType } from "ant-design-vue/es/table";
 import { MBTStore } from "@/stores/MBTModel";
+import { MbtData } from "@/stores/modules/mbt-data"
 let store = MBTStore()
+let storeAw = MbtData()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
@@ -260,9 +262,7 @@ function isChoose(data:any) : boolean{
 }
 
 let watchData = computed(()=>{dataSource.value , columnsOrigin.value})
-watch(()=>watchData.value , (val:any)=>{
-  console.log(val);
-  
+watch(()=>watchData.value , (val:any)=>{  
   let dataFrom = ''
     if(templateCategory.value = 1){
       dataFrom = "dynamic_template"
@@ -271,6 +271,7 @@ watch(()=>watchData.value , (val:any)=>{
     }
     if(isChoose(dataSource.value)){
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+      storeAw.setDataDefinition(watchData.value)
     }    
 
 } , {deep:true})

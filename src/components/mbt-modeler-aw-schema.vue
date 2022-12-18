@@ -24,7 +24,7 @@ const emit = defineEmits(['save'])
 
 const props = withDefaults(defineProps<Props>(), {
   show: false,
-  schema:null
+  schema:{}
 })
 
 watch(
@@ -142,6 +142,10 @@ function getTableData () {
 }
 
 onMounted(() => {
+
+  if (props.schema) {
+    isEdit.value = true
+  }
   getTableData()
 })
 
@@ -196,6 +200,8 @@ function showAw (row: any) {
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   }
+  console.log(schema.value);
+  
 }
 
 function search (searchText: string) {

@@ -1,17 +1,16 @@
+
 import {MBTShapeInterface} from "./MBTShapeInterface"
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 // import * as joint from '@clientio/rappid';
 const { dia, g,ui,shapes } = joint
-
 import { i18n } from "@/locales";
 import { MBTStore } from "@/stores/MBTModel"
+import { objectPick } from "@vueuse/core";
 const store = MBTStore()
 const { t } = i18n.global
-
 window.joint = joint
 export const name = 'aw';
 export const namespace='itea.mbt.test';
-
 export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInterface  {
   static shapeName = name;
   constructor(e : Element,o: any) {
@@ -19,12 +18,14 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
       this.attr(   {
         // 'background': { fill: '#454549' },
         'icon': { iconType: 'user' },
-        'label': { text: 'AW' },
+          'label': { text: this.get('prop')?.custom.step?.data?.name ? this.get('prop').custom.step?.data?.name:'AW' ,fontSize: 16},
  
       },)
+
       this.prop('isStep',true)
-      this.on('change',(evt:any)=> {
-      if (evt.changed && evt.changed.custom && evt.changed.custom) {
+      this.on('change', (evt: any) => {
+          if (evt.changed && evt.changed.custom && evt.changed.custom) {
+              
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
         this.attr('label/text/0',"test")
@@ -35,23 +36,25 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
    this.updateRectangles();
   }
   
- 
-// clone():any  {
-//   // debugger
-//   console.log('function good')
-//   return super.clone();
-// }
-setPropertiesData?: (() => any) | undefined;
+  static awData = {schema:{},data:{},uiParams:{}}
 getPropertiesSchema() {
+    const throwData = MBTAW.awData
+    if (JSON.stringify(this.get('prop').custom.step) !== '{}') {
+        return this.get('prop').custom.step
+    } else {
+        return throwData
+    }
+    return this.get('prop').custom.step
 throw new Error("Method not implemented.");
 }
-setPropertiesata() {
+setPropertiesData() {
+    // 实现传递的数据把规定
+        
 throw new Error("Method not implemented.");
     }
  
   getInspectorSchema(){
     const options = {
-
       colorPalette: [
           { content: 'transparent', icon: 'x' },
           { content: '#f6f6f6' },
@@ -70,7 +73,6 @@ throw new Error("Method not implemented.");
           { content: '#33334e' },
           { content: '#222138' }
       ],
-
       colorPaletteReset: [
           { content: <string><unknown>undefined, icon: 'y' },
           { content: '#f6f6f6' },
@@ -89,88 +91,74 @@ throw new Error("Method not implemented.");
           { content: '#33334e' },
           { content: '#222138' }
       ],
-
       fontWeight: [
           { value: '300', content: '<span style="font-weight: 300">Light</span>' },
           { value: 'Normal', content: '<span style="font-weight: Normal">Normal</span>' },
           { value: 'Bold', content: '<span style="font-weight: Bolder">Bold</span>' }
       ],
-
       fontFamily: [
           { value: 'Alegreya Sans', content: '<span style="font-family: Alegreya Sans">Alegreya Sans</span>' },
           { value: 'Averia Libre', content: '<span style="font-family: Averia Libre">Averia Libre</span>' },
           { value: 'Roboto Condensed', content: '<span style="font-family: Roboto Condensed">Roboto Condensed</span>' }
       ],
-
       strokeStyle: [
           { value: '0', content: 'Solid' },
           { value: '2,5', content: 'Dotted' },
           { value: '10,5', content: 'Dashed' }
       ],
-
       side: [
           { value: 'top', content: 'Top Side' },
           { value: 'right', content: 'Right Side' },
           { value: 'bottom', content: 'Bottom Side' },
           { value: 'left', content: 'Left Side' }
       ],
-
       portLabelPositionRectangle: [
           { value: { name: 'top', args: { y: -12 } }, content: 'Above' },
           { value: { name: 'right', args: { y: 0 } }, content: 'On Right' },
           { value: { name: 'bottom', args: { y: 12 } }, content: 'Below' },
           { value: { name: 'left', args: { y: 0 } }, content: 'On Left' }
       ],
-
       portLabelPositionEllipse: [
           { value: 'radial', content: 'Horizontal' },
           { value: 'radialOriented', content: 'Angled' }
       ],
-
       imageIcons: [
           { value: '../assets/image-icon1.svg', content: '<img height="42px" src="assets/image-icon1.svg"/>' },
           { value: '../assets/image-icon2.svg', content: '<img height="80px" src="assets/image-icon2.svg"/>' },
           { value: '../assets/image-icon3.svg', content: '<img height="80px" src="assets/image-icon3.svg"/>' },
           { value: '../assets/image-icon4.svg', content: '<img height="80px" src="assets/image-icon4.svg"/>' }
       ],
-
       imageGender: [
           { value: '../assets/member-male.png', content: '<img height="50px" src="assets/member-male.png" style="margin: 5px 0 0 2px;"/>' },
           { value: '../assets/member-female.png', content: '<img height="50px" src="assets/member-female.png" style="margin: 5px 0 0 2px;"/>' }
       ],
-
       arrowheadSize: [
           { value: 'M 0 0 0 0', content: 'None' },
           { value: 'M 0 -3 -6 0 0 3 z', content: 'Small' },
           { value: 'M 0 -5 -10 0 0 5 z', content: 'Medium' },
           { value: 'M 0 -10 -15 0 0 10 z', content: 'Large' },
       ],
-
       strokeWidth: [
           { value: 1, content: '<div style="background:#fff;width:2px;height:30px;margin:0 14px;border-radius: 2px;"/>' },
           { value: 2, content: '<div style="background:#fff;width:4px;height:30px;margin:0 13px;border-radius: 2px;"/>' },
           { value: 4, content: '<div style="background:#fff;width:8px;height:30px;margin:0 11px;border-radius: 2px;"/>' },
           { value: 8, content: '<div style="background:#fff;width:16px;height:30px;margin:0 8px;border-radius: 2px;"/>' }
       ],
-
       router: [
           { value: 'normal', content: '<p style="background:#fff;width:2px;height:30px;margin:0 14px;border-radius: 2px;"/>' },
           { value: 'orthogonal', content: '<p style="width:20px;height:30px;margin:0 5px;border-bottom: 2px solid #fff;border-left: 2px solid #fff;"/>' },
           { value: 'oneSide', content: '<p style="width:20px;height:30px;margin:0 5px;border: 2px solid #fff;border-top: none;"/>' }
       ],
-
       connector: [
           { value: 'normal', content: '<p style="width:20px;height:20px;margin:5px;border-top:2px solid #fff;border-left:2px solid #fff;"/>' },
           { value: 'rounded', content: '<p style="width:20px;height:20px;margin:5px;border-top-left-radius:30%;border-top:2px solid #fff;border-left:2px solid #fff;"/>' },
           { value: 'smooth', content: '<p style="width:20px;height:20px;margin:5px;border-top-left-radius:100%;border-top:2px solid #fff;border-left:2px solid #fff;"/>' }
       ],
-
       labelPosition: [
           { value: 30, content: 'Close to source' },
           { value: 0.5, content: 'In the middle' },
           { value: -30, content: 'Close to target' },
       ],
-
       portMarkup: [{
           value: [{
               tagName: 'rect',
@@ -203,7 +191,6 @@ throw new Error("Method not implemented.");
           content: 'Triangle'
       }]
   };
-
     return {
       inputs: {
           attrs: {
@@ -307,55 +294,30 @@ throw new Error("Method not implemented.");
           }
       },
     //   schema : store.schema? store.schema:{}
-        schema: {
-            type: "object",
-            properties: {
-                name: {
-                    title: "AW Name",
-                    type: "string",
-                    readOnly: true,
-                    default: '123'
-                },
-                descriptions: {
-                    title: "Description",
-                    type: "string",
-                    datault: '456'
-                },
-            },
-        },
-        awData:{}
+   
   }
-
   }
-
-  setInspectorData(){
-
-  }
-
-
+  setInspectorData(schema?:any,data?:any,uiParams?:any){
+      if (data.name) {
+          this.attr({
+              'label': { text: data.name, fontSize: 16 },
+              'icon': { iconType: '' },
+          })
+        }
+        MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
+        // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
+        this.prop('prop/custom/step',{schema:schema,data:data})
+        MBTAW.awData = {schema:{},data:{},uiParams:{}}
+    }
   updateRectangles() {
+          if (this.get('prop').custom.step?.data?.name) {
+          this.attr({
+              // 'background': { fill: '#454549' },
+              'icon': { iconType: '' },
+              'label': { text: this.get('prop').custom.step?.data?.name, fontSize: 16 },
 
-    var attrs = this.get('attrs');
-    var rects = [
-        { type: 'step', text: this.prop('custom/step') || 'NNN'},
-        { type: 'expectation', text: this.prop('custom/expectation') },
-        // { type: 'methods', text: this.get('methods') }
-    ];
-
-    var offsetY = 0;
-
-    // rects.forEach(function(rect) {
-    //   // debugger;
-
-    //     var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-    //     var rectHeight = lines.length * 20 + 20;
-
-    //     attrs!['.mbt-step-' + rect.type + '-text']!.text = lines.join('\n');
-    //     attrs!['.mbt-step-' + rect.type + '-rect']!.height = rectHeight;
-    //     attrs!['.mbt-step-' + rect.type + '-rect']!.transform = 'translate(0,' + offsetY + ')';
-
-    //     offsetY += rectHeight;
-    // });
+          },)
+      }
 }
 setSizeFromContent() {
   // delete this.cache.layout;
@@ -376,17 +338,13 @@ setSizeFromContent() {
           custom : {
             //传输后台的数据
             step : {
-
             },
             expectation : {
-
             }
           }
-
         },
     //     attrs: {
     //       rect: { 'width': 200 },
-
     //       '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
     //       '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
   
@@ -409,19 +367,14 @@ setSizeFromContent() {
    
     }
 }
-
 // markup =  [       '<g class="rotatable">',
 // '<g class="scalable">',
 // '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
 // '</g>',
 // '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
 // '</g>'].join('')
-
 }
 // Object.assign(joint.shapes,{itea : {mbt : {test : {MBTAW}}}})
-
-
-
 // import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 // export class MyShape extends joint.dia.Element {
 //     public test() {
@@ -566,7 +519,5 @@ setSizeFromContent() {
 //   '</g>',
 //   '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
 //   '</g>'].join('')
-
-
   
 //   }

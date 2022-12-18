@@ -28,7 +28,8 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import mbtModelerAwschema from "@/components/mbt-modeler-aw-schema.vue"
+import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
+import mbtModelerLink from "./mbt-modeler-link-schema.vue"
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -37,15 +38,22 @@ const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
-let isGlobal = ref(true)
+let isGlobal = ref(false)
 const url = realMBTUrl;
 
 
-const activeKey = ref("1")
+const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
-let activeSchema = ref('1')
+let activeSchema = ref('2')
+let activeLink = ref('2')
+let activeGroup = ref('2')
 let show = ref(false)
+let showDrawer = ref(false)
+let showGroup = ref(false)
+let showLink = ref(false)
+let showSection = ref(false)
+let showpaper =ref(false)
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -160,10 +168,6 @@ const globalschema = ref({
   },
 });
 
-// 发送各组件的事件
-let schema: any = ref(null)
-let awData :any = ref()
-
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value=true
@@ -247,6 +251,7 @@ const handleOk = () => {
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
+  isGlobal.value = false
   console.log(store.mbtData);
   
   // isGlobal.value = false
@@ -292,25 +297,73 @@ function Datafintion(data: any) {
     }
   }
 }
-// 当前关闭的cell
-let closeCell: null = null
-onMounted(async()=>{  
-  if(route.params._id){
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id',JSON.stringify(route.params._id))
-  }
-    getAllTemplatesByCategory('codegen').then((rst:any)=>{
-  if(rst && _.isArray(rst)){
-    rst.forEach((rec:any)=>{              
-      codegennames.value.push({title:rec.name , const: rec._id})
-    })
-  }
-    }).catch((err) => { console.log(err); })
+let schemaGroup = ref()
+let DataGroup = ref({
+  groupName: '',
+  loopCount:''
+})
+let cell: any = null
 
-  let idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+function getLinkType(linkView: any): string {
+  if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
+
+    if (rappid.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
+      console.log(linkView.model.linktype);
+
+      return linkView.model["linktype"];
+    }
+  }
+  return "";
+}
+
+function setLinkType(el: any, cell: any) {
+  console.log("el",el ,"cell",cell);
+  
+    if (el && el.attributes && el.attributes.source && el.attributes.source.id)
+      try {
+        
+        let linksource:any = rappid.graph.getCell(el.attributes.source.id);
+        // console.log('type:',linksource.attributes.type)
+        if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
+          
+          // if (linksource.attributes.attrs.label.text == "x") {
+            // console.log(' source exclusive gateway    ',linksource.id)
+            Object.assign(cell, { linktype: "exclusivegateway" });
+            console.log("exclusive link", cell);
+          // } else {
+            // Object.assign(cell, { linktype: "parallelgateway" });
+            // console.log("exclusive link", cell);
+          // }
+        } else {
+            Object.assign(cell, { linktype: "parallelgateway" });
+            console.log("exclusive link", cell);
+          }
+      } catch (e) {
+        console.log("e:", e);
+      }
+  }
+
+let idstr: any = null
+
+
+onMounted(async () => {
+  if (route.params._id) {
+    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
+  }
+  getAllTemplatesByCategory('codegen').then((rst: any) => {
+    if (rst && _.isArray(rst)) {
+      rst.forEach((rec: any) => {
+        codegennames.value.push({ title: rec.name, const: rec._id })
+      })
+    }
+  }).catch((err) => { console.log(err); })
+
+  idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
 
-  if(store.mbtData._id){
+  if (store.mbtData._id) {
     Datafintion(store.mbtData)
+    storeAw.setAllData(store.mbtData)
   }
   rappid = new MbtServe(
     apps.value,
@@ -321,62 +374,133 @@ onMounted(async()=>{
     new KeyboardService()
   )
   rappid.startRappid()
-  if(store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells){
-    rappid.graph.fromJSON(store.mbtData.modelDefinition.cellsinfo);
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     
+    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getcells)));
+
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-          rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-        }
-        
+    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+  }
+
+  rappid.graph.on("add", function (el: any) {
+    if (el && el.hasOwnProperty("id")) {
+      try {
+        let cell:any = rappid.graph.getCell(el.id);
+        if (cell.isLink()) {
+          setLinkType(el, cell);
+        } else {}
+      } catch (e) {
+        console.log("error:", e);
+      }
+     }      
+  })
+
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      setLinkType(elementView.model,elementView.model)
       let el: any
       el = elementView.model
-      // console.log(elementView.model?.getInspectorSchema());
-      // el.getInspectorSchema().awData = awData.value
-      if(elementView.model?.getInspectorSchema() && elementView.model?.getInspectorSchema().schema){
-        schema.value = elementView.model?.getInspectorSchema().schema
+      cell = el
+      showpaper.value = true
+      let type = elementView.model?.get('type');
+      
+      if(type == 'itea.mbt.test.MBTAW'){
+        show.value = true
+        showGroup.value = false
+        showSection.value = false
+        if(el.getPropertiesSchema() && JSON.stringify(el.getPropertiesSchema().schema) !== '{}'){
+          console.log("pinia123123",storeAw.editingPrimaryAw);
+          storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
       }
-      console.log(elementView);
-      
-      
-    })
-    rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-      let Nowcell = rappid.selection.collection.take()
-      // 判断子组件的pinia，awDataschema是否有值，有值就将其赋值给当前cell，然后清空
-      if (Nowcell && 
-          Nowcell.attributes &&
-          Nowcell.attributes.type == 'itea.mbt.test.MBTAW' &&
-          storeAw.editingPrimaryAw.schema) {
-          Nowcell.attributes.prop['schema'] = storeAw.editingPrimaryAw.schema
-          Nowcell.attributes.prop['data'] = storeAw.editingPrimaryAw.data
-          Nowcell.getInspectorSchema().schema = storeAw.editingPrimaryAw.schema.value
-          console.log(Nowcell.getInspectorSchema());
+      }else if(type == 'itea.mbt.test.MBTGroup'){        
+        show.value = false
+        showGroup.value = true
+        showSection.value = false
+        schemaGroup.value = el.getInspectorSchema().schema
+        if (el.getPropertiesData().groupName || el.getPropertiesData().loopCount) {
+          DataGroup.value = {...el.getPropertiesData()}
+        }
+      }else if (type == 'itea.mbt.test.MBTSection') {
+        show.value = false
+        showGroup.value = false
+        showSection.value = true
+      } else if (type == 'itea.mbt.testlink') {
+        if (getLinkType(elementView) == "exclusivegateway") {
+          console.log(123);
+          
+          showDrawer.value = true
+        }
+        showLink.value = true
+        showDrawer.value = false
         
+      } 
+    })
+
+    rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+      
+      let Nowcell = rappid.selection.collection.take()
+
+      if (Nowcell) {
+        let type = Nowcell.attributes?.type
+          if(type == 'itea.mbt.test.MBTAW') {
+            saveAw()
+          if(storeAw.editingPrimaryAw.schema !== null) {        
+              Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
+              
+              storeAw.resetEditingExpectedAw()
+            }
+          } else if (type == 'itea.mbt.test.MBTGroup') {
+            
+          Nowcell.setPropertiesData(DataGroup.value)
+          } else if (type == 'itea.mbt.test.MBTSection') {
+            
+          Nowcell.setPropertiesData()
+        }
       }
-      console.log(rappid.selection.collection.take());
-      if (rappid.selection.collection.toArray()[0].model) {
-      closeCell = rappid.selection.collection.toArray()[0]
-    }
-    
+      showpaper.value = false
+      show.value = false
+      showGroup.value = false
+      showSection.value = false
+      showLink.value = false
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
-    storeAw.resetEditingExpectedAw()  
-      schema.value = null
+    tabchange(0)
 });
 })
-const save = (data: any) => {
-  if (closeCell) {
-    
+const saveAw = () => {}
+const saveMbt = () => {
+  store.setGraph(rappid.paper.model.toJSON())
+  if (idstr) {
+    request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
+          return '保存成功'
+        }).catch(() => {
+          return '保存失败'
+        })
   }
-  console.log(data);
-  
+}
+const change = () => {
+  if(cell){
+      cell.setPropertiesData(DataGroup.value)
+  }
+}
+const saveLink = () =>{
+  if(cell && storeAw.LinkData.linkSchemaValue){
+    cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
+  }
+}
+let inspectorstyle1 = ref()
+let inspectorstyle2 = ref()
+const tabchange = (n: number) => {
+  if (n == 0) {    
+    inspectorstyle1.value = {display:'block'}
+    inspectorstyle2.value = {display:'none'}
+  } else {
+    inspectorstyle1.value = {display:'none'}
+    inspectorstyle2.value = {display:'block'}
+  }
 }
 
-const saveMbt = () => {
-    console.log(rappid.graph.getCells());
-}
 
 </script>
 
@@ -414,22 +538,37 @@ const saveMbt = () => {
           <div class="app-body">
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
+            <div class="AwtabInspector" v-show="showpaper">
+              <ul class="tab_ul">
+                    <li @click="tabchange(0)">样式修改</li>
+                    <li @click="tabchange(1)"
+                    v-if="show || showGroup || showSection || showLink"
+                    >数据编辑</li>
+              </ul>
 
-          <a-tabs v-if="schema" v-model:activeKey="activeSchema" class="AwtabInspector">
-            <a-tab-pane key="1" tab="Tab 1">
-                <div class="inspector-container"></div>
-            </a-tab-pane>
-            <a-tab-pane key="2" tab="Tab 2" force-render>
-                <mbtModelerAwschema 
-                :schema="schema" 
-                :show="show"
-                @hook:destoroyed="save"
-                ></mbtModelerAwschema>
-            </a-tab-pane>
-        </a-tabs>
-
+              <div  :style="inspectorstyle1" class="inspector-container"></div>
+              <div class="dataStyle" :style="inspectorstyle2">
+                <mbtModelerAwschema class="dataStyle" v-show="show" :show="show"></mbtModelerAwschema>
+                <VueForm
+                class="dataStyle" 
+                v-show="showGroup"
+                :schema="schemaGroup"
+                v-model="DataGroup"
+                @change = 'change'
+                ></VueForm>
+                 <mbtModelerLink
+                 class="dataStyle"
+                  v-show="showLink"
+                  @change="saveLink"
+                  :showDrawer="showDrawer" 
+                  ></mbtModelerLink>
+              </div>
+              
+            </div>
+        <div v-show = 'showSection' class="inspector-container"></div>
             <div class="navigator-container"/>
           </div>
+
 
   </main>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
@@ -598,7 +737,49 @@ const saveMbt = () => {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+
+.app-header{
+  background-color: #717D98;
+}
+
+			ul {
+				list-style: none;
+			}
+			.tab_ul {
+				background-color: #717D98;
+				overflow: hidden;
+			}
+			.tab_ul li {
+				float: left;
+				padding: 15px;
+				cursor: pointer;
+			}
+			.tab_ul .active {
+				color: #ec1818;
+			}
+
 .AwtabInspector{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    /* navigator height */
+    width: 300px;
+    box-sizing: border-box;
+    .dataStyle{
+    height: 100%!important
+}
+.inspector-container {
+  top:50px;
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+// .joint-inspector {
+//   top: 3.125rem;
+// }
+}
+.GroupInspector{
     position: absolute;
     top: 0;
     right: 0;
@@ -609,20 +790,21 @@ const saveMbt = () => {
     .ant-tabs-content-holder > .ant-tabs-content{
     height: 100%!important
 }
-}
-
 .inspector-container {
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
 }
+.joint-inspector {
+  top: 3.125rem;
+}
+}
+
 
 .infoPanel{
   position: relative;
 }
-.joint-inspector {
-  top: 3.125rem;
-}
+
 .joint-navigator{
   width: 300px;
 }

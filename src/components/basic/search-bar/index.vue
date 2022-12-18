@@ -73,7 +73,7 @@ function search () {
      <a-input v-model:value="searchText"
               :placeholder="$t('awModeler.inputSearch1')"
               @change="inputChange"
-              @keydown.enter="inputChange"
+              @pressEnter="search"
               ref="searchInput"
      ></a-input>
      <a-cascader
