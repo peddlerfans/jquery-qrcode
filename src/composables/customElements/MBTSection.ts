@@ -23,18 +23,16 @@ export class MBTSection extends MBTGroupBase {
       }
 
     })
-    this.set('prop', { sectionName: '' })
+    this.set('prop/custom', { sectionName: '' })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.attrs && evt.changed.attrs.label) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        this.updateRectangles();
+        // this.updateRectangles();
         this.setPropertiesData(evt.changed.attrs.label.text)
         // this.attr('label/text/0', "test")
       }
 
     })
-
-    this.updateRectangles();
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable()

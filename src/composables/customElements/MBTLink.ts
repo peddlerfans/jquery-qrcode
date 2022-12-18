@@ -41,7 +41,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
 
         this.attr('label/text/0', "test")
       }
-
+      // this.prop()
     })
 
 
@@ -219,7 +219,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
           }
         },
 
-        labels: {
+        label: {
           type: 'list',
           group: 'labels',
           label: 'Labels',

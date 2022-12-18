@@ -299,7 +299,7 @@ function Datafintion(data: any) {
 }
 let schemaGroup = ref()
 let DataGroup = ref({
-  groupName: '',
+  description: '',
   loopCount:''
 })
 let cell: any = null
@@ -388,6 +388,7 @@ onMounted(async () => {
       try {
         let cell:any = rappid.graph.getCell(el.id);
         if (cell.isLink()) {
+          showLink.value = true
           setLinkType(el, cell);
         } else {}
       } catch (e) {
@@ -398,6 +399,7 @@ onMounted(async () => {
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
       setLinkType(elementView.model,elementView.model)
+      inspectorstyle2.value = {display:'none'}
       let el: any
       el = elementView.model
       cell = el
@@ -490,7 +492,7 @@ const saveLink = () =>{
   }
 }
 let inspectorstyle1 = ref()
-let inspectorstyle2 = ref()
+let inspectorstyle2 = ref({display:'none'})
 const tabchange = (n: number) => {
   if (n == 0) {    
     inspectorstyle1.value = {display:'block'}
@@ -544,8 +546,9 @@ const tabchange = (n: number) => {
                     <li @click="tabchange(1)"
                     v-if="show || showGroup || showSection || showLink"
                     >数据编辑</li>
+                    <div style="clear:both;"></div>
               </ul>
-
+              
               <div  :style="inspectorstyle1" class="inspector-container"></div>
               <div class="dataStyle" :style="inspectorstyle2">
                 <mbtModelerAwschema class="dataStyle" v-show="show" :show="show"></mbtModelerAwschema>
@@ -746,11 +749,13 @@ const tabchange = (n: number) => {
 				list-style: none;
 			}
 			.tab_ul {
+        display: flex;
 				background-color: #717D98;
 				overflow: hidden;
+        width: 100%;
+        height: 50px;
 			}
 			.tab_ul li {
-				float: left;
 				padding: 15px;
 				cursor: pointer;
 			}
@@ -767,39 +772,27 @@ const tabchange = (n: number) => {
     width: 300px;
     box-sizing: border-box;
     .dataStyle{
-    height: 100%!important
-}
-.inspector-container {
-  top:50px;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
-}
-// .joint-inspector {
-//   top: 3.125rem;
-// }
-}
-.GroupInspector{
+    display: block;
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    /* navigator height */
-    width: 300px;
-    box-sizing: border-box;
-    .ant-tabs-content-holder > .ant-tabs-content{
-    height: 100%!important
+    top: 50px;
+    overflow: auto;
+    bottom: 0;
+    width: 100%;
+    flex: 1;
 }
 .inspector-container {
+    flex: 1 1 0%;
+    top: 3.125rem;
+    bottom: 0;
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
 }
-.joint-inspector {
-  top: 3.125rem;
+.joint-inspector.joint-theme-material{
+  position: absolute;
+  bottom: 50px;
 }
 }
-
 
 .infoPanel{
   position: relative;

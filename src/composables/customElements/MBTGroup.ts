@@ -21,7 +21,7 @@ export class MBTGroup extends MBTGroupBase {
       // 'icon': { iconType: 'receive' },
       'label': {
         refY: '10',
-        text: this.get('prop')?.custom?.groupName ? this.get('prop').custom?.groupName : 'Group'
+        text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
       },
       'border': {
         borderStyle: 'dashed'
@@ -30,12 +30,12 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    this.set('prop', { groupName: null, loopCount: null })
+    this.set('prop/custom', { description: '', loopCount: '' })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         // this.attr('label/text/0', "test")
-
+        // this.setPropertiesData(evt.changed.attrs.label.text)
       }
     })
 
@@ -48,7 +48,7 @@ export class MBTGroup extends MBTGroupBase {
     //  return true;
     return super.ifDisallowLink()
   }
-  setPropertiesData(value: any) {
+  setPropertiesData(value?: any) {
     if (value) {
       this.prop('prop/custom', { ...value })
       this.prop('attrs/label/text', value.description + value.loopCount)
@@ -116,11 +116,6 @@ export class MBTGroup extends MBTGroupBase {
   }
   defaults() {
     return super.defaults()
-    // return {
-    //   ...super.defaults,
-    //   type: namespace
-
-    // }
   }
 
 }
