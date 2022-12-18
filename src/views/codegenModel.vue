@@ -511,7 +511,7 @@ footer {
   flex: 1;
   margin-top: 15px;
   font-family: monospace;
-  font-size: 18px;
+  font-size: 12px;
   border: 1px solid;
   height: 70vh;
 }
