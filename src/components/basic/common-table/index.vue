@@ -237,7 +237,6 @@ const checkName = async (_rule: Rule, value: string) => {
   }
 }
 
-
 const checkDescription = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('templateManager.description'))

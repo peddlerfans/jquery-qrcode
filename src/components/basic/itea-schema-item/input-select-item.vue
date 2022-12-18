@@ -5,7 +5,11 @@ import {
 } from 'vue'
 
 const emit = defineEmits(['update:modelValue'])
-
+let inputRef = ref({
+  val: '',
+  type: '1'
+})
+let flag = ref(false)
 interface Props {
   modelValue: string,
   options: any
@@ -38,14 +42,8 @@ function handleChange (e: any) {
 function handleInput(e: any) {
   const tar = (e.target as HTMLInputElement).value
   inputRef.value.val = tar
-  emit('update:modelValue', inputRef)
+  emit('update:modelValue', inputRef.value)
 }
-
-let inputRef = ref({
-  val: '',
-  type: '1'
-})
-let flag = ref(false)
 
 </script>
 

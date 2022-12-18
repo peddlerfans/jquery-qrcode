@@ -30,7 +30,7 @@ export class ToolbarService {
                 'order': { index: 5 },
                 'layout': { index: 7 },
                 'zoom': { index: 8 },
-                'grid': { index: 9 ,default :10},
+                'grid': { index: 9, default: 10 },
                 'snapline': { index: 10 },
                 'save': { index: 11 }
             },
