@@ -373,8 +373,8 @@ onMounted(async () => {
   }
 
   rappid.graph.on("add", function (el: any) {
-    console.log('add');
-    
+    storeAw.resetEditingExpectedAw()
+
     if (el && el.hasOwnProperty("id")) {
       try {
         showpaper.value = true
@@ -422,7 +422,7 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      
+
       show.value = false
       aaaaa.value.initSchema()
 
@@ -443,16 +443,17 @@ onMounted(async () => {
           storeAw.setDescription(checkAwprops.description)
 
           if (JSON.stringify(checkAwprops.schema) !== '{}') {
-            
           storeAw.setEditingPrimaryAw(checkAwprops)
-          
+
           // if(JSON.stringify(checkAwprops.expectation) !== '{}'){
           //   storeAw.setEditingExpectedAw(checkAwprops.expectation)
           // }
         }
       }
-      show.value = true
-      }else if(type == 'itea.mbt.test.MBTGroup'){        
+      setTimeout(() => {
+        show.value = true
+      }, 0)
+      }else if(type == 'itea.mbt.test.MBTGroup'){
         show.value = false
         
         
@@ -494,7 +495,6 @@ onMounted(async () => {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
             saveAw()
-            console.log(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc);
             
            if(storeAw.getAWBothDesc){
               Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)

@@ -21,7 +21,8 @@ interface MbtData {
         linkSchemaValue:any
         rulesData:any
     }
-    awDescription:string
+    awDescription:string,
+    showSchema: boolean
 }
 
 export const MbtData = defineStore({
@@ -51,7 +52,8 @@ export const MbtData = defineStore({
             rulesData:null
         },
         expectedTableRow: {},
-        awDescription:''
+        awDescription: '',
+        showSchema: false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -69,7 +71,8 @@ export const MbtData = defineStore({
             return tempPrimaryDesc && tempExpectedDesc
                 ? tempPrimaryDesc + '/' + tempExpectedDesc
                 : tempPrimaryDesc + tempExpectedDesc
-        }
+        },
+        getVisible: state => state.showSchema
     },
     actions: {
         setAllData(data: any) {
@@ -120,6 +123,9 @@ export const MbtData = defineStore({
             this.editingPrimaryAw.schema = null
             this.editingPrimaryAw.uiParams = null
             this.awDescription = ''
+        },
+        setVisible (flag: boolean) {
+            this.showSchema = flag
         }
     }
 })

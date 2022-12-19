@@ -65,10 +65,14 @@ const defaultAWSchema = {
 let tempDesc = ''
 let desc = ref<string>('')
 
+const store = MbtData()
+const { t } = useI18n()
+
 watch(
     () => props.show,
     (val) => {
       if (val) {
+        console.log(val)
         if (store.getPrimaryAw.schema) {
           schema.value = store.getPrimaryAw.schema
           schema.value = getSchema(schema.value)
@@ -111,23 +115,21 @@ function getSchema (schema: any, row?: any) {
 let selectAwTar: string = '1'
 let schema = ref(defaultAWSchema)
 let schemaValue = ref<any>({})
-watch(
-    () => schemaValue.value,
-    (val) => {
-      store.setEditingPrimaryAw(val, 'data')
-    },
-    { deep: true }
-)
+// watch(
+//     () => schemaValue.value,
+//     (val) => {
+//       store.setEditingPrimaryAw(val, 'data')
+//     }
+// )
 let primaryUiSchema = ref({})
 let expectedSchema = ref(defaultAWSchema)
 let expectedSchemaValue = ref<any>({})
-watch(
-    () => expectedSchemaValue.value,
-    (val) => {
-      store.setEditingExpectedAw(val, 'data')
-    },
-    { deep: true }
-)
+// watch(
+//     () => expectedSchemaValue.value,
+//     (val) => {
+//       store.setEditingExpectedAw(val, 'data')
+//     }
+// )
 let expectedUiSchema = ref({})
 const formProps = {
   layoutColumn: 1,
@@ -135,8 +137,6 @@ const formProps = {
   labelWidth: '75px',
   labelSuffix: ':',
 }
-const store = MbtData()
-const { t } = useI18n()
 
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
