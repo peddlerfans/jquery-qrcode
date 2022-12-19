@@ -119,7 +119,6 @@ let schemaValue = ref<any>({})
 let primaryUiSchema = ref({})
 let expectedSchema = ref(defaultAWSchema)
 let expectedSchemaValue = ref<any>({})
-
 let expectedUiSchema = ref({})
 const formProps = {
   layoutColumn: 1,

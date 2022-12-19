@@ -9,7 +9,7 @@ import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
 import { defineEmits } from 'vue'
 import { getShapesNamespace } from '@/composables/customElements/';
-import {MBTLink , MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
+import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
 
 const emit = defineEmits(['awschemaDa'])
 
@@ -316,7 +316,7 @@ class MbtServe {
                 elementView.model?.set('size', { width: 120, height: 70 })
             } else if (type == 'itea.mbt.test.MBTGroup') {
                 elementView.model?.set('size', { width: 150, height: 100 })
-            }else if(type == 'itea.mbt.test.MBTSection'){
+            } else if (type == 'itea.mbt.test.MBTSection') {
                 elementView.model?.set('size', { width: 150, height: 100 })
             }
             this.selection.collection.reset([elementView.model]);

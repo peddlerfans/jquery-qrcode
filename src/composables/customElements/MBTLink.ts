@@ -34,8 +34,8 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       // }
 
     })
-    if(!this.get('prop')?.custom?.condition?.label){
-      this.set('prop',{custom: { condition: {}, rulesData: [] }})
+    if (!this.get('prop')?.custom?.condition?.label) {
+      this.set('prop', { custom: { condition: {}, rulesData: [] } })
     }
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
@@ -319,11 +319,11 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   }
   setPropertiesData(value?: any, ruleData?: any) {
     console.log(value);
-    if(ruleData){
+    if (ruleData) {
       this.prop('prop/custom/ruleData', ruleData)
     }
     this.prop('prop/custom/condition', value)
-    
+
     this.prop('labels/0/attrs/text/text', value.label)
   }
 
