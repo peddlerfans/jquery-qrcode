@@ -379,11 +379,9 @@ onMounted(async () => {
         // inspectorstyle2.value = {display:'block'}
         let cell:any = rappid.graph.getCell(el.id);
         let type = cell.get('type')        
-<<<<<<< HEAD
+
         if (cell.isLink() && type == 'itea.mbt.test.MBTLink') {
-=======
-        if (cell.isLink() && type == 'itea.mbt.MBTLink') {
->>>>>>> 1b3c87f45a018d1ecc977199b572ef2304bb8428
+
           showLink.value = true
           show.value = false
         showGroup.value = false
@@ -495,7 +493,6 @@ onMounted(async () => {
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
       
       let Nowcell = rappid.selection.collection.take()
-
       if (Nowcell) {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
