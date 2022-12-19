@@ -377,7 +377,7 @@ onMounted(async () => {
         inspectorstyle2.value = {display:'none'}
         let cell:any = rappid.graph.getCell(el.id);
         let type = cell.get('type')        
-        if (cell.isLink() && type == 'itea.mbt.testlink') {
+        if (cell.isLink() && type == 'itea.mbt.MBTLink') {
           showLink.value = true
           show.value = false
         showGroup.value = false
