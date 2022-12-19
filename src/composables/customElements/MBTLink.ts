@@ -28,13 +28,15 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': { text: this.get('prop')?.custom?.condition ? this.get('prop').custom.condition : 'Link' },
+      'label': { text: this.get('prop')?.custom?.condition?.label ? this.get('prop').custom.condition?.label : 'Link' },
       //   markers: {
       //     iconTypes: [ 'sub-process'],
       // }
 
     })
-    this.set('prop',{custom: { condition: '', rulesData: [] }})
+    if(!this.get('prop')?.custom?.condition?.label){
+      this.set('prop',{custom: { condition: {}, rulesData: [] }})
+    }
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;

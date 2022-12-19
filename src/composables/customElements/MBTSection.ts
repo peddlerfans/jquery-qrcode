@@ -23,7 +23,10 @@ export class MBTSection extends MBTGroupBase {
       }
 
     })
-    this.set('prop', { custom:{sectionName: ''} })
+    if(!this.get('prop')?.custom?.sectionName){
+      this.set('prop', { custom:{sectionName: ''} })
+    }
+    
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.attrs && evt.changed.attrs.label) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -63,13 +66,23 @@ export class MBTSection extends MBTGroupBase {
           }
         }
       },
+      schema: {
+        type: "object",
+        description: '',
+        properties: {
+          description: {
+            title: "Description",
+            type: "string",
+          },
+        }
+      }
     }
 
   }
-  setPropertiesData(value?: any) {
-    if(value){
-      this.prop('prop/custom', { sectionName: value })
-      this.prop('attrs/label/text', value)
+  setPropertiesData(value?: any) {    
+    if(value.description){
+      this.prop('prop/custom', { sectionName: value.description })
+      this.prop('attrs/label/text', value.description)
       this.prop('attrs/label/fontSize', 16)
     }
     
@@ -78,6 +91,9 @@ export class MBTSection extends MBTGroupBase {
   setInspectorData() {
     super.setInspectorData()
 
+  }
+  getPropertiesData() {    
+    return this.attributes.prop.custom
   }
 
   updateRectangles() {

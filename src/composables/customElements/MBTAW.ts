@@ -15,21 +15,23 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
   static shapeName = name;
   constructor(e : Element,o: any) {
       super(e,o);
-      this.attr(   {
-        // 'background': { fill: '#454549' },
-        'icon': { iconType: 'user' },
-          'label': { text: this.get('prop')?.custom.step?.data?.name ? this.get('prop').custom.step?.data?.name:'AW' ,fontSize: 16},
+      
+      
+      this.attr({
+        'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
+        'label': { text: this.get('prop')?.custom?.description? this.get('prop').custom?.description:'AW' ,fontSize: 16},
  
       },)
-
-      this.prop('isStep',true)
+      console.log(this.get('prop')?.custom?.description);
       this.on('change', (evt: any) => {
           if (evt.changed && evt.changed.custom && evt.changed.custom) {
-              
+            this.attr(   {
+                // 'background': { fill: '#454549' },
+                'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
+                'label': { text: this.get('prop')?.custom?.description? this.get('prop').custom?.description:'AW' ,fontSize: 16},
+              },)
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
-        // if(this.prop.custom?.data.name){}
-        this.attr('label/text/0',"test")
       }
       
     })
@@ -37,29 +39,39 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
    this.updateRectangles();
   }
   
-  static awData = {schema:{},data:{},uiParams:{}}
+  static awData = {step:{},expectation:{},description:''}
 getPropertiesSchema() {
     const throwData = MBTAW.awData
-    if (JSON.stringify(this.get('prop').custom.step) !== '{}') {
-        return this.get('prop').custom.step
+    if(this.get('prop').custom.description){
+            return this.get('prop').custom
+        
     } else {
         return throwData
     }
     return this.get('prop').custom.step
 throw new Error("Method not implemented.");
 }
-setPropertiesData(schema?:any,data?:any,uiParams?:any) {
+// setPropertiesData(schema?:any,data?:any,uiParams?:any) {
+    setPropertiesData(primary?:any,expected?:any,description?:any) {
+        console.log(primary,expected);
+        
     // 实现传递的数据把规定
-    if (data.name) {
+    if (description) {
         this.attr({
-            'label': { text: data.name, fontSize: 16 },
+            'label': { text:description, fontSize: 16 },
             'icon': { iconType: 'script' },
         })
+        this.prop('attrs/icon/iconType' , 'script')
       }
-      MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
+      if(expected.schema){
+        MBTAW.awData = {step:{...primary},expectation:{...expected},description:description}
+        this.prop('prop/custom/expectation',{...expected})
+      }
+      MBTAW.awData = {step:{...primary},expectation:{},description:description}
       // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
-      this.prop('prop/custom/step',{schema:schema,data:data})
-      MBTAW.awData = {schema:{},data:{},uiParams:{}}
+      this.prop('prop/custom/step',{...primary})
+      this.prop('prop/custom/description' ,description)
+      MBTAW.awData = {step:{},expectation:{},description:''}
     }
  
   getInspectorSchema(){
@@ -340,7 +352,8 @@ setSizeFromContent() {
             step : {
             },
             expectation : {
-            }
+            },
+            description:''
           }
         },
     }

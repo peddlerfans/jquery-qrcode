@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import {
   ref,
-  onMounted,
   watch,
   computed
 } from 'vue'
-import { CommonTable } from '@/components/basic/common-table'
-import { SearchBar } from '@/components/basic/search-bar'
-import http from "@/utils/http";
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
@@ -15,57 +11,23 @@ import _ from "lodash";
 import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
 import {useRoute, useRouter} from "vue-router";
+import {
+  PlusCircleOutlined,
+  DeleteOutlined,
+  EditOutlined
+} from "@ant-design/icons-vue";
+import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 
 interface Props {
   show: boolean
 }
 
-const emit = defineEmits(['save'])
-
 const props = withDefaults(defineProps<Props>(), {
   show: false
 })
+const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
-
-watch(
-    () => props.show,
-    () => {
-      if (store.getPrimaryAw.schema) {
-        schema.value = store.getPrimaryAw.schema
-        schema.value = getSchema(schema.value)
-        schemaValue.value = store.getPrimaryAw.data || {}
-        primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-        isEdit.value = true
-      }
-      if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
-        expectedSchema.value = store.getExpectedAw.schema
-        expectedSchema.value = getSchema(expectedSchema.value)
-        expectedSchemaValue.value = store.getExpectedAw.data || {}
-        expectedUiSchema.value = store.getExpectedAw.uiParams || {}
-      }
-    }
-)
-
-/**
- * 优化ui页面，重构schema
- * 把表单的 name 转化为 schema 的 title
- * 表单 description 转化为 schema 的 description
- * */
-function getSchema (schema: any, row?: any) {
-  const nameProp = schema.properties.name
-  const descProp = schema.properties.description
-  const tempProp = schema.properties.template
-  const tagsProp = schema.properties.tags
-  if (nameProp) delete schema.properties.name
-  if (descProp) delete schema.properties.description
-  if (tempProp) delete schema.properties.template
-  if (tagsProp) delete schema.properties.tags
-  schema.title = row ? row.name : store.getPrimaryAw.data.name
-  schema.description = row ? row.description : store.getPrimaryAw.data.description
-  return schema
-}
-
 const defaultAWSchema = {
   title: "AW",
   type: "object",
@@ -100,12 +62,72 @@ const defaultAWSchema = {
   }
 }
 
+let tempDesc = ''
+let desc = ref<string>('')
+
+watch(
+    () => props.show,
+    (val) => {
+      if (val) {
+        if (store.getPrimaryAw.schema) {
+          schema.value = store.getPrimaryAw.schema
+          schema.value = getSchema(schema.value)
+          schemaValue.value = store.getPrimaryAw.data || {}
+          primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+        }
+        if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
+          expectedSchema.value = store.getExpectedAw.schema
+          expectedSchema.value = getSchema(expectedSchema.value)
+          expectedSchemaValue.value = store.getExpectedAw.data || {}
+          expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+        }
+        tempDesc = store.getAWBothDesc
+        desc.value = tempDesc
+      } else {
+        initSchema()
+      }
+    }
+)
+
+/**
+ * 优化ui页面，重构schema
+ * 把表单的 name 转化为 schema 的 title
+ * 表单 description 转化为 schema 的 description
+ * */
+function getSchema (schema: any, row?: any) {
+  const nameProp = schema.properties.name
+  const descProp = schema.properties.description
+  const tempProp = schema.properties.template
+  const tagsProp = schema.properties.tags
+  if (nameProp) delete schema.properties.name
+  if (descProp) delete schema.properties.description
+  if (tempProp) delete schema.properties.template
+  if (tagsProp) delete schema.properties.tags
+  schema.title = row ? row.name : store.getPrimaryAw.data.name
+  schema.description = row ? row.description : store.getPrimaryAw.data.description
+  return schema
+}
+
 let selectAwTar: string = '1'
 let schema = ref(defaultAWSchema)
 let schemaValue = ref<any>({})
+watch(
+    () => schemaValue.value,
+    (val) => {
+      store.setEditingPrimaryAw(val, 'data')
+    },
+    { deep: true }
+)
 let primaryUiSchema = ref({})
 let expectedSchema = ref(defaultAWSchema)
 let expectedSchemaValue = ref<any>({})
+watch(
+    () => expectedSchemaValue.value,
+    (val) => {
+      store.setEditingExpectedAw(val, 'data')
+    },
+    { deep: true }
+)
 let expectedUiSchema = ref({})
 const formProps = {
   layoutColumn: 1,
@@ -115,69 +137,72 @@ const formProps = {
 }
 const store = MbtData()
 const { t } = useI18n()
-let isEdit = ref(false)
-
-let searchObj = {
-  url: '/api/hlfs/_tags',
-  params: {
-    q: 'category:meta'
-  }
-}
-
-// table data
-let awTable = ref<any>(null)
-const awColumn = [
-  { title: 'name', width: 40, link: 'custom' },
-  { title: 'description', width: 120 },
-  { title: 'tags', width: 100 }
-]
-let tableParams = ref({
-  search: '',
-  page: 1,
-  perPage: 10
-})
-
-function getTableData () {
-  awTable.value.loading = true
-  http.get('/api/hlfs', {
-    params: tableParams.value
-  }).then(({ data }) => {
-    awTable.value.setTableData({
-      tableData: data.data,
-      pageSize: tableParams.value.perPage,
-      currentPage: tableParams.value.page,
-      total: data.total
-    })
-  }).finally(() => {
-    awTable.value.loading = false
-  })
-}
-
-onMounted(() => {
-  getTableData()
-})
 
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
 })
 
-function setSchema (tar: string) {
-  let temp: any = {}
-  if (tar === 'primary') {
-    temp = data2schema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
-    schema.value = temp.schema
-    primaryUiSchema.value = temp.uiSchema
-  } else if (tar === 'expected') {
-    temp = data2schema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
-    expectedSchema.value = temp.schema
-    expectedUiSchema.value = temp.uiSchema
+const isEmptyPrimarySchema = computed(() => {
+  return _.isEmpty(store.getPrimaryAw.schema)
+})
+
+// 判断顶部 description 输入框用户是否有自定义输入，没有要进行修改
+function checkoutDesc () {
+  if (desc.value === tempDesc) {
+    tempDesc = store.getAWBothDesc
+    desc.value = tempDesc
   }
 }
 
+function changAW () {
+  selectAwTar = '1'
+  showTable.value = true
+}
+
+function changeExpAW () {
+  selectAwTar = '2'
+  showTable.value = true
+}
+
+function updateAW (tar: string) {
+  let _id: string = ''
+  let name: string = ''
+  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
+  if (tar === 'primary') {
+   _id = schemaValue.value._id
+   name = schemaValue.value.name
+  } else if (tar === 'expected') {
+    _id = expectedSchemaValue.value._id
+    name = expectedSchemaValue.value.name
+  }
+  router.push({
+    name: 'awupdate',
+    params: {
+      _id,
+      name,
+      awupdate: 'mbtAW',
+      mbtid: mbtId,
+      mbtname: localStorage.getItem('mbt_' + route.params.name)
+    }
+  })
+}
+
+function deleteExpected() {
+  expectedSchema.value = _.cloneDeep(defaultAWSchema)
+  expectedUiSchema.value = {}
+  expectedSchemaValue.value = {}
+  store.setEditingExpectedAw({
+    editingExpectedAw: {
+      data: null,
+      schema: null,
+      uiParams: null
+    }
+  })
+  checkoutDesc()
+}
 
 function showAw (row: any) {
-  isEdit.value = true
-  
+  showTable.value = false
   if (selectAwTar === '1') {
     schema.value = _.cloneDeep(defaultAWSchema)
     schemaValue.value = {
@@ -229,106 +254,129 @@ function showAw (row: any) {
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   }
+  checkoutDesc()
 }
 
-function search (searchText: string) {
-  tableParams.value.page = 1
-  tableParams.value.search = searchText
-  getTableData()
-}
-
-function tablePageChange (query: any) {
-  tableParams.value.page = query.current
-  tableParams.value.perPage = query.pageSize
-  getTableData()
-}
-
-// AW operation
-function saveAW () {
-  const editingPrimaryAw = {
-    data: schemaValue.value,
-    schema: schema.value,
-    uiParams: primaryUiSchema.value
-  }
-  store.setEditingPrimaryAw(editingPrimaryAw)
-  if (!_.isEmpty(expectedSchemaValue)) {
-    const editingExpectedAw = {
-      data: expectedSchemaValue.value,
-      schema: expectedSchema.value,
-      uiParams: expectedUiSchema.value
-    }
-    store.setEditingExpectedAw(editingExpectedAw)
-  }
-  emit('save')
-}
-
-function changAW () {
-  isEdit.value = false
-  selectAwTar = '1'
-}
-
-function changeExpAW () {
-  isEdit.value = false
-  selectAwTar = '2'
-}
-
-function updateAW (tar: string) {
-  let _id: string = ''
-  let name: string = ''
-  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
+function setSchema (tar: string) {
+  let temp: any = {}
   if (tar === 'primary') {
-   _id = schemaValue.value._id
-   name = schemaValue.value.name
+    temp = data2schema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
+    schema.value = temp.schema
+    primaryUiSchema.value = temp.uiSchema
   } else if (tar === 'expected') {
-    _id = expectedSchemaValue.value._id
-    name = expectedSchemaValue.value.name
+    temp = data2schema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
+    expectedSchema.value = temp.schema
+    expectedUiSchema.value = temp.uiSchema
   }
-  router.push({
-    name: 'awupdate',
-    params: {
-      _id,
-      name,
-      awupdate: 'mbtAW',
-      mbtid: mbtId,
-      mbtname: localStorage.getItem('mbt_' + route.params.name)
-    }
-  })
 }
 
-function deleteExpected() {
-  expectedSchema.value = _.cloneDeep(defaultAWSchema)
-  expectedUiSchema.value = {}
-  expectedSchemaValue.value = {}
-  store.setEditingExpectedAw({
-    editingExpectedAw: {
-      data: null,
-      schema: null,
-      uiParams: null
-    }
-  })
+function handleChange () {
+  store.setDescription(desc.value)
 }
+
+function initSchema() {
+  schema.value = defaultAWSchema
+  schemaValue.value = {}
+  primaryUiSchema.value = {}
+  expectedSchema.value = defaultAWSchema
+  expectedSchemaValue.value = {}
+  expectedUiSchema.value = {}
+  const data = {
+    data: null,
+    schema: null,
+    uiParams: null
+  }
+  // store.setEditingPrimaryAw(data)
+  // store.setEditingExpectedAw(data)
+}
+
+defineExpose({
+  initSchema
+})
 
 </script>
 
 <template>
   <div class="edit-aw-wrap">
-    <div class="title">
-      设置AW
+    <div class="aw-desc-wrap">
+      <div class="input-title">AW 描述：</div>
+      <a-input v-model:value="desc" @change="handleChange"></a-input>
     </div>
     <a-divider />
-    <div v-show="isEdit" class="aw-wrap">
-      <div class="title">Primary AW</div>
+    <div class="aw-wrap">
+      <div class="title-wrap">
+        <div class="title">{{ $t('MBTStore.primary') }}</div>
+        <div class="right-btn">
+          <a-tooltip placement="top">
+            <template #title>
+              <span>{{ t('common.chooseAw') }}</span>
+            </template>
+            <plus-circle-outlined
+                @click="changAW"
+                class="icon--primary-btn"
+                style="margin-right: 8px;"
+            ></plus-circle-outlined>
+          </a-tooltip>
+          <a-tooltip placement="top">
+            <template #title>
+              <span>{{ t('common.updateAw') }}</span>
+            </template>
+            <edit-outlined
+                @click="updateAW('primary')"
+                class="icon--primary-btn"
+                style="margin-right: 8px;"
+            ></edit-outlined>
+          </a-tooltip>
+        </div>
+      </div>
       <VueForm
+        v-show="!isEmptyPrimarySchema"
         v-model="schemaValue"
         :schema="schema"
         :formProps="formProps"
         :uiSchema="primaryUiSchema">
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
-      <div v-show="hasExpected">
-        <a-divider />
-        <div class="title">Expected AW</div>
+      <a-divider />
+      <div>
+        <div class="title-wrap">
+          <div class="title">{{ $t('MBTStore.expected') }}</div>
+          <div class="right-btn">
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ t('common.chooseAw') }}</span>
+              </template>
+              <plus-circle-outlined
+                  @click="changeExpAW"
+                  class="icon--primary-btn"
+                  style="margin-right: 8px;"
+              ></plus-circle-outlined>
+            </a-tooltip>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ $t('MBTStore.updateExpected') }}</span>
+              </template>
+              <edit-outlined
+                  @click="updateAW('primary')"
+                  class="icon--primary-btn"
+                  style="margin-right: 8px;"
+              ></edit-outlined>
+            </a-tooltip>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ $t('MBTStore.deleteExpected') }}</span>
+              </template>
+              <delete-outlined
+                  v-show="hasExpected"
+                  @click="deleteExpected"
+                  class="icon--primary-btn"
+                  style="margin-right: 8px;"
+              ></delete-outlined>
+            </a-tooltip>
+          </div>
+        </div>
         <VueForm
+            v-show="hasExpected"
             v-model="expectedSchemaValue"
             :schema="expectedSchema"
             :formProps="formProps"
@@ -336,50 +384,37 @@ function deleteExpected() {
           <div slot-scope="{ schemaValue }">
           </div>
         </VueForm>
-      </div>
-      <div class="btn-line">
-        <!-- <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button> -->
-        <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>
-        <a-button size="small" danger @click="updateAW('primary')">{{ t('common.updateAw') }}</a-button>
-        <a-button size="small" danger @click="changeExpAW">{{ t('common.chooseEx') }}</a-button>
-        <a-button size="small" danger @click="updateAW('expected')">修改预期</a-button>
-        <a-button size="small" danger @click="deleteExpected()">删除预期</a-button>
+        <a-divider />
       </div>
     </div>
-    <div v-show="!isEdit">
-      <search-bar
-        :url="searchObj.url"
-        :params="searchObj.params"
-        @search="search"
-      ></search-bar>
-      <common-table
-          ref="awTable"
-          :columns="awColumn"
-          tableRef="awTable"
-          @go2Page="showAw"
-          @pageChange="tablePageChange"
-      ></common-table>
-    </div>
+    <aw-schema-table-modal
+        @clickRow="showAw"
+        :show="showTable"
+        @closeModal="showTable = false"
+    ></aw-schema-table-modal>
   </div>
 </template>
 
 <style scoped lang="less">
 .edit-aw-wrap {
   padding: 4px 8px;
-  height: 100%;
-  overflow: auto;
-  .title {
-    font-size: 18px;
-    margin-top: 8px;
-    margin-bottom: 12px;
+  .aw-desc-wrap {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-top: 16px;
   }
   .aw-wrap {
-    .title {
-      font-size: 16px;
-    }
-    .btn-line {
-      .ant-btn {
-        margin-right: 8px;
+    .title-wrap {
+      display: flex;
+      //justify-content: space-between;
+      .title {
+        font-size: 16px;
+        margin-right: 12px;
+      }
+      .right-btn {
+        display: flex;
+        align-items: center;
       }
     }
   }
