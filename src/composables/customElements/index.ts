@@ -29,8 +29,8 @@ export function getShapesNamespace() {
 
   let customShapes: any = {};
 
-  Object.assign(joint.shapes, { 'itea': { 'mbt': customShapes } });
-  for (let shape of [MBTGroup, MBTSection, MBTStartEvent, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTLink]) {
+  Object.assign(joint.shapes, { 'itea': { 'mbt': {'text' : customShapes} } });
+  for (let shape of [MBTAW,MBTGroup, MBTSection, MBTStartEvent, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTLink]) {
     customShapes[shape.shapeName] = shape;
 
   }

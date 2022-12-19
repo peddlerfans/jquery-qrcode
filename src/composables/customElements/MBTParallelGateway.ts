@@ -45,13 +45,6 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
     return {
       inputs: {
         attrs: {
-          'icon/iconType': {
-            type: 'select',
-            options: this.getOptions(joint.shapes.bpmn2.Gateway.GATEWAY_ICONS),
-            label: 'Type',
-            group: 'general',
-            index: 2
-          },
           'icon/iconColor': {
             type: 'color',
             label: 'Icon Color',
