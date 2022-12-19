@@ -17,11 +17,12 @@ interface MbtData {
         detail: any,
         customKeys: Array<string>
     }
-    LinkData:{
-        linkSchemaValue:any
-        rulesData:any
+    LinkData: {
+        linkSchemaValue: any
+        rulesData: any
     }
-    awDescription:string
+    awDescription: string,
+    showSchema: boolean
 }
 
 export const MbtData = defineStore({
@@ -46,12 +47,13 @@ export const MbtData = defineStore({
             detail: null,
             customKeys: []
         },
-        LinkData:{
-            linkSchemaValue:null,
-            rulesData:null
+        LinkData: {
+            linkSchemaValue: null,
+            rulesData: null
         },
         expectedTableRow: {},
-        awDescription:''
+        awDescription: '',
+        showSchema: false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -69,13 +71,14 @@ export const MbtData = defineStore({
             return tempPrimaryDesc && tempExpectedDesc
                 ? tempPrimaryDesc + '/' + tempExpectedDesc
                 : tempPrimaryDesc + tempExpectedDesc
-        }
+        },
+        getVisible: state => state.showSchema
     },
     actions: {
         setAllData(data: any) {
             this.allData = data
         },
-        setDescription (str: string) {
+        setDescription(str: string) {
             this.awDescription = str
         },
         setEditingPrimaryAw(data: any, key?: string) {
@@ -111,15 +114,18 @@ export const MbtData = defineStore({
         setDataDefinition(data: any) {
             this.allData.dataDefinition.data = data
         },
-        setLinkData(schema:any,ruledata:any){
+        setLinkData(schema: any, ruledata: any) {
             this.LinkData.linkSchemaValue = schema
             this.LinkData.rulesData = ruledata
         },
-        resetEditingExpectedAw(){
+        resetEditingExpectedAw() {
             this.editingPrimaryAw.data = null
             this.editingPrimaryAw.schema = null
             this.editingPrimaryAw.uiParams = null
             this.awDescription = ''
+        },
+        setVisible(flag: boolean) {
+            this.showSchema = flag
         }
     }
 })

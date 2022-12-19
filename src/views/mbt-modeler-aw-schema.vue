@@ -65,10 +65,14 @@ const defaultAWSchema = {
 let tempDesc = ''
 let desc = ref<string>('')
 
+const store = MbtData()
+const { t } = useI18n()
+
 watch(
     () => props.show,
     (val) => {
       if (val) {
+        console.log(val)
         if (store.getPrimaryAw.schema) {
           schema.value = store.getPrimaryAw.schema
           schema.value = getSchema(schema.value)
@@ -123,8 +127,6 @@ const formProps = {
   labelWidth: '75px',
   labelSuffix: ':',
 }
-const store = MbtData()
-const { t } = useI18n()
 
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
@@ -134,11 +136,20 @@ const isEmptyPrimarySchema = computed(() => {
   return _.isEmpty(store.getPrimaryAw.schema)
 })
 
+function getAWBothDesc () {
+  let tempPrimaryDesc = schema.value.description || ''
+  let tempExpectedDesc = expectedSchema.value.description || ''
+  return tempPrimaryDesc && tempExpectedDesc
+      ? tempPrimaryDesc + '/' + tempExpectedDesc
+      : tempPrimaryDesc + tempExpectedDesc
+}
+
 // 判断顶部 description 输入框用户是否有自定义输入，没有要进行修改
 function checkoutDesc () {
   if (desc.value === tempDesc) {
-    tempDesc = store.getAWBothDesc
+    tempDesc = getAWBothDesc()
     desc.value = tempDesc
+    store.setDescription(tempDesc)
   }
 }
 

@@ -15,14 +15,11 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
-
-
         this.attr({
             'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
             'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
 
         },)
-        console.log(this.get('prop')?.custom?.description);
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.custom && evt.changed.custom) {
                 this.attr({
@@ -33,21 +30,26 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
                 // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
                 this.updateRectangles();
             }
-
         })
 
         this.updateRectangles();
     }
 
     static awData = { step: {}, expectation: {}, description: '' }
-
     getPropertiesSchema() {
         const throwData = MBTAW.awData
         if (this.get('prop').custom.description) {
             return {
-                data: this.get('prop').custom.step.data,
-                schema: this.get('prop').custom.step.schema,
-                uiParams: this.get('prop').custom.step.uiParams,
+                primary: {
+                    data: this.get('prop').custom.step.data,
+                    schema: this.get('prop').custom.step.schema,
+                    uiParams: this.get('prop').custom.step.uiParams,
+                },
+                expected: {
+                    data: this.get('prop').custom.expectation.data,
+                    schema: this.get('prop').custom.expectation.schema,
+                    uiParams: this.get('prop').custom.expectation.uiParams,
+                },
                 description: this.get('prop').custom.description
             }
 

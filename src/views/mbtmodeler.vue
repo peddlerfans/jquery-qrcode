@@ -30,6 +30,7 @@ import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
 import mbtModelerLink from "./mbt-modeler-link-schema.vue"
+import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -251,9 +252,7 @@ const handleOk = () => {
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
-  isGlobal.value = false
-  console.log(store.mbtData);
-  
+  isGlobal.value = false  
   // isGlobal.value = false
 }
 
@@ -373,8 +372,8 @@ onMounted(async () => {
   }
 
   rappid.graph.on("add", function (el: any) {
-    console.log('add');
-    
+    storeAw.resetEditingExpectedAw()
+
     if (el && el.hasOwnProperty("id")) {
       try {
         showpaper.value = true
@@ -422,7 +421,7 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      
+
       show.value = false
       aaaaa.value.initSchema()
 
@@ -437,18 +436,17 @@ onMounted(async () => {
         
         showGroup.value = false
         showSection.value = false
-
+        showLink.value = false
         let checkAwprops = el.getPropertiesSchema()
         if(checkAwprops && checkAwprops.description){
           storeAw.setDescription(checkAwprops.description)
 
-          if (JSON.stringify(checkAwprops.schema) !== '{}') {
-            
-          storeAw.setEditingPrimaryAw(checkAwprops)
-          
-          // if(JSON.stringify(checkAwprops.expectation) !== '{}'){
-          //   storeAw.setEditingExpectedAw(checkAwprops.expectation)
-          // }
+          if (JSON.stringify(checkAwprops.primary.schema) !== '{}') {
+          storeAw.setEditingPrimaryAw(checkAwprops.primary)
+
+          if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
+            storeAw.setEditingExpectedAw(checkAwprops.expected)
+          }
         }
       }
       setTimeout(() => {
@@ -457,13 +455,11 @@ onMounted(async () => {
       }else if(type == 'itea.mbt.test.MBTGroup'){        
         show.value = false
         
-        
+        showLink.value = false
         showGroup.value = true
         showSection.value = false
         schemaGroup.value = el.getInspectorSchema().schema
         if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
-          console.log(el.getPropertiesData());
-          
           DataGroup.value = {...el.getPropertiesData()}
         }
       }else if (type == 'itea.mbt.test.MBTSection') {
@@ -474,6 +470,7 @@ onMounted(async () => {
         show.value = false
         showGroup.value = false
         showSection.value = true
+        showLink.value = false
       } else if (type == 'itea.mbt.test.MBTLink') {
         if (getLinkType(elementView.model) == "exclusivegateway") {
           showDrawer.value = true
@@ -496,7 +493,6 @@ onMounted(async () => {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
             saveAw()
-            console.log(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc);
             
            if(storeAw.getAWBothDesc){
               Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
@@ -528,11 +524,11 @@ const saveMbt = () => {
   
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
-      // request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
-      //       return '保存成功'
-      //     }).catch(() => {
-      //       return '保存失败'
-      //     })
+    request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
+          return '保存成功'
+        }).catch(() => {
+          return '保存失败'
+        })
   }
 }
 const changeGroup = () => {
@@ -553,7 +549,7 @@ const saveLink = () =>{
 // let inspectorstyle1 = ref()
 // let inspectorstyle2 = ref()
 // const tabchange = (n: number) => {
-//   if (n == 0) {    
+//   if (n == 0) {
 //     inspectorstyle1.value = {display:'block'}
 //     inspectorstyle2.value = {display:'none'}
 //   } else {
@@ -561,6 +557,72 @@ const saveLink = () =>{
 //     inspectorstyle2.value = {display:'block'}
 //   }
 // }
+
+const visiblepreciew=ref(false)
+const previewActiveKey = ref("1")
+const casesKey=ref("1")
+let previewcol:any=ref([])
+const previewData:any=ref([])
+let previewScript = ref("")
+const softwrap=true
+let searchPreview=reactive({
+  mode:""
+})
+let outLang=ref()
+
+
+async function querycode(){
+  request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
+
+  if(rst && rst.results && rst.results.length>0){
+
+    outLang.value=rst.outputLang
+    Object.keys(rst.results[0].json).forEach((obj)=>{
+      let objJson={
+        title:obj,
+        dataIndex:obj,
+        key:obj,
+        width:50
+      }
+      previewcol.value.push(objJson)
+    })
+    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+    previewData.value=rst.results.map((item:any)=>{
+      if(item.script){
+        Object.assign(item.json,{script:item.script})
+      }
+      return item.json
+    })
+    visiblepreciew.value = true
+  }
+  }).catch((err)=>{
+    // 这里提示用户详细错误问题
+    const errMsg = err.response.data
+    showErrCard(errMsg)
+  })
+  
+}
+const preview=async (data:any)=>{
+  
+  searchPreview.mode="all"
+  await querycode()
+}
+
+const openPreview = (record:any)=>{
+  previewScript.value=record.script
+}
+
+const preciewHandleOk = () =>{
+  visiblepreciew.value=false
+  previewData.value=[]
+  previewcol.value=[]
+}
+const cencelpreview=()=>{
+  previewData.value=[]
+  previewcol.value=[]
+}
+
+
 
 
 </script>
@@ -576,7 +638,10 @@ const saveLink = () =>{
             </a-button>
           </span>
           <span>
-              <a-button type="primary" size="small" style="margin-right: 5px">
+              <a-button type="primary"
+               size="small" 
+               @click="preview(route)"
+               style="margin-right: 5px">
                 {{ $t("layout.multipleTab.preview") }}
               </a-button>
             </span>
@@ -635,6 +700,57 @@ const saveLink = () =>{
 
 
   </main>
+   <a-modal v-model:visible="visiblepreciew" 
+          title="Preview Modal" @ok="handleOk" 
+          :footer="null"
+          :keyboard="true"
+          :mask-closable="true"
+          width="1280"
+          class="previewModel"
+          @cancel="cencelpreview"
+          >
+          <a-table :columns="previewcol" 
+          :data-source="previewData" 
+          :pagination="{pageSize:5}"
+          bordered
+          :rowKey="(record: any) => record.id"
+          class="previewclass"
+          >
+        <template #bodyCell="{column,record}">
+           <template v-if="column.key=='can_be_automated'">
+            <p >{{record.can_be_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_implemented_automated'">
+            <p >{{record.is_implemented_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_in_project'">
+            <p >{{record.is_in_project}}</p>
+          </template>
+          <template v-if="column.key=='test_steps'">
+            <pre >{{record.test_steps}}</pre>
+          </template>
+          <template v-if="column.key=='expected_results'">
+            <pre >{{record.expected_results}}</pre>
+          </template>
+          <template v-if="column.key=='action'">
+            <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
+          </template>
+          </template>
+        </a-table>
+          <!-- <div > -->
+            <VAceEditor
+            v-if="previewScript"
+                          v-model:value="previewScript"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          :lang="outLang"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+          <!-- </div> -->
+          </a-modal>
+
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
       @ok="handleOk"
       :width="1000"
