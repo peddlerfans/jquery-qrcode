@@ -451,7 +451,9 @@ onMounted(async () => {
           // }
         }
       }
-      show.value = true
+      setTimeout(() => {
+        show.value = true
+      }, 0);
       }else if(type == 'itea.mbt.test.MBTGroup'){        
         show.value = false
         
@@ -522,13 +524,15 @@ onMounted(async () => {
 })
 const saveAw = () => {}
 const saveMbt = () => {
+  console.log(store.mbtData);
+  
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
-      request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
-            return '保存成功'
-          }).catch(() => {
-            return '保存失败'
-          })
+      // request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
+      //       return '保存成功'
+      //     }).catch(() => {
+      //       return '保存失败'
+      //     })
   }
 }
 const changeGroup = () => {
@@ -602,7 +606,7 @@ const saveLink = () =>{
                     >数据编辑</li>
                     <div style="clear:both;"></div>
               </ul>
-              <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div>
+              <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
                 <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
                 <VueForm

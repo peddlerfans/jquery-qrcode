@@ -48,7 +48,7 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
                 data: this.get('prop').custom.step.data,
                 schema: this.get('prop').custom.step.schema,
                 uiParams: this.get('prop').custom.step.uiParams,
-                description: '12312313123'
+                description: this.get('prop').custom.description
             }
 
         } else {
