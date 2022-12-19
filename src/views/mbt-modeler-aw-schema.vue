@@ -146,11 +146,20 @@ const isEmptyPrimarySchema = computed(() => {
   return _.isEmpty(store.getPrimaryAw.schema)
 })
 
+function getAWBothDesc () {
+  let tempPrimaryDesc = schema.value.description || ''
+  let tempExpectedDesc = expectedSchema.value.description || ''
+  return tempPrimaryDesc && tempExpectedDesc
+      ? tempPrimaryDesc + '/' + tempExpectedDesc
+      : tempPrimaryDesc + tempExpectedDesc
+}
+
 // 判断顶部 description 输入框用户是否有自定义输入，没有要进行修改
 function checkoutDesc () {
   if (desc.value === tempDesc) {
-    tempDesc = store.getAWBothDesc
+    tempDesc = getAWBothDesc()
     desc.value = tempDesc
+    store.setDescription(tempDesc)
   }
 }
 
