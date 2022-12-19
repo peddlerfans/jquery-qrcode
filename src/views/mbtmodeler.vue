@@ -397,6 +397,7 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      inspectorstyle2.value = {display:'none'}
       setLinkType(elementView.model,elementView.model)
       let el: any
       el = elementView.model

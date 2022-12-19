@@ -34,7 +34,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       // }
 
     })
-    this.prop('prop', { condition: '', rulesData: [] })
+    this.set('prop/custom', { condition: '', rulesData: [] })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
