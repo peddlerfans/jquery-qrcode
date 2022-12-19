@@ -6,8 +6,8 @@ const { t } = i18n.global
 
 // window.joint = joint
 
-export const name = 'link';
-export const namespace = 'itea.mbt.test' + name;
+export const name = 'MBTLink';
+export const namespace = 'itea.mbt.test.' + name;
 export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterface {
   static shapeName = name;
   static connectionPoint(line: any, view: any, magnet: any, opt: any, type: any, linkView: any): joint.g.Point {
@@ -28,20 +28,22 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': { text: this.get('prop')?.custom?.condition ? this.get('prop').custom.condition : 'Link' },
+      'label': { text: this.get('prop')?.custom?.condition?.label ? this.get('prop').custom.condition?.label : 'Link' },
       //   markers: {
       //     iconTypes: [ 'sub-process'],
       // }
 
     })
-    this.prop('prop', { condition: '', rulesData: [] })
+    if (!this.get('prop')?.custom?.condition?.label) {
+      this.set('prop', { custom: { condition: {}, rulesData: [] } })
+    }
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
 
         this.attr('label/text/0', "test")
       }
-
+      // this.prop()
     })
 
 
@@ -219,7 +221,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
           }
         },
 
-        labels: {
+        label: {
           type: 'list',
           group: 'labels',
           label: 'Labels',
@@ -316,9 +318,13 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
 
   }
   setPropertiesData(value?: any, ruleData?: any) {
+    console.log(value);
+    if (ruleData) {
+      this.prop('prop/custom/ruleData', ruleData)
+    }
     this.prop('prop/custom/condition', value)
-    this.prop('prop/custom/ruleData', ruleData)
-    this.prop('attrs/text/text', value.label)
+
+    this.prop('labels/0/attrs/text/text', value.label)
   }
 
   setSizeFromContent() {
@@ -329,14 +335,13 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     } = this.layout();
     this.resize(width, height);
   }
+
   defaults() {
     return {
       ...super.defaults,
-      type: namespace
-    }
+      type: namespace,
+    };
   }
-
 }
-
 
 

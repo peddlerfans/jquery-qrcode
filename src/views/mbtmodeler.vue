@@ -30,6 +30,7 @@ import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
 import mbtModelerLink from "./mbt-modeler-link-schema.vue"
+import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -251,9 +252,7 @@ const handleOk = () => {
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
-  isGlobal.value = false
-  console.log(store.mbtData);
-  
+  isGlobal.value = false  
   // isGlobal.value = false
 }
 
@@ -298,45 +297,34 @@ function Datafintion(data: any) {
   }
 }
 let schemaGroup = ref()
+let schemaSection = ref()
 let DataGroup = ref({
-  groupName: '',
+  description: '',
   loopCount:''
+})
+let DataSection = ref({
+  description:''
 })
 let cell: any = null
 
 function getLinkType(linkView: any): string {
-  if (linkView.hasOwnProperty("model") && linkView.model.hasOwnProperty("id")) {
-
-    if (rappid.graph.getCell(linkView.model.id).hasOwnProperty("linktype")) {
-      console.log(linkView.model.linktype);
-
-      return linkView.model["linktype"];
+  if (linkView.hasOwnProperty("id")) {
+    if (rappid.graph.getCell(linkView.id).hasOwnProperty("linktype")) {
+      return linkView["linktype"];
     }
   }
   return "";
 }
 
 function setLinkType(el: any, cell: any) {
-  console.log("el",el ,"cell",cell);
-  
     if (el && el.attributes && el.attributes.source && el.attributes.source.id)
       try {
-        
         let linksource:any = rappid.graph.getCell(el.attributes.source.id);
         // console.log('type:',linksource.attributes.type)
         if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
-          
-          // if (linksource.attributes.attrs.label.text == "x") {
-            // console.log(' source exclusive gateway    ',linksource.id)
             Object.assign(cell, { linktype: "exclusivegateway" });
-            console.log("exclusive link", cell);
-          // } else {
-            // Object.assign(cell, { linktype: "parallelgateway" });
-            // console.log("exclusive link", cell);
-          // }
         } else {
             Object.assign(cell, { linktype: "parallelgateway" });
-            console.log("exclusive link", cell);
           }
       } catch (e) {
         console.log("e:", e);
@@ -345,7 +333,7 @@ function setLinkType(el: any, cell: any) {
 
 let idstr: any = null
 
-
+let aaaaa:any = ref()
 onMounted(async () => {
   if (route.params._id) {
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
@@ -384,12 +372,48 @@ onMounted(async () => {
   }
 
   rappid.graph.on("add", function (el: any) {
+    storeAw.resetEditingExpectedAw()
+
     if (el && el.hasOwnProperty("id")) {
       try {
+        showpaper.value = true
+        // inspectorstyle2.value = {display:'block'}
         let cell:any = rappid.graph.getCell(el.id);
-        if (cell.isLink()) {
+        let type = cell.get('type')        
+
+        if (cell.isLink() && type == 'itea.mbt.test.MBTLink') {
+
+          showLink.value = true
+          show.value = false
+        showGroup.value = false
+        showSection.value = false
           setLinkType(el, cell);
-        } else {}
+          if (getLinkType(cell) == "exclusivegateway") {          
+          showDrawer.value = true
+        }else{
+          showDrawer.value = false
+        }
+        } else if(type == 'itea.mbt.test.MBTAW'){
+          showLink.value = false
+            show.value = true
+            showGroup.value = false
+            showSection.value = false
+        }else if(type == 'itea.mbt.test.MBTGroup'){
+          show.value = false
+        showGroup.value = true
+        showLink.value = false
+        showSection.value = false
+        }else if(type == 'itea.mbt.test.MBTSection'){
+        show.value = false
+        showLink.value = false
+        showGroup.value = false
+        showSection.value = true
+        }else{
+        show.value = false
+        showLink.value = false
+        showGroup.value = false
+        showSection.value = true
+        }
       } catch (e) {
         console.log("error:", e);
       }
@@ -397,60 +421,86 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+
+      show.value = false
+      aaaaa.value.initSchema()
+
+      // inspectorstyle2.value = {display:'block'}
       setLinkType(elementView.model,elementView.model)
       let el: any
       el = elementView.model
       cell = el
       showpaper.value = true
       let type = elementView.model?.get('type');
-      
       if(type == 'itea.mbt.test.MBTAW'){
-        show.value = true
+        
         showGroup.value = false
         showSection.value = false
-        if(el.getPropertiesSchema() && JSON.stringify(el.getPropertiesSchema().schema) !== '{}'){
-          console.log("pinia123123",storeAw.editingPrimaryAw);
-          storeAw.setEditingPrimaryAw(el.getPropertiesSchema())
+        showLink.value = false
+        let checkAwprops = el.getPropertiesSchema()
+        if(checkAwprops && checkAwprops.description){
+          storeAw.setDescription(checkAwprops.description)
+
+          if (JSON.stringify(checkAwprops.primary.schema) !== '{}') {
+          storeAw.setEditingPrimaryAw(checkAwprops.primary)
+
+          if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
+            storeAw.setEditingExpectedAw(checkAwprops.expected)
+          }
+        }
       }
+      setTimeout(() => {
+        show.value = true
+      }, 0);
       }else if(type == 'itea.mbt.test.MBTGroup'){        
         show.value = false
+        
+        showLink.value = false
         showGroup.value = true
         showSection.value = false
         schemaGroup.value = el.getInspectorSchema().schema
-        if (el.getPropertiesData().groupName || el.getPropertiesData().loopCount) {
+        if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
           DataGroup.value = {...el.getPropertiesData()}
         }
       }else if (type == 'itea.mbt.test.MBTSection') {
+        schemaSection.value = el.getInspectorSchema().schema
+        if (el.getPropertiesData().sectionName) {
+          DataSection.value = {...el.getPropertiesData()}
+        }
         show.value = false
         showGroup.value = false
         showSection.value = true
-      } else if (type == 'itea.mbt.testlink') {
-        if (getLinkType(elementView) == "exclusivegateway") {
-          console.log(123);
-          
+        showLink.value = false
+      } else if (type == 'itea.mbt.test.MBTLink') {
+        if (getLinkType(elementView.model) == "exclusivegateway") {
           showDrawer.value = true
+        }else{
+          showDrawer.value = false
         }
         showLink.value = true
-        showDrawer.value = false
-        
-      } 
+      }else{
+        show.value = false
+        showLink.value = false
+        showGroup.value = false
+        showSection.value = false
+      }
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
       
       let Nowcell = rappid.selection.collection.take()
-
       if (Nowcell) {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
             saveAw()
-          if(storeAw.editingPrimaryAw.schema !== null) {        
-              Nowcell.setInspectorData(storeAw.getPrimaryAw.schema,storeAw.getPrimaryAw.data,storeAw.getPrimaryAw.uiParams)
-              
-              storeAw.resetEditingExpectedAw()
-            }
-          } else if (type == 'itea.mbt.test.MBTGroup') {
             
+           if(storeAw.getAWBothDesc){
+              Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
+              // storeAw.resetEditingExpectedAw()
+           };
+            
+
+          } else if (type == 'itea.mbt.test.MBTGroup') {
           Nowcell.setPropertiesData(DataGroup.value)
           } else if (type == 'itea.mbt.test.MBTSection') {
             
@@ -465,12 +515,14 @@ onMounted(async () => {
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
-    tabchange(0)
+    // tabchange(0)
 });
 })
 const saveAw = () => {}
 const saveMbt = () => {
-  store.setGraph(rappid.paper.model.toJSON())
+  console.log(store.mbtData);
+  
+  store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
           return '保存成功'
@@ -479,27 +531,98 @@ const saveMbt = () => {
         })
   }
 }
-const change = () => {
+const changeGroup = () => {
   if(cell){
       cell.setPropertiesData(DataGroup.value)
   }
 }
-const saveLink = () =>{
-  if(cell && storeAw.LinkData.linkSchemaValue){
+const changeSection = () => {
+  if(cell){
+      cell.setPropertiesData(DataSection.value)
+  }
+}
+const saveLink = () =>{  
+  if(cell && storeAw.LinkData.linkSchemaValue){    
     cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
   }
 }
-let inspectorstyle1 = ref()
-let inspectorstyle2 = ref()
-const tabchange = (n: number) => {
-  if (n == 0) {    
-    inspectorstyle1.value = {display:'block'}
-    inspectorstyle2.value = {display:'none'}
-  } else {
-    inspectorstyle1.value = {display:'none'}
-    inspectorstyle2.value = {display:'block'}
+// let inspectorstyle1 = ref()
+// let inspectorstyle2 = ref()
+// const tabchange = (n: number) => {
+//   if (n == 0) {
+//     inspectorstyle1.value = {display:'block'}
+//     inspectorstyle2.value = {display:'none'}
+//   } else {
+//     inspectorstyle1.value = {display:'none'}
+//     inspectorstyle2.value = {display:'block'}
+//   }
+// }
+
+const visiblepreciew=ref(false)
+const previewActiveKey = ref("1")
+const casesKey=ref("1")
+let previewcol:any=ref([])
+const previewData:any=ref([])
+let previewScript = ref("")
+const softwrap=true
+let searchPreview=reactive({
+  mode:""
+})
+let outLang=ref()
+
+
+async function querycode(){
+  request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
+
+  if(rst && rst.results && rst.results.length>0){
+
+    outLang.value=rst.outputLang
+    Object.keys(rst.results[0].json).forEach((obj)=>{
+      let objJson={
+        title:obj,
+        dataIndex:obj,
+        key:obj,
+        width:50
+      }
+      previewcol.value.push(objJson)
+    })
+    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+    previewData.value=rst.results.map((item:any)=>{
+      if(item.script){
+        Object.assign(item.json,{script:item.script})
+      }
+      return item.json
+    })
+    visiblepreciew.value = true
   }
+  }).catch((err)=>{
+    // 这里提示用户详细错误问题
+    const errMsg = err.response.data
+    showErrCard(errMsg)
+  })
+  
 }
+const preview=async (data:any)=>{
+  
+  searchPreview.mode="all"
+  await querycode()
+}
+
+const openPreview = (record:any)=>{
+  previewScript.value=record.script
+}
+
+const preciewHandleOk = () =>{
+  visiblepreciew.value=false
+  previewData.value=[]
+  previewcol.value=[]
+}
+const cencelpreview=()=>{
+  previewData.value=[]
+  previewcol.value=[]
+}
+
+
 
 
 </script>
@@ -515,7 +638,10 @@ const tabchange = (n: number) => {
             </a-button>
           </span>
           <span>
-              <a-button type="primary" size="small" style="margin-right: 5px">
+              <a-button type="primary"
+               size="small" 
+               @click="preview(route)"
+               style="margin-right: 5px">
                 {{ $t("layout.multipleTab.preview") }}
               </a-button>
             </span>
@@ -533,44 +659,98 @@ const tabchange = (n: number) => {
           <div class="choose-template">
             <a-button type="primary" @click="chooseTem">Choose Template</a-button>
           </div>
-
         </div>
           <div class="app-body">
             <div ref="stencils" class="stencil-container"/>
             <div class="paper-container"/>
             <div class="AwtabInspector" v-show="showpaper">
               <ul class="tab_ul">
-                    <li @click="tabchange(0)">样式修改</li>
-                    <li @click="tabchange(1)"
+                    <li v-if="!show && !showGroup && !showSection && !showLink">样式修改</li>
+                    <li
                     v-if="show || showGroup || showSection || showLink"
                     >数据编辑</li>
+                    <div style="clear:both;"></div>
               </ul>
-
-              <div  :style="inspectorstyle1" class="inspector-container"></div>
-              <div class="dataStyle" :style="inspectorstyle2">
-                <mbtModelerAwschema class="dataStyle" v-show="show" :show="show"></mbtModelerAwschema>
+              <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
+              <div class="dataStyle">
+                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
                 <VueForm
-                class="dataStyle" 
                 v-show="showGroup"
                 :schema="schemaGroup"
                 v-model="DataGroup"
-                @change = 'change'
+                @change = 'changeGroup'
                 ></VueForm>
                  <mbtModelerLink
-                 class="dataStyle"
                   v-show="showLink"
                   @change="saveLink"
                   :showDrawer="showDrawer" 
                   ></mbtModelerLink>
+                  <VueForm
+                v-show="showSection"
+                :schema="schemaSection"
+                v-model="DataSection"
+                @change = 'changeSection'
+                ></VueForm>
               </div>
               
             </div>
-        <div v-show = 'showSection' class="inspector-container"></div>
+        <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
             <div class="navigator-container"/>
           </div>
 
 
   </main>
+   <a-modal v-model:visible="visiblepreciew" 
+          title="Preview Modal" @ok="handleOk" 
+          :footer="null"
+          :keyboard="true"
+          :mask-closable="true"
+          width="1280"
+          class="previewModel"
+          @cancel="cencelpreview"
+          >
+          <a-table :columns="previewcol" 
+          :data-source="previewData" 
+          :pagination="{pageSize:5}"
+          bordered
+          :rowKey="(record: any) => record.id"
+          class="previewclass"
+          >
+        <template #bodyCell="{column,record}">
+           <template v-if="column.key=='can_be_automated'">
+            <p >{{record.can_be_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_implemented_automated'">
+            <p >{{record.is_implemented_automated}}</p>
+          </template>
+          <template v-if="column.key=='is_in_project'">
+            <p >{{record.is_in_project}}</p>
+          </template>
+          <template v-if="column.key=='test_steps'">
+            <pre >{{record.test_steps}}</pre>
+          </template>
+          <template v-if="column.key=='expected_results'">
+            <pre >{{record.expected_results}}</pre>
+          </template>
+          <template v-if="column.key=='action'">
+            <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
+          </template>
+          </template>
+        </a-table>
+          <!-- <div > -->
+            <VAceEditor
+            v-if="previewScript"
+                          v-model:value="previewScript"
+                          class="ace-result"
+                          :wrap="softwrap"
+                          :readonly="true"
+                          :lang="outLang"
+                          theme="sqlserver"
+                          :options="{ useWorker: true }"
+                      />
+          <!-- </div> -->
+          </a-modal>
+
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
       @ok="handleOk"
       :width="1000"
@@ -746,11 +926,13 @@ const tabchange = (n: number) => {
 				list-style: none;
 			}
 			.tab_ul {
+        display: flex;
 				background-color: #717D98;
 				overflow: hidden;
+        width: 100%;
+        height: 50px;
 			}
 			.tab_ul li {
-				float: left;
 				padding: 15px;
 				cursor: pointer;
 			}
@@ -763,41 +945,45 @@ const tabchange = (n: number) => {
     top: 0;
     right: 0;
     bottom: 120px;
-    /* navigator height */
     width: 300px;
     box-sizing: border-box;
     .dataStyle{
-    height: 100%!important
-}
-.inspector-container {
-  top:50px;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
-}
-// .joint-inspector {
-//   top: 3.125rem;
-// }
-}
-.GroupInspector{
+    top: 50px;
+    display: block;
     position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    /* navigator height */
-    width: 300px;
-    box-sizing: border-box;
-    .ant-tabs-content-holder > .ant-tabs-content{
-    height: 100%!important
+    bottom: 0;
+    width: 100%;
+    overflow: auto;
 }
 .inspector-container {
+    top: 50px;
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
 }
 .joint-inspector {
-  top: 3.125rem;
+  bottom: 50px;
 }
+}
+.GroupInspector{
+    position: absolute;
+    top: 50px;
+    overflow: auto;
+    bottom: 0;
+    width: 100%;
+    flex: 1;
+}
+.inspector-container {
+    flex: 1 1 0%;
+    top: 3.125rem;
+    bottom: 0;
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+.joint-inspector.joint-theme-material{
+  position: absolute;
+  bottom: 50px;
 }
 
 
@@ -806,7 +992,7 @@ const tabchange = (n: number) => {
 }
 
 .joint-navigator{
-  width: 300px;
+  width: 330px;
 }
 .card-container p {
   margin: 0;

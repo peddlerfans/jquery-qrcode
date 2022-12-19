@@ -18,6 +18,7 @@ export default {
     primary: 'Primary',
     expected: 'Expected',
     configAW: 'Configuration for the AW',
-    leaveRouter:'The current edit has not been saved Do you want to exit?',
+    leaveRouter: 'The current edit has not been saved Do you want to exit?',
     // linkTitle: 'Configuration for Link'
+    configLink: 'configLink'
 }

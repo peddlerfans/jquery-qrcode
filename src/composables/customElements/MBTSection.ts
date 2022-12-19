@@ -23,18 +23,19 @@ export class MBTSection extends MBTGroupBase {
       }
 
     })
-    this.set('prop', { sectionName: '' })
+    if (!this.get('prop')?.custom?.sectionName) {
+      this.set('prop', { custom: { sectionName: '' } })
+    }
+
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.attrs && evt.changed.attrs.label) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        this.updateRectangles();
+        // this.updateRectangles();
         this.setPropertiesData(evt.changed.attrs.label.text)
         // this.attr('label/text/0', "test")
       }
 
     })
-
-    this.updateRectangles();
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable()
@@ -63,19 +64,34 @@ export class MBTSection extends MBTGroupBase {
           }
         }
       },
+      schema: {
+        type: "object",
+        description: '',
+        properties: {
+          description: {
+            title: "Description",
+            type: "string",
+          },
+        }
+      }
     }
 
   }
   setPropertiesData(value?: any) {
-    this.prop('size', { width: 150, height: 100 })
-    this.prop('prop/custom', { sectionName: value })
-    this.prop('attrs/label/text', value)
-    this.prop('attrs/label/fontSize', 16)
+    if (value.description) {
+      this.prop('prop/custom', { sectionName: value.description })
+      this.prop('attrs/label/text', value.description)
+      this.prop('attrs/label/fontSize', 16)
+    }
+
   }
 
   setInspectorData() {
     super.setInspectorData()
 
+  }
+  getPropertiesData() {
+    return this.attributes.prop.custom
   }
 
   updateRectangles() {

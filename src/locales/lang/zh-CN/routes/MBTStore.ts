@@ -18,6 +18,7 @@ export default {
     primary: '主要数据',
     expected: '预期结果',
     configAW: '配置AW',
-    leaveRouter:'当前编辑未保存，是否退出',
+    leaveRouter: '当前编辑未保存，是否退出',
+    configLink: '设置连接线'
 
 }
