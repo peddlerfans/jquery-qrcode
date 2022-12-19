@@ -115,7 +115,14 @@ export function string2Obj (schema: any, uiSchema: any) {
 function getEnumList (title: string, optionList: Array<any>) {
     if (!optionList) return []
     let res = optionList.filter((a: any) => a.description === title)[0]
-    if (res) return res.enum
+    if (res) {
+        return (res.enum || []).map((a: any) => {
+            return {
+                label: a,
+                value: a
+            }
+        })
+    }
     else return []
 }
 
