@@ -7,9 +7,9 @@ import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
-import { MBTLink } from "@/composables/customElements"
 import { defineEmits } from 'vue'
-import { MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
+import { getShapesNamespace } from '@/composables/customElements/';
+import {MBTLink , MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
 
 const emit = defineEmits(['awschemaDa'])
 
@@ -231,7 +231,7 @@ class MbtServe {
 
     initializePaper() {
         const graph = this.graph = new joint.dia.Graph({}, {
-            cellNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
+            cellNamespace: appShapes.shapes
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
@@ -242,7 +242,7 @@ class MbtServe {
             gridSize: 10,
             drawGrid: true,
             model: graph,
-            cellViewNamespace: appShapes,
+            cellViewNamespace: appShapes.shapes,
             defaultLink: <joint.dia.Link>new MBTLink(),
             defaultConnectionPoint: MBTLink.connectionPoint,
             interactive: { linkMove: false },
@@ -260,11 +260,7 @@ class MbtServe {
                 const shape = <MBTShapeInterface><unknown>cellViewT.model;
                 if (shape.ifDisallowLink && shape.ifDisallowLink()) {
                     return false;
-
-
                 }
-
-
                 return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;
             }
         });
@@ -315,8 +311,6 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
-            console.log(appShapes);
-
             var type = elementView.model?.get('type');
             if (type == 'itea.mbt.test.MBTAW') {
                 elementView.model?.set('size', { width: 120, height: 70 })

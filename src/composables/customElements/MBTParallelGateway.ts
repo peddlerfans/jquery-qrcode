@@ -38,7 +38,24 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
 
   // static namespace = 'itea.mbt.test.Gateway';
   getInspectorSchema(){
-    
+    return {
+      inputs:{
+        attrs:{
+          'icon/iconColor': {
+            type: 'color',
+            label: 'Icon Color',
+            group: 'appearance',
+            index: 3
+            },
+            'body/stroke': {
+              type: 'color',
+              label: 'Line Color',
+              group: 'appearance',
+              index: 2
+          },
+        }
+      }
+    }
 
   }
 

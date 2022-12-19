@@ -17,11 +17,9 @@ export class MBTGroup extends MBTGroupBase {
     console.log(this.markup)
     // debugger
     this.attr({
-      // 'background': { fill: '#454549' },
-      // 'icon': { iconType: 'receive' },
       'label': {
         refY: '10',
-        text: this.get('prop')?.custom?.groupName ? this.get('prop').custom?.groupName : 'Group'
+        text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
       },
       'border': {
         borderStyle: 'dashed'
@@ -30,7 +28,7 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    this.set('prop', { groupName: null, loopCount: null })
+    this.set('prop',{ custom:{ description: '', loopCount: '' }})
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -96,8 +94,8 @@ export class MBTGroup extends MBTGroupBase {
   setInspectorData() {
   }
 
-  getPropertiesData() {
-    return this.attributes.prop
+  getPropertiesData() {    
+    return this.attributes.prop.custom
   }
 
   updataLabel() {
@@ -116,13 +114,7 @@ export class MBTGroup extends MBTGroupBase {
   }
   defaults() {
     return super.defaults()
-    // return {
-    //   ...super.defaults,
-    //   type: namespace
-
-    // }
   }
-
 }
 
 

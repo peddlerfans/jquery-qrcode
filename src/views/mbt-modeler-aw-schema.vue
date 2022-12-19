@@ -337,7 +337,6 @@ function deleteExpected() {
           </div>
         </VueForm>
       </div>
-      <div>{{ schemaValue }}</div>
       <div class="btn-line">
         <!-- <a-button size="small" type="primary" @click="saveAW">{{ t('common.submitText') }}</a-button> -->
         <a-button size="small" type="primary" @click="changAW">{{ t('common.chooseAw') }}</a-button>

@@ -23,7 +23,7 @@ export class MBTSection extends MBTGroupBase {
       }
 
     })
-    this.set('prop', { sectionName: '' })
+    this.set('prop', { custom:{sectionName: ''} })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.attrs && evt.changed.attrs.label) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -67,10 +67,12 @@ export class MBTSection extends MBTGroupBase {
 
   }
   setPropertiesData(value?: any) {
-    this.prop('size', { width: 150, height: 100 })
-    this.prop('prop/custom', { sectionName: value })
-    this.prop('attrs/label/text', value)
-    this.prop('attrs/label/fontSize', 16)
+    if(value){
+      this.prop('prop/custom', { sectionName: value })
+      this.prop('attrs/label/text', value)
+      this.prop('attrs/label/fontSize', 16)
+    }
+    
   }
 
   setInspectorData() {

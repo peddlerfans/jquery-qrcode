@@ -28,6 +28,7 @@ export  class MBTAW  extends joint.shapes.bpmn2.Activity implements MBTShapeInte
               
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
+        // if(this.prop.custom?.data.name){}
         this.attr('label/text/0',"test")
       }
       
@@ -47,10 +48,18 @@ getPropertiesSchema() {
     return this.get('prop').custom.step
 throw new Error("Method not implemented.");
 }
-setPropertiesData() {
+setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     // 实现传递的数据把规定
-        
-throw new Error("Method not implemented.");
+    if (data.name) {
+        this.attr({
+            'label': { text: data.name, fontSize: 16 },
+            'icon': { iconType: 'script' },
+        })
+      }
+      MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
+      // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
+      this.prop('prop/custom/step',{schema:schema,data:data})
+      MBTAW.awData = {schema:{},data:{},uiParams:{}}
     }
  
   getInspectorSchema(){
@@ -297,17 +306,8 @@ throw new Error("Method not implemented.");
    
   }
   }
-  setInspectorData(schema?:any,data?:any,uiParams?:any){
-      if (data.name) {
-          this.attr({
-              'label': { text: data.name, fontSize: 16 },
-              'icon': { iconType: '' },
-          })
-        }
-        MBTAW.awData = {schema:schema,data:data, uiParams:uiParams}
-        // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
-        this.prop('prop/custom/step',{schema:schema,data:data})
-        MBTAW.awData = {schema:{},data:{},uiParams:{}}
+  setInspectorData(){
+      
     }
   updateRectangles() {
           if (this.get('prop').custom.step?.data?.name) {
@@ -343,181 +343,6 @@ setSizeFromContent() {
             }
           }
         },
-    //     attrs: {
-    //       rect: { 'width': 200 },
-    //       '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-    //       '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-  
-    //       '.mbt-step-step-text': {
-    //           'ref': '.mbt-step-step-rect',
-    //           'ref-y': .5,
-    //           'ref-x': .5,
-    //           'text-anchor': 'middle',
-    //           'y-alignment': 'middle',
-    //           'font-weight': 'bold',
-    //           'fill': 'black',
-    //           'font-size': 12,
-    //           'font-family': 'Times New Roman'
-    //       },
-    //       '.mbt-step-expectation-text': {
-    //           'ref': '.mbt-step-expectation-rect', 'ref-y': -.5, 'ref-x': .5,
-    //           'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-    //       }
-    //   },
-   
+    }
     }
 }
-// markup =  [       '<g class="rotatable">',
-// '<g class="scalable">',
-// '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
-// '</g>',
-// '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
-// '</g>'].join('')
-}
-// Object.assign(joint.shapes,{itea : {mbt : {test : {MBTAW}}}})
-// import joint from "../../../node_modules/@clientio/rappid/rappid.js"
-// export class MyShape extends joint.dia.Element {
-//     public test() {
-//         alert("hello world")
-//     }
-//     testAAA="123";
-//     constructor(e : Element,o: any) {
-//         super(e,o);
-//           this.prop('isStep',true)
-//       this.on('change',(evt:any)=> {
-//         if (evt.changed && evt.changed.custom && evt.changed.custom) {
-//           // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-//           this.updateRectangles();
-//           this.attr('label/text/0',"test")
-//         }
-        
-//       })
-   
-//      this.updateRectangles();
-//     }
-   
-  
-//     // constructor() {
-//     //   super();
-//     //   this.prop('isStep',true)
-//     //   this.on('change',(evt:any)=> {
-//     //     var attrs = this.get('attrs');
-//     //     if (evt.changed && evt.changed.custom && evt.changed.custom) {
-//     //       // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-//     //       this.updateRectangles();
-//     //       this.attr('label/text/0',"test")
-//     //     }
-        
-//     //   })
-//     //   this.on('element:dblclick',() => {
-//     //     console.log("dddddddddddd")
-//     //   })
-//     //  this.updateRectangles();
-//     // }
-//     // addCellListener(cell: dia.Cell): void {
-//     //   console.log("====")
-//     //   cell.on('change', () => this.assignFormFields(), this);
-//     // }
-//     // on( eventName: string, cb:any,x,y,z) {
-//     //   console.log(eventName,cb,x,y,z)
-//     //   if (eventName === "change") {
-//     //     console.log(this.getChangeFlag({"custom/step":1}))
-        
-//     //   }
-    
-//     //   //   var attrs = this.get('attrs');
-//     //   //   if (evt.changed && evt.changed.custom && evt.changed.custom) {
-//     //   //     // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-//     //   //     this.updateRectangles();
-//     //   //     this.attr('label/text/0',"test")
-//     //   //   }
-        
-    
-//     //   // }
-//     //   super.on(eventName,cb,x,y,z)
-//     //   return true
-//     // }
-//     updateRectangles() {
-  
-//       var attrs = this.get('attrs');
-//       var rects = [
-//           { type: 'step', text: this.prop('custom/step') || 'NNN'},
-//           { type: 'expectation', text: this.prop('custom/expectation') },
-//           // { type: 'methods', text: this.get('methods') }
-//       ];
-  
-//       var offsetY = 0;
-  
-//       rects.forEach(function(rect) {
-//         // debugger;
-  
-//           var lines = Array.isArray(rect.text) ? rect.text : [rect.text];
-//           var rectHeight = lines.length * 20 + 20;
-  
-//           attrs['.mbt-step-' + rect.type + '-text'].text = lines.join('\n');
-//           attrs['.mbt-step-' + rect.type + '-rect'].height = rectHeight;
-//           attrs['.mbt-step-' + rect.type + '-rect'].transform = 'translate(0,' + offsetY + ')';
-  
-//           offsetY += rectHeight;
-//       });
-//   }
-//   setSizeFromContent() {
-//     // delete this.cache.layout;
-//     const {
-//       width,
-//       height
-//     } = this.layout();
-//     this.resize(width, height);
-//   }
-//     defaults() {
-//       return {
-//           ...super.defaults,
-//           type: 'itea.mbt.test',
-//           size: { width: 100, height: 30 }, 
-//           position: { x: 10, y: 10 },
-//           prop : {
-//             isStep : true,
-//             custom : {
-//               step : {
-  
-//               },
-//               expectation : {
-  
-//               }
-//             }
-  
-//           },
-//           attrs: {
-//             rect: { 'width': 200 },
-  
-//             '.mbt-step-step-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#3498db' },
-//             '.mbt-step-expectation-rect': { 'stroke': 'black', 'stroke-width': 2, 'fill': '#2980b9' },
-    
-//             '.mbt-step-step-text': {
-//                 'ref': '.mbt-step-step-rect',
-//                 'ref-y': .5,
-//                 'ref-x': .5,
-//                 'text-anchor': 'middle',
-//                 'y-alignment': 'middle',
-//                 'font-weight': 'bold',
-//                 'fill': 'black',
-//                 'font-size': 12,
-//                 'font-family': 'Times New Roman'
-//             },
-//             '.mbt-step-expectation-text': {
-//                 'ref': '.mbt-step-expectation-rect', 'ref-y': -.5, 'ref-x': .5,
-//                 'fill': 'black', 'font-size': 12, 'font-family': 'Times New Roman'
-//             }
-//         },
-     
-//       }
-//   }
-  
-//   markup =  [       '<g class="rotatable">',
-//   '<g class="scalable">',
-//   '<rect class="mbt-step-step-rect"/><rect class="mbt-step-expectation-rect"/>',
-//   '</g>',
-//   '<text class="mbt-step-step-text"/><text class="mbt-step-expectation-text"/>',
-//   '</g>'].join('')
-  
-//   }

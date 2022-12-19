@@ -15,9 +15,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   showDrawer: false
 })
-watch(() => props.showDrawer, (val: any) => {
-  console.log(123);
-  
+watch(() => props.showDrawer, (val: any) => {  
   props.showDrawer = val
 })
 
@@ -101,8 +99,6 @@ function submit () {
 }
 let watchData = computed(()=>{linkSchemaValue.value,rulesData.value})
 watch(()=>watchData.value , (val:any) => {
-    console.log(123);
-    
     if(linkSchemaValue.value){
         store.setLinkData(linkSchemaValue.value , rulesData.value)
     }
