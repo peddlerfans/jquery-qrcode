@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import http from "@/utils/http";
 import {watch, ref, nextTick} from "vue";
-import  {SearchBar}  from "@/components/basic/search-bar/index.vue";
-import  {CommonTable}  from "@/components/basic/common-table/index.vue";
+import  {SearchBar}  from "@/components/basic/search-bar";
+import  {CommonTable}  from "@/components/basic/common-table";
 const emit = defineEmits(['clickRow', 'closeModal'])
 
 interface Props {

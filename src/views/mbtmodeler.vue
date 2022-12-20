@@ -28,9 +28,10 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import mbtModelerAwschema from "./mbtmodeler/component/mbt-modeler-aw-schema.vue"
-import mbtModelerLink from "./mbtmodeler/component/mbt-modeler-link-schema.vue"
+import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
+import mbtModelerLink from "./mbt-modeler-link-schema.vue"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
+import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -333,7 +334,6 @@ function setLinkType(el: any, cell: any) {
 
 let idstr: any = null
 
-let aaaaa:any = ref()
 onMounted(async () => {
   if (route.params._id) {
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
@@ -423,7 +423,6 @@ onMounted(async () => {
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
 
       show.value = false
-      aaaaa.value.initSchema()
 
       // inspectorstyle2.value = {display:'block'}
       setLinkType(elementView.model,elementView.model)
@@ -673,6 +672,7 @@ const cencelpreview=()=>{
               </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
+<!--                <mbt-modeler-right-modal></mbt-modeler-right-modal>-->
                 <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
                 <VueForm
                 v-show="showGroup"
@@ -683,7 +683,7 @@ const cencelpreview=()=>{
                  <mbtModelerLink
                   v-show="showLink"
                   @change="saveLink"
-                  :showDrawer="showDrawer" 
+                  :showDrawer="showDrawer"
                   ></mbtModelerLink>
                   <VueForm
                 v-show="showSection"

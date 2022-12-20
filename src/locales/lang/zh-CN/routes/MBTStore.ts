@@ -19,6 +19,9 @@ export default {
     expected: '预期结果',
     configAW: '配置AW',
     leaveRouter: '当前编辑未保存，是否退出',
-    configLink: '设置连接线'
+    configLink: '设置连接线',
 
+    // mbt-modeler-aw-schema
+    updateAw: '修改AW',
+    deleteAW: '删除AW'
 }

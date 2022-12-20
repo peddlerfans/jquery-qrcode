@@ -16,14 +16,14 @@ import {
   DeleteOutlined,
   EditOutlined
 } from "@ant-design/icons-vue";
-import AwSchemaTableModal from "@/views/mbtmodeler/component/aw-schema-table-modal.vue";
+import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 
 interface Props {
   show: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  show: false
+  show: true
 })
 const showTable = ref<boolean>(false)
 const router = useRouter()
@@ -62,9 +62,6 @@ const defaultAWSchema = {
   }
 }
 
-let tempDesc = ''
-let desc = ref<string>('')
-
 const store = MbtData()
 const { t } = useI18n()
 
@@ -85,8 +82,6 @@ watch(
         //   expectedSchemaValue.value = store.getExpectedAw.data || {}
         //   expectedUiSchema.value = store.getExpectedAw.uiParams || {}
         // }
-        tempDesc = store.getAWBothDesc
-        desc.value = tempDesc
       } else {
         initSchema()
       }
@@ -141,15 +136,6 @@ function getAWBothDesc () {
   return tempPrimaryDesc && tempExpectedDesc
       ? tempPrimaryDesc + '/' + tempExpectedDesc
       : tempPrimaryDesc + tempExpectedDesc
-}
-
-// 判断顶部 description 输入框用户是否有自定义输入，没有要进行修改
-function checkoutDesc () {
-  if (desc.value === tempDesc) {
-    tempDesc = getAWBothDesc()
-    desc.value = tempDesc
-    store.setDescription(tempDesc)
-  }
 }
 
 function changAW () {
@@ -270,10 +256,6 @@ function setSchema (tar: string) {
   }
 }
 
-function handleChange () {
-  store.setDescription(desc.value)
-}
-
 function initSchema() {
   schema.value = defaultAWSchema
   schemaValue.value = {}
@@ -298,11 +280,6 @@ defineExpose({
 
 <template>
   <div class="edit-aw-wrap">
-    <div class="aw-desc-wrap">
-      <div class="input-title">AW 描述：</div>
-      <a-input v-model:value="desc" @change="handleChange"></a-input>
-    </div>
-    <a-divider />
     <div class="aw-wrap">
       <div class="title-wrap">
         <div class="title">{{ $t('MBTStore.primary') }}</div>
@@ -326,6 +303,17 @@ defineExpose({
                 class="icon--primary-btn"
                 style="margin-right: 8px;"
             ></edit-outlined>
+          </a-tooltip>
+          <a-tooltip placement="top">
+            <template #title>
+              <span>{{ $t('MBTStore.deleteAW') }}</span>
+            </template>
+            <delete-outlined
+                v-show="hasExpected"
+                @click="deleteExpected"
+                class="icon--primary-btn"
+                style="margin-right: 8px;"
+            ></delete-outlined>
           </a-tooltip>
         </div>
       </div>
@@ -354,7 +342,7 @@ defineExpose({
             </a-tooltip>
             <a-tooltip placement="top">
               <template #title>
-                <span>{{ $t('MBTStore.updateExpected') }}</span>
+                <span>{{ $t('MBTStore.updateAw') }}</span>
               </template>
               <edit-outlined
                   @click="updateAW('primary')"
@@ -364,7 +352,7 @@ defineExpose({
             </a-tooltip>
             <a-tooltip placement="top">
               <template #title>
-                <span>{{ $t('MBTStore.deleteExpected') }}</span>
+                <span>{{ $t('MBTStore.deleteAW') }}</span>
               </template>
               <delete-outlined
                   v-show="hasExpected"
@@ -398,12 +386,6 @@ defineExpose({
 <style scoped lang="less">
 .edit-aw-wrap {
   padding: 4px 8px;
-  .aw-desc-wrap {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    margin-top: 16px;
-  }
   .aw-wrap {
     .title-wrap {
       display: flex;
