@@ -122,11 +122,8 @@ export const MbtData = defineStore({
             this.LinkData.rulesData = ruledata
         },
         resetEditingExpectedAw() {
-            this.editingPrimaryAw.data = null
-            this.editingPrimaryAw.schema = null
-            this.editingPrimaryAw.uiParams = null
-            this.awDescription = ''
-        },
+           this.showData = {}
+       },
         setVisible(flag: boolean) {
             this.showSchema = flag
         },
