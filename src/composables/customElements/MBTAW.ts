@@ -5,13 +5,18 @@ import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const { dia, g, ui, shapes } = joint
 import { i18n } from "@/locales";
 import { MBTStore } from "@/stores/MBTModel"
-import _ from "lodash";
+import {MbtData} from "@/stores/modules/mbt-data";
+import _, {isEmpty} from "lodash";
 import { objectPick } from "@vueuse/core";
+import cloneDeep from "lodash-es/cloneDeep";
 const store = MBTStore()
+const storeAw = MbtData()
 const { t } = i18n.global
 window.joint = joint
 export const name = 'aw';
 export const namespace = 'itea.mbt.test';
+
+
 export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterface {
     static shapeName = name;
     constructor(e: Element, o: any) {
@@ -23,21 +28,37 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
         },)
 
         this.on('change', (evt: any) => {
-            if (evt.changed && evt.changed && evt.changed.custom) {
+            if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
+                const desc = this.get('prop')?.custom?.description
+                const primaryDesc = storeAw.getPrimaryAw?.schema?.description || ''
+                const expectedDesc = storeAw.getExpectedAw?.schema?.description || ''
+                const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+                const labelDesc = desc
+                    ? desc
+                    : awSchemaStr ? awSchemaStr : 'AW'
                 this.attr({
-                    // 'background': { fill: '#454549' },
-                    'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
-                    'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
-                },)
-                // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-                // this.updateRectangles();
+                    'icon': { iconType: desc ? 'script' : 'user' },
+                    'label': { text: labelDesc },
+                })
             }
         })
 
         // this.updateRectangles();
     }
 
-    static awData = { step: {}, expectation: {}, description: '' }
+    static awData = {
+        step: {
+            data: {},
+            schema: {},
+            uiParams: {}
+        },
+        expectation: {
+            data: {},
+            schema: {},
+            uiParams: {}
+        },
+        description: ''
+    }
     getPropertiesSchema() {
         const throwData = MBTAW.awData
         if (this.get('prop').custom) {
@@ -68,11 +89,12 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
     // setPropertiesData每个函数接受都为统一属性，调用
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
-    setPropertiesData(data?:any) {
-        console.log(data);
-        if(!_.isEmpty(data)){
-            this.prop('prop/custom' , data)
-        }
+    setPropertiesData() {
+        const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
+        temp.description = storeAw.getDescription
+        temp.expectation = storeAw.getExpectedAw
+        temp.step = storeAw.getPrimaryAw
+        this.prop('prop/custom' , temp)
         // 实现传递的数据把规定
         // if (description) {
         //     this.attr({

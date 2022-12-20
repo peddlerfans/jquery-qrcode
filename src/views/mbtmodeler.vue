@@ -422,19 +422,19 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      console.log('clickpointerdown')
-      let el: any
-      el = elementView.model
-      cell = el
+      // let el: any
+      // el = elementView.model
+      // cell = el
       // el.getPropertiesSchema(),将它的值存入pinia中给  大schema使用
-      const checkAwProps = el.getPropertiesSchema()
-      storeAw.setData(checkAwProps)
-      storeAw.setVisible(true)
+      // debugger
+      // const checkAwProps = el.getPropertiesSchema ? el.getPropertiesSchema() : {}
+      // if (_.isEmpty(checkAwProps?.primary?.schema)) storeAw.setData(checkAwProps)
+      // storeAw.setVisible(true)
+      storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
-      saveAw()
-      show.value = false
-      setLinkType(elementView.model,elementView.model)
       showpaper.value = true
+      // show.value = false
+      // setLinkType(elementView.model,elementView.model)
       // let type = elementView.model?.get('type');
       // if(type == 'itea.mbt.test.MBTAW'){
       //
@@ -495,11 +495,9 @@ onMounted(async () => {
       
       let Nowcell = rappid.selection.collection.take()
       cell = Nowcell
-      saveAw()
       if (Nowcell) {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
-            // saveAw()
             
            if(storeAw.getAWBothDesc){
               Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
@@ -525,12 +523,7 @@ onMounted(async () => {
     // tabchange(0)
 });
 })
-const saveAw = () => {
-  if(cell && !_.isEmpty(storeAw.getShowData)){
-    cell.setPropertiesData(storeAw.getShowData)
-  }
-  
-}
+
 const saveMbt = () => {
   console.log(store.mbtData);
   
@@ -557,11 +550,7 @@ const changeSection = () => {
       cell.setPropertiesData(DataSection.value)
   }
 }
-const saveLink = () =>{  
-  if(cell && storeAw.LinkData.linkSchemaValue){    
-    cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
-  }
-}
+
 // let inspectorstyle1 = ref()
 // let inspectorstyle2 = ref()
 // const tabchange = (n: number) => {
@@ -638,6 +627,18 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 
+function handleChange (str: string) {
+  switch (str) {
+    case 'itea.mbt.test.MBTAW': {
+      storeAw.getShowData?.setPropertiesData && storeAw.getShowData.setPropertiesData()
+      break
+    }
+    case 'itea.mbt.test.MBTLink': {
+      storeAw.getShowData?.setPropertiesData && storeAw.getShowData.setPropertiesData()
+      break
+    }
+  }
+}
 
 // 工具栏
 
@@ -689,7 +690,7 @@ const cencelpreview=()=>{
               </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
-                <mbt-modeler-right-modal ref="rightSchemaModal"></mbt-modeler-right-modal>
+                <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
 <!--                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>-->
 <!--                <VueForm-->
 <!--                v-show="showGroup"-->
@@ -783,7 +784,7 @@ const cencelpreview=()=>{
                       :schema="globalschema"
                       :formFooter="{show:false}"
                     >
-                    </VueForm>
+                     </VueForm>
                   </div>
               </a-tab-pane>
               <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">

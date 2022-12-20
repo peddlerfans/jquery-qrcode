@@ -14,10 +14,7 @@ interface Props {
   showDrawer: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-  showDrawer: false
-})
-watch(() => props.showDrawer, (val: any) => {  
-  props.showDrawer = val
+  showDrawer: true
 })
 
 const keys = 1
@@ -199,7 +196,8 @@ let linkSchema = ref({
 let watchData = computed(()=>{linkSchemaValue.value,rulesData.value})
 watch(()=>watchData.value , (val:any) => {
     if(linkSchemaValue.value){
-        store.setLinkData(linkSchemaValue.value , rulesData.value)
+        store.setLinkData(linkSchemaValue.value , 'linkSchemaValue')
+        store.setLinkData(rulesData.value , 'rulesData')
     }
     
 

@@ -19,8 +19,11 @@ interface MbtData {
     }
     LinkData: {
         linkSchemaValue: any
-        rulesData: any
-    }
+        rulesData: any,
+        description: string
+    },
+    groupData: any,
+    sectionData: any,
     awDescription: string,
     showSchema: boolean
     showData:any
@@ -50,8 +53,11 @@ export const MbtData = defineStore({
         },
         LinkData: {
             linkSchemaValue: null,
-            rulesData: null
+            rulesData: null,
+            description: ''
         },
+        groupData: {},
+        sectionData: {},
         expectedTableRow: {},
         awDescription: '',
         showSchema: false,
@@ -66,14 +72,9 @@ export const MbtData = defineStore({
         getDataPoolTableData: state => state.allData?.dataDefinition?.data?.tableData || [],
         getExpectTableRow: state => state.expectedTableRow,
         getLinkData: state => state.LinkData,
-        getAWBothDesc: state => {
-            if (state.awDescription) return state.awDescription
-            let tempPrimaryDesc = state.editingPrimaryAw.schema?.description || ''
-            let tempExpectedDesc = state.editingExpectedAw.schema?.description || ''
-            return tempPrimaryDesc && tempExpectedDesc
-                ? tempPrimaryDesc + '/' + tempExpectedDesc
-                : tempPrimaryDesc + tempExpectedDesc
-        },
+        getGroupData: state => state.groupData,
+        getSectionData: state => state.sectionData,
+        getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
         getShowData:state => state.showData
     },
@@ -117,9 +118,26 @@ export const MbtData = defineStore({
         setDataDefinition(data: any) {
             this.allData.dataDefinition.data = data
         },
-        setLinkData(schema: any, ruledata: any) {
-            this.LinkData.linkSchemaValue = schema
-            this.LinkData.rulesData = ruledata
+        setLinkData(data: any, key: string) {
+            if (!key) this.LinkData = data
+            else {
+                // @ts-ignore
+                this.LinkData[key] = data
+            }
+        },
+        setGroupData(data: any, key?: string) {
+            if (!key) this.groupData = data
+            else {
+                // @ts-ignore
+                this.groupData[key] = data
+            }
+        },
+        setSectionData(data: any, key?: string) {
+            if (!key) this.sectionData = data
+            else {
+                // @ts-ignore
+                this.sectionData[key] = data
+            }
         },
         resetEditingExpectedAw() {
            this.showData = {}

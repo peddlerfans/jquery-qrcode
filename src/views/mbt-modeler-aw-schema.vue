@@ -68,39 +68,6 @@ const defaultAWSchema = {
 const store = MbtData()
 const { t } = useI18n()
 
-onMounted(() => {
-  console.log(1)
-})
-
-function handleAwData () {
-  store.setEditingPrimaryAw(store.getShowData.step)
-  store.setEditingExpectedAw(store.getShowData.expectation)
-}
-
-// watch(
-//     () => props.show,
-//     (val) => {
-//       debugger
-//       if (val) {
-//         handleAwData()
-//         if (store.getPrimaryAw.schema) {
-//           schema.value = store.getPrimaryAw.schema
-//           schema.value = getSchema(schema.value)
-//           schemaValue.value = store.getPrimaryAw.data || {}
-//           primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-//         }
-//         if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
-//           expectedSchema.value = store.getExpectedAw.schema
-//           expectedSchema.value = getSchema(expectedSchema.value)
-//           expectedSchemaValue.value = store.getExpectedAw.data || {}
-//           expectedUiSchema.value = store.getExpectedAw.uiParams || {}
-//         }
-//       } else {
-//         initSchema()
-//       }
-//     }
-// )
-
 /**
  * 优化ui页面，重构schema
  * 把表单的 name 转化为 schema 的 title
@@ -115,8 +82,8 @@ function getSchema (schema: any, row?: any) {
   if (descProp) delete schema.properties.description
   if (tempProp) delete schema.properties.template
   if (tagsProp) delete schema.properties.tags
-  schema.title = row ? row.name : store.getPrimaryAw.data.name
-  schema.description = row ? row.description : store.getPrimaryAw.data.description
+  schema.title = row ? row.name : store.getPrimaryAw.data?.name || ''
+  schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
 
@@ -252,6 +219,7 @@ function showAw (row: any) {
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
     store.setEditingPrimaryAw(expectedUiSchema.value, 'uiParams')
   }
+  emit('change')
 }
 
 function setSchema (tar: string) {
@@ -267,20 +235,21 @@ function setSchema (tar: string) {
   }
 }
 
-function initSchema() {
+function initPrimarySchema () {
   schema.value = defaultAWSchema
   schemaValue.value = {}
   primaryUiSchema.value = {}
+}
+
+function initExpectedSchema () {
   expectedSchema.value = defaultAWSchema
   expectedSchemaValue.value = {}
   expectedUiSchema.value = {}
-  // const data = {
-  //   data: null,
-  //   schema: null,
-  //   uiParams: null
-  // }
-  // store.setEditingPrimaryAw(data)
-  // store.setEditingExpectedAw(data)
+}
+
+function initSchema() {
+  initPrimarySchema()
+  initExpectedSchema()
 }
 
 function handleChange () {
@@ -290,18 +259,21 @@ function handleChange () {
 }
 
 function handleData () {
-  handleAwData()
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+  } else {
+    initPrimarySchema()
   }
   if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
     expectedSchema.value = store.getExpectedAw.schema
     expectedSchema.value = getSchema(expectedSchema.value)
     expectedSchemaValue.value = store.getExpectedAw.data || {}
     expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+  } else {
+    initExpectedSchema()
   }
 }
 

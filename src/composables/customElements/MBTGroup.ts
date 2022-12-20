@@ -3,9 +3,10 @@ const { dia, g } = joint
 import { i18n } from "@/locales";
 import { MBTGroupBase } from "./MBTGroupBase";
 const { t } = i18n.global
+import {MbtData} from '@/stores/modules/mbt-data'
 // import { MBTShapeInterface } from "./MBTShapeInterface";
 // window.joint = joint
-
+const store = MbtData()
 export const name = 'MBTGroup';
 export const namespace = 'itea.mbt.test.' + name;
 export class MBTGroup extends MBTGroupBase {

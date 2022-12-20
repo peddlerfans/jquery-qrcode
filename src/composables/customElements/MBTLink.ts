@@ -1,7 +1,10 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
-const { dia, g } = joint
 import { i18n } from "@/locales";
 import { MBTShapeInterface } from "./MBTShapeInterface"
+import {MbtData} from "@/stores/modules/mbt-data";
+
+const { dia, g } = joint
+const storeAw = MbtData()
 const { t } = i18n.global
 
 // window.joint = joint
@@ -38,12 +41,15 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       this.set('prop', { custom: { condition: {}, rulesData: [] } })
     }
     this.on('change', (evt: any) => {
-      if (evt.changed && evt.changed.custom && evt.changed.custom) {
-        // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-
-        this.attr('label/text/0', "test")
+      const custom = evt.changed?.prop?.custom
+      if (custom) {
+        const labelText = storeAw.getDescription ? storeAw.getDescription : custom?.condition?.label || ''
+        this.attr({
+          'label': {
+            text: labelText
+          }
+        })
       }
-      // this.prop()
     })
 
 
@@ -317,15 +323,12 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   setInspectorData() {
 
   }
-  setPropertiesData(value?: any, ruleData?: any) {
+  setPropertiesData() {
     // 添加属性判断是否condition
-    console.log(value);
-    if (ruleData) {
-      this.prop('prop/custom/ruleData', ruleData)
-    }
-    this.prop('prop/custom/condition', value)
-
-    this.prop('labels/0/attrs/text/text', value.label)
+    const temp = Object.assign(storeAw.getLinkData, {
+      description: storeAw.getDescription
+    })
+    this.prop('prop/custom/condition', temp)
   }
 
   setSizeFromContent() {
