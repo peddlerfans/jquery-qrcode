@@ -7,7 +7,7 @@ const { t } = i18n.global
 window.joint = joint
 
 export const name = 'endevent';
-export const namespace='itea.mbt.test'+name;
+export const namespace='itea.mbt.test.'+name;
 export class MBTEndEvent extends joint.shapes.bpmn2.Event implements MBTShapeInterface  {
   static shapeName = name;
   constructor(e : Element,o: any) {

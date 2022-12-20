@@ -50,6 +50,7 @@ export class StencilService {
     this.stencil.load(this.getStencilShapes());
   }
 
+  
   getStencilGroups() {
     return <{ [key: string]: joint.ui.Stencil.Group }>{
       standard: { index: 1, label: 'Standard shapes' },

@@ -8,7 +8,7 @@ import { MBTGroupBase } from "./MBTGroupBase";
 window.joint = joint
 
 export const name = 'section';
-export const namespace = 'itea.mbt.test' + name;
+export const namespace = 'itea.mbt.test.' + name;
 export class MBTSection extends MBTGroupBase {
   static shapeName = name;
   constructor(e: Element, o: any) {
@@ -91,6 +91,7 @@ export class MBTSection extends MBTGroupBase {
 
   }
   getPropertiesData() {
+    // return一个type属性（enum）作为下拉列表
     return this.attributes.prop.custom
   }
 

@@ -5,6 +5,7 @@ import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const { dia, g, ui, shapes } = joint
 import { i18n } from "@/locales";
 import { MBTStore } from "@/stores/MBTModel"
+import _ from "lodash";
 import { objectPick } from "@vueuse/core";
 const store = MBTStore()
 const { t } = i18n.global
@@ -20,38 +21,42 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
             'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
 
         },)
+
         this.on('change', (evt: any) => {
-            if (evt.changed && evt.changed.custom && evt.changed.custom) {
+            debugger
+            if (evt.changed && evt.changed && evt.changed.custom) {
                 this.attr({
                     // 'background': { fill: '#454549' },
                     'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
                     'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
                 },)
                 // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-                this.updateRectangles();
+                // this.updateRectangles();
             }
         })
 
-        this.updateRectangles();
+        // this.updateRectangles();
     }
 
     static awData = { step: {}, expectation: {}, description: '' }
     getPropertiesSchema() {
         const throwData = MBTAW.awData
-        if (this.get('prop').custom.description) {
-            return {
-                primary: {
-                    data: this.get('prop').custom.step.data,
-                    schema: this.get('prop').custom.step.schema,
-                    uiParams: this.get('prop').custom.step.uiParams,
-                },
-                expected: {
-                    data: this.get('prop').custom.expectation.data,
-                    schema: this.get('prop').custom.expectation.schema,
-                    uiParams: this.get('prop').custom.expectation.uiParams,
-                },
-                description: this.get('prop').custom.description
-            }
+        if (this.get('prop').custom) {
+            return this.get('prop').custom
+            // return {
+            //     primary: {
+            //         data: this.get('prop').custom.step.data,
+            //         schema: this.get('prop').custom.step.schema,
+            //         uiParams: this.get('prop').custom.step.uiParams,
+            //     },
+            //     expected: {
+            //         data: this.get('prop').custom.expectation.data,
+            //         schema: this.get('prop').custom.expectation.schema,
+            //         uiParams: this.get('prop').custom.expectation.uiParams,
+            //     },
+            //     description: this.get('prop').custom.description,
+            //     type:'aw'
+            // }
 
         } else {
             return throwData
@@ -59,31 +64,39 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
         return this.get('prop').custom.step
         throw new Error("Method not implemented.");
     }
+
+
+    // setPropertiesData每个函数接受都为统一属性，调用
+
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
-    setPropertiesData(primary?: any, expected?: any, description?: any) {
-        console.log(primary, expected);
-
+    setPropertiesData(data?:any) {
+        console.log(data);
+        if(!_.isEmpty(data)){
+            this.prop('prop/custom' , data)
+        }
         // 实现传递的数据把规定
-        if (description) {
-            this.attr({
-                'label': { text: description, fontSize: 16 },
-                'icon': { iconType: 'script' },
-            })
-            this.prop('attrs/icon/iconType', 'script')
-        }
-        if (expected && expected.schema) {
+        // if (description) {
+        //     this.attr({
+        //         'label': { text: description, fontSize: 16 },
+        //         'icon': { iconType: 'script' },
+        //     })
+        //     this.prop('attrs/icon/iconType', 'script')
+        // }
+        // if (expected && expected.schema) {
 
-            MBTAW.awData = { step: { ...primary }, expectation: { ...expected }, description: description }
-            this.prop('prop/custom/expectation', { ...expected })
-        }
-        MBTAW.awData = { step: { ...primary }, expectation: {}, description: description }
-        // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
+        //     MBTAW.awData = { step: { ...primary }, expectation: { ...expected }, description: description }
+        //     this.prop('prop/custom/expectation', { ...expected })
+        // }
+        // MBTAW.awData = { step: { ...primary }, expectation: {}, description: description }
+        // // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
 
-        this.prop('prop/custom/step', { ...primary })
-        this.prop('prop/custom/description', description)
-        MBTAW.awData = { step: {}, expectation: {}, description: '' }
+        // this.prop('prop/custom/step', { ...primary })
+        // this.prop('prop/custom/description', description)
+        // MBTAW.awData = { step: {}, expectation: {}, description: '' }
     }
 
+
+    // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染
     getInspectorSchema() {
         const options = {
             colorPalette: [
@@ -331,7 +344,8 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
     setInspectorData() {
 
     }
-    updateRectangles() {
+    // reload CEll 
+        updateRectangles() {
         if (this.get('prop').custom.step?.data?.name) {
             this.attr({
                 // 'background': { fill: '#454549' },
@@ -363,7 +377,8 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
                     },
                     expectation: {
                     },
-                    description: ''
+                    description: '',
+                    type:'aw'
                 }
             },
         }

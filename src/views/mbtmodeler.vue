@@ -421,15 +421,20 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-
+      let el: any
+      el = elementView.model
+      cell = el
+      // el.getPropertiesSchema(),将它的值存入pinia中给  大schema使用
+      storeAw.setData(el.getPropertiesSchema())
+      storeAw.setVisible(true)
+      saveAw()
       show.value = false
       aaaaa.value.initSchema()
 
       // inspectorstyle2.value = {display:'block'}
       setLinkType(elementView.model,elementView.model)
-      let el: any
-      el = elementView.model
-      cell = el
+
+      
       showpaper.value = true
       let type = elementView.model?.get('type');
       if(type == 'itea.mbt.test.MBTAW'){
@@ -487,12 +492,15 @@ onMounted(async () => {
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+      storeAw.setVisible(false)
       
       let Nowcell = rappid.selection.collection.take()
+      cell = Nowcell
+      saveAw()
       if (Nowcell) {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
-            saveAw()
+            // saveAw()
             
            if(storeAw.getAWBothDesc){
               Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
@@ -518,7 +526,12 @@ onMounted(async () => {
     // tabchange(0)
 });
 })
-const saveAw = () => {}
+const saveAw = () => {
+  if(cell && !_.isEmpty(storeAw.getShowData)){
+    cell.setPropertiesData(storeAw.getShowData)
+  }
+  
+}
 const saveMbt = () => {
   console.log(store.mbtData);
   
@@ -531,6 +544,10 @@ const saveMbt = () => {
         })
   }
 }
+
+
+// 实时更新数据，依据change事件来调用函数
+
 const changeGroup = () => {
   if(cell){
       cell.setPropertiesData(DataGroup.value)
@@ -623,7 +640,7 @@ const cencelpreview=()=>{
 }
 
 
-
+// 工具栏
 
 </script>
 
