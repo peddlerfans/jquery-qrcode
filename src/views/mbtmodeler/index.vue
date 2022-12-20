@@ -28,8 +28,8 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import mbtModelerAwschema from "./mbtmodeler/component/mbt-modeler-aw-schema.vue"
-import mbtModelerLink from "./mbtmodeler/component/mbt-modeler-link-schema.vue"
+import mbtModelerAwschema from "./component/mbt-modeler-aw-schema.vue"
+import mbtModelerLink from "./component/mbt-modeler-link-schema.vue"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 
 const store = MBTStore()
@@ -62,10 +62,10 @@ const templateRadiovalue = ref<number>(1);
 let tableData = ref([]);
 let tableColumns = ref([]);
 // 动态模板的数据
-  let tableDataDynamic = ref([]);
-  let tableColumnsDynamic = ref();
-  // input模板的数据
-  let tableDataDirectInput = ref([]);
+let tableDataDynamic = ref([]);
+let tableColumnsDynamic = ref();
+// input模板的数据
+let tableDataDirectInput = ref([]);
 let tableColumnsDirectInput = ref([]);
 
 // resource的数据
@@ -171,7 +171,7 @@ const globalschema = ref({
 
 // 选择模板的函数
 const chooseTem = () => {
-    isGlobal.value=true
+  isGlobal.value=true
 }
 // 保存meta的函数
 // const submitTemplate = (data: any) => {
@@ -188,7 +188,7 @@ const handleRadioChange: any = (v: any) => {
 // 保存动态模板的函数
 const handleDynamicTable = (data: any) => {
   console.log(data);
-  
+
 };
 
 // 清除动态模板的函数
@@ -217,8 +217,8 @@ const resourceshandleAdd = () => {
 // 保存单元格的函数
 const resourcessave = (key: string) => {
   Object.assign(
-    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
-    resourceseditableData[key]
+      resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
+      resourceseditableData[key]
   );
   delete resourceseditableData[key];
 };
@@ -226,7 +226,7 @@ const resourcessave = (key: string) => {
 // 修改行的函数
 const resourcesedit = (key: string) => {
   resourceseditableData[key] = cloneDeep(
-    resourcesdataSource.value.filter((item) => key === item.key)[0]
+      resourcesdataSource.value.filter((item) => key === item.key)[0]
   );
 };
 
@@ -238,7 +238,7 @@ const resourcescancel = (key: string) => {
 // 删除行的函数
 const onresourcesDelete = (key: string) => {
   resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item: { key: string; }) => item.key !== key
+      (item: { key: string; }) => item.key !== key
   );
 };
 
@@ -252,18 +252,18 @@ const handleOk = () => {
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
-  isGlobal.value = false  
+  isGlobal.value = false
   // isGlobal.value = false
 }
 
 // 回显数据的地方
-function Datafintion(data: any) {  
+function Datafintion(data: any) {
   if(store.changeTemplate?._id){
     globalformData.value = {...store.changeTemplate}
   }
   if (store.showMetaSchema) {
     tempschema.value = computed(()=>store.showMetaSchema).value
-    isFormVisible.value = true    
+    isFormVisible.value = true
   }
   if (store.showMetaData) {
     metatemplatedetailtableData.value = store.showMetaData
@@ -271,10 +271,10 @@ function Datafintion(data: any) {
   if(data.dataDefinition.resources.length>0){
     resourcesdataSource.value = data.dataDefinition.resources
   }
-  
+
   if(
-    data &&
-    data.dataDefinition &&
+      data &&
+      data.dataDefinition &&
       data.dataDefinition.data &&
       data.dataDefinition.data.tableData
   ) {
@@ -317,19 +317,19 @@ function getLinkType(linkView: any): string {
 }
 
 function setLinkType(el: any, cell: any) {
-    if (el && el.attributes && el.attributes.source && el.attributes.source.id)
-      try {
-        let linksource:any = rappid.graph.getCell(el.attributes.source.id);
-        // console.log('type:',linksource.attributes.type)
-        if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
-            Object.assign(cell, { linktype: "exclusivegateway" });
-        } else {
-            Object.assign(cell, { linktype: "parallelgateway" });
-          }
-      } catch (e) {
-        console.log("e:", e);
+  if (el && el.attributes && el.attributes.source && el.attributes.source.id)
+    try {
+      let linksource:any = rappid.graph.getCell(el.attributes.source.id);
+      // console.log('type:',linksource.attributes.type)
+      if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
+        Object.assign(cell, { linktype: "exclusivegateway" });
+      } else {
+        Object.assign(cell, { linktype: "parallelgateway" });
       }
-  }
+    } catch (e) {
+      console.log("e:", e);
+    }
+}
 
 let idstr: any = null
 
@@ -354,16 +354,16 @@ onMounted(async () => {
     storeAw.setAllData(store.mbtData)
   }
   rappid = new MbtServe(
-    apps.value,
-    new StencilService(),
-    new ToolbarService(),
-    new HaloService(),
-    new InspectorService(),
-    new KeyboardService()
+      apps.value,
+      new StencilService(),
+      new ToolbarService(),
+      new HaloService(),
+      new InspectorService(),
+      new KeyboardService()
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
+
     rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getcells)));
 
   }
@@ -379,69 +379,69 @@ onMounted(async () => {
         showpaper.value = true
         // inspectorstyle2.value = {display:'block'}
         let cell:any = rappid.graph.getCell(el.id);
-        let type = cell.get('type')        
+        let type = cell.get('type')
 
         if (cell.isLink() && type == 'itea.mbt.test.MBTLink') {
 
           showLink.value = true
           show.value = false
-        showGroup.value = false
-        showSection.value = false
+          showGroup.value = false
+          showSection.value = false
           setLinkType(el, cell);
-          if (getLinkType(cell) == "exclusivegateway") {          
-          showDrawer.value = true
-        }else{
-          showDrawer.value = false
-        }
+          if (getLinkType(cell) == "exclusivegateway") {
+            showDrawer.value = true
+          }else{
+            showDrawer.value = false
+          }
         } else if(type == 'itea.mbt.test.MBTAW'){
           showLink.value = false
-            show.value = true
-            showGroup.value = false
-            showSection.value = false
+          show.value = true
+          showGroup.value = false
+          showSection.value = false
         }else if(type == 'itea.mbt.test.MBTGroup'){
           show.value = false
-        showGroup.value = true
-        showLink.value = false
-        showSection.value = false
+          showGroup.value = true
+          showLink.value = false
+          showSection.value = false
         }else if(type == 'itea.mbt.test.MBTSection'){
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = true
+          show.value = false
+          showLink.value = false
+          showGroup.value = false
+          showSection.value = true
         }else{
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = true
+          show.value = false
+          showLink.value = false
+          showGroup.value = false
+          showSection.value = true
         }
       } catch (e) {
         console.log("error:", e);
       }
-     }      
+    }
   })
 
-    rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+  rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
 
-      show.value = false
-      aaaaa.value.initSchema()
+    show.value = false
+    aaaaa.value.initSchema()
 
-      // inspectorstyle2.value = {display:'block'}
-      setLinkType(elementView.model,elementView.model)
-      let el: any
-      el = elementView.model
-      cell = el
-      showpaper.value = true
-      let type = elementView.model?.get('type');
-      if(type == 'itea.mbt.test.MBTAW'){
-        
-        showGroup.value = false
-        showSection.value = false
-        showLink.value = false
-        let checkAwprops = el.getPropertiesSchema()
-        if(checkAwprops && checkAwprops.description){
-          storeAw.setDescription(checkAwprops.description)
+    // inspectorstyle2.value = {display:'block'}
+    setLinkType(elementView.model,elementView.model)
+    let el: any
+    el = elementView.model
+    cell = el
+    showpaper.value = true
+    let type = elementView.model?.get('type');
+    if(type == 'itea.mbt.test.MBTAW'){
 
-          if (JSON.stringify(checkAwprops.primary.schema) !== '{}') {
+      showGroup.value = false
+      showSection.value = false
+      showLink.value = false
+      let checkAwprops = el.getPropertiesSchema()
+      if(checkAwprops && checkAwprops.description){
+        storeAw.setDescription(checkAwprops.description)
+
+        if (JSON.stringify(checkAwprops.primary.schema) !== '{}') {
           storeAw.setEditingPrimaryAw(checkAwprops.primary)
 
           if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
@@ -452,97 +452,97 @@ onMounted(async () => {
       setTimeout(() => {
         show.value = true
       }, 0);
-      }else if(type == 'itea.mbt.test.MBTGroup'){        
-        show.value = false
-        
-        showLink.value = false
-        showGroup.value = true
-        showSection.value = false
-        schemaGroup.value = el.getInspectorSchema().schema
-        if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
-          DataGroup.value = {...el.getPropertiesData()}
-        }
-      }else if (type == 'itea.mbt.test.MBTSection') {
-        schemaSection.value = el.getInspectorSchema().schema
-        if (el.getPropertiesData().sectionName) {
-          DataSection.value = {...el.getPropertiesData()}
-        }
-        show.value = false
-        showGroup.value = false
-        showSection.value = true
-        showLink.value = false
-      } else if (type == 'itea.mbt.test.MBTLink') {
-        if (getLinkType(elementView.model) == "exclusivegateway") {
-          showDrawer.value = true
-        }else{
-          showDrawer.value = false
-        }
-        showLink.value = true
-      }else{
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = false
-      }
-    })
+    }else if(type == 'itea.mbt.test.MBTGroup'){
+      show.value = false
 
-    rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-      
-      let Nowcell = rappid.selection.collection.take()
-      if (Nowcell) {
-        let type = Nowcell.attributes?.type
-          if(type == 'itea.mbt.test.MBTAW') {
-            saveAw()
-            
-           if(storeAw.getAWBothDesc){
-              Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
-              // storeAw.resetEditingExpectedAw()
-           };
-            
-
-          } else if (type == 'itea.mbt.test.MBTGroup') {
-          Nowcell.setPropertiesData(DataGroup.value)
-          } else if (type == 'itea.mbt.test.MBTSection') {
-            
-          Nowcell.setPropertiesData()
-        }
+      showLink.value = false
+      showGroup.value = true
+      showSection.value = false
+      schemaGroup.value = el.getInspectorSchema().schema
+      if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
+        DataGroup.value = {...el.getPropertiesData()}
       }
-      showpaper.value = false
+    }else if (type == 'itea.mbt.test.MBTSection') {
+      schemaSection.value = el.getInspectorSchema().schema
+      if (el.getPropertiesData().sectionName) {
+        DataSection.value = {...el.getPropertiesData()}
+      }
       show.value = false
       showGroup.value = false
-      showSection.value = false
+      showSection.value = true
       showLink.value = false
+    } else if (type == 'itea.mbt.test.MBTLink') {
+      if (getLinkType(elementView.model) == "exclusivegateway") {
+        showDrawer.value = true
+      }else{
+        showDrawer.value = false
+      }
+      showLink.value = true
+    }else{
+      show.value = false
+      showLink.value = false
+      showGroup.value = false
+      showSection.value = false
+    }
+  })
+
+  rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
+
+    let Nowcell = rappid.selection.collection.take()
+    if (Nowcell) {
+      let type = Nowcell.attributes?.type
+      if(type == 'itea.mbt.test.MBTAW') {
+        saveAw()
+
+        if(storeAw.getAWBothDesc){
+          Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
+          // storeAw.resetEditingExpectedAw()
+        };
+
+
+      } else if (type == 'itea.mbt.test.MBTGroup') {
+        Nowcell.setPropertiesData(DataGroup.value)
+      } else if (type == 'itea.mbt.test.MBTSection') {
+
+        Nowcell.setPropertiesData()
+      }
+    }
+    showpaper.value = false
+    show.value = false
+    showGroup.value = false
+    showSection.value = false
+    showLink.value = false
     rappid.selection.collection.reset([]);
     rappid.paperScroller.startPanning(evt);
-      rappid.paper.removeTools();
+    rappid.paper.removeTools();
     // tabchange(0)
-});
+  });
 })
 const saveAw = () => {}
 const saveMbt = () => {
   console.log(store.mbtData);
-  
-  store.setGraph(rappid.paper.model.toJSON())  
+
+  store.setGraph(rappid.paper.model.toJSON())
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
-          return '保存成功'
-        }).catch(() => {
-          return '保存失败'
-        })
+      return '保存成功'
+    }).catch(() => {
+      return '保存失败'
+    })
   }
 }
 const changeGroup = () => {
   if(cell){
-      cell.setPropertiesData(DataGroup.value)
+    cell.setPropertiesData(DataGroup.value)
   }
 }
 const changeSection = () => {
   if(cell){
-      cell.setPropertiesData(DataSection.value)
+    cell.setPropertiesData(DataSection.value)
   }
 }
-const saveLink = () =>{  
-  if(cell && storeAw.LinkData.linkSchemaValue){    
+const saveLink = () =>{
+  if(cell && storeAw.LinkData.linkSchemaValue){
     cell.setPropertiesData(storeAw.getLinkData.linkSchemaValue,storeAw.getLinkData.rulesData)
   }
 }
@@ -574,36 +574,36 @@ let outLang=ref()
 async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
 
-  if(rst && rst.results && rst.results.length>0){
+    if(rst && rst.results && rst.results.length>0){
 
-    outLang.value=rst.outputLang
-    Object.keys(rst.results[0].json).forEach((obj)=>{
-      let objJson={
-        title:obj,
-        dataIndex:obj,
-        key:obj,
-        width:50
-      }
-      previewcol.value.push(objJson)
-    })
-    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
-    previewData.value=rst.results.map((item:any)=>{
-      if(item.script){
-        Object.assign(item.json,{script:item.script})
-      }
-      return item.json
-    })
-    visiblepreciew.value = true
-  }
+      outLang.value=rst.outputLang
+      Object.keys(rst.results[0].json).forEach((obj)=>{
+        let objJson={
+          title:obj,
+          dataIndex:obj,
+          key:obj,
+          width:50
+        }
+        previewcol.value.push(objJson)
+      })
+      previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+      previewData.value=rst.results.map((item:any)=>{
+        if(item.script){
+          Object.assign(item.json,{script:item.script})
+        }
+        return item.json
+      })
+      visiblepreciew.value = true
+    }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
   })
-  
+
 }
 const preview=async (data:any)=>{
-  
+
   searchPreview.mode="all"
   await querycode()
 }
@@ -629,9 +629,9 @@ const cencelpreview=()=>{
 
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
-        <div class="app-header">
-          <div class="app-title">
-            <a-button-group>
+    <div class="app-header">
+      <div class="app-title">
+        <a-button-group>
               <span>
             <a-button @click="saveMbt" type="primary" size="small" style="margin-right: 5px">
               {{ $t("common.saveText") }}
@@ -639,225 +639,225 @@ const cencelpreview=()=>{
           </span>
           <span>
               <a-button type="primary"
-               size="small" 
-               @click="preview(route)"
-               style="margin-right: 5px">
+                        size="small"
+                        @click="preview(route)"
+                        style="margin-right: 5px">
                 {{ $t("layout.multipleTab.preview") }}
               </a-button>
             </span>
-            <span>
+          <span>
               <a-button danger size="small">
                 {{ $t("layout.multipleTab.reload") }}
               </a-button>
             </span>
-          </a-button-group>
+        </a-button-group>
 
-          </div>
-          <div class="toolbar-container">
-            
-          </div>
-          <div class="choose-template">
-            <a-button type="primary" @click="chooseTem">Choose Template</a-button>
-          </div>
+      </div>
+      <div class="toolbar-container">
+
+      </div>
+      <div class="choose-template">
+        <a-button type="primary" @click="chooseTem">Choose Template</a-button>
+      </div>
+    </div>
+    <div class="app-body">
+      <div ref="stencils" class="stencil-container"/>
+      <div class="paper-container"/>
+      <div class="AwtabInspector" v-show="showpaper">
+        <ul class="tab_ul">
+          <li v-if="!show && !showGroup && !showSection && !showLink">样式修改</li>
+          <li
+              v-if="show || showGroup || showSection || showLink"
+          >数据编辑</li>
+          <div style="clear:both;"></div>
+        </ul>
+        <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
+        <div class="dataStyle">
+          <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
+          <VueForm
+              v-show="showGroup"
+              :schema="schemaGroup"
+              v-model="DataGroup"
+              @change = 'changeGroup'
+          ></VueForm>
+          <mbtModelerLink
+              v-show="showLink"
+              @change="saveLink"
+              :showDrawer="showDrawer"
+          ></mbtModelerLink>
+          <VueForm
+              v-show="showSection"
+              :schema="schemaSection"
+              v-model="DataSection"
+              @change = 'changeSection'
+          ></VueForm>
         </div>
-          <div class="app-body">
-            <div ref="stencils" class="stencil-container"/>
-            <div class="paper-container"/>
-            <div class="AwtabInspector" v-show="showpaper">
-              <ul class="tab_ul">
-                    <li v-if="!show && !showGroup && !showSection && !showLink">样式修改</li>
-                    <li
-                    v-if="show || showGroup || showSection || showLink"
-                    >数据编辑</li>
-                    <div style="clear:both;"></div>
-              </ul>
-              <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
-              <div class="dataStyle">
-                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
-                <VueForm
-                v-show="showGroup"
-                :schema="schemaGroup"
-                v-model="DataGroup"
-                @change = 'changeGroup'
-                ></VueForm>
-                 <mbtModelerLink
-                  v-show="showLink"
-                  @change="saveLink"
-                  :showDrawer="showDrawer" 
-                  ></mbtModelerLink>
-                  <VueForm
-                v-show="showSection"
-                :schema="schemaSection"
-                v-model="DataSection"
-                @change = 'changeSection'
-                ></VueForm>
-              </div>
-              
-            </div>
-        <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
-            <div class="navigator-container"/>
-          </div>
+
+      </div>
+      <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
+      <div class="navigator-container"/>
+    </div>
 
 
   </main>
-   <a-modal v-model:visible="visiblepreciew" 
-          title="Preview Modal" @ok="handleOk" 
-          :footer="null"
-          :keyboard="true"
-          :mask-closable="true"
-          width="1280"
-          class="previewModel"
-          @cancel="cencelpreview"
-          >
-          <a-table :columns="previewcol" 
-          :data-source="previewData" 
-          :pagination="{pageSize:5}"
-          bordered
-          :rowKey="(record: any) => record.id"
-          class="previewclass"
-          >
-        <template #bodyCell="{column,record}">
-           <template v-if="column.key=='can_be_automated'">
-            <p >{{record.can_be_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_implemented_automated'">
-            <p >{{record.is_implemented_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_in_project'">
-            <p >{{record.is_in_project}}</p>
-          </template>
-          <template v-if="column.key=='test_steps'">
-            <pre >{{record.test_steps}}</pre>
-          </template>
-          <template v-if="column.key=='expected_results'">
-            <pre >{{record.expected_results}}</pre>
-          </template>
-          <template v-if="column.key=='action'">
-            <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
-          </template>
-          </template>
-        </a-table>
-          <!-- <div > -->
-            <VAceEditor
-            v-if="previewScript"
-                          v-model:value="previewScript"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          :lang="outLang"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
-          <!-- </div> -->
-          </a-modal>
+  <a-modal v-model:visible="visiblepreciew"
+           title="Preview Modal" @ok="handleOk"
+           :footer="null"
+           :keyboard="true"
+           :mask-closable="true"
+           width="1280"
+           class="previewModel"
+           @cancel="cencelpreview"
+  >
+    <a-table :columns="previewcol"
+             :data-source="previewData"
+             :pagination="{pageSize:5}"
+             bordered
+             :rowKey="(record: any) => record.id"
+             class="previewclass"
+    >
+      <template #bodyCell="{column,record}">
+        <template v-if="column.key=='can_be_automated'">
+          <p >{{record.can_be_automated}}</p>
+        </template>
+        <template v-if="column.key=='is_implemented_automated'">
+          <p >{{record.is_implemented_automated}}</p>
+        </template>
+        <template v-if="column.key=='is_in_project'">
+          <p >{{record.is_in_project}}</p>
+        </template>
+        <template v-if="column.key=='test_steps'">
+          <pre >{{record.test_steps}}</pre>
+        </template>
+        <template v-if="column.key=='expected_results'">
+          <pre >{{record.expected_results}}</pre>
+        </template>
+        <template v-if="column.key=='action'">
+          <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
+        </template>
+      </template>
+    </a-table>
+    <!-- <div > -->
+    <VAceEditor
+        v-if="previewScript"
+        v-model:value="previewScript"
+        class="ace-result"
+        :wrap="softwrap"
+        :readonly="true"
+        :lang="outLang"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
+    />
+    <!-- </div> -->
+  </a-modal>
 
-  <a-modal v-model:visible="isGlobal" title="Please select a template first" 
-      @ok="handleOk"
-      :width="1000"
-      ok-text="save"
-      >
-      <div class="infoPanel card-container">
-            <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-      
-                  <div style="padding: 5px" class="attrconfig">
-                    <VueForm
-                      v-model="globalformData"
-                      :schema="globalschema"
-                      :formFooter="{show:false}"
-                    >
-                    </VueForm>
+  <a-modal v-model:visible="isGlobal" title="Please select a template first"
+           @ok="handleOk"
+           :width="1000"
+           ok-text="save"
+  >
+    <div class="infoPanel card-container">
+      <a-tabs v-model:activeKey="activeKey" type="card">
+        <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
+
+          <div style="padding: 5px" class="attrconfig">
+            <VueForm
+                v-model="globalformData"
+                :schema="globalschema"
+                :formFooter="{show:false}"
+            >
+            </VueForm>
+          </div>
+        </a-tab-pane>
+        <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
+          <metainfo
+              :isFormVisible="isFormVisible"
+              :metatemplatedetailtableData="metatemplatedetailtableData"
+              :schema="tempschema"
+              :metaformProps="metaformProps"
+              :metatemplatecolumns="metatemplatecolumns"
+          >
+          </metainfo>
+        </a-tab-pane>
+
+        <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
+          <a-radio-group
+              v-model:value="templateRadiovalue"
+              @change="handleRadioChange(templateRadiovalue)"
+          >
+            <a-radio :value="1">Dynamic Template</a-radio>
+            <a-radio :value="2">Static Template</a-radio>
+            <a-radio :value="3">Input directly</a-radio>
+          </a-radio-group>
+          <KeepAlive>
+            <template-table
+                v-if="templateRadiovalue === 1"
+                :tableColumns="tableColumnsDynamic"
+                :templateCategory="templateCategory"
+                :tableData="tableDataDynamic"
+                @update="handleDynamicTable"
+                @clear="handleDynamicTableClear"
+            ></template-table>
+          </KeepAlive>
+          <!-- --********---{{tableData}}**
+            ++++{{tableColumns}}########                   -->
+          <KeepAlive>
+            <template-table
+                v-if="templateRadiovalue === 2"
+                :tableColumns="tableColumns"
+                :templateCategory="templateCategory"
+                :tableData="tableData"
+                @update="handleStaticTable"
+            ></template-table>
+          </KeepAlive>
+          <input-table
+              :tableColumns="tableColumnsDirectInput"
+              :tableData="tableDataDirectInput"
+              v-if="templateRadiovalue === 3"
+              @update="handleDirectInput"
+          ></input-table>
+        </a-tab-pane>
+        <a-tab-pane key="4" tab="Resources" style="height:550px;">
+          <a-button
+              class="editable-add-btn"
+              style="margin-bottom: 8px"
+              @click="resourceshandleAdd"
+          >Add
+          </a-button>
+          <a-table
+              bordered
+              :data-source="resourcesdataSource"
+              :columns="resourcescolumns"
+          >
+            <template #bodyCell="{ column, text, record }">
+              <template
+                  v-if="['alias', 'class', 'resourcetype'].includes(column.dataIndex)"
+              >
+                <div class="editable-cell">
+                  <div
+                      v-if="resourceseditableData[record.key]"
+                      class="editable-cell-input-wrapper"
+                  >
+                    <a-input
+                        v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
+                        @pressEnter="resourcessave(record.key)"
+                    />
+                    <check-outlined
+                        class="editable-cell-icon-check"
+                        @click="resourcessave(record.key)"
+                    />
                   </div>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                >
-                </metainfo>
-              </a-tab-pane>
-
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
-                <a-radio-group
-                  v-model:value="templateRadiovalue"
-                  @change="handleRadioChange(templateRadiovalue)"
-                >
-                  <a-radio :value="1">Dynamic Template</a-radio>
-                  <a-radio :value="2">Static Template</a-radio>
-                  <a-radio :value="3">Input directly</a-radio>
-                </a-radio-group>
-              <KeepAlive>
-                <template-table
-                  v-if="templateRadiovalue === 1"
-                  :tableColumns="tableColumnsDynamic"
-                  :templateCategory="templateCategory"
-                  :tableData="tableDataDynamic"
-                  @update="handleDynamicTable"
-                  @clear="handleDynamicTableClear"
-                ></template-table>
-                </KeepAlive>
-                <!-- --********---{{tableData}}**
-                  ++++{{tableColumns}}########                   -->
-                <KeepAlive>
-                  <template-table
-                  v-if="templateRadiovalue === 2"
-                  :tableColumns="tableColumns"
-                  :templateCategory="templateCategory"
-                  :tableData="tableData"
-                  @update="handleStaticTable"
-                ></template-table>
-                </KeepAlive>
-                <input-table
-                  :tableColumns="tableColumnsDirectInput"
-                  :tableData="tableDataDirectInput"
-                  v-if="templateRadiovalue === 3"
-                  @update="handleDirectInput"
-                ></input-table>
-              </a-tab-pane>
-              <a-tab-pane key="4" tab="Resources" style="height:550px;">
-                <a-button
-                  class="editable-add-btn"
-                  style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
-                  >Add
-                </a-button>
-                <a-table
-                  bordered
-                  :data-source="resourcesdataSource"
-                  :columns="resourcescolumns"
-                >
-                  <template #bodyCell="{ column, text, record }">
-                    <template
-                      v-if="['alias', 'class', 'resourcetype'].includes(column.dataIndex)"
-                    >
-                      <div class="editable-cell">
-                        <div
-                          v-if="resourceseditableData[record.key]"
-                          class="editable-cell-input-wrapper"
-                        >
-                          <a-input
-                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
-                            @pressEnter="resourcessave(record.key)"
-                          />
-                          <check-outlined
-                            class="editable-cell-icon-check"
-                            @click="resourcessave(record.key)"
-                          />
-                        </div>
-                        <div v-else class="editable-cell-text-wrapper">
-                          {{ text || " " }}
-                          <edit-outlined
-                            class="editable-cell-icon"
-                            @click="resourcesedit(record.key)"
-                          />
-                        </div>
-                      </div>
-                    </template>
-                    <template v-else-if="column.dataIndex === 'operation'">
-                      <div class="editable-row-operations">
+                  <div v-else class="editable-cell-text-wrapper">
+                    {{ text || " " }}
+                    <edit-outlined
+                        class="editable-cell-icon"
+                        @click="resourcesedit(record.key)"
+                    />
+                  </div>
+                </div>
+              </template>
+              <template v-else-if="column.dataIndex === 'operation'">
+                <div class="editable-row-operations">
                         <span v-if="resourceseditableData[record.key]">
                           <a-tooltip placement="bottom">
                             <template #title>
@@ -867,8 +867,8 @@ const cencelpreview=()=>{
                           </a-tooltip>
                           <a-divider type="vertical" />
                           <a-popconfirm
-                            :title="$t('component.message.sureCancel')"
-                            @confirm="resourcescancel(record.key)"
+                              :title="$t('component.message.sureCancel')"
+                              @confirm="resourcescancel(record.key)"
                           >
                             <a-tooltip placement="bottom">
                               <template #title>
@@ -878,7 +878,7 @@ const cencelpreview=()=>{
                             </a-tooltip>
                           </a-popconfirm>
                         </span>
-                        <span v-else>
+                  <span v-else>
                           <a-tooltip placement="bottom">
                             <template #title>
                               <span>{{ $t('common.editText') }}</span>
@@ -886,12 +886,12 @@ const cencelpreview=()=>{
                             <edit-outlined @click="resourcesedit(record.key)" class="icon--primary-btn" />
                           </a-tooltip>
                         </span>
-                        <a-divider type="vertical" />
-                        <span>
+                  <a-divider type="vertical" />
+                  <span>
                           <a-popconfirm
-                            v-if="resourcesdataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onresourcesDelete(record.key)"
+                              v-if="resourcesdataSource.length"
+                              title="Sure to delete?"
+                              @confirm="onresourcesDelete(record.key)"
                           >
                             <a-tooltip placement="bottom">
                               <template #title>
@@ -901,17 +901,17 @@ const cencelpreview=()=>{
                             </a-tooltip>
                           </a-popconfirm>
                         </span>
-                      </div>
-                    </template>
-                  </template>
-                </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">{{
-                  $t("common.saveText")
-                }}</a-button>
-              </a-tab-pane>
-            </a-tabs>
-  </div>
-</a-modal>
+                </div>
+              </template>
+            </template>
+          </a-table>
+          <a-button type="primary" @click="globalhandlerSubmit">{{
+              $t("common.saveText")
+            }}</a-button>
+        </a-tab-pane>
+      </a-tabs>
+    </div>
+  </a-modal>
 </template>
 
 <style lang="scss">
@@ -922,64 +922,64 @@ const cencelpreview=()=>{
   background-color: #717D98;
 }
 
-			ul {
-				list-style: none;
-			}
-			.tab_ul {
-        display: flex;
-				background-color: #717D98;
-				overflow: hidden;
-        width: 100%;
-        height: 50px;
-			}
-			.tab_ul li {
-				padding: 15px;
-				cursor: pointer;
-			}
-			.tab_ul .active {
-				color: #ec1818;
-			}
+ul {
+  list-style: none;
+}
+.tab_ul {
+  display: flex;
+  background-color: #717D98;
+  overflow: hidden;
+  width: 100%;
+  height: 50px;
+}
+.tab_ul li {
+  padding: 15px;
+  cursor: pointer;
+}
+.tab_ul .active {
+  color: #ec1818;
+}
 
 .AwtabInspector{
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    width: 300px;
-    box-sizing: border-box;
-    .dataStyle{
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 120px;
+  width: 300px;
+  box-sizing: border-box;
+  .dataStyle{
     top: 50px;
     display: block;
     position: absolute;
     bottom: 0;
     width: 100%;
     overflow: auto;
-}
-.inspector-container {
+  }
+  .inspector-container {
     top: 50px;
     overflow: auto;
     height: 100%;
     box-sizing: border-box;
-}
-.joint-inspector {
-  bottom: 50px;
-}
+  }
+  .joint-inspector {
+    bottom: 50px;
+  }
 }
 .GroupInspector{
-    position: absolute;
-    top: 50px;
-    overflow: auto;
-    bottom: 0;
-    width: 100%;
-    flex: 1;
+  position: absolute;
+  top: 50px;
+  overflow: auto;
+  bottom: 0;
+  width: 100%;
+  flex: 1;
 }
 .inspector-container {
-    flex: 1 1 0%;
-    top: 3.125rem;
-    bottom: 0;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
+  flex: 1 1 0%;
+  top: 3.125rem;
+  bottom: 0;
+  overflow: auto;
+  height: 100%;
+  box-sizing: border-box;
 }
 .joint-inspector.joint-theme-material{
   position: absolute;

@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/en'
 import { useLocaleStore } from '@/stores/modules/locale'
 import { errTipTool } from "@/stores/modules/modeler-preview-err-msg";
-import MbtModelerPreviewErrTips from "@/views/mbt-modeler-preview-err-tips.vue";
+import MbtModelerPreviewErrTips from "@/views/mbtmodeler/component/mbt-modeler-preview-err-tips.vue";
 
 const store = errTipTool()
 

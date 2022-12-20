@@ -16,7 +16,7 @@ import {
   DeleteOutlined,
   EditOutlined
 } from "@ant-design/icons-vue";
-import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
+import AwSchemaTableModal from "@/views/mbtmodeler/component/aw-schema-table-modal.vue";
 
 interface Props {
   show: boolean
