@@ -6,7 +6,7 @@ const { t } = i18n.global
 
 // window.joint = joint
 
-export const name = 'MBTLink';
+export const name = 'link';
 export const namespace = 'itea.mbt.test.' + name;
 export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterface {
   static shapeName = name;
@@ -318,6 +318,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
 
   }
   setPropertiesData(value?: any, ruleData?: any) {
+    // 添加属性判断是否condition
     console.log(value);
     if (ruleData) {
       this.prop('prop/custom/ruleData', ruleData)

@@ -7,5 +7,7 @@ export interface MBTShapeInterface {
     getPropertiesSchema?:()=>any;
     setPropertiesData?:()=>any;
     ifDisallowLink?:() =>boolean;
+    // 改变stencil按下样式
+    onStencilRender?:() =>void;
   }
 

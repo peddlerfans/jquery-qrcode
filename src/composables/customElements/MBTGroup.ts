@@ -6,8 +6,8 @@ const { t } = i18n.global
 // import { MBTShapeInterface } from "./MBTShapeInterface";
 // window.joint = joint
 
-export const name = 'group';
-export const namespace = 'itea.mbt.test' + name;
+export const name = 'MBTGroup';
+export const namespace = 'itea.mbt.test.' + name;
 export class MBTGroup extends MBTGroupBase {
   // joint.shapes.bpmn2.Activity
   // implements MBTShapeInterface  {

@@ -8,7 +8,7 @@ const { t } = i18n.global
 // window.joint = joint
 
 export const name = 'exclusivegateway';
-export const namespace = 'itea.mbt.test' + name;
+export const namespace = 'itea.mbt.test.' + name;
 export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements MBTShapeInterface {
   static shapeName = name;
   constructor(e: Element, o: any) {
