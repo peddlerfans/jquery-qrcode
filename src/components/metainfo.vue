@@ -32,12 +32,12 @@ let tempschema = ref(props.schema);
 let uiSchema = ref({})
 
 function setSchema (schema: any, uiSchema: any) {
-  const temp = string2Obj(tempschema.value, uiSchema.value)
+  const temp = string2Obj(schema, uiSchema)
   tempschema.value = temp.schema
   uiSchema.value = temp.uiSchema
 }
 
-setSchema(tempschema.value, uiSchema)
+setSchema(tempschema.value, uiSchema.value)
 let metaformProps = ref(props.metaformProps);
 const isFormVisible = ref(props.isFormVisible);
 let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
@@ -107,8 +107,8 @@ async function getTemplate(metaId: string, category: string) {
 }
 const showJSONSchemeForm = (templdateId: string) => {
   isFormVisible.value = !isFormVisible.value;
-  getTemplate(templdateId,'meta').then((schema: any) => {    
-    tempschema.value = schema;
+  getTemplate(templdateId,'meta').then((schema: any) => {
+    setSchema(schema, uiSchema.value)
   });
 };
 

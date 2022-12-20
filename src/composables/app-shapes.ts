@@ -12,10 +12,9 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 
 
- import joint from "../../node_modules/@clientio/rappid/rappid.js"
+import joint from "../../node_modules/@clientio/rappid/rappid.js"
 const cache = new Map();
-import {MBTGroup} from '@/composables/customElements/';
-import {MBTLink} from '@/composables/customElements'
+import { MBTGroup, MBTLink, MBTAW, MBTSection, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTStartEvent } from '@/composables/customElements'
 export namespace app {
 
     export class CircularModel extends joint.shapes.standard.Ellipse {
@@ -225,7 +224,7 @@ export namespace app {
     //     };
 
     //     static connectionPoint(line: any, view: any, magnet: any, opt: any, type: any, linkView: any): joint.g.Point {
-            
+
     //         const link = linkView.model;
     //         // const markerWidth = (link.get('type') === 'standard.Link') ? link.getMarkerWidth(type) : 0;
     //         opt = { offset: 1, stroke: true };
@@ -335,7 +334,7 @@ export const NavigatorLinkView = joint.dia.LinkView.extend({
 
     update: joint.util.noop
 });
-Object.assign(joint.shapes,{itea:{mbt:{MBTGroup,MBTLink}}})
+Object.assign(joint.shapes, { itea: { mbt: { test: { MBTGroup, MBTLink, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway } } } })
 // re-export build-in shapes from rappid
 export const basic = joint.shapes.basic;
 export const standard = joint.shapes.standard;

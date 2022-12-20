@@ -14,14 +14,11 @@ export class MBTGroup extends MBTGroupBase {
   static shapeName = name;
   constructor(e: Element, o: any) {
     super(e, o);
-    console.log(this.markup)
     // debugger
     this.attr({
-      // 'background': { fill: '#454549' },
-      // 'icon': { iconType: 'receive' },
       'label': {
         refY: '10',
-        text: ''
+        text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
       },
       'border': {
         borderStyle: 'dashed'
@@ -30,14 +27,15 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    this.set('prop', { groupName: null, loopCount: null })
-    this.on('change', (evt: any) => {
-      console.log(evt.changed);
+    if (!this.get('prop')?.custom?.description) {
+      this.set('prop', { custom: { description: '', loopCount: '' } })
+    }
 
+    this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         // this.attr('label/text/0', "test")
-
+        // this.setPropertiesData(evt.changed.attrs.label.text)
       }
     })
 
@@ -50,11 +48,11 @@ export class MBTGroup extends MBTGroupBase {
     //  return true;
     return super.ifDisallowLink()
   }
-  setPropertiesData(value: any) {
+  setPropertiesData(value?: any) {
     if (value) {
-      this.prop('prop', {...value})
-      this.prop('attrs/label/text' , value.description + value.loopCount)
-      this.prop('attrs/label/fontSize' , 16)
+      this.prop('prop/custom', { ...value })
+      this.prop('attrs/label/text', value.description + value.loopCount)
+      this.prop('attrs/label/fontSize', 16)
       // this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
     }
   }
@@ -87,7 +85,7 @@ export class MBTGroup extends MBTGroupBase {
           },
           loopCount: {
             title: "Loop Count",
-            type: "string",
+            type: "integer",
           }
         }
       }
@@ -99,7 +97,7 @@ export class MBTGroup extends MBTGroupBase {
   }
 
   getPropertiesData() {
-    return this.attributes.prop
+    return this.attributes.prop.custom
   }
 
   updataLabel() {
@@ -118,13 +116,7 @@ export class MBTGroup extends MBTGroupBase {
   }
   defaults() {
     return super.defaults()
-    // return {
-    //   ...super.defaults,
-    //   type: namespace
-
-    // }
   }
-
 }
 
 

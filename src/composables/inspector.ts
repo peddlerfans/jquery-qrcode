@@ -12,8 +12,6 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 
 import joint from '../../node_modules/@clientio/rappid/rappid.js';
-import x from '@/assets/no-color-icon.svg'
-import y from '@/assets/transparent-icon.svg'
 import { MBTShapeInterface } from '@/composables/customElements/MBTShapeInterface'
 // console.log(x);
 
@@ -60,7 +58,7 @@ export class InspectorService {
             ],
 
             colorPaletteReset: [
-                { content: <string><unknown>undefined, icon: 'y' },
+                { content: <string><unknown>undefined, icon: '../assets/no-color-icon.svg' },
                 { content: '#f6f6f6' },
                 { content: '#dcd7d7' },
                 { content: '#8f8f8f' },
