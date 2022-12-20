@@ -499,10 +499,10 @@ onMounted(async () => {
         let type = Nowcell.attributes?.type
           if(type == 'itea.mbt.test.MBTAW') {
             
-           if(storeAw.getAWBothDesc){
-              Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
-              // storeAw.resetEditingExpectedAw()
-           };
+           // if(storeAw.getAWBothDesc){
+           //    Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
+           //    // storeAw.resetEditingExpectedAw()
+           // };
             
 
           } else if (type == 'itea.mbt.test.MBTGroup') {
