@@ -2,6 +2,7 @@
 import {
   ref,
   watch,
+  onMounted,
   computed
 } from 'vue'
 import { useI18n } from "vue-i18n";
@@ -21,10 +22,12 @@ import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 interface Props {
   show: boolean
 }
-
 const props = withDefaults(defineProps<Props>(), {
   show: true
 })
+
+const emit = defineEmits(['change'])
+
 const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
@@ -65,28 +68,38 @@ const defaultAWSchema = {
 const store = MbtData()
 const { t } = useI18n()
 
-watch(
-    () => props.show,
-    (val) => {
-      if (val) {
-        console.log(val)
-        if (store.getPrimaryAw.schema) {
-          schema.value = store.getPrimaryAw.schema
-          schema.value = getSchema(schema.value)
-          schemaValue.value = store.getPrimaryAw.data || {}
-          primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-        }
-        // if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
-        //   expectedSchema.value = store.getExpectedAw.schema
-        //   expectedSchema.value = getSchema(expectedSchema.value)
-        //   expectedSchemaValue.value = store.getExpectedAw.data || {}
-        //   expectedUiSchema.value = store.getExpectedAw.uiParams || {}
-        // }
-      } else {
-        initSchema()
-      }
-    }
-)
+onMounted(() => {
+  console.log(1)
+})
+
+function handleAwData () {
+  store.setEditingPrimaryAw(store.getShowData.step)
+  store.setEditingExpectedAw(store.getShowData.expectation)
+}
+
+// watch(
+//     () => props.show,
+//     (val) => {
+//       debugger
+//       if (val) {
+//         handleAwData()
+//         if (store.getPrimaryAw.schema) {
+//           schema.value = store.getPrimaryAw.schema
+//           schema.value = getSchema(schema.value)
+//           schemaValue.value = store.getPrimaryAw.data || {}
+//           primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+//         }
+//         if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
+//           expectedSchema.value = store.getExpectedAw.schema
+//           expectedSchema.value = getSchema(expectedSchema.value)
+//           expectedSchemaValue.value = store.getExpectedAw.data || {}
+//           expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+//         }
+//       } else {
+//         initSchema()
+//       }
+//     }
+// )
 
 /**
  * 优化ui页面，重构schema
@@ -182,7 +195,6 @@ function deleteExpected() {
       uiParams: null
     }
   })
-  checkoutDesc()
 }
 
 function showAw (row: any) {
@@ -240,7 +252,6 @@ function showAw (row: any) {
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
     store.setEditingPrimaryAw(expectedUiSchema.value, 'uiParams')
   }
-  checkoutDesc()
 }
 
 function setSchema (tar: string) {
@@ -272,8 +283,31 @@ function initSchema() {
   // store.setEditingExpectedAw(data)
 }
 
+function handleChange () {
+  if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
+  if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+  emit('change')
+}
+
+function handleData () {
+  handleAwData()
+  if (store.getPrimaryAw.schema) {
+    schema.value = store.getPrimaryAw.schema
+    schema.value = getSchema(schema.value)
+    schemaValue.value = store.getPrimaryAw.data || {}
+    primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+  }
+  if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
+    expectedSchema.value = store.getExpectedAw.schema
+    expectedSchema.value = getSchema(expectedSchema.value)
+    expectedSchemaValue.value = store.getExpectedAw.data || {}
+    expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+  }
+}
+
 defineExpose({
-  initSchema
+  initSchema,
+  handleData
 })
 
 </script>
@@ -322,7 +356,8 @@ defineExpose({
         v-model="schemaValue"
         :schema="schema"
         :formProps="formProps"
-        :uiSchema="primaryUiSchema">
+        :uiSchema="primaryUiSchema"
+        @change="handleChange">
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
       <a-divider />
@@ -368,7 +403,8 @@ defineExpose({
             v-model="expectedSchemaValue"
             :schema="expectedSchema"
             :formProps="formProps"
-            :uiSchema="expectedUiSchema">
+            :uiSchema="expectedUiSchema"
+            @change="handleChange">
           <div slot-scope="{ schemaValue }">
           </div>
         </VueForm>

@@ -51,6 +51,7 @@ let activeSchema = ref('2')
 let activeLink = ref('2')
 let activeGroup = ref('2')
 let show = ref(false)
+let rightSchemaModal = ref()
 let showDrawer = ref(false)
 let showGroup = ref(false)
 let showLink = ref(false)
@@ -421,73 +422,72 @@ onMounted(async () => {
   })
 
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log('clickpointerdown')
       let el: any
       el = elementView.model
       cell = el
       // el.getPropertiesSchema(),将它的值存入pinia中给  大schema使用
-      storeAw.setData(el.getPropertiesSchema())
+      const checkAwProps = el.getPropertiesSchema()
+      storeAw.setData(checkAwProps)
       storeAw.setVisible(true)
+      rightSchemaModal.value.handleShowData()
       saveAw()
       show.value = false
-
-      // inspectorstyle2.value = {display:'block'}
       setLinkType(elementView.model,elementView.model)
-
-      
       showpaper.value = true
-      let type = elementView.model?.get('type');
-      if(type == 'itea.mbt.test.MBTAW'){
-        
-        showGroup.value = false
-        showSection.value = false
-        showLink.value = false
-        let checkAwprops = el.getPropertiesSchema()
-        if(checkAwprops && checkAwprops.description){
-          storeAw.setDescription(checkAwprops.description)
-
-          if (JSON.stringify(checkAwprops.primary.schema) !== '{}') {
-          storeAw.setEditingPrimaryAw(checkAwprops.primary)
-
-          if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
-            storeAw.setEditingExpectedAw(checkAwprops.expected)
-          }
-        }
-      }
-      setTimeout(() => {
-        show.value = true
-      }, 0);
-      }else if(type == 'itea.mbt.test.MBTGroup'){        
-        show.value = false
-        
-        showLink.value = false
-        showGroup.value = true
-        showSection.value = false
-        schemaGroup.value = el.getInspectorSchema().schema
-        if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
-          DataGroup.value = {...el.getPropertiesData()}
-        }
-      }else if (type == 'itea.mbt.test.MBTSection') {
-        schemaSection.value = el.getInspectorSchema().schema
-        if (el.getPropertiesData().sectionName) {
-          DataSection.value = {...el.getPropertiesData()}
-        }
-        show.value = false
-        showGroup.value = false
-        showSection.value = true
-        showLink.value = false
-      } else if (type == 'itea.mbt.test.MBTLink') {
-        if (getLinkType(elementView.model) == "exclusivegateway") {
-          showDrawer.value = true
-        }else{
-          showDrawer.value = false
-        }
-        showLink.value = true
-      }else{
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = false
-      }
+      // let type = elementView.model?.get('type');
+      // if(type == 'itea.mbt.test.MBTAW'){
+      //
+      //   showGroup.value = false
+      //   showSection.value = false
+      //   showLink.value = false
+      //   let checkAwprops = el.getPropertiesSchema()
+      //   if(checkAwprops && checkAwprops.description){
+      //     storeAw.setDescription(checkAwprops.description)
+      //
+      //     if (JSON.stringify(checkAwprops?.primary?.schema || {}) !== '{}') {
+      //     storeAw.setEditingPrimaryAw(checkAwprops.primary)
+      //
+      //     if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
+      //       storeAw.setEditingExpectedAw(checkAwprops.expected)
+      //     }
+      //   }
+      // }
+      // setTimeout(() => {
+      //   show.value = true
+      // }, 0);
+      // }else if(type == 'itea.mbt.test.MBTGroup'){
+      //   show.value = false
+      //
+      //   showLink.value = false
+      //   showGroup.value = true
+      //   showSection.value = false
+      //   schemaGroup.value = el.getInspectorSchema().schema
+      //   if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
+      //     DataGroup.value = {...el.getPropertiesData()}
+      //   }
+      // }else if (type == 'itea.mbt.test.MBTSection') {
+      //   schemaSection.value = el.getInspectorSchema().schema
+      //   if (el.getPropertiesData().sectionName) {
+      //     DataSection.value = {...el.getPropertiesData()}
+      //   }
+      //   show.value = false
+      //   showGroup.value = false
+      //   showSection.value = true
+      //   showLink.value = false
+      // } else if (type == 'itea.mbt.test.MBTLink') {
+      //   if (getLinkType(elementView.model) == "exclusivegateway") {
+      //     showDrawer.value = true
+      //   }else{
+      //     showDrawer.value = false
+      //   }
+      //   showLink.value = true
+      // }else{
+      //   show.value = false
+      //   showLink.value = false
+      //   showGroup.value = false
+      //   showSection.value = false
+      // }
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
@@ -689,25 +689,25 @@ const cencelpreview=()=>{
               </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
-<!--                <mbt-modeler-right-modal></mbt-modeler-right-modal>-->
-                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>
-                <VueForm
-                v-show="showGroup"
-                :schema="schemaGroup"
-                v-model="DataGroup"
-                @change = 'changeGroup'
-                ></VueForm>
-                 <mbtModelerLink
-                  v-show="showLink"
-                  @change="saveLink"
-                  :showDrawer="showDrawer"
-                  ></mbtModelerLink>
-                  <VueForm
-                v-show="showSection"
-                :schema="schemaSection"
-                v-model="DataSection"
-                @change = 'changeSection'
-                ></VueForm>
+                <mbt-modeler-right-modal ref="rightSchemaModal"></mbt-modeler-right-modal>
+<!--                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>-->
+<!--                <VueForm-->
+<!--                v-show="showGroup"-->
+<!--                :schema="schemaGroup"-->
+<!--                v-model="DataGroup"-->
+<!--                @change = 'changeGroup'-->
+<!--                ></VueForm>-->
+<!--                 <mbtModelerLink-->
+<!--                  v-show="showLink"-->
+<!--                  @change="saveLink"-->
+<!--                  :showDrawer="showDrawer"-->
+<!--                  ></mbtModelerLink>-->
+<!--                  <VueForm-->
+<!--                v-show="showSection"-->
+<!--                :schema="schemaSection"-->
+<!--                v-model="DataSection"-->
+<!--                @change = 'changeSection'-->
+<!--                ></VueForm>-->
               </div>
               
             </div>

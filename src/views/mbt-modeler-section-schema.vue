@@ -11,11 +11,11 @@ let DataSection = ref({
 
 <template>
   <div class="mbt-modeler-section-schema-wrap">
-    <VueForm
-      v-show="showSection"
-      :schema="schemaSection"
-      v-model="DataSection"
-      @change = 'changeSection'
-    ></VueForm>
+<!--    <VueForm-->
+<!--      v-show="showSection"-->
+<!--      :schema="schemaSection"-->
+<!--      v-model="DataSection"-->
+<!--      @change = 'changeSection'-->
+<!--    ></VueForm>-->
   </div>
 </template>

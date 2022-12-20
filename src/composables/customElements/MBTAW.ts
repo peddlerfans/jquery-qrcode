@@ -23,7 +23,6 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
         },)
 
         this.on('change', (evt: any) => {
-            debugger
             if (evt.changed && evt.changed && evt.changed.custom) {
                 this.attr({
                     // 'background': { fill: '#454549' },

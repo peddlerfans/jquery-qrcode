@@ -12,11 +12,11 @@ let DataGroup = ref({
 
 <template>
   <div class="mbt-modeler-grounp-schema-wrap">
-    <VueForm
-      v-show="show"
-      :schema="schemaGroup"
-      v-model="DataGroup"
-      @change = 'changeGroup'
-    ></VueForm>
+<!--    <VueForm-->
+<!--      v-show="show"-->
+<!--      :schema="schemaGroup"-->
+<!--      v-model="DataGroup"-->
+<!--      @change = 'changeGroup'-->
+<!--    ></VueForm>-->
   </div>
 </template>
