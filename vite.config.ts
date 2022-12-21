@@ -21,7 +21,9 @@ export default defineConfig({
   plugins: [
     vue(),
     DefineOptions(),
-    viteCommonjs(),
+    viteCommonjs(
+      {exclude:['ace-builds']}
+      ),
     // viteMockServe({
     //   supportTs: true, 
     // }),
