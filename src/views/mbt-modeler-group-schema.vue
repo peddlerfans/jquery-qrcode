@@ -15,10 +15,13 @@ let DataGroup = ref({
 let schemaGroup = ref({})
 
 function setData () {
-  schemaGroup.value = store.getGroupData
+  schemaGroup.value = store.getGroupData.schema
+  DataGroup.value = store.getGroupData.data
 }
 
 function handleChange () {
+  store.setGroupData(schemaGroup.value, 'schema')
+  store.setGroupData(DataGroup.value, 'data')
   emit('change')
 }
 
@@ -33,7 +36,8 @@ defineExpose({
     <VueForm
       :schema="schemaGroup"
       v-model="DataGroup"
-      @change="handleChange"
-    ></VueForm>
+      @change="handleChange">
+      <div slot-scope="{ DataGroup }"></div>
+    </VueForm>
   </div>
 </template>

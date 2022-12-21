@@ -22,7 +22,11 @@ interface MbtData {
         rulesData: any,
         description: string
     },
-    groupData: any,
+    groupData: {
+        schema: any,
+        data: any,
+        description: string,
+    },
     sectionData: any,
     awDescription: string,
     showSchema: boolean
@@ -56,7 +60,11 @@ export const MbtData = defineStore({
             rulesData: null,
             description: ''
         },
-        groupData: {},
+        groupData: {
+            schema: null,
+            data: null,
+            description: '',
+        },
         sectionData: {},
         expectedTableRow: {},
         awDescription: '',

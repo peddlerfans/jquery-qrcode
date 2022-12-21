@@ -28,8 +28,6 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
 import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import mbtModelerAwschema from "./mbt-modeler-aw-schema.vue"
-import mbtModelerLink from "./mbt-modeler-link-schema.vue"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 
@@ -47,12 +45,8 @@ const url = realMBTUrl;
 const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
-let activeSchema = ref('2')
-let activeLink = ref('2')
-let activeGroup = ref('2')
 let show = ref(false)
 let rightSchemaModal = ref()
-let showDrawer = ref(false)
 let showGroup = ref(false)
 let showLink = ref(false)
 let showSection = ref(false)
@@ -175,12 +169,6 @@ const globalschema = ref({
 const chooseTem = () => {
     isGlobal.value=true
 }
-// 保存meta的函数
-// const submitTemplate = (data: any) => {
-//   store.saveMeta(data.schema , data.data)
-// };
-
-
 
 // 选择动态，静态模板的函数
 const handleRadioChange: any = (v: any) => {
@@ -298,40 +286,6 @@ function Datafintion(data: any) {
     }
   }
 }
-let schemaGroup = ref()
-let schemaSection = ref()
-let DataGroup = ref({
-  description: '',
-  loopCount:''
-})
-let DataSection = ref({
-  description:''
-})
-let cell: any = null
-
-function getLinkType(linkView: any): string {
-  if (linkView.hasOwnProperty("id")) {
-    if (rappid.graph.getCell(linkView.id).hasOwnProperty("linktype")) {
-      return linkView["linktype"];
-    }
-  }
-  return "";
-}
-
-function setLinkType(el: any, cell: any) {
-    if (el && el.attributes && el.attributes.source && el.attributes.source.id)
-      try {
-        let linksource:any = rappid.graph.getCell(el.attributes.source.id);
-        // console.log('type:',linksource.attributes.type)
-        if (linksource.attributes.type == "itea.mbt.test.MBTExclusiveGateway") {
-            Object.assign(cell, { linktype: "exclusivegateway" });
-        } else {
-            Object.assign(cell, { linktype: "parallelgateway" });
-          }
-      } catch (e) {
-        console.log("e:", e);
-      }
-  }
 
 let idstr: any = null
 
@@ -364,169 +318,34 @@ onMounted(async () => {
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
     rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getcells)));
-
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
-
   rappid.graph.on("add", function (el: any) {
     storeAw.resetEditingExpectedAw()
-
+    storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
-      try {
-        showpaper.value = true
-        // inspectorstyle2.value = {display:'block'}
-        let cell:any = rappid.graph.getCell(el.id);
-        let type = cell.get('type')        
-
-        if (cell.isLink() && type == 'itea.mbt.test.MBTLink') {
-
-          showLink.value = true
-          show.value = false
-        showGroup.value = false
-        showSection.value = false
-          setLinkType(el, cell);
-          if (getLinkType(cell) == "exclusivegateway") {          
-          showDrawer.value = true
-        }else{
-          showDrawer.value = false
-        }
-        } else if(type == 'itea.mbt.test.MBTAW'){
-          showLink.value = false
-            show.value = true
-            showGroup.value = false
-            showSection.value = false
-        }else if(type == 'itea.mbt.test.MBTGroup'){
-          show.value = false
-        showGroup.value = true
-        showLink.value = false
-        showSection.value = false
-        }else if(type == 'itea.mbt.test.MBTSection'){
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = true
-        }else{
-        show.value = false
-        showLink.value = false
-        showGroup.value = false
-        showSection.value = true
-        }
-      } catch (e) {
-        console.log("error:", e);
-      }
-     }      
+      showpaper.value = true
+      rightSchemaModal.value.handleShowData()
+    }
   })
-
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      // let el: any
-      // el = elementView.model
-      // cell = el
-      // el.getPropertiesSchema(),将它的值存入pinia中给  大schema使用
-      // debugger
-      // const checkAwProps = el.getPropertiesSchema ? el.getPropertiesSchema() : {}
-      // if (_.isEmpty(checkAwProps?.primary?.schema)) storeAw.setData(checkAwProps)
-      // storeAw.setVisible(true)
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
-      // show.value = false
-      // setLinkType(elementView.model,elementView.model)
-      // let type = elementView.model?.get('type');
-      // if(type == 'itea.mbt.test.MBTAW'){
-      //
-      //   showGroup.value = false
-      //   showSection.value = false
-      //   showLink.value = false
-      //   let checkAwprops = el.getPropertiesSchema()
-      //   if(checkAwprops && checkAwprops.description){
-      //     storeAw.setDescription(checkAwprops.description)
-      //
-      //     if (JSON.stringify(checkAwprops?.primary?.schema || {}) !== '{}') {
-      //     storeAw.setEditingPrimaryAw(checkAwprops.primary)
-      //
-      //     if(JSON.stringify(checkAwprops.expected.schema) !== '{}'){
-      //       storeAw.setEditingExpectedAw(checkAwprops.expected)
-      //     }
-      //   }
-      // }
-      // setTimeout(() => {
-      //   show.value = true
-      // }, 0);
-      // }else if(type == 'itea.mbt.test.MBTGroup'){
-      //   show.value = false
-      //
-      //   showLink.value = false
-      //   showGroup.value = true
-      //   showSection.value = false
-      //   schemaGroup.value = el.getInspectorSchema().schema
-      //   if (el.getPropertiesData().description || el.getPropertiesData().loopCount) {
-      //     DataGroup.value = {...el.getPropertiesData()}
-      //   }
-      // }else if (type == 'itea.mbt.test.MBTSection') {
-      //   schemaSection.value = el.getInspectorSchema().schema
-      //   if (el.getPropertiesData().sectionName) {
-      //     DataSection.value = {...el.getPropertiesData()}
-      //   }
-      //   show.value = false
-      //   showGroup.value = false
-      //   showSection.value = true
-      //   showLink.value = false
-      // } else if (type == 'itea.mbt.test.MBTLink') {
-      //   if (getLinkType(elementView.model) == "exclusivegateway") {
-      //     showDrawer.value = true
-      //   }else{
-      //     showDrawer.value = false
-      //   }
-      //   showLink.value = true
-      // }else{
-      //   show.value = false
-      //   showLink.value = false
-      //   showGroup.value = false
-      //   showSection.value = false
-      // }
     })
 
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
-      storeAw.setVisible(false)
-      
-      let Nowcell = rappid.selection.collection.take()
-      cell = Nowcell
-      if (Nowcell) {
-        let type = Nowcell.attributes?.type
-          if(type == 'itea.mbt.test.MBTAW') {
-            
-           // if(storeAw.getAWBothDesc){
-           //    Nowcell.setPropertiesData(storeAw.getPrimaryAw,storeAw.getExpectedAw,storeAw.getAWBothDesc)
-           //    // storeAw.resetEditingExpectedAw()
-           // };
-            
-
-          } else if (type == 'itea.mbt.test.MBTGroup') {
-          Nowcell.setPropertiesData(DataGroup.value)
-          } else if (type == 'itea.mbt.test.MBTSection') {
-            
-          Nowcell.setPropertiesData()
-        }
-      }
       showpaper.value = false
-      show.value = false
-      showGroup.value = false
-      showSection.value = false
-      showLink.value = false
-    rappid.selection.collection.reset([]);
-    rappid.paperScroller.startPanning(evt);
+      rappid.selection.collection.reset([]);
+      rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
-    // tabchange(0)
 });
 })
 
 const saveMbt = () => {
-  console.log(store.mbtData);
-  
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
@@ -537,35 +356,7 @@ const saveMbt = () => {
   }
 }
 
-
-// 实时更新数据，依据change事件来调用函数
-
-const changeGroup = () => {
-  if(cell){
-      cell.setPropertiesData(DataGroup.value)
-  }
-}
-const changeSection = () => {
-  if(cell){
-      cell.setPropertiesData(DataSection.value)
-  }
-}
-
-// let inspectorstyle1 = ref()
-// let inspectorstyle2 = ref()
-// const tabchange = (n: number) => {
-//   if (n == 0) {
-//     inspectorstyle1.value = {display:'block'}
-//     inspectorstyle2.value = {display:'none'}
-//   } else {
-//     inspectorstyle1.value = {display:'none'}
-//     inspectorstyle2.value = {display:'block'}
-//   }
-// }
-
 const visiblepreciew=ref(false)
-const previewActiveKey = ref("1")
-const casesKey=ref("1")
 let previewcol:any=ref([])
 const previewData:any=ref([])
 let previewScript = ref("")
@@ -578,9 +369,7 @@ let outLang=ref()
 
 async function querycode(){
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
-
   if(rst && rst.results && rst.results.length>0){
-
     outLang.value=rst.outputLang
     Object.keys(rst.results[0].json).forEach((obj)=>{
       let objJson={
@@ -630,11 +419,20 @@ const cencelpreview=()=>{
 function handleChange (str: string) {
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
-      storeAw.getShowData?.setPropertiesData && storeAw.getShowData.setPropertiesData()
+      storeAw.getShowData?.setPropertiesData()
       break
     }
-    case 'itea.mbt.test.MBTLink': {
-      storeAw.getShowData?.setPropertiesData && storeAw.getShowData.setPropertiesData()
+    case 'itea.mbt.test.MBTLink':
+    case 'itea.mbt.test.link': {
+      storeAw.getShowData?.setPropertiesData()
+      break
+    }
+    case 'itea.mbt.test.MBTGroup': {
+      storeAw.getShowData?.setPropertiesData()
+      break
+    }
+    case 'itea.mbt.test.MBTSection': {
+      storeAw.getShowData?.setPropertiesData()
       break
     }
   }
@@ -691,26 +489,7 @@ function handleChange (str: string) {
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
                 <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
-<!--                <mbtModelerAwschema @change="saveAw" v-show="show" :show="show" ref="aaaaa"></mbtModelerAwschema>-->
-<!--                <VueForm-->
-<!--                v-show="showGroup"-->
-<!--                :schema="schemaGroup"-->
-<!--                v-model="DataGroup"-->
-<!--                @change = 'changeGroup'-->
-<!--                ></VueForm>-->
-<!--                 <mbtModelerLink-->
-<!--                  v-show="showLink"-->
-<!--                  @change="saveLink"-->
-<!--                  :showDrawer="showDrawer"-->
-<!--                  ></mbtModelerLink>-->
-<!--                  <VueForm-->
-<!--                v-show="showSection"-->
-<!--                :schema="schemaSection"-->
-<!--                v-model="DataSection"-->
-<!--                @change = 'changeSection'-->
-<!--                ></VueForm>-->
               </div>
-              
             </div>
         <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
             <div class="navigator-container"/>
@@ -857,7 +636,7 @@ function handleChange (str: string) {
                           class="editable-cell-input-wrapper"
                         >
                           <a-input
-                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral ]"
+                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
                             @pressEnter="resourcessave(record.key)"
                           />
                           <check-outlined

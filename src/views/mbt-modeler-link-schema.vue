@@ -5,30 +5,23 @@ import {
 } from 'vue'
 import VueForm from "@lljj/vue3-form-ant";
 import { MbtData } from "@/stores/modules/mbt-data";
-import { watch } from 'vue';
 import { SelectProps } from 'ant-design-vue';
+// import ParseStr from '../../public/parser.js'
 
-const emit = defineEmits(['save'])
+const emit = defineEmits(['change'])
 
-interface Props {
-  showDrawer: boolean
-}
-const props = withDefaults(defineProps<Props>(), {
-  showDrawer: true
-})
+let showDrawer = ref<boolean>(false)
 
 const keys = 1
 
 const store = MbtData()
 let formDatas = computed(() => {
-  return ref<SelectProps["options"]>(
-     store.getDataPoolTableColumns.map((e: any) => {
-  return {
-    value: e.title,
-    label: e.title
-  }
-})
-  )
+  return store.getDataPoolTableColumns.map((e: any) => {
+    return {
+      value: e.title,
+      label: e.title
+    }
+  })
 })
  
 let childValue = computed(() => {
@@ -74,9 +67,6 @@ function ifdata(arr: any) {
   let finditem = null;
   for (let i = 0; i < arr.length; i++) {
     let item = arr[i];
-    // if(item.children.length==0){
-    //   item.relation=""
-    // }
     if (item.relation == "AND") {
       item.relation = "&&";
     }
@@ -193,25 +183,23 @@ let linkSchema = ref({
   },
 })
 
-let watchData = computed(()=>{linkSchemaValue.value,rulesData.value})
-watch(()=>watchData.value , (val:any) => {
-    if(linkSchemaValue.value){
-        store.setLinkData(linkSchemaValue.value , 'linkSchemaValue')
-        store.setLinkData(rulesData.value , 'rulesData')
-    }
-    
-
-}, { deep: true })
-watch(() => rulesData.value, (newValue: any) => {
-  if (newValue) {
-    linkSchemaValue.label = ifdata(newValue)
-  }
-},{deep:true})
-
-
 function rulesChange (datas: any, key: string) {
   rulesData.value = datas
 }
+
+function handleChange() {
+  store.setLinkData(linkSchemaValue, 'linkSchemaValue')
+  store.setLinkData(rulesData, 'rulesData')
+  emit('change')
+}
+
+function setShowDrawer (flag: boolean) {
+  showDrawer.value = flag
+}
+
+defineExpose({
+  setShowDrawer
+})
 
 </script>
 
@@ -223,8 +211,9 @@ function rulesChange (datas: any, key: string) {
     <VueForm
       v-model="linkSchemaValue"
       :schema="linkSchema"
+      @change="handleChange"
     >
-      <div v-if="props.showDrawer" slot-scope="{ linkData }">
+      <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
           v-if="store.getDataPoolTableData.length > 0"
           :keys="keys"

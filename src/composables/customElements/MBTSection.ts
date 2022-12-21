@@ -1,11 +1,17 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 
 import { i18n } from "@/locales";
+import {MbtData} from "@/stores/modules/mbt-data";
 
 import { MBTShapeInterface } from "./MBTShapeInterface"
+
 const { t } = i18n.global
+const store = MbtData()
+
 import { MBTGroupBase } from "./MBTGroupBase";
 window.joint = joint
+
+const typeList = ['beforeAll', 'beforeEach', 'afterAll', 'afterEach']
 
 export const name = 'section';
 export const namespace = 'itea.mbt.test.' + name;
@@ -17,22 +23,24 @@ export class MBTSection extends MBTGroupBase {
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': { refY: '10', text: this.get('prop')?.custom?.sectionName ? this.get('prop').custom?.sectionName : 'Section' },
+      'label': { refY: '10', text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Section' },
       markers: {
         iconTypes: ['ad-hoc'],
       }
 
     })
-    if (!this.get('prop')?.custom?.sectionName) {
-      this.set('prop', { custom: { sectionName: '' } })
+    if (!this.get('prop')?.custom?.description) {
+      this.set('prop', { custom: { description: '' } })
     }
 
     this.on('change', (evt: any) => {
-      if (evt.changed && evt.changed.attrs && evt.changed.attrs.label) {
-        // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        // this.updateRectangles();
-        this.setPropertiesData(evt.changed.attrs.label.text)
-        // this.attr('label/text/0', "test")
+      const custom = evt.changed?.prop?.custom
+      if (custom) {
+        this.attr({
+          'label': {
+            text: custom.description || 'Section'
+          }
+        })
       }
 
     })
@@ -68,22 +76,18 @@ export class MBTSection extends MBTGroupBase {
         type: "object",
         description: '',
         properties: {
-          description: {
-            title: "Description",
+          type: {
+            title: "type",
             type: "string",
+            enum: typeList
           },
         }
       }
     }
 
   }
-  setPropertiesData(value?: any) {
-    if (value.description) {
-      this.prop('prop/custom', { sectionName: value.description })
-      this.prop('attrs/label/text', value.description)
-      this.prop('attrs/label/fontSize', 16)
-    }
-
+  setPropertiesData() {
+    this.prop('prop/custom', { description: store.getDescription })
   }
 
   setInspectorData() {
