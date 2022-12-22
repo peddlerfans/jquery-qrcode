@@ -1,6 +1,6 @@
 
 import { MBTShapeInterface } from "./MBTShapeInterface"
-import joint from "../../../node_modules/@clientio/rappid/rappid.js"
+import joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
 // import * as joint from '@clientio/rappid';
 const { dia, g, ui, shapes } = joint
 import { i18n } from "@/locales";

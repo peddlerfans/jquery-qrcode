@@ -1,4 +1,4 @@
-import joint from '../../node_modules/@clientio/rappid/rappid.js';
+import joint from '../../node_modules/@clientio/rappid/dist/rappid.js';
 import * as dagre from 'dagre';
 import { StencilService } from "./stencil";
 import { ToolbarService } from "./Toolbar";

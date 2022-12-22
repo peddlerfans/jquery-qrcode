@@ -12,7 +12,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 
 
 
-import joint from "../../node_modules/@clientio/rappid/rappid.js"
+import joint from "../../node_modules/@clientio/rappid/dist/rappid.js"
 const cache = new Map();
 import { MBTGroup, MBTLink, MBTAW, MBTSection, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTStartEvent } from '@/composables/customElements'
 export namespace app {

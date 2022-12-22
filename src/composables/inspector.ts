@@ -11,7 +11,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
  or from the JointJS+ archive as was distributed by client IO. See the LICENSE file.*/
 
 
-import joint from '../../node_modules/@clientio/rappid/rappid.js';
+import joint from '../../node_modules/@clientio/rappid/dist/rappid.js';
 import { MBTShapeInterface } from '@/composables/customElements/MBTShapeInterface'
 // console.log(x);
 
