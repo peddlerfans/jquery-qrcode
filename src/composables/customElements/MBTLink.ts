@@ -1,5 +1,4 @@
-import * as joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
-// import {jointjs} from "../../../node_modules/@clientio/rappid/dist/rappid.js"
+import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 import { i18n } from "@/locales";
 import { MBTShapeInterface } from "./MBTShapeInterface"
 import {MbtData} from "@/stores/modules/mbt-data";

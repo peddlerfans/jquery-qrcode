@@ -2,6 +2,9 @@
 FROM node:16-alpine as vue-build
 WORKDIR /app
 COPY package*.json ./
+COPY rappid.tgz ./
+RUN npm install
+COPY ./ .
 RUN npm run build
 # server environment
 FROM nginx:alpine

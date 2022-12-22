@@ -8,7 +8,7 @@ import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
-import * as joint from "../../node_modules/@clientio/rappid/dist/rappid.js"
+import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
 import { onMounted, ref } from 'vue';
 import { func } from "vue-types";
@@ -100,7 +100,7 @@ function qqq(n: any) {
 
 </style>
 <style lang="scss">
-@import "../../node_modules/@clientio/rappid/dist/rappid.css";
+@import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 
 .container{

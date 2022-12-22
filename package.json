@@ -21,7 +21,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false"
   },
   "dependencies": {
-    "@clientio/rappid": "file:rappid",
+    "@clientio/rappid": "file:./rappid.tgz",
     "@fortawesome/fontawesome-svg-core": "^6.2.0",
     "@fortawesome/free-brands-svg-icons": "^6.2.0",
     "@fortawesome/free-regular-svg-icons": "^6.2.0",

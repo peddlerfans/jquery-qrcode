@@ -13,7 +13,7 @@ import inputTable from "@/components/inputTable.vue";
 import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined} from '@ant-design/icons-vue'
 import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
-import * as joint from "../../node_modules/@clientio/rappid/dist/rappid.js"
+import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
 import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
 import { useI18n } from 'vue-i18n'
@@ -712,7 +712,7 @@ function handleChange (str: string) {
 </template>
 
 <style lang="scss">
-@import "../../node_modules/@clientio/rappid/dist/rappid.css";
+@import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 
 .app-header{
