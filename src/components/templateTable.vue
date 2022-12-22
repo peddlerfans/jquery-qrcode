@@ -265,7 +265,7 @@ function isChoose(data:any) : boolean{
 
 let watchData = computed(() => { dataSource.value, columnsOrigin.value })
 
-watch(() => dataSource.value, (val: any) => {  
+watch(() => dataSource.value, (val: any) => {
   let dataFrom = ''
   let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value}
     if(templateCategory.value = 1){

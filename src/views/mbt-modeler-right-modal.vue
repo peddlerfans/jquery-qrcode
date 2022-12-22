@@ -18,6 +18,7 @@ let showGroup = ref<boolean>(false)
 let showSection = ref<boolean>(false)
 let AwDom = ref()
 let groupDom = ref()
+let linkDom = ref()
 let sectionDom = ref()
 
 function initData () {
@@ -38,7 +39,38 @@ function handleAwData () {
 }
 
 function handleLinkData () {
-  showLink.value = true
+  /**
+   * 判断 link 链接的两个节点是否是 AW 和 Conditional 节点
+   * 如是，要显示条件编辑
+   * */
+  const el = store.getShowData
+  const sourceId = el.attributes.source.id
+  const targetId = el.attributes.target.id
+  const sourceEl = el.graph.getCell(sourceId)
+  const targetEl = el.graph.getCell(targetId)
+  const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTAW'
+      && targetEl.attributes.type === 'itea.mbt.test.MBTParallelGateway'
+  linkDom.value.setShowDrawer(flag)
+  showLink.value = flag
+}
+
+function handleGroup () {
+  const el = store.getShowData
+  const custom = el?.attributes?.prop?.custom
+  store.setGroupData({
+    schema: el.getInspectorSchema().schema,
+    data: custom?.data || {}
+  })
+  groupDom.value.setData()
+  showGroup.value = true
+}
+
+function handleSectionData () {
+  const el = store.getShowData
+  const schema = el.getInspectorSchema().schema
+  store.setSectionData(schema, 'schema')
+  sectionDom.value.setData()
+  showSection.value = true
 }
 
 function getType () {
@@ -60,26 +92,17 @@ function handleShowData () {
       handleAwData()
       break
     }
-    case 'itea.mbt.test.MBTLink': {
+    case 'itea.mbt.test.MBTLink':
+    case 'itea.mbt.test.link': {
       handleLinkData()
-      showLink.value = true
       break
     }
     case 'itea.mbt.test.MBTGroup': {
-      debugger
-      store.setGroupData(el.getInspectorSchema().schema)
-      groupDom.value.setData()
-      showGroup.value = true
+      handleGroup()
       break
     }
     case 'itea.mbt.test.MBTSection': {
-      const params = {
-        schema: el.getInspectorSchema().schema,
-        section: el.getPropertiesData().sectionName ? {...el.getPropertiesData()} : {description: ''}
-      }
-      store.setSectionData(params)
-      sectionDom.value.setData()
-      showSection.value = true
+      handleSectionData()
       break
     }
   }
@@ -105,7 +128,7 @@ defineExpose({
     </div>
     <a-divider />
     <mbt-modeler-aw-schema v-show="showAw" ref="AwDom" :show="showAw" @change="handleChange"></mbt-modeler-aw-schema>
-    <mbt-modeler-link-schema v-show="showLink" @change="handleChange"></mbt-modeler-link-schema>
+    <mbt-modeler-link-schema v-show="showLink" @change="handleChange" ref="linkDom"></mbt-modeler-link-schema>
     <mbt-modeler-group-schema v-show="showGroup" ref="groupDom" @change="handleChange"></mbt-modeler-group-schema>
     <mbt-modeler-section-schema v-show="showSection" ref="sectionDom" @change="handleChange"></mbt-modeler-section-schema>
   </div>

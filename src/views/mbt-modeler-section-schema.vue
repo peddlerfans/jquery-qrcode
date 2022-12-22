@@ -20,7 +20,7 @@ function setData () {
 }
 
 function handleChange () {
-  store.setSectionData(DataSection, 'section')
+  store.setSectionData(DataSection.value, 'section')
   emit('change')
 }
 
@@ -35,7 +35,8 @@ defineExpose({
     <VueForm
       :schema="schemaSection"
       v-model="DataSection"
-      @change="handleChange"
-    ></VueForm>
+      @change="handleChange">
+      <div slot-scope="{ DataSection }"></div>
+    </VueForm>
   </div>
 </template>

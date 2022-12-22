@@ -33,10 +33,18 @@ export class MBTGroup extends MBTGroupBase {
     }
 
     this.on('change', (evt: any) => {
-      if (evt.changed && evt.changed.custom && evt.changed.custom) {
-        // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        // this.attr('label/text/0', "test")
-        // this.setPropertiesData(evt.changed.attrs.label.text)
+      if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
+        const custom = evt.changed.prop.custom
+        const desc = custom.description
+        const dataDesc = custom.data?.description || ''
+        const dataLoopCount = custom.data?.loopCount ? custom.data?.loopCount + '次' : ''
+        const _desc = dataDesc + dataLoopCount
+        const labelText = desc ? desc : _desc || 'Group'
+        this.attr({
+          'label': {
+            text: labelText
+          }
+        })
       }
     })
 
@@ -49,13 +57,11 @@ export class MBTGroup extends MBTGroupBase {
     //  return true;
     return super.ifDisallowLink()
   }
-  setPropertiesData(value?: any) {
-    if (value) {
-      this.prop('prop/custom', { ...value })
-      this.prop('attrs/label/text', value.description + value.loopCount)
-      this.prop('attrs/label/fontSize', 16)
-      // this.attributes.attrs!.lable!.text = value.groupName + value.loopCount
-    }
+  setPropertiesData() {
+    const group = store.getGroupData
+    this.prop('prop/custom', Object.assign(group, {
+      description: store.getDescription
+    }))
   }
 
   getInspectorSchema() {

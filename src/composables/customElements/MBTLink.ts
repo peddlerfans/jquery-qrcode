@@ -28,26 +28,21 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   }
   constructor(e?: Element, o?: any) {
     super(e, o);
-
     this.attr({
-      // 'background': { fill: '#454549' },
-      // 'icon': { iconType: 'receive' },
       'label': { text: this.get('prop')?.custom?.condition?.label ? this.get('prop').custom.condition?.label : 'Link' },
-      //   markers: {
-      //     iconTypes: [ 'sub-process'],
-      // }
-
     })
     if (!this.get('prop')?.custom?.condition?.label) {
-      this.set('prop', { custom: { condition: {}, rulesData: [] } })
+      this.set('prop', { custom: { condition: {}, rulesData: [], description: '' } })
     }
     this.on('change', (evt: any) => {
       const custom = evt.changed?.prop?.custom
       if (custom) {
-        const labelText = storeAw.getDescription ? storeAw.getDescription : custom?.condition?.label || ''
-        this.attr({
-          'label': {
-            text: labelText
+        const labelText = custom.description ? custom.description : custom?.condition?.label || ''
+        this.label(0, {
+          attrs: {
+            label: {
+              text: labelText
+            }
           }
         })
       }
@@ -329,7 +324,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     const temp = Object.assign(storeAw.getLinkData, {
       description: storeAw.getDescription
     })
-    this.prop('prop/custom/condition', temp)
+    this.prop('prop/custom', temp)
   }
 
   setSizeFromContent() {
