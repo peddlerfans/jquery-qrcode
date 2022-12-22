@@ -1,0 +1,1 @@
+import{d as o,a5 as r,a6 as s,a7 as n}from"./index.3614183b.js";const p=o({setup(){const a=r();return s(()=>{const{params:e,query:t}=a.currentRoute.value;a.replace({path:"/"+(e.path||"dashboard"),query:t})}),()=>n("span")}});export{p as default};
