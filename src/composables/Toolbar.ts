@@ -1,5 +1,5 @@
 
-import joint from "../../node_modules/@clientio/rappid/dist/rappid.js"
+import * as joint from "../../node_modules/@clientio/rappid/dist/rappid.js"
 export class ToolbarService {
 
     toolbar: joint.ui.Toolbar = new joint.ui.Toolbar;

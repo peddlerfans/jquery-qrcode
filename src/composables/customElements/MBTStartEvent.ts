@@ -1,4 +1,4 @@
-import joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
+import * as joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
 
 import {i18n} from "@/locales";
 

@@ -7,7 +7,7 @@ import { MBTEndEvent } from './MBTEndEvent';
 import { MBTParallelGateway, } from './MBTParallelGateway';
 import { MBTExclusiveGateway } from './MBTExclusiveGateway';
 import { MBTAW } from './MBTAW';
-import joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
+import * as joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
 const { dia, g } = joint
 
 

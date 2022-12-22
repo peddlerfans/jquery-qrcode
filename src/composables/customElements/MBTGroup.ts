@@ -1,4 +1,4 @@
-import joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
+import * as joint from "../../../node_modules/@clientio/rappid/dist/rappid.js"
 const { dia, g } = joint
 import { i18n } from "@/locales";
 import { MBTGroupBase } from "./MBTGroupBase";
