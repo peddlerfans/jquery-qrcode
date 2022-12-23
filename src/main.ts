@@ -13,7 +13,6 @@ import 'virtual:svg-icons-register'
 import './permission'
 import { EnvType } from 'types/app'
 import { i18n } from '@/locales'
-
 import { Form, Input, InputNumber, Button, Drawer, Switch, Slider, Select, SelectOption, Space, Radio, Checkbox } from 'ant-design-vue';
 
 

@@ -9,7 +9,7 @@ const { t } = i18n.global
 
 // window.joint = joint
 
-export const name = 'link';
+export const name = 'MBTLink';
 export const namespace = 'itea.mbt.test.' + name;
 export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterface {
   static shapeName = name;

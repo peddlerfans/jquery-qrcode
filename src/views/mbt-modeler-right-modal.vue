@@ -48,6 +48,11 @@ function handleLinkData () {
   const targetId = el.attributes.target.id
   const sourceEl = el.graph.getCell(sourceId)
   const targetEl = el.graph.getCell(targetId)
+
+  if(!sourceEl || !targetEl ){
+    console.log(sourceEl,targetEl)
+    return
+  }
   const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTAW'
       && targetEl.attributes.type === 'itea.mbt.test.MBTParallelGateway'
   linkDom.value.setShowDrawer(flag)

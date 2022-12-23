@@ -235,7 +235,7 @@ class MbtServe {
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
-
+        console.log(' appShapes.shapes 238:', appShapes.shapes)
         const paper = this.paper = new joint.dia.Paper({
             width: 1100,
             height: 1000,
@@ -257,8 +257,8 @@ class MbtServe {
             },
             validateConnection: function (cellViewS, _magnetS, cellViewT, _magnetT, end, _linkView) {
 
-                const shape = <MBTShapeInterface><unknown>cellViewT.model;
-                if (shape.ifDisallowLink && shape.ifDisallowLink()) {
+                const shape = <MBTShapeInterface><unknown>cellViewT?.model;
+                if (shape && shape.ifDisallowLink && shape.ifDisallowLink()) {
                     return false;
                 }
                 return (end === 'target' ? cellViewT : cellViewS) instanceof joint.dia.ElementView;

@@ -10,7 +10,7 @@ import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import metainfo from "@/components/metainfo.vue";
 import inputTable from "@/components/inputTable.vue";
-import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined} from '@ant-design/icons-vue'
+import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined} from '@ant-design/icons-vue'
 import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
@@ -289,6 +289,39 @@ function Datafintion(data: any) {
 
 let idstr: any = null
 
+const lagacyShapeTypeMapping:any = {
+  'uml.StartState':'itea.mbt.test.MBTStartEvent', 'standard.HeaderedRectangle':'itea.mbt.test.MBTAW',
+  'uml.EndState':'itea.mbt.test.MBTEndEvent','standard.Polygon':'itea.mbt.test.MBTExclusiveGateway','standard.Link':'itea.mbt.test.MBTLink'
+}
+function transformCells(mbtData:any){
+  if(!mbtData?.modelDefinition?.cellsinfo?.cells){
+    return [];
+
+  }
+   let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
+
+    return {...cell,type:lagacyShapeTypeMapping[cell.type] || cell.type,prop:getProperty(cell,mbtData)}
+
+   })
+   debugger
+   console.log('cells:',cells)
+   return {cells};
+
+}
+
+function getProperty(cell:any,mbtData:any){
+  if(cell.prop) return cell.prop;
+  let prop = {custom:{}}
+  if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
+    
+    Object.assign(prop.custom,{step : mbtData.modelDefinition.props[cell.id].props.primaryprops})
+  } 
+  if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
+    Object.assign(prop.custom,{expectation : mbtData.modelDefinition.props[cell.id].props.expectedprops})
+  } 
+   return prop
+
+}
 onMounted(async () => {
   if (route.params._id) {
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
@@ -318,7 +351,10 @@ onMounted(async () => {
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getcells)));
+    
+    // console.log(store.getcells.value)
+    // console.log('....array:',transformCells(store.mbtData.))
+    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);

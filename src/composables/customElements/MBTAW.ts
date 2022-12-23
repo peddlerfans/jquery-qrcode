@@ -14,20 +14,33 @@ const storeAw = MbtData()
 const { t } = i18n.global
 window.joint = joint
 export const name = 'aw';
-export const namespace = 'itea.mbt.test';
+export const namespace = 'itea.mbt.test.'+name;
 
 
 export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterface {
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
+        // this.attr({
+        //     'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
+        //     'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
+            
+        // },)
+        console.log('.....',this.get('prop'))
+        const desc = this.get('prop')?.custom?.description
+        const primaryDesc =  this.get('prop')?.custom?.step?.aw?.description || ''
+        debugger
+        const expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
+        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+        const labelDesc = desc
+            ? desc
+            : awSchemaStr ? awSchemaStr : 'AW'
         this.attr({
-            'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
-            'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
-
-        },)
-
+            'icon': { iconType: (primaryDesc || expectedDesc) ? 'script' : 'user' },
+            'label': { text: labelDesc },
+        })
         this.on('change', (evt: any) => {
+           
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 const desc = this.get('prop')?.custom?.description
                 const primaryDesc = storeAw.getPrimaryAw?.schema?.description || ''
@@ -367,14 +380,7 @@ export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterf
     }
     // reload CEll 
         updateRectangles() {
-        if (this.get('prop').custom.step?.data?.name) {
-            this.attr({
-                // 'background': { fill: '#454549' },
-                'icon': { iconType: '' },
-                'label': { text: this.get('prop').custom.step?.data?.name, fontSize: 16 },
 
-            },)
-        }
     }
     setSizeFromContent() {
         // delete this.cache.layout;
