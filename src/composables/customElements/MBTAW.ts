@@ -17,48 +17,47 @@ export const name = 'aw';
 export const namespace = 'itea.mbt.test.'+name;
 
 
-export class MBTAW extends joint.shapes.bpmn2.Activity implements MBTShapeInterface {
+export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterface {
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
-        // this.attr({
-        //     'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
-        //     'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
-            
-        // },)
+        // console.log('++++++++',this.markup)
+        this.set({'icon':'user'})
+        // this.set({content:'suibian'})
+
+            // 'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
+            // 'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
+            // 'label': {
+            //     refY: '10',
+            //     // text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
+            //   },
+          
         console.log('.....',this.get('prop'))
-        const desc = this.get('prop')?.custom?.description
-        const primaryDesc =  this.get('prop')?.custom?.step?.aw?.description || ''
-        debugger
-        const expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
-        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
-        const labelDesc = desc
-            ? desc
-            : awSchemaStr ? awSchemaStr : 'AW'
-        this.attr({
-            'icon': { iconType: (primaryDesc || expectedDesc) ? 'script' : 'user' },
-            'label': { text: labelDesc },
-        })
+        this.reRender()
         this.on('change', (evt: any) => {
            
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
-                const desc = this.get('prop')?.custom?.description
-                const primaryDesc = storeAw.getPrimaryAw?.schema?.description || ''
-                const expectedDesc = storeAw.getExpectedAw?.schema?.description || ''
-                const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
-                const labelDesc = desc
-                    ? desc
-                    : awSchemaStr ? awSchemaStr : 'AW'
-                this.attr({
-                    'icon': { iconType: desc ? 'script' : 'user' },
-                    'label': { text: labelDesc },
-                })
+                this.reRender();
             }
         })
 
         // this.updateRectangles();
     }
 
+    reRender(){
+        const desc = this.get('prop')?.custom?.description
+        const primaryDesc =  this.get('prop')?.custom?.step?.schema?.description || ''
+        console.log(this.get('prop'))
+        const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
+        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+        const labelDesc = desc
+            ? desc
+            : awSchemaStr ? awSchemaStr : ''
+        this.set({
+            'icon':  (primaryDesc || expectedDesc) ? 'service' : 'user' ,
+            'content': labelDesc ,
+        })
+    }
     static awData = {
         step: {
             data: {},

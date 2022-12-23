@@ -200,6 +200,8 @@ class MbtServe {
         let element: any
         element = elementView.model;
         new joint.ui.FreeTransform({
+            minHeight:30,
+            minWidth:100,
             cellView: elementView,
             allowRotation: false,
             preserveAspectRatio: !!element.get('preserveAspectRatio'),
@@ -313,7 +315,7 @@ class MbtServe {
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
             var type = elementView.model?.get('type');
             if (type == 'itea.mbt.test.MBTAW') {
-                elementView.model?.set('size', { width: 120, height: 70 })
+                elementView.model?.set('size', { width: 100, height: 30 })
             } else if (type == 'itea.mbt.test.MBTGroup') {
                 elementView.model?.set('size', { width: 150, height: 100 })
             } else if (type == 'itea.mbt.test.MBTSection') {
