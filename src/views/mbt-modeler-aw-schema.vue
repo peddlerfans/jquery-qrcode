@@ -132,6 +132,7 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
+  console.log("updateAW....",tar )
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -253,12 +254,14 @@ function initSchema() {
 }
 
 function handleChange () {
+  console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
   if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   emit('change')
 }
 
 function handleData () {
+  console.log("...........handleData",store.getExpectedAw)
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)

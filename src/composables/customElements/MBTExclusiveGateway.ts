@@ -14,20 +14,12 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
   constructor(e: Element, o: any) {
     super(e, o);
 
-    this.attr({
-      // 'background': { fill: '#454549' },
-      'icon': { iconType: 'exclusive' },
-      'label': { text: 'Conditional' },
-      //   markers: {
-      //     iconTypes: [ 'sub-process'],
-      // }
 
-    })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
         this.updateRectangles();
-        this.attr('label/text/0', "test")
+        // this.attr('label/text/0', "test")
       }
 
     })
@@ -62,15 +54,17 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
   }
 
   updateRectangles() {
+    console.log("++++","updateRectangles")
 
-    var attrs = this.get('attrs');
-    var rects = [
-      { type: 'step', text: this.prop('custom/step') || 'BBB' },
-      { type: 'expectation', text: this.prop('custom/expectation') },
-      // { type: 'methods', text: this.get('methods') }
-    ];
+    this.attr({
+      // 'background': { fill: '#454549' },
+      'icon': { iconType: 'exclusive' },
+      'label': { text: 'Conditional' },
+      //   markers: {
+      //     iconTypes: [ 'sub-process'],
+      // }
 
-    var offsetY = 0;
+    })
 
   }
   setSizeFromContent() {
@@ -84,11 +78,13 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
   defaults() {
     return {
       ...super.defaults,
-      type: 'itea.mbt.test'
+      type: 'itea.mbt.test',
+      
 
 
     }
   }
+  
 
 }
 

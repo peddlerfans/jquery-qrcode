@@ -101,6 +101,11 @@ export const MbtData = defineStore({
             }
         },
         setEditingExpectedAw(data: any, key?: string) {
+            console.log(
+                "----setEditingExpectedAw",
+                data,
+                key
+            )
             if (!key) this.editingExpectedAw = data
             else {
                 // @ts-ignore

@@ -21,18 +21,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
-        // console.log('++++++++',this.markup)
         this.set({'icon':'user'})
-        // this.set({content:'suibian'})
-
-            // 'icon': { iconType: this.get('prop')?.custom?.description ? 'script' : 'user' },
-            // 'label': { text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'AW', fontSize: 16 },
-            // 'label': {
-            //     refY: '10',
-            //     // text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
-            //   },
-          
-        console.log('.....',this.get('prop'))
         this.reRender()
         this.on('change', (evt: any) => {
            
@@ -47,16 +36,17 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     reRender(){
         const desc = this.get('prop')?.custom?.description
         const primaryDesc =  this.get('prop')?.custom?.step?.schema?.description || ''
-        console.log(this.get('prop'))
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
+        console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc
             ? desc
             : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon':  (primaryDesc || expectedDesc) ? 'service' : 'user' ,
-            'content': labelDesc ,
+            'content': labelDesc 
         })
+  
     }
     static awData = {
         step: {
@@ -409,4 +399,5 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
             },
         }
     }
+   
 }

@@ -293,17 +293,25 @@ const lagacyShapeTypeMapping:any = {
   'uml.StartState':'itea.mbt.test.MBTStartEvent', 'standard.HeaderedRectangle':'itea.mbt.test.MBTAW',
   'uml.EndState':'itea.mbt.test.MBTEndEvent','standard.Polygon':'itea.mbt.test.MBTExclusiveGateway','standard.Link':'itea.mbt.test.MBTLink'
 }
+
+function getShapeTypeMapping(shapeType:string) {
+  // if (!lagacyShapeTypeMapping[shapeType] ) {
+  //   console.log("============",shapeType)
+  // }
+return  lagacyShapeTypeMapping[shapeType] || shapeType
+}
 function transformCells(mbtData:any){
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
 
   }
    let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
-
-    return {...cell,type:lagacyShapeTypeMapping[cell.type] || cell.type,prop:getProperty(cell,mbtData)}
+     cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+     delete cell.attrs;
+    //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
+    return cell
 
    })
-   debugger
    console.log('cells:',cells)
    return {cells};
 
@@ -311,13 +319,19 @@ function transformCells(mbtData:any){
 
 function getProperty(cell:any,mbtData:any){
   if(cell.prop) return cell.prop;
+  if (!mbtData.modelDefinition.props) {
+    return {custom:{}}
+  }
   let prop = {custom:{}}
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
-    
-    Object.assign(prop.custom,{step : mbtData.modelDefinition.props[cell.id].props.primaryprops})
+    let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
+    awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
+    Object.assign(prop.custom,{step : awprop})
   } 
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
-    Object.assign(prop.custom,{expectation : mbtData.modelDefinition.props[cell.id].props.expectedprops})
+    let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
+    awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
+    Object.assign(prop.custom,{expectation : awprop})
   } 
    return prop
 

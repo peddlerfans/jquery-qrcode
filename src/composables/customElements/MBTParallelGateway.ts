@@ -14,16 +14,7 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
   constructor(e: Element, o: any) {
     super(e, o);
 
-    this.attr({
-      // 'background': { fill: '#454549' },
-      'icon': { iconType: 'parallel' },
-      'label': { text: 'Parallel' },
-      //   markers: {
-      //     iconTypes: [ 'sub-process'],
-      // }
 
-
-    })
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -68,14 +59,16 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
 
   updateRectangles() {
 
-    var attrs = this.get('attrs');
-    var rects = [
-      { type: 'step', text: this.prop('custom/step') || 'BBB' },
-      { type: 'expectation', text: this.prop('custom/expectation') },
-      // { type: 'methods', text: this.get('methods') }
-    ];
+    this.attr({
+      // 'background': { fill: '#454549' },
+      'icon': { iconType: 'parallel' },
+      'label': { text: 'Parallel' },
+      //   markers: {
+      //     iconTypes: [ 'sub-process'],
+      // }
 
-    var offsetY = 0;
+
+    })
 
   }
   setSizeFromContent() {
@@ -89,7 +82,12 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
   defaults() {
     return {
       ...super.defaults,
-      type: 'itea.mbt.test'
+      type: 'itea.mbt.test',
+      prop : {
+        custom : {
+          // type : 'pg'
+        }
+      }
 
 
     }

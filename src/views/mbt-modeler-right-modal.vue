@@ -114,6 +114,7 @@ function handleShowData () {
 }
 
 function handleChange () {
+  console.log("handleChange",)
   const _desc = desc.value
   store.setDescription(_desc)
   emit('change', getType())

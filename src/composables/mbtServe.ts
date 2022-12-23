@@ -200,7 +200,7 @@ class MbtServe {
         let element: any
         element = elementView.model;
         new joint.ui.FreeTransform({
-            minHeight:30,
+            minHeight:80,
             minWidth:100,
             cellView: elementView,
             allowRotation: false,
