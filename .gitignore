@@ -6,7 +6,7 @@ dist
 .vscode
 tests/server/static
 tests/server/static/upload
-
+dist/
 .local
 # local env files
 .env.local
