@@ -50,7 +50,7 @@ export class MBTGroup extends MBTGroupBase {
 
   }
   ifEmbedable(child?: any): boolean {
-    return super.ifEmbedable()
+    return super.ifEmbedable(child)
     // return true;
   }
   ifDisallowLink(): boolean {

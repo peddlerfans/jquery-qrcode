@@ -13,7 +13,7 @@ window.joint = joint
 
 const typeList = ['beforeAll', 'beforeEach', 'afterAll', 'afterEach']
 
-export const name = 'section';
+export const name = 'MBTSection';
 export const namespace = 'itea.mbt.test.' + name;
 export class MBTSection extends MBTGroupBase {
   static shapeName = name;
@@ -29,16 +29,16 @@ export class MBTSection extends MBTGroupBase {
       }
 
     })
-    if (!this.get('prop')?.custom?.description) {
-      this.set('prop', { custom: { description: '' } })
-    }
+    // if (!this.get('prop')?.custom?.description) {
+    //   this.set('prop', { custom: { description: '' , type : "before_all"} })
+    // }
 
     this.on('change', (evt: any) => {
       const custom = evt.changed?.prop?.custom
       if (custom) {
         this.attr({
           'label': {
-            text: custom.description || 'Section'
+            text: custom.description || custom.type
           }
         })
       }
@@ -46,7 +46,7 @@ export class MBTSection extends MBTGroupBase {
     })
   }
   ifEmbedable(child?: any): boolean {
-    return super.ifEmbedable()
+    return super.ifEmbedable(child)
     // return true;
   }
   ifDisallowLink(): boolean {
@@ -87,7 +87,9 @@ export class MBTSection extends MBTGroupBase {
 
   }
   setPropertiesData() {
-    this.prop('prop/custom', { description: store.getDescription })
+    console.log(store.getSectionData.section)
+    this.prop('prop/custom', store.getSectionData.section)
+    console.log("++ddsfsdfs",this.get('prop'))
   }
 
   setInspectorData() {
@@ -95,8 +97,9 @@ export class MBTSection extends MBTGroupBase {
 
   }
   getPropertiesData() {
+    console.log("====",this.get('prop').custom)
     // return一个type属性（enum）作为下拉列表
-    return this.attributes.prop.custom
+    return this.get('prop').custom
   }
 
   updateRectangles() {
@@ -120,7 +123,14 @@ export class MBTSection extends MBTGroupBase {
     this.resize(width, height);
   }
   defaults() {
-    return super.defaults()
+    return { ... super.defaults(),
+      prop: {
+        custom: {
+          description : "",
+          type : "beforeAll"
+        }
+      }
+    }
   }
 
 }

@@ -2,6 +2,7 @@ import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 
 import { i18n } from "@/locales";
 import { MBTShapeInterface } from "./MBTShapeInterface";
+import { NS_MBTSection } from "./index.js";
 const { t } = i18n.global;
 
 // window.joint = joint
@@ -17,7 +18,7 @@ export class MBTGroupBase
     super(e, o);
   }
   ifEmbedable(child?: any):boolean {
-    return true;
+    return child.attributes?.type !== NS_MBTSection;
   }
 
   ifDisallowLink() :boolean{
