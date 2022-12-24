@@ -318,11 +318,18 @@ function transformCells(mbtData:any){
 }
 
 function getProperty(cell:any,mbtData:any){
-  if(cell.prop) return cell.prop;
+  // if(cell.prop) return cell.prop;
   if (!mbtData.modelDefinition.props) {
     return {custom:{}}
   }
   let prop = {custom:{}}
+  
+  if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
+  // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props)
+    console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
+    Object.assign(prop.custom,{label:mbtData.modelDefinition.props[cell.id]?.props?.label, ruleData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
+
+  }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description

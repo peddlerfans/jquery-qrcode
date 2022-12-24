@@ -29,25 +29,31 @@ export class MBTGroup extends MBTGroupBase {
       }
     })
     if (!this.get('prop')?.custom?.description) {
-      this.set('prop', { custom: { description: '', loopCount: '' } })
+      this.set('prop', { custom: { description: '', loopCount: 1 } })
     }
 
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
-        const custom = evt.changed.prop.custom
-        const desc = custom.description
-        const dataDesc = custom.data?.description || ''
-        const dataLoopCount = custom.data?.loopCount ? custom.data?.loopCount + '次' : ''
-        const _desc = dataDesc + dataLoopCount
-        const labelText = desc ? desc : _desc || 'Group'
-        this.attr({
-          'label': {
-            text: labelText
-          }
-        })
+        this.reRender();
       }
     })
+    this.reRender();
 
+  }
+
+
+  reRender() {
+    const custom = this.get('prop').custom
+    // const desc = custom.description
+    const desc = custom?.description || ''
+    const dataLoopCount = custom?.loopCount ? custom?.loopCount + '次' : ''
+    // const _desc = dataDesc + dataLoopCount
+    const labelText = desc ? desc : dataLoopCount
+    this.attr({
+      'label': {
+        text: labelText
+      }
+    })
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable(child)
@@ -59,9 +65,8 @@ export class MBTGroup extends MBTGroupBase {
   }
   setPropertiesData() {
     const group = store.getGroupData
-    this.prop('prop/custom', Object.assign(group, {
-      description: store.getDescription
-    }))
+    console.log(group.data)
+    this.prop('prop/custom', group.data)
   }
 
   getInspectorSchema() {
@@ -104,7 +109,7 @@ export class MBTGroup extends MBTGroupBase {
   }
 
   getPropertiesData() {
-    return this.attributes.prop.custom
+    return this.get('prop').custom
   }
 
   updataLabel() {
