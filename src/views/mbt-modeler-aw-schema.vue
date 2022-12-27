@@ -189,6 +189,7 @@ function showAw (row: any) {
     }
     setSchema('primary')
     schema.value = getSchema(schema.value, row)
+    // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
@@ -262,6 +263,23 @@ function handleChange () {
 
 function handleData () {
   console.log("...........handleData",store.getExpectedAw)
+  // const checkAwProps = store.getShowData.getPropertiesSchema()
+  // if(_.isEmpty(checkAwProps.step)){
+  //   initPrimarySchema()
+  // }else{
+  //   schema.value = checkAwProps.step.schema
+  //   schema.value = getSchema(schema.value)
+  //   schemaValue.value = checkAwProps.step.data || {}
+  //   primaryUiSchema.value = checkAwProps.step.uiParams || {}
+  // }
+  // if(_.isEmpty(checkAwProps.expectation)){
+  //   initExpectedSchema()
+  // }else{
+  //   expectedSchema.value = checkAwProps.expectation.schema
+  //   expectedSchema.value = getSchema(expectedSchema.value)
+  //   expectedSchemaValue.value = checkAwProps.expectation.data || {}
+  //   expectedUiSchema.value = checkAwProps.expectation.uiParams || {}
+  // }
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)

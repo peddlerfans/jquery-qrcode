@@ -71,24 +71,27 @@ export class MBTSection extends MBTGroupBase {
             index: 1
           }
         }
-      },
-      schema: {
-        type: "object",
-        description: '',
-        properties: {
-          type: {
-            title: "type",
-            type: "string",
-            enum: typeList
-          },
-        }
       }
     }
-
   }
-  setPropertiesData() {
+
+  getPropertiesSchema(){
+    return {
+      type: "object",
+      description: '',
+      properties: {
+        type: {
+          title: "type",
+          type: "string",
+          enum: typeList
+        },
+      }
+    }
+  }
+
+  setPropertiesData(data?:any) {
     console.log(store.getSectionData.section)
-    this.prop('prop/custom', store.getSectionData.section)
+    this.prop('prop/custom', data)
     console.log("++ddsfsdfs",this.get('prop'))
   }
 

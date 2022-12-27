@@ -66,7 +66,7 @@ export class MBTGroup extends MBTGroupBase {
   setPropertiesData() {
     const group = store.getGroupData
     console.log(group.data)
-    this.prop('prop/custom', group.data)
+    this.prop('prop/custom', {data:group.data})
   }
 
   getInspectorSchema() {
@@ -86,23 +86,25 @@ export class MBTGroup extends MBTGroupBase {
             index: 1
           }
         }
-      },
-      schema: {
-        type: "object",
-        description: '',
-        properties: {
-          description: {
-            title: "Description",
-            type: "string",
-          },
-          loopCount: {
-            title: "Loop Count",
-            type: "integer",
-          }
-        }
       }
     }
 
+  }
+  getPropertiesSchema(){
+    return {
+      type: "object",
+      description: '',
+      properties: {
+        description: {
+          title: "Description",
+          type: "string",
+        },
+        loopCount: {
+          title: "Loop Count",
+          type: "integer",
+        }
+      }
+    }
   }
 
   setInspectorData() {
@@ -112,11 +114,11 @@ export class MBTGroup extends MBTGroupBase {
     return this.get('prop').custom
   }
 
-  updataLabel() {
-    let attrs = this.get("attrs")
-    this.prop('prop', { loop: attrs?.label?.text })
-    this.attributes.attrs!.lable!.text = 'loopCount' + attrs
-  }
+  // updataLabel() {
+  //   let attrs = this.get("attrs")
+  //   this.prop('prop', { loop: attrs?.label?.text })
+  //   this.attributes.attrs!.lable!.text = 'loopCount' + attrs
+  // }
 
   setSizeFromContent() {
     // delete this.cache.layout;

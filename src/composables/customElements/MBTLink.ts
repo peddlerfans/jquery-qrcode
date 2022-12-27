@@ -31,7 +31,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       'label': { text: this.get('prop')?.custom?.condition?.label ? this.get('prop').custom.condition?.label : 'Link' },
     })
     if (!this.get('prop')?.custom?.condition?.label) {
-      this.set('prop', { custom: { condition: {}, rulesData: [], description: '' } })
+      this.set('prop', { custom: { label: '', rulesData: [], description: '' } })
     }
     this.on('change', (evt: any) => {
       const custom = evt.changed?.prop?.custom
@@ -310,20 +310,48 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
           label: 'Labels',
           index: 4
         }
-      }
+      },
+      
     }
-
+    
   }
+  getPropertiesSchema(){
+    return {
+      description: 'Configuration for Link',
+      type: 'object',
+      properties: {
+        _id: {
+          type: 'string',
+          "ui:hidden": true,
+          required: true,
+        },
+        label: {
+          title: 'Label',
+          type: 'string',
+          default: ''
+        },
+        isCondition: {
+          type: 'boolean',
+          default: false,
+          "ui:hidden": true
+        },
+      },
+    }
+  }
+  getPropertiesData(){
+    return this.get('prop').custom
+  }
+
 
   setInspectorData() {
 
   }
-  setPropertiesData() {
+  setPropertiesData(data?:any) {
     // 添加属性判断是否condition
     const temp = Object.assign(storeAw.getLinkData, {
       description: storeAw.getDescription
     })
-    this.prop('prop/custom', temp)
+    this.prop('prop/custom', data)
   }
 
   setSizeFromContent() {

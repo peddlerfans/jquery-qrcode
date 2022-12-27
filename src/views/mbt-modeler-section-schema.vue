@@ -22,7 +22,7 @@ function setData () {
 function handleChange () {
   store.setSectionData(DataSection.value, 'section')
   emit('change')
-}
+} 
 
 defineExpose({
   setData
