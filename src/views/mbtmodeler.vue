@@ -15,7 +15,7 @@ import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, sortedIndex } from "lodash";
 import {useRoute} from 'vue-router'
@@ -50,7 +50,8 @@ let rightSchemaModal = ref()
 let showGroup = ref(false)
 let showLink = ref(false)
 let showSection = ref(false)
-let showpaper =ref(false)
+let showpaper = ref(false)
+let currentEL:any = ref('qw')
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -381,6 +382,7 @@ onMounted(async () => {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
+    currentEL.value = el
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -389,6 +391,7 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      currentEL.value = elementView?.model
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -401,7 +404,7 @@ onMounted(async () => {
       rappid.paper.removeTools();
 });
 })
-
+provide('currentEl',currentEL)
 const saveMbt = () => {
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {

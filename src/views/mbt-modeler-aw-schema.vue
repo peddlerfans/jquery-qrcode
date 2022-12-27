@@ -3,7 +3,8 @@ import {
   ref,
   watch,
   onMounted,
-  computed
+  computed,
+inject
 } from 'vue'
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
@@ -27,6 +28,11 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['change'])
+const currentEl = inject('currentEl')
+watch(() => currentEl, (val) => {
+  console.log(val);
+  
+},{deep:true})
 
 const showTable = ref<boolean>(false)
 const router = useRouter()
