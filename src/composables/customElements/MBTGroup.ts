@@ -3,7 +3,7 @@ const { dia, g } = joint
 import { i18n } from "@/locales";
 import { MBTGroupBase } from "./MBTGroupBase";
 const { t } = i18n.global
-import {MbtData} from '@/stores/modules/mbt-data'
+import { MbtData } from '@/stores/modules/mbt-data'
 // import { MBTShapeInterface } from "./MBTShapeInterface";
 // window.joint = joint
 const store = MbtData()
@@ -28,9 +28,9 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    if (!this.get('prop')?.custom?.description) {
-      this.set('prop', { custom: { description: '', loopCount: 1 } })
-    }
+    // if (!this.get('prop')?.custom?.description) {
+    //   this.set('prop', { custom: { description: '', loopCount: 1 } })
+    // }
 
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
@@ -49,6 +49,8 @@ export class MBTGroup extends MBTGroupBase {
     const dataLoopCount = custom?.loopCount ? custom?.loopCount + '次' : ''
     // const _desc = dataDesc + dataLoopCount
     const labelText = desc ? desc : dataLoopCount
+    console.log(labelText);
+
     this.attr({
       'label': {
         text: labelText
@@ -63,10 +65,10 @@ export class MBTGroup extends MBTGroupBase {
     //  return true;
     return super.ifDisallowLink()
   }
-  setPropertiesData() {
+  setPropertiesData(data: any) {
     const group = store.getGroupData
     console.log(group.data)
-    this.prop('prop/custom', group.data)
+    this.prop('prop/custom', data)
   }
 
   getInspectorSchema() {
@@ -86,23 +88,25 @@ export class MBTGroup extends MBTGroupBase {
             index: 1
           }
         }
-      },
-      schema: {
-        type: "object",
-        description: '',
-        properties: {
-          description: {
-            title: "Description",
-            type: "string",
-          },
-          loopCount: {
-            title: "Loop Count",
-            type: "integer",
-          }
-        }
       }
     }
 
+  }
+  getPropertiesSchema() {
+    return {
+      type: "object",
+      description: '',
+      properties: {
+        description: {
+          title: "Description",
+          type: "string",
+        },
+        loopCount: {
+          title: "Loop Count",
+          type: "integer",
+        }
+      }
+    }
   }
 
   setInspectorData() {
@@ -112,11 +116,11 @@ export class MBTGroup extends MBTGroupBase {
     return this.get('prop').custom
   }
 
-  updataLabel() {
-    let attrs = this.get("attrs")
-    this.prop('prop', { loop: attrs?.label?.text })
-    this.attributes.attrs!.lable!.text = 'loopCount' + attrs
-  }
+  // updataLabel() {
+  //   let attrs = this.get("attrs")
+  //   this.prop('prop', { loop: attrs?.label?.text })
+  //   this.attributes.attrs!.lable!.text = 'loopCount' + attrs
+  // }
 
   setSizeFromContent() {
     // delete this.cache.layout;
@@ -127,7 +131,16 @@ export class MBTGroup extends MBTGroupBase {
     this.resize(width, height);
   }
   defaults() {
-    return super.defaults()
+    return {
+      ... super.defaults(),
+      prop: {
+        custom: {
+          description: "",
+          loopCount: "1"
+        }
+      }
+    }
+
   }
 }
 

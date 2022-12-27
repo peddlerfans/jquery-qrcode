@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['change'])
 const currentEl = inject('currentEl')
+let desc = ref<string>('')
 watch(() => currentEl, (val) => {
   console.log(val);
   
@@ -195,6 +196,7 @@ function showAw (row: any) {
     }
     setSchema('primary')
     schema.value = getSchema(schema.value, row)
+    // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
@@ -263,11 +265,30 @@ function handleChange () {
   console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
   if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+  const _desc = desc.value
+  store.setDescription(_desc)
   emit('change')
 }
 
 function handleData () {
   console.log("...........handleData",store.getExpectedAw)
+  // const checkAwProps = store.getShowData.getPropertiesSchema()
+  // if(_.isEmpty(checkAwProps.step)){
+  //   initPrimarySchema()
+  // }else{
+  //   schema.value = checkAwProps.step.schema
+  //   schema.value = getSchema(schema.value)
+  //   schemaValue.value = checkAwProps.step.data || {}
+  //   primaryUiSchema.value = checkAwProps.step.uiParams || {}
+  // }
+  // if(_.isEmpty(checkAwProps.expectation)){
+  //   initExpectedSchema()
+  // }else{
+  //   expectedSchema.value = checkAwProps.expectation.schema
+  //   expectedSchema.value = getSchema(expectedSchema.value)
+  //   expectedSchemaValue.value = checkAwProps.expectation.data || {}
+  //   expectedUiSchema.value = checkAwProps.expectation.uiParams || {}
+  // }
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
@@ -294,7 +315,13 @@ defineExpose({
 </script>
 
 <template>
+
   <div class="edit-aw-wrap">
+    <div class="desc-wrap">
+      <div class="title">描述：</div>
+      <a-input v-model:value="desc" @change="handleChange"></a-input>
+    </div>
+    <a-divider />
     <div class="aw-wrap">
       <div class="title-wrap">
         <div class="title">{{ $t('MBTStore.primary') }}</div>
@@ -403,6 +430,11 @@ defineExpose({
 <style scoped lang="less">
 .edit-aw-wrap {
   padding: 4px 8px;
+    .desc-wrap {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
   .aw-wrap {
     .title-wrap {
       display: flex;

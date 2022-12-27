@@ -31,7 +31,7 @@ class MbtServe {
     InspectorService !: InspectorService;
     keyboardService !: KeyboardService;
     constructor(
-        el: HTMLElement,
+        el: any,
         stencilService: StencilService,
         toolbarService: ToolbarService,
         haloService: HaloService,
@@ -520,8 +520,6 @@ class MbtServe {
     }
 
     renderPlugin(selector: string, plugin: any): void {
-
-
         this.el.querySelector(selector).appendChild(plugin.el);
         plugin.render();
     }

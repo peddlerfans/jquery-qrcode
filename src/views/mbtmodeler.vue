@@ -50,8 +50,8 @@ let rightSchemaModal = ref()
 let showGroup = ref(false)
 let showLink = ref(false)
 let showSection = ref(false)
-let showpaper = ref(false)
-let currentEL:any = ref('qw')
+let showpaper =ref(false)
+let currentEl = ref()
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -382,7 +382,7 @@ onMounted(async () => {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
-    currentEL.value = el
+    currentEl.value = el
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -391,7 +391,7 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      currentEL.value = elementView?.model
+      currentEl.value = elementView?.model
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -403,8 +403,20 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
 });
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+    
+    // console.log(store.getcells.value)
+    // console.log('....array:',transformCells(store.mbtData.))
+    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+  }
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+  }
+
 })
-provide('currentEl',currentEL)
+
+
+
 const saveMbt = () => {
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
@@ -476,7 +488,7 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 
-function handleChange (str: string) {
+function handleChange (str: string , data:any) {
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
@@ -484,15 +496,15 @@ function handleChange (str: string) {
     }
     case 'itea.mbt.test.MBTLink':
     case 'itea.mbt.test.link': {
-      storeAw.getShowData?.setPropertiesData()
+      storeAw.getShowData?.setPropertiesData(data)
       break
     }
     case 'itea.mbt.test.MBTGroup': {
-      storeAw.getShowData?.setPropertiesData()
+      storeAw.getShowData?.setPropertiesData(data)
       break
     }
     case 'itea.mbt.test.MBTSection': {
-      storeAw.getShowData?.setPropertiesData()
+      storeAw.getShowData?.setPropertiesData(data)
       break
     }
   }
