@@ -37,7 +37,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const desc = this.get('prop')?.custom?.description
         const primaryDesc =  this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
-        console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
+        // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc
             ? desc

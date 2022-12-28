@@ -28,15 +28,12 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   constructor(e?: Element, o?: any) {
     super(e, o);
     this.attr({
-      'label': { text: this.get('prop')?.custom?.condition?.label ? this.get('prop').custom.condition?.label : 'Link' },
+      'label': { text: this.get('prop')?.custom?.label ? this.get('prop').custom?.label : 'Link' },
     })
-    if (!this.get('prop')?.custom?.condition?.label) {
-      this.set('prop', { custom: { label: '', rulesData: [], description: '' } })
-    }
     this.on('change', (evt: any) => {
       const custom = evt.changed?.prop?.custom
       if (custom) {
-        const labelText = custom.description ? custom.description : custom?.condition?.label || ''
+        const labelText = custom.description ? custom.description : custom?.label || ''
         this.label(0, {
           attrs: {
             label: {
@@ -371,6 +368,13 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     return {
       ...super.defaults,
       type: namespace,
+      prop:{
+        custom:{
+          label:'',
+          description:'',
+          rulesData:[]
+        }
+      }
     };
   }
 }
