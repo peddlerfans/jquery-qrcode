@@ -45,13 +45,8 @@ const url = realMBTUrl;
 const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
-let show = ref(false)
 let rightSchemaModal = ref()
-let showGroup = ref(false)
-let showLink = ref(false)
-let showSection = ref(false)
 let showpaper =ref(false)
-let currentEl = ref()
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -379,7 +374,6 @@ onMounted(async () => {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
-    currentEl.value = el
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -388,7 +382,6 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      currentEl.value = elementView?.model
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -547,7 +540,7 @@ function handleChange (str: string , data:any) {
               </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
-                <mbt-modeler-right-modal :currentEl="currentEl" ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
+                <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
               </div>
             </div>
         <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->

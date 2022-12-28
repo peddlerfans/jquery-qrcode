@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-computed,
-  ref,
-watch
-} from "vue";
+import {computed, ref,watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
 import createRule from "@/components/CreateRule.vue"
 import {MbtData} from "@/stores/modules/mbt-data";
@@ -19,7 +15,9 @@ let showDrawer = ref(false)
 let AwDom = ref()
 let schemaData = ref({})
 let data:any = ref({})
+let awSchemaData = ref()
 let props = defineProps(['currentEl'])
+awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
   return store.getDataPoolTableColumns.map((e: any) => {
@@ -191,7 +189,6 @@ function handleAwData () {
 
 function handleData() {
   const el = store.getShowData
-  console.log(props.currentEl);
   
   if(el.attributes.source && el.attributes.target){
     const sourceId = el.attributes.source.id
@@ -202,7 +199,6 @@ function handleData() {
       && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
       showDrawer.value = flag
   }
-  
   schemaData.value = el.getPropertiesSchema()
   data.value = el.getPropertiesData()
   if(data.value.rulesData) {
@@ -248,9 +244,15 @@ function handleChange () {
   if( _.has(data.value , 'rulesData')){
     data.value.rulesData = rulesData.value
   }
+  console.log(12312312313);
   emit('change', getType() , data.value)
 }
-
+function handleAWChange(data:any){
+  console.log(data);
+  
+}
+//  {step:{schema:schema.value,data:schemaValue.value,uiParams:primaryUiSchema.value}
+  // ,expectation:{schema:expectedSchema.value,data:expectedSchemaValue.value,uiParams:expectedUiSchema.value}}
 defineExpose({
   handleShowData
 })
@@ -259,7 +261,13 @@ defineExpose({
 
 <template>
   <div class="mbt-modeler-right-modal-wrap">
-    <mbt-modeler-aw-schema v-show="showAw" ref="AwDom" :show="showAw" @change="handleChange"></mbt-modeler-aw-schema>
+    <mbt-modeler-aw-schema 
+    v-show="showAw" 
+    ref="AwDom" 
+    :show="showAw" 
+    @change="handleChange"
+    :awSchemaData = "awSchemaData"
+    ></mbt-modeler-aw-schema>
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
