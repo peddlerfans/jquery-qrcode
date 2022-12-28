@@ -3,7 +3,11 @@ import http from "@/utils/http";
 import {watch, ref, nextTick} from "vue";
 import  {SearchBar}  from "@/components/basic/search-bar";
 import  {CommonTable}  from "@/components/basic/common-table";
+import _ from "lodash";
+import {uuid} from "@/utils/Uuid";
 const emit = defineEmits(['clickRow', 'closeModal'])
+
+let treeData = ref<any>([])
 
 interface Props {
   show: boolean
@@ -22,7 +26,10 @@ let searchObj = {
 watch(
     () => props.show,
     (val) => {
-      if (val) nextTick(() => getTableData())
+      if (val) nextTick(() => {
+        getTableData()
+        getTreeData()
+      })
     }
 )
 
@@ -37,7 +44,8 @@ const awColumn = [
 let tableParams = ref({
   search: '',
   page: 1,
-  perPage: 10
+  perPage: 10,
+  q: ''
 })
 
 function search (searchText: string) {
@@ -62,6 +70,36 @@ function getTableData () {
   })
 }
 
+function getTreeData () {
+  http.get('/api/hlfs/_tree').then(({data}) => {
+    treeData.value = objToArr(data)
+  })
+}
+
+// 数据格式化的函数
+function objToArr(obj: any) {
+  const arr = []
+  if (_.isObject(obj)) {
+    for (let i in obj) {
+      let oo: any = {
+        title: i,
+        key: uuid(),
+        children: objToArr(obj[i as keyof typeof objToArr])
+      };
+      if(i === ""){
+        i = "/"
+        oo = {
+          title: i,
+          key: uuid(),
+          children: objToArr(obj["" as keyof typeof objToArr])
+        }
+      }
+      arr.push(oo)
+    }
+  }
+  return arr
+}
+
 function showAw (row: any) {
   emit('clickRow', row)
 }
@@ -73,8 +111,18 @@ function tablePageChange (query: any) {
 }
 
 function closeModal () {
-  console.log(1)
   emit('closeModal')
+}
+
+function onSelect (selectedKeys: any, info?: any) {
+  tableParams.value.page = 1
+  if (info.node.dataRef.title === '/') {
+    tableParams.value.q = ''
+    getTableData()
+  } else {
+    tableParams.value.q = `path:/${info.node.dataRef.title}`
+    getTableData()
+  }
 }
 
 </script>
@@ -91,16 +139,28 @@ function closeModal () {
         :params="searchObj.params"
         @search="search"
     ></search-bar>
-    <common-table
-        ref="awTable"
-        :columns="awColumn"
-        tableRef="awTable"
-        @go2Page="showAw"
-        @pageChange="tablePageChange"
-    ></common-table>
+    <div class="content-wrap">
+      <a-tree
+          style="width: 240px;"
+          :show-line="true"
+          :tree-data="treeData"
+          @select="onSelect">
+      </a-tree>
+      <common-table
+          style="width: 100%;"
+          ref="awTable"
+          :columns="awColumn"
+          tableRef="awTable"
+          @go2Page="showAw"
+          @pageChange="tablePageChange"
+      ></common-table>
+    </div>
+
   </a-modal>
 </template>
 
-<style scoped>
-
+<style scoped lang="less">
+.content-wrap {
+  display: flex;
+}
 </style>
