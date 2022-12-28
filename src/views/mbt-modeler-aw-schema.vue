@@ -3,7 +3,8 @@ import {
   ref,
   watch,
   onMounted,
-  computed
+  computed,
+inject
 } from 'vue'
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
@@ -27,6 +28,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['change'])
+const currentEl = inject('currentEl')
+let desc = ref<string>('')
+watch(() => currentEl, (val) => {
+  console.log(val);
+  
+},{deep:true})
 
 const showTable = ref<boolean>(false)
 const router = useRouter()
@@ -258,6 +265,8 @@ function handleChange () {
   console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
   if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+  const _desc = desc.value
+  store.setDescription(_desc)
   emit('change')
 }
 
@@ -306,7 +315,13 @@ defineExpose({
 </script>
 
 <template>
+
   <div class="edit-aw-wrap">
+    <div class="desc-wrap">
+      <div class="title">描述：</div>
+      <a-input v-model:value="desc" @change="handleChange"></a-input>
+    </div>
+    <a-divider />
     <div class="aw-wrap">
       <div class="title-wrap">
         <div class="title">{{ $t('MBTStore.primary') }}</div>
@@ -415,6 +430,11 @@ defineExpose({
 <style scoped lang="less">
 .edit-aw-wrap {
   padding: 4px 8px;
+    .desc-wrap {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+  }
   .aw-wrap {
     .title-wrap {
       display: flex;

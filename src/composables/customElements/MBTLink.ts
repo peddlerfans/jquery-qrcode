@@ -1,7 +1,7 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 import { i18n } from "@/locales";
 import { MBTShapeInterface } from "./MBTShapeInterface"
-import {MbtData} from "@/stores/modules/mbt-data";
+import { MbtData } from "@/stores/modules/mbt-data";
 
 const { dia, g } = joint
 const storeAw = MbtData()
@@ -311,11 +311,11 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
           index: 4
         }
       },
-      
+
     }
-    
+
   }
-  getPropertiesSchema(){
+  getPropertiesSchema() {
     return {
       description: 'Configuration for Link',
       type: 'object',
@@ -324,6 +324,10 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
           type: 'string',
           "ui:hidden": true,
           required: true,
+        },
+        description: {
+          title: "Description",
+          type: "string",
         },
         label: {
           title: 'Label',
@@ -338,7 +342,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       },
     }
   }
-  getPropertiesData(){
+  getPropertiesData() {
     return this.get('prop').custom
   }
 
@@ -346,7 +350,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   setInspectorData() {
 
   }
-  setPropertiesData(data?:any) {
+  setPropertiesData(data?: any) {
     // 添加属性判断是否condition
     const temp = Object.assign(storeAw.getLinkData, {
       description: storeAw.getDescription

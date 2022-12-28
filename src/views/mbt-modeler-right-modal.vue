@@ -16,7 +16,6 @@ import _ from "lodash";
 const store = MbtData()
 const emit = defineEmits(['change'])
 const keys = 1
-let desc = ref<string>('')
 let show = ref(false)
 let showAw = ref<boolean>(false)
 let showLink = ref<boolean>(false)
@@ -195,7 +194,6 @@ watch(
 
 
 function initData () {
-  desc.value = ''
   showAw.value = false
   showLink.value = false
   showGroup.value = false
@@ -213,7 +211,8 @@ function handleAwData () {
 
 function handleData() {
   const el = store.getShowData
-  // debugger
+  console.log(el);
+  
   if(el.attributes.source && el.attributes.target){
     const sourceId = el.attributes.source.id
     const targetId = el.attributes.target.id
@@ -280,11 +279,11 @@ function handleShowData () {
   initData()
   const el = store.getShowData
   const type = getType()
-  const _desc = el.attributes.prop?.custom?.description
-  if (_desc) {
-    desc.value = _desc
-    store.setDescription(_desc)
-  }
+  // const _desc = el.attributes.prop?.custom?.description
+  // if (_desc) {
+  //   desc.value = _desc
+  //   store.setDescription(_desc)
+  // }
   switch (type) {
     case 'itea.mbt.test.MBTAW': {
       handleAwData()
@@ -308,14 +307,12 @@ function handleShowData () {
 
 function handleChange () {
   const el = store.getShowData
-  console.log("handleChange",el)
-  const _desc = desc.value
-  store.setDescription(_desc)
-  
-  data.value.description = desc.value
+  // console.log("handleChange",el)
+  // const _desc = desc.value
+  // store.setDescription(_desc)
   // el.setPropertiesData(data.value)
 
-  emit('change', getType(),data.value)
+  emit('change', getType() , data.value)
 }
 
 defineExpose({
@@ -326,11 +323,6 @@ defineExpose({
 
 <template>
   <div class="mbt-modeler-right-modal-wrap">
-    <div class="desc-wrap">
-      <div class="title">描述：</div>
-      <a-input v-model:value="desc" @change="handleChange"></a-input>
-    </div>
-    <a-divider />
     <mbt-modeler-aw-schema v-show="showAw" ref="AwDom" :show="showAw" @change="handleChange"></mbt-modeler-aw-schema>
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">

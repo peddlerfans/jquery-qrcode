@@ -1,7 +1,7 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 
 import { i18n } from "@/locales";
-import {MbtData} from "@/stores/modules/mbt-data";
+import { MbtData } from "@/stores/modules/mbt-data";
 
 import { MBTShapeInterface } from "./MBTShapeInterface"
 
@@ -35,16 +35,26 @@ export class MBTSection extends MBTGroupBase {
 
     this.on('change', (evt: any) => {
       const custom = evt.changed?.prop?.custom
-      if (custom) {
-        this.attr({
-          'label': {
-            text: custom.description || custom.type
-          }
-        })
-      }
-
+      this.reRender()
     })
   }
+
+  reRender() {
+    const custom = this.get('prop').custom
+    // const desc = custom.description
+    const desc = custom?.description || ''
+    const dataLoopCount = custom?.type
+    // const _desc = dataDesc + dataLoopCount
+    const labelText = desc ? desc : dataLoopCount
+    console.log(labelText);
+
+    this.attr({
+      'label': {
+        text: labelText
+      }
+    })
+  }
+
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable(child)
     // return true;
@@ -75,11 +85,15 @@ export class MBTSection extends MBTGroupBase {
     }
   }
 
-  getPropertiesSchema(){
+  getPropertiesSchema() {
     return {
       type: "object",
       description: '',
       properties: {
+        description: {
+          title: "Description",
+          type: "string",
+        },
         type: {
           title: "type",
           type: "string",
@@ -89,10 +103,10 @@ export class MBTSection extends MBTGroupBase {
     }
   }
 
-  setPropertiesData(data?:any) {
+  setPropertiesData(data?: any) {
     console.log(store.getSectionData.section)
     this.prop('prop/custom', data)
-    console.log("++ddsfsdfs",this.get('prop'))
+    console.log("++ddsfsdfs", this.get('prop'))
   }
 
   setInspectorData() {
@@ -100,7 +114,7 @@ export class MBTSection extends MBTGroupBase {
 
   }
   getPropertiesData() {
-    console.log("====",this.get('prop').custom)
+    console.log("====", this.get('prop').custom)
     // return一个type属性（enum）作为下拉列表
     return this.get('prop').custom
   }
@@ -126,11 +140,12 @@ export class MBTSection extends MBTGroupBase {
     this.resize(width, height);
   }
   defaults() {
-    return { ... super.defaults(),
+    return {
+      ... super.defaults(),
       prop: {
         custom: {
-          description : "",
-          type : "beforeAll"
+          description: "",
+          type: "beforeAll"
         }
       }
     }

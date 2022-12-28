@@ -15,7 +15,7 @@ import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, sortedIndex } from "lodash";
 import {useRoute} from 'vue-router'
@@ -372,8 +372,16 @@ onMounted(async () => {
     new KeyboardService()
   )
   rappid.startRappid()
-
-rappid.graph.on("add", function (el: any) {
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+    
+    // console.log(store.getcells.value)
+    // console.log('....array:',transformCells(store.mbtData.))
+    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+  }
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+  }
+  rappid.graph.on("add", function (el: any) {
     currentEl.value = el
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
@@ -383,7 +391,7 @@ rappid.graph.on("add", function (el: any) {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      currentEl.value = elementView.model
+      currentEl.value = elementView?.model
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
