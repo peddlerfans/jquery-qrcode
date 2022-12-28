@@ -28,13 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['change'])
-const currentEl = inject('currentEl')
 let desc = ref<string>('')
-watch(() => currentEl, (val) => {
-  console.log(val);
-  
-},{deep:true})
-
 const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
@@ -262,7 +256,7 @@ function initSchema() {
 }
 
 function handleChange () {
-  console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
+  // console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
   if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value
@@ -271,24 +265,6 @@ function handleChange () {
 }
 
 function handleData () {
-  console.log("...........handleData",store.getExpectedAw)
-  // const checkAwProps = store.getShowData.getPropertiesSchema()
-  // if(_.isEmpty(checkAwProps.step)){
-  //   initPrimarySchema()
-  // }else{
-  //   schema.value = checkAwProps.step.schema
-  //   schema.value = getSchema(schema.value)
-  //   schemaValue.value = checkAwProps.step.data || {}
-  //   primaryUiSchema.value = checkAwProps.step.uiParams || {}
-  // }
-  // if(_.isEmpty(checkAwProps.expectation)){
-  //   initExpectedSchema()
-  // }else{
-  //   expectedSchema.value = checkAwProps.expectation.schema
-  //   expectedSchema.value = getSchema(expectedSchema.value)
-  //   expectedSchemaValue.value = checkAwProps.expectation.data || {}
-  //   expectedUiSchema.value = checkAwProps.expectation.uiParams || {}
-  // }
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)

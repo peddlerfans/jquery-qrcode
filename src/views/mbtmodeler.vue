@@ -326,10 +326,8 @@ function getProperty(cell:any,mbtData:any){
   let prop = {custom:{}}
   
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
-  // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props)
-    console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
+    // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
     Object.assign(prop.custom,{label:mbtData.modelDefinition.props[cell.id]?.props?.label, ruleData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
-
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
@@ -373,10 +371,9 @@ onMounted(async () => {
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
-    // console.log(store.getcells.value)
-    // console.log('....array:',transformCells(store.mbtData.))
-    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+
+    // rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
@@ -403,16 +400,6 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
 });
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
-    // console.log(store.getcells.value)
-    // console.log('....array:',transformCells(store.mbtData.))
-    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
-  }
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-  }
-
 })
 
 
@@ -552,15 +539,15 @@ function handleChange (str: string , data:any) {
             <div class="paper-container"/>
             <div class="AwtabInspector" v-show="showpaper">
               <ul class="tab_ul">
-                    <li v-if="!show && !showGroup && !showSection && !showLink">样式修改</li>
+                    <!-- <li v-if="!show">样式修改</li> -->
                     <li
-                    v-if="show || showGroup || showSection || showLink"
+                    v-if="true"
                     >数据编辑</li>
                     <div style="clear:both;"></div>
               </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
-                <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
+                <mbt-modeler-right-modal :currentEl="currentEl" ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
               </div>
             </div>
         <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->

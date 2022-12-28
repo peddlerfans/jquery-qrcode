@@ -23,17 +23,14 @@ export class MBTSection extends MBTGroupBase {
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': { refY: '10', text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Section' },
+      'label': { refY: '10', text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : this.get('prop').custom?.type},
       markers: {
         iconTypes: ['ad-hoc'],
       }
 
     })
-    // if (!this.get('prop')?.custom?.description) {
-    //   this.set('prop', { custom: { description: '' , type : "before_all"} })
-    // }
-
     this.on('change', (evt: any) => {
+      // debugger
       const custom = evt.changed?.prop?.custom
       this.reRender()
     })
@@ -43,11 +40,9 @@ export class MBTSection extends MBTGroupBase {
     const custom = this.get('prop').custom
     // const desc = custom.description
     const desc = custom?.description || ''
-    const dataLoopCount = custom?.type
-    // const _desc = dataDesc + dataLoopCount
-    const labelText = desc ? desc : dataLoopCount
+    const labelText = desc ? desc : custom?.type
     console.log(labelText);
-
+    
     this.attr({
       'label': {
         text: labelText
@@ -104,9 +99,8 @@ export class MBTSection extends MBTGroupBase {
   }
 
   setPropertiesData(data?: any) {
-    console.log(store.getSectionData.section)
     this.prop('prop/custom', data)
-    console.log("++ddsfsdfs", this.get('prop'))
+    // console.log("++ddsfsdfs", this.get('prop'))
   }
 
   setInspectorData() {
@@ -114,7 +108,7 @@ export class MBTSection extends MBTGroupBase {
 
   }
   getPropertiesData() {
-    console.log("====", this.get('prop').custom)
+    // console.log("====", this.get('prop').custom)
     // return一个type属性（enum）作为下拉列表
     return this.get('prop').custom
   }
