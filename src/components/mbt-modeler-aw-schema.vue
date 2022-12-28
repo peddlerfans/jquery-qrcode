@@ -160,6 +160,7 @@ function setSchema (schema: any, columns: any, uiSchema: any) {
 }
 
 function showAw (row: any) {
+  console.log(row)
   isEdit.value = true
   if (selectAwTar === '1') {
     schemaValue.value.name = row.name

@@ -133,7 +133,6 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
-  console.log("updateAW....",tar )
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -184,8 +183,21 @@ function showAw (row: any) {
     }
     if (_.isArray(row.params) && row.params.length > 0) {
       let appEndedSchema = generateSchema(row.params)
+      appEndedSchema.forEach((a: any) => {
+        Object.keys(a).forEach((b: any) => {
+          a[b].custom = 'awParams'
+        })
+      })
       appEndedSchema.forEach((field: any) => {
         Object.assign(schema.value.properties, field)
+      })
+    }
+    if (row.returnType) {
+      Object.assign(schema.value.properties, {
+        variable: {
+          title: '变量',
+          type: 'string'
+        }
       })
     }
     setSchema('primary')
@@ -228,11 +240,11 @@ function showAw (row: any) {
 function setSchema (tar: string) {
   let temp: any = {}
   if (tar === 'primary') {
-    temp = data2schema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
+    temp = data2schema(schema.value, primaryUiSchema.value)
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
   } else if (tar === 'expected') {
-    temp = data2schema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
+    temp = data2schema(expectedSchema.value, expectedUiSchema.value)
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
   }
@@ -281,6 +293,26 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
+}
+
+const keys = 1
+let rulesData = ref([{
+  relation: 'AND',
+  id: 1,
+  conditions: [
+    {
+      name: 'name',
+      operator: '=',
+      value: undefined,
+      selectvalues: 'AND',
+    },
+  ],
+  children: [],
+}])
+let formDatas = ref([{"value":"Memory","label":"Memory"},{"value":"GPU","label":"GPU"},{"value":"DPI","label":"DPI"},{"value":"key","label":"key"}])
+let valueData = ref([{"name":"Memory","type":"string","values":["4G","2G","6G"]},{"name":"GPU","type":"number","values":[8,32,16]},{"name":"DPI","type":"string","values":["1080P","2K"]},{"name":"key","type":"number","values":[0,1,2,3,4,5,6,7,8]}])
+function rulesChange() {
+
 }
 
 defineExpose({
@@ -382,6 +414,16 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
+<!--        <div class="setting-assert">-->
+<!--          <div class="title">设置断言：</div>-->
+<!--          <create-rule-->
+<!--            :keys="keys"-->
+<!--            :formDatas="formDatas"-->
+<!--            :valueData="valueData"-->
+<!--            :rulesData="rulesData"-->
+<!--            @rulesChange="rulesChange"-->
+<!--          ></create-rule>-->
+<!--        </div>-->
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"

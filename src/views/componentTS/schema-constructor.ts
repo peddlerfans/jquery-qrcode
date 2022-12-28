@@ -4,27 +4,34 @@ import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vu
 
 const store = MbtData()
 
-export function data2schema (awSchema: any, selectList: any, uiSchema?: any) {
+export function data2schema (awSchema: any, uiSchema?: any) {
     // 可选参数名
     let enumList: Array<any> = []
-    if (Array.isArray(selectList)) enumList = selectList.map((a: any) => {
+    enumList = store.getDataPoolTableColumns.map((a: any) => {
         return {
             value: `{{${a.title}}}`,
             label: a.title
+        }
+    })
+    let sutEnumList: Array<any> = []
+    sutEnumList = store.getDataPoolResource.map((a: any) => {
+        return {
+            value: `{{${a.alias}}}`,
+            label: a.alias
         }
     })
     // 获取属性里面可自定义的表单项
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
         let prop = awSchema.properties
-        prop[a] = {
-            "title": a,
+        prop[a.title] = {
+            "title": a.title,
             "type": "string",
             "patternProperties": false,
         }
-        if (uiSchema) uiSchema[a] = {
+        if (uiSchema) uiSchema[a.title] = {
             "ui:widget": schemaItem,
-            "ui:options": enumList
+            "ui:options": a.type === 'SUT' ? sutEnumList : enumList
         }
     })
     return {
@@ -38,52 +45,11 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (!(tar.hasOwnProperty('readOnly') && tar.readOnly) && !tar['ui:hidden']) {
-            arr.push(key)
+        if (tar.hasOwnProperty('custom') && tar.custom === 'awParams') {
+            arr.push(tar)
         }
     }
     return arr
-}
-
-// 获取对象中已被设置为自定义的属性
-export function getCustomProp (obj: any) {
-    let temp: Array<string> = []
-    Object.keys(obj).map((a: any) => {
-        if (obj[a].custom) {
-            temp.push(a)
-        }
-    })
-    return Array.from(new Set(temp))
-}
-
-export function getCustomOpts (awSchema: any) {
-    let customList = []
-    for (let key in awSchema.properties) {
-        const tar = awSchema.properties[key]
-        if (!(tar.hasOwnProperty('readOnly') && tar.readOnly) && !tar['ui:hidden']) {
-            customList.push({
-                value: key
-            })
-        }
-    }
-    return customList
-}
-
-export function getSchemaData (schema: any) {
-    let data = schema.data
-    let customInSchema = getCustomItems(schema.schema)
-    if (customInSchema.length) {
-        customInSchema.forEach((a: any) => {
-            if (typeof data[a] === 'string') {
-                data[a] = {
-                    inputType: '1',
-                    value: data[a],
-                    value1: data[a]
-                }
-            }
-        })
-    }
-    return data
 }
 
 export function string2Obj (schema: any, uiSchema: any) {
