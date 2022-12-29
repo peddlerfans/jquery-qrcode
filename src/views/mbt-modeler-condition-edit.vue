@@ -167,9 +167,7 @@ function daeteCondition(index: any){
 function childChange(childData: any){
   rulesChange(childData)
 }
-function rulesChange(rulesData:any, index?: number){
-  console.log(rulesData)
-  console.log(index)
+function rulesChange(rulesData:any,){
   changeObserver()
   emit("rulesChange", props.rulesData,props.keys)
 }
