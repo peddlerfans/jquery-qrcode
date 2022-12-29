@@ -77,6 +77,7 @@ export const MbtData = defineStore({
         getPrimaryAw: state => state.editingPrimaryAw,
         getExpectedAw: state => state.editingExpectedAw,
         getDataPoolTableColumns: state => state.allData?.dataDefinition?.data?.tableColumns || [],
+        getDataPoolResource: state => state.allData?.dataDefinition?.resources || [],
         getDataPoolTableData: state => state.allData?.dataDefinition?.data?.tableData || [],
         getExpectTableRow: state => state.expectedTableRow,
         getLinkData: state => state.LinkData,
@@ -101,11 +102,6 @@ export const MbtData = defineStore({
             }
         },
         setEditingExpectedAw(data: any, key?: string) {
-            console.log(
-                "----setEditingExpectedAw",
-                data,
-                key
-            )
             if (!key) this.editingExpectedAw = data
             else {
                 // @ts-ignore

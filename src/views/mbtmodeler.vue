@@ -45,13 +45,8 @@ const url = realMBTUrl;
 const activeKey = ref("2")
 const isFormVisible = ref(false);
 // Aw组件的数据
-let show = ref(false)
 let rightSchemaModal = ref()
-let showGroup = ref(false)
-let showLink = ref(false)
-let showSection = ref(false)
 let showpaper =ref(false)
-let currentEl = ref()
 let metatemplatedetailtableData = ref({});
 const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
@@ -326,10 +321,8 @@ function getProperty(cell:any,mbtData:any){
   let prop = {custom:{}}
   
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
-  // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props)
-    console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
+    // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
     Object.assign(prop.custom,{label:mbtData.modelDefinition.props[cell.id]?.props?.label, ruleData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
-
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
@@ -373,16 +366,14 @@ onMounted(async () => {
   )
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
-    // console.log(store.getcells.value)
-    // console.log('....array:',transformCells(store.mbtData.))
-    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+
+    // rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
-    currentEl.value = el
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -391,7 +382,6 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      currentEl.value = elementView?.model
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -403,16 +393,6 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
 });
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
-    
-    // console.log(store.getcells.value)
-    // console.log('....array:',transformCells(store.mbtData.))
-    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
-  }
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-  }
-
 })
 
 
@@ -552,9 +532,9 @@ function handleChange (str: string , data:any) {
             <div class="paper-container"/>
             <div class="AwtabInspector" v-show="showpaper">
               <ul class="tab_ul">
-                    <li v-if="!show && !showGroup && !showSection && !showLink">样式修改</li>
+                    <!-- <li v-if="!show">样式修改</li> -->
                     <li
-                    v-if="show || showGroup || showSection || showLink"
+                    v-if="true"
                     >数据编辑</li>
                     <div style="clear:both;"></div>
               </ul>

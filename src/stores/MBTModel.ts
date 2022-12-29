@@ -126,6 +126,8 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     // 获取后台所有的mbt数据
     async getMbtmodel(id: any) {
+      
+      
       let res = await request.get(`${realMBTUrl}/${id}`)
       this.setMbtData(res)
     },

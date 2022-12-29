@@ -28,11 +28,9 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    // if (!this.get('prop')?.custom?.description) {
-    //   this.set('prop', { custom: { description: '', loopCount: 1 } })
-    // }
-
     this.on('change', (evt: any) => {
+     
+     
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
         this.reRender();
       }
@@ -67,7 +65,6 @@ export class MBTGroup extends MBTGroupBase {
   }
   setPropertiesData(data: any) {
     const group = store.getGroupData
-    console.log(group.data)
     this.prop('prop/custom', data)
   }
 

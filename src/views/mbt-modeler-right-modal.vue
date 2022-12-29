@@ -1,13 +1,6 @@
 <script setup lang="ts">
-import {
-computed,
-  ref,
-watch
-} from "vue";
+import {computed, ref,watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
-import MbtModelerLinkSchema from './mbt-modeler-link-schema.vue'
-import MbtModelerGroupSchema from './mbt-modeler-group-schema.vue'
-import MbtModelerSectionSchema from './mbt-modeler-section-schema.vue'
 import createRule from "@/components/CreateRule.vue"
 import {MbtData} from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
@@ -18,17 +11,13 @@ const emit = defineEmits(['change'])
 const keys = 1
 let show = ref(false)
 let showAw = ref<boolean>(false)
-let showLink = ref<boolean>(false)
-let showGroup = ref<boolean>(false)
-let showSection = ref<boolean>(false)
 let showDrawer = ref(false)
 let AwDom = ref()
-let groupDom = ref()
-let linkDom = ref()
-let sectionDom = ref()
 let schemaData = ref({})
 let data:any = ref({})
-
+let awSchemaData = ref()
+let props = defineProps(['currentEl'])
+awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
   return store.getDataPoolTableColumns.map((e: any) => {
@@ -173,35 +162,26 @@ const conditionstr = (arr: any) => {
     .substring(0, ifcondition.join("").toString().length - 4);
 };
 
-
 const rulesData = ref([rulesDataDefaultItem])
 function rulesChange (datas: any, key: string) {
   rulesData.value = datas
 }
 watch(
-            rulesData,
-            (newvalue: any) => {
-              if (rulesData.value.length > 0) {
-                if ( showDrawer.value && _.has(data.value , 'label')){
-                  data.value.label = ifdata(newvalue)!;
-                }
-              }
-            },
-            { deep: true }
-          );
-
-
-
-
-function initData () {
-  showAw.value = false
-  showLink.value = false
-  showGroup.value = false
-  showSection.value = false
-}
+  rulesData,
+  (newvalue: any) => {
+    if (rulesData.value.length > 0) {
+      if ( showDrawer.value && _.has(data.value , 'label') && data.value.label == ''){
+        data.value.label = ifdata(newvalue)!;
+      }
+    }
+  },
+  { deep: true }
+);
 
 function handleAwData () {
   const el = store.getShowData
+  console.log(el);
+  
   const checkAwProps = el.getPropertiesSchema()
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
@@ -211,7 +191,6 @@ function handleAwData () {
 
 function handleData() {
   const el = store.getShowData
-  console.log(el);
   
   if(el.attributes.source && el.attributes.target){
     const sourceId = el.attributes.source.id
@@ -222,52 +201,15 @@ function handleData() {
       && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
       showDrawer.value = flag
   }
-  
-  
   schemaData.value = el.getPropertiesSchema()
-  console.log(el.getPropertiesData());
   data.value = el.getPropertiesData()
-  show.value = true
-}
-
-function handleLinkData () {
-  /**
-   * 判断 link 链接的两个节点是否是 AW 和 Conditional 节点
-   * 如是，要显示条件编辑
-   * */
-  const el = store.getShowData
-  const sourceId = el.attributes.source.id
-  const targetId = el.attributes.target.id
-  const sourceEl = el.graph.getCell(sourceId)
-  const targetEl = el.graph.getCell(targetId)
-
-  if(!sourceEl || !targetEl ){
-    console.log(sourceEl,targetEl)
-    return
+  if(data.value.rulesData) {
+    if(data.value.rulesData.length == 0){
+    data.value.rulesData = [rulesDataDefaultItem]
   }
-  const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTAW'
-      && targetEl.attributes.type === 'itea.mbt.test.MBTParallelGateway'
-  linkDom.value.setShowDrawer(flag)
-  showLink.value = flag
+  rulesData.value = data.value.rulesData
 }
-
-function handleGroup () {
-  const el = store.getShowData
-  const custom = el?.attributes?.prop?.custom
-  store.setGroupData({
-    schema: el.getInspectorSchema().schema,
-    data: custom?.data || {}
-  })
-  groupDom.value.setData()
-  showGroup.value = true
-}
-
-function handleSectionData () {
-  const el = store.getShowData
-  const schema = el.getInspectorSchema().schema
-  store.setSectionData(schema, 'schema')
-  sectionDom.value.setData()
-  showSection.value = true
+  show.value = true
 }
 
 function getType () {
@@ -276,14 +218,9 @@ function getType () {
 }
 
 function handleShowData () {
-  initData()
-  const el = store.getShowData
+  showAw.value = false
+  show.value = false
   const type = getType()
-  // const _desc = el.attributes.prop?.custom?.description
-  // if (_desc) {
-  //   desc.value = _desc
-  //   store.setDescription(_desc)
-  // }
   switch (type) {
     case 'itea.mbt.test.MBTAW': {
       handleAwData()
@@ -306,15 +243,18 @@ function handleShowData () {
 }
 
 function handleChange () {
-  const el = store.getShowData
-  // console.log("handleChange",el)
-  // const _desc = desc.value
-  // store.setDescription(_desc)
-  // el.setPropertiesData(data.value)
-
+  if( _.has(data.value , 'rulesData')){
+    data.value.rulesData = rulesData.value
+  }
+  console.log(12312312313);
   emit('change', getType() , data.value)
 }
-
+function handleAWChange(data:any){
+  console.log(data);
+  
+}
+//  {step:{schema:schema.value,data:schemaValue.value,uiParams:primaryUiSchema.value}
+  // ,expectation:{schema:expectedSchema.value,data:expectedSchemaValue.value,uiParams:expectedUiSchema.value}}
 defineExpose({
   handleShowData
 })
@@ -323,7 +263,13 @@ defineExpose({
 
 <template>
   <div class="mbt-modeler-right-modal-wrap">
-    <mbt-modeler-aw-schema v-show="showAw" ref="AwDom" :show="showAw" @change="handleChange"></mbt-modeler-aw-schema>
+    <mbt-modeler-aw-schema 
+    v-show="showAw" 
+    ref="AwDom" 
+    :show="showAw" 
+    @change="handleChange"
+    :awSchemaData = "awSchemaData"
+    ></mbt-modeler-aw-schema>
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
@@ -336,10 +282,6 @@ defineExpose({
         ></create-rule>
       </div>
     </VueForm>
-
-    <!-- <mbt-modeler-link-schema v-show="showLink" @change="handleChange" ref="linkDom"></mbt-modeler-link-schema>
-    <mbt-modeler-group-schema v-show="showGroup" ref="groupDom" @change="handleChange"></mbt-modeler-group-schema>
-    <mbt-modeler-section-schema v-show="showSection" ref="sectionDom" @change="handleChange"></mbt-modeler-section-schema> -->
   </div>
 </template>
 

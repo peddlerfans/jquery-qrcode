@@ -28,13 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['change'])
-const currentEl = inject('currentEl')
 let desc = ref<string>('')
-watch(() => currentEl, (val) => {
-  console.log(val);
-  
-},{deep:true})
-
 const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
@@ -139,7 +133,6 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
-  console.log("updateAW....",tar )
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -190,11 +183,27 @@ function showAw (row: any) {
     }
     if (_.isArray(row.params) && row.params.length > 0) {
       let appEndedSchema = generateSchema(row.params)
+      appEndedSchema.forEach((a: any) => {
+        Object.keys(a).forEach((b: any) => {
+          a[b].custom = 'awParams'
+        })
+      })
       appEndedSchema.forEach((field: any) => {
         Object.assign(schema.value.properties, field)
       })
+      
+    }
+    if (row.returnType) {
+      Object.assign(schema.value.properties, {
+        variable: {
+          title: '变量',
+          type: 'string'
+        }
+      })
     }
     setSchema('primary')
+    console.log('uischema' ,primaryUiSchema.value);
+    
     schema.value = getSchema(schema.value, row)
     // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
@@ -226,7 +235,7 @@ function showAw (row: any) {
     expectedSchema.value = getSchema(expectedSchema.value, row)
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-    store.setEditingPrimaryAw(expectedUiSchema.value, 'uiParams')
+    store.setEditingExpectedAw(expectedUiSchema.value, 'uiParams')
   }
   emit('change')
 }
@@ -234,11 +243,11 @@ function showAw (row: any) {
 function setSchema (tar: string) {
   let temp: any = {}
   if (tar === 'primary') {
-    temp = data2schema(schema.value, store.getDataPoolTableColumns, primaryUiSchema.value)
+    temp = data2schema(schema.value, primaryUiSchema.value)
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
   } else if (tar === 'expected') {
-    temp = data2schema(expectedSchema.value, store.getDataPoolTableColumns, expectedUiSchema.value)
+    temp = data2schema(expectedSchema.value, expectedUiSchema.value)
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
   }
@@ -262,38 +271,24 @@ function initSchema() {
 }
 
 function handleChange () {
-  console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
-  if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
-  if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+
+  
+  // console.log("...........handleChange",schemaValue.value , isEmptyPrimarySchema)
+  if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
+  if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value
   store.setDescription(_desc)
   emit('change')
 }
 
 function handleData () {
-  console.log("...........handleData",store.getExpectedAw)
-  // const checkAwProps = store.getShowData.getPropertiesSchema()
-  // if(_.isEmpty(checkAwProps.step)){
-  //   initPrimarySchema()
-  // }else{
-  //   schema.value = checkAwProps.step.schema
-  //   schema.value = getSchema(schema.value)
-  //   schemaValue.value = checkAwProps.step.data || {}
-  //   primaryUiSchema.value = checkAwProps.step.uiParams || {}
-  // }
-  // if(_.isEmpty(checkAwProps.expectation)){
-  //   initExpectedSchema()
-  // }else{
-  //   expectedSchema.value = checkAwProps.expectation.schema
-  //   expectedSchema.value = getSchema(expectedSchema.value)
-  //   expectedSchemaValue.value = checkAwProps.expectation.data || {}
-  //   expectedUiSchema.value = checkAwProps.expectation.uiParams || {}
-  // }
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+    // console.log(schema.value,schemaValue.value);
+    
   } else {
     initPrimarySchema()
   }
@@ -305,6 +300,26 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
+}
+
+const keys = 1
+let rulesData = ref([{
+  relation: 'AND',
+  id: 1,
+  conditions: [
+    {
+      name: 'name',
+      operator: '=',
+      value: undefined,
+      selectvalues: 'AND',
+    },
+  ],
+  children: [],
+}])
+let formDatas = ref([{"value":"Memory","label":"Memory"},{"value":"GPU","label":"GPU"},{"value":"DPI","label":"DPI"},{"value":"key","label":"key"}])
+let valueData = ref([{"name":"Memory","type":"string","values":["4G","2G","6G"]},{"name":"GPU","type":"number","values":[8,32,16]},{"name":"DPI","type":"string","values":["1080P","2K"]},{"name":"key","type":"number","values":[0,1,2,3,4,5,6,7,8]}])
+function rulesChange() {
+
 }
 
 defineExpose({
@@ -406,6 +421,16 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
+<!--        <div class="setting-assert">-->
+<!--          <div class="title">设置断言：</div>-->
+<!--          <create-rule-->
+<!--            :keys="keys"-->
+<!--            :formDatas="formDatas"-->
+<!--            :valueData="valueData"-->
+<!--            :rulesData="rulesData"-->
+<!--            @rulesChange="rulesChange"-->
+<!--          ></create-rule>-->
+<!--        </div>-->
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"
