@@ -71,7 +71,7 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 
 let searchInput = ref()
 let cascder = ref(false)
-let selectvalue:any = ref("")
+let selectvalue = ref("")
 let selectoptions:any = ref([
    {
     value: 'tags:',

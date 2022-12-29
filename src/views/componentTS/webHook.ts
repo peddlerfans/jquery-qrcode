@@ -3,7 +3,7 @@ export interface ModelState {
     description: string,
     _id: string,
     tags: Array<string>,
-    url: any,
+    url: String,
     topics: Array<string>
 }
 // 定义数据双向绑定的数据
@@ -62,7 +62,7 @@ export const httpFnEnList = [
     }
 ]
 
-export const httpNameTrance: any = {
+export const httpNameTrance:any = {
     post: "请求数据",
     delete: "删除数据",
     get: "获取数据",

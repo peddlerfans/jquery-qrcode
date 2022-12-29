@@ -15,7 +15,7 @@
 //    }]
 import * as _ from "lodash";
 
-const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
+const generateSchema = (inputArr: Array<Object>) => {
 
   let outputArr: any[] = [];
 
@@ -40,7 +40,7 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
         typeinschema = "boolean";
         break;
       case "SUT":
-        typeinschema = "SUT";
+        typeinschema = "string";
         break;
       default:
         break;
@@ -52,18 +52,6 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
       typeinschema == "string"
     ) {
       enumVal = _.split(mod.enum, ",");
-      if (mod._id) {
-        tempobj = {
-          [mod._id]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            "ui:hidden": true,
-            title: mod._id,
-            // enum: enumVal,
-            // enumNames: enumVal,
-          },
-        };
-      }
       if (mod.description) {
         tempobj = {
           [mod.description]: {
@@ -141,7 +129,6 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
 
 
     }
-    Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
     outputArr.push(tempobj);
   });
 

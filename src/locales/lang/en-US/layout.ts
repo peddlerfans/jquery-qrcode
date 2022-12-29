@@ -22,7 +22,6 @@ export default {
   },
   multipleTab: {
     reload: 'Reload',
-    preview : 'preview' ,
     close: 'Close current',
     closeLeft: 'Close Left',
     closeRight: 'Close Right',

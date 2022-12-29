@@ -22,7 +22,7 @@ function tablePagination(pagination?: TablePaginationConfig, changeCb?: Function
   const orz: TablePaginationConfig = {
     current: 1,
     pageSize: 20,
-    pageSizeOptions: ['10', '20', '50', '100', '200'],
+    pageSizeOptions: ['10','20', '50', '100', '200'],
     showSizeChanger: true,
     showQuickJumper: true,
     showTotal: (total, range) => t('component.table.pageTip', {
@@ -47,7 +47,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
     updateTableOptions: { fetchUrl: string }
   }) {
   const tableLoading = ref(false)
-  const _dataSource = ref<any[]>([])
+  const _dataSource = shallowRef<any[]>([])
   const [_columns, _originColumns] = tableColumns(columns)
   const _pagination = tablePagination(pagination, updateTable)
   /** 表格选中项 */
@@ -67,7 +67,7 @@ export default function ({ table, columns, pagination, updateTableOptions }:
   }
 
   function updateTable({ fetchUrl }: { fetchUrl?: string } = {}) {
-
+    
     if (!fetchUrl) fetchUrl = updateTableOptions.fetchUrl
     if (!fetchUrl) return console.warn('表格更新失败，请检查参数{fetchUrl}')
     selectedRowKeys.value = []
@@ -79,30 +79,30 @@ export default function ({ table, columns, pagination, updateTableOptions }:
       }
     }).then(res => {
       //original data structure res.data.data
-      if (res.hasOwnProperty('data') && res.hasOwnProperty('total')) {
+      if(res.hasOwnProperty('data') && res.hasOwnProperty('total')){
         let tempdata = res.data
-        let temptotal = res.total
-        Object.assign(res.data, { data: tempdata })
-        Object.assign(res.data, { total: temptotal })
-        _dataSource.value = res.data?.data
+        let temptotal = res.total      
+        Object.assign(res.data,{data:tempdata})
+        Object.assign(res.data,{total:temptotal})
+        _dataSource.value = res.data?.data      
         _pagination.total = res.total
-      } else {
-        let tempresult = []
+      }else{
+        let tempresult =[]
         tempresult.push(res);
         _dataSource.value = tempresult;
         _pagination.total = 1;
 
       }
+     
 
-
-
-    }).catch(e => {
-      console.log('err:', e)
+      
+    }).catch(e=>{
+      console.log('err:',e)
     })
-      .finally(() => {
-
-        tableLoading.value = false
-      })
+    .finally(() => {
+      
+      tableLoading.value = false
+    })
   }
 
   function onTableRowSelectChange(keys: any[]) {

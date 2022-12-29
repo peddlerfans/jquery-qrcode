@@ -10,7 +10,7 @@ const store = errTipTool()
 
 dayjs.locale('en')
 
-const local:any = useLocaleStore()
+const local = useLocaleStore()
 
 </script>
 <template>

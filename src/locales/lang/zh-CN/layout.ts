@@ -23,7 +23,6 @@ export default {
   },
   multipleTab: {
     reload: '重新加载',
-    preview: '预览',
     close: '关闭标签页',
     closeLeft: '关闭左侧标签页',
     closeRight: '关闭右侧标签页',

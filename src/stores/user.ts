@@ -53,6 +53,8 @@ export const userStore = defineStore('user', {
     async getUserInfo(): Promise<string> {
       return new Promise((resolve, reject) => {
         request.get<Stores.user>('/api/user_profile').then((res:any) => {
+          console.log("getOauthUserInfo")
+          console.log(res)
           if (!res.error) {
             this.name = res.name
             this.email = res.email
