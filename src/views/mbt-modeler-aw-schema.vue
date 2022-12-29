@@ -157,11 +157,10 @@ function deleteExpected() {
   expectedUiSchema.value = {}
   expectedSchemaValue.value = {}
   store.setEditingExpectedAw({
-    editingExpectedAw: {
       data: null,
       schema: null,
       uiParams: null
-    }
+    
   })
 }
 

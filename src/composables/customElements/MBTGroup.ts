@@ -47,8 +47,6 @@ export class MBTGroup extends MBTGroupBase {
     const dataLoopCount = custom?.loopCount ? custom?.loopCount + '次' : ''
     // const _desc = dataDesc + dataLoopCount
     const labelText = desc ? desc : dataLoopCount
-    console.log(labelText);
-
     this.attr({
       'label': {
         text: labelText

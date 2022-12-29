@@ -8,8 +8,7 @@ import { realMBTUrl } from "@/appConfig";
 
 interface IElementType {
   mbtData: mbtmodel
-  schema: any
-  awData: any
+  rappid:any
 }
 
 interface codegen {
@@ -76,8 +75,7 @@ export const MBTStore = defineStore('mbtmodel', {
         tags: [],
         description: "",
       },
-      schema: {},
-      awData: {}
+      rappid:null
     }
 
   }
@@ -118,7 +116,8 @@ export const MBTStore = defineStore('mbtmodel', {
       if (state.mbtData.dataDefinition?.meta?.data) {
         return state.mbtData.dataDefinition.meta.data
       }
-    }
+    },
+    getRappid:state => state.rappid
   },
   actions: {
     setMbtData(data: any) {
@@ -178,10 +177,6 @@ export const MBTStore = defineStore('mbtmodel', {
     saveResources(data: any) {
       this.mbtData.dataDefinition.resources = data
     },
-    saveAwData(data: any, schema: any) {
-      this.schema = schema
-      this.awData = data
-    },
     setGraph(value: any) {
       if (value &&
         this.mbtData.modelDefinition &&
@@ -191,6 +186,9 @@ export const MBTStore = defineStore('mbtmodel', {
       } else {
         this.mbtData['modelDefinition'] = { cellsinfo: value, paperscale: 1 }
       }
+    },
+    setRappid(value:any){
+      this.rappid = value
     }
   }
 })

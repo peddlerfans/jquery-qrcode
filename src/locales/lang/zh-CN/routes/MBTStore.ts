@@ -15,7 +15,7 @@ export default {
     concurrency: '并发',
     branch: '分支',
     // MBTModeler detail
-    primary: '主要数据',
+    primary: '操作步骤',
     expected: '预期结果',
     configAW: '配置AW',
     leaveRouter: '当前编辑未保存，是否退出',

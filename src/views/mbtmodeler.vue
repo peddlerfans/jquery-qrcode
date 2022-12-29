@@ -33,7 +33,6 @@ import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 
 const store = MBTStore()
 const storeAw = MbtData()
-// let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -299,10 +298,18 @@ return  lagacyShapeTypeMapping[shapeType] || shapeType
 function transformCells(mbtData:any){
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
-
   }
    let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
-     cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+    if(mbtData.modelDefinition?.props){
+      if(cell.type == 'standard.Link'){
+        cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+      }else if(cell.type == 'standard.HeaderedRectangle'){
+        cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+      }
+      cell=  {...cell,type:getShapeTypeMapping(cell.type)};
+    } 
+    
+     
      delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
@@ -315,14 +322,10 @@ function transformCells(mbtData:any){
 
 function getProperty(cell:any,mbtData:any){
   // if(cell.prop) return cell.prop;
-  if (!mbtData.modelDefinition.props) {
-    return {custom:{}}
-  }
   let prop = {custom:{}}
-  
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
-    Object.assign(prop.custom,{label:mbtData.modelDefinition.props[cell.id]?.props?.label, ruleData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
+    Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
@@ -367,8 +370,8 @@ onMounted(async () => {
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
 
-    // rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
-    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
+    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
@@ -393,6 +396,7 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
 });
+store.setRappid(rappid)
 })
 
 
@@ -469,6 +473,7 @@ const cencelpreview=()=>{
 }
 
 function handleChange (str: string , data:any) {
+  
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
@@ -499,11 +504,11 @@ function handleChange (str: string , data:any) {
         <div class="app-header">
           <div class="app-title">
             <a-button-group>
-              <span>
+              <!-- <span>
             <a-button @click="saveMbt" type="primary" size="small" style="margin-right: 5px">
               {{ $t("common.saveText") }}
             </a-button>
-          </span>
+          </span> -->
           <span>
               <a-button type="primary"
                size="small" 

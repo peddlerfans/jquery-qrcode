@@ -10,8 +10,11 @@ import { MBTShapeInterface } from './customElements/MBTShapeInterface';
 import { defineEmits } from 'vue'
 import { getShapesNamespace } from '@/composables/customElements/';
 import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
-
-const emit = defineEmits(['awschemaDa'])
+import { MBTStore } from "@/stores/MBTModel"
+import request from '@/utils/request.js';
+import { realMBTUrl } from '@/appConfig.js';
+import { message } from 'ant-design-vue';
+const store = MBTStore()
 
 class MbtServe {
     el !: any;
@@ -237,7 +240,7 @@ class MbtServe {
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
-        console.log(' appShapes.shapes 238:', appShapes.shapes)
+        // console.log(' appShapes.shapes 238:', appShapes.shapes)
         const paper = this.paper = new joint.dia.Paper({
             width: 1100,
             height: 1000,
@@ -325,12 +328,19 @@ class MbtServe {
         });
     }
     saveData() {
-        console.log('oooooooo data:', this.paper.model.toJSON())
-    }
+        store.setGraph(store.getRappid.paper.model.toJSON())  
+        if(store.getAlldata._id){
+            request.put(`${realMBTUrl}/${store.getAlldata._id}`, store.getAlldata).then(() => {
+                return message.success("保存成功")
+                }).catch(() => {
+                return message.error("保存失败")
+                })
+            } 
+        }
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
-        console.log(this.toolbarService);
+        // console.log(this.toolbarService);
 
         this.toolbarService.toolbar.on({
             'svg:pointerclick': this.openAsSVG.bind(this),

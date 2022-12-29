@@ -41,7 +41,6 @@ export class MBTSection extends MBTGroupBase {
     // const desc = custom.description
     const desc = custom?.description || ''
     const labelText = desc ? desc : custom?.type
-    console.log(labelText);
     
     this.attr({
       'label': {
