@@ -565,8 +565,8 @@ const cencelpreview=()=>{
   previewcol.value=[]
 }
 
-function handleChange (str: string , data:any) {
-  
+function handleChange(str: string, data: any) {
+
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
@@ -587,6 +587,8 @@ function handleChange (str: string , data:any) {
     }
   }
 }
+
+
 
 // 工具栏
 

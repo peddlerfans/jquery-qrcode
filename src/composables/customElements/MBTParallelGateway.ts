@@ -14,7 +14,6 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
   constructor(e: Element, o: any) {
     super(e, o);
 
-
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -83,8 +82,8 @@ export class MBTParallelGateway extends joint.shapes.bpmn2.Gateway implements MB
     return {
       ...super.defaults,
       type: 'itea.mbt.test',
-      prop : {
-        custom : {
+      prop: {
+        custom: {
           // type : 'pg'
         }
       }

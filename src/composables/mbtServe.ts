@@ -7,14 +7,7 @@ import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
-import { defineEmits } from 'vue'
-import { getShapesNamespace } from '@/composables/customElements/';
 import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
-import { MBTStore } from "@/stores/MBTModel"
-import request from '@/utils/request.js';
-import { realMBTUrl } from '@/appConfig.js';
-import { message } from 'ant-design-vue';
-const store = MBTStore()
 
 class MbtServe {
     el !: any;
@@ -203,8 +196,8 @@ class MbtServe {
         let element: any
         element = elementView.model;
         new joint.ui.FreeTransform({
-            minHeight:80,
-            minWidth:100,
+            minHeight: 80,
+            minWidth: 100,
             cellView: elementView,
             allowRotation: false,
             preserveAspectRatio: !!element.get('preserveAspectRatio'),

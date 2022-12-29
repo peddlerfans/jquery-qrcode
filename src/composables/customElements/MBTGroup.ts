@@ -29,8 +29,8 @@ export class MBTGroup extends MBTGroupBase {
       }
     })
     this.on('change', (evt: any) => {
-     
-     
+
+
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
         this.reRender();
       }
