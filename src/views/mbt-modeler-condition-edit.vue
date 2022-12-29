@@ -1,0 +1,382 @@
+<script lang="ts">
+export default {
+  name:"CreateRule",
+  mixins:[],
+}
+</script>
+<script lang="ts" setup>
+import { message, SelectProps } from 'ant-design-vue';
+import { computed, onMounted, ref } from 'vue';
+
+let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
+let emit=defineEmits(['changeObserver','rulesChange'])
+
+let selectvalue=ref('AND')
+const  relations=[{
+  label: "AND",
+  value:"AND"
+},{
+  label: "OR",
+  value:"OR"
+}]
+// 条件判断中的比较符号
+const stringOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  },
+  {
+    value: 'LIKE',
+    label: 'LIKE',
+  }
+]
+const numberOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<',
+    label: '<',
+  },
+  {
+    value: '>',
+    label: '>',
+  },
+  {
+    value: '<=',
+    label: '<=',
+  },
+  {
+    value: '>=',
+    label: '>=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  }
+]
+
+const valueDatas=computed(()=>{
+  return props.valueData.map((item: any,index: any)=>{
+    return {name:item.name,type:item.type,values:item.values.map((e: any) => { return { value: e, label: e } })}
+  })
+})
+
+const titleStyle=computed(()=>{
+  if(props.rulesData[0].relation=="AND"){
+    return {backgroundColor:'#ffd591'}
+  }else{
+    return {backgroundColor:"#91d5ff"}
+  }
+})
+
+const changeObserver=()=>{
+  emit("changeObserver", props.rulesData)
+}
+
+function addCondition(){
+  let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
+
+  if(conditionName){
+    if(props.rulesData[0].conditions.length>0){
+      let length= props.rulesData[0].conditions.length
+      let str=props.rulesData[0].conditions[length-1]
+      if(str.name && str.operator && str.value){
+        props.rulesData[0].conditions.push({
+          name: conditionName,
+          operator:"=",
+          value:undefined ,
+          selectvalues:selectvalue.value,
+        })
+      }else{
+        message.warning('Please complete condition editing first')
+      }
+    }else{
+      props.rulesData[0].conditions.push({
+        name: conditionName,
+        operator:undefined,
+        value:undefined,
+        selectvalues:selectvalue.value,
+      })
+    }
+
+
+    rulesChange(props.rulesData)
+  }else{
+    message.warning("Please get the condition data first!")
+  }
+
+
+
+}
+
+function addChild(){
+  let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
+  if(props.rulesData[0].relation){
+    if(conditionName){
+      let childrelation="AND"
+      props.rulesData[0].children.push({
+        relation: childrelation,
+        id:props.rulesData[0].id+1,
+        conditions:[
+          {
+
+            name: conditionName,
+            operator:undefined,
+            value:undefined,
+            selectvalues:selectvalue.value,
+          }
+        ],
+        children:[]
+      })
+      changeObserver()//监测组件是否改变的方法,组件改变不等于条件改变的ruleChange方法
+    }else{
+      message.warning("Please get the condition data first!")
+    }
+  }else{
+    message.warning('Please select the conditional link keyword first')
+  }
+}
+function deleteChild (index: any){
+  let conditionDelete = props.topDatas && props.topDatas[0].children && props.topDatas[0].children.length > 0
+  if(conditionDelete){
+    props.topDatas[0].children.splice(index, 1)
+  }
+  rulesChange(props.rulesData)
+}
+function daeteCondition(index: any){
+  props.rulesData[0].conditions.splice(index, 1)
+  if(props.rulesData[0].conditions.length==0){
+    deleteChild(index)
+  }
+  rulesChange(props.rulesData)
+}
+function childChange(childData: any){
+  rulesChange(childData)
+}
+function rulesChange(rulesData:any,){
+  changeObserver()
+  emit("rulesChange", props.rulesData,props.keys)
+}
+
+const checkrelation=(obj:any)=>{
+  if(obj=="AND" || obj=="&&"){
+    props.rulesData[0].relation="OR"
+    selectvalue.value="OR"
+    props.rulesData[0].conditions[0].selectvalues="OR"
+    // childrelation=props.rulesData[0].relation
+  }else if(obj=="OR" || obj=="||"){
+    props.rulesData[0].relation="AND"
+    selectvalue.value="AND"
+    props.rulesData[0].conditions[0].selectvalues="AND"
+  }
+}
+
+function optOption (item: any) {
+  const tar = props.formDatas.filter((a: any) => a.value === item.name)[0]
+  if (!tar) return
+  return tar.type === 'string' ? stringOptions : numberOptions
+
+}
+
+</script>
+
+<template>
+  <div class="rules-box" :class="[props.rulesData[0].id%2==0 ? 'bgc-box':'bgc-box1']">
+    <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</div>
+    <div class="ant-card-body" >
+      <template v-for="(item, index) in rulesData[0].conditions" :key="'condition'+index">
+        <a-row  class="loop-child">
+          <a-select
+            class="condition"
+            v-model:value="item.name"
+            :options="formDatas"
+            @change="rulesChange"
+            size="small"
+            placeholder="name"
+          ></a-select>
+
+          <template v-if="item.name">
+            <a-select
+              class="condition"
+              v-model:value="item.operator"
+              @change="rulesChange"
+              :options="optOption(item)"
+              size="small"
+              placeholder="operator"
+            ></a-select>
+
+            <a-input v-model:value="item.value" class="condition"></a-input>
+          </template>
+<!--          <template v-for="(operaitem,opearindex) in valueData" :key="opearindex">-->
+<!--            <template v-if="operaitem.name==item.name">-->
+<!--              <template v-if="operaitem.type=='string'">-->
+<!--                <a-select-->
+<!--                    class="condition"-->
+<!--                    v-model:value="item.operator"-->
+<!--                    @change="rulesChange"-->
+<!--                    :options="stringOptions"-->
+<!--                    size="small"-->
+<!--                    placeholder="operator">-->
+<!--                </a-select>-->
+<!--              </template>-->
+<!--              <template v-else>-->
+<!--                <a-select-->
+<!--                    class="condition"-->
+<!--                    v-model:value="item.operator"-->
+<!--                    @change="rulesChange"-->
+<!--                    :options="numberOptions"-->
+<!--                    size="small"-->
+<!--                    placeholder="operator"-->
+<!--                >-->
+<!--                </a-select>-->
+<!--              </template>-->
+<!--            </template>-->
+<!--          </template>-->
+          <!-- 只有一个条件的参数比对 -->
+<!--          <div class="condition"  >-->
+<!--            <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">-->
+<!--              <template v-if="valueitem.name==item.name">-->
+<!--                <a-select-->
+<!--                    v-if="item.operator=='IN' && item.value && valueitem.name==item.name"-->
+<!--                    :options="valueitem.values"-->
+<!--                    mode="multiple"-->
+<!--                    size="small"-->
+<!--                    v-model:value="item.value"-->
+<!--                    @change="rulesChange"-->
+<!--                    placeholder="value"-->
+<!--                ></a-select>-->
+
+<!--                <a-select-->
+<!--                    v-else-->
+<!--                    :options="valueitem.values"-->
+<!--                    size="small"-->
+<!--                    v-model:value="item.value"-->
+<!--                    @change="rulesChange"-->
+<!--                    placeholder="value"-->
+<!--                ></a-select>-->
+<!--              </template>-->
+<!--            </template>-->
+<!--          </div>-->
+          <a-button
+              class="button-select"
+              @click="daeteCondition(index)"
+              title="delete"
+              size="small"
+          >delete</a-button>
+        </a-row>
+      </template>
+
+    </div>
+    <mbt-modeler-condition-edit
+        style="margin-left:35px"  v-if="rulesData[0].children.length > 0"
+        :valueData="valueData"
+        :formDatas="formDatas"
+        :topDatas="rulesData"
+        :rulesData="rulesData[0].children"
+        :enableDeleteChild="true"
+        @rulesChange="childChange"
+        @changeObserver="changeObserver"
+    ></mbt-modeler-condition-edit>
+    <a-row class=" loop-childs" >
+      <a-button
+          v-if="enableDeleteChild"
+          class="button-select button-loop"
+          title="delete filter"
+          size="small"
+          @click="deleteChild(autoIndex)"
+      >delete</a-button>
+      <a-button
+          class="button-select"
+          title="Add inner group"
+          size="small"
+          @click="addChild"
+      >Add inner group</a-button>
+      <a-button
+          class="button-select"
+          title="Add filter"
+          size="small"
+          @click="addCondition"
+      >Add filter</a-button>
+    </a-row>
+  </div>
+</template>
+
+<style lang="less" scoped>
+@import 'ant-design-vue/es/style/color/colors.less';
+.box{
+  width: 100%;
+}
+.bgc-box{
+  background-color: @cyan-2;
+}
+.bgc-box1{
+  background-color: white;
+}
+.rules-box{
+  margin-left: 1.25rem;
+  border-left: 1px solid @blue-6;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  position: relative;
+  .title{
+    text-align: center;
+    cursor: pointer;
+    width: 2rem;
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    -webkit-transform:translate(-50%,-50%);
+    background-color: @orange-3;
+    border-radius: .625rem;
+  }
+  .loop-child{
+    width:100%;
+    padding:10px 0 10px 12px;
+    line-height:1;
+    &:hover :nth-child(4){
+      visibility: visible;
+    }
+    & :nth-child(4){
+      visibility: hidden;
+    }
+    .button-select{
+      cursor:pointer;
+      margin-right:0.5em;
+    }
+    .condition{
+      width: 96px;
+      height: 24px;
+      line-height: 24px;
+      margin-right: 0.5rem;
+    }
+  }
+}
+.loop-childs{
+  width:100%;
+  position:relative;
+  padding:10px 0 10px 12px;
+  line-height:1;
+  .button-select{
+    cursor:pointer;
+    margin-right:0.5em;
+    visibility: hidden;
+  }
+  &:hover button{
+    visibility: visible;
+  }
+}
+</style>
