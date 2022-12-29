@@ -10,15 +10,15 @@ import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import metainfo from "@/components/metainfo.vue";
 import inputTable from "@/components/inputTable.vue";
-import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined} from '@ant-design/icons-vue'
+import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined, ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { booleanLiteral, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { cloneDeep, sortedIndex } from "lodash";
-import {useRoute} from 'vue-router'
+import { cloneDeep, map, sortedIndex } from "lodash";
+import {onBeforeRouteLeave, useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl } from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
@@ -30,19 +30,18 @@ import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
+import { message, Modal } from "ant-design-vue";
 
 const store = MBTStore()
 const storeAw = MbtData()
-// let {_id,name,descriptions,condegen_text,condegen_script} = storeToRefs(store).mbtData.value.attributesTem
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
 let isGlobal = ref(false)
-const url = realMBTUrl;
+let leaveRouter = ref(false)
 
-
-const activeKey = ref("2")
+const activeKey = ref("1")
 const isFormVisible = ref(false);
 // Aw组件的数据
 let rightSchemaModal = ref()
@@ -231,10 +230,14 @@ const onresourcesDelete = (key: string) => {
 // 保存resource的函数
 function globalhandlerSubmit(data?:any) {
 }
+function attrsChange(){
+  console.log(132123123123);
+  
+  store.saveattr(globalformData.value);
+}
 
 // 关闭模态窗的函数
 const handleOk = () => {
-  store.saveattr(globalformData.value);
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
@@ -299,10 +302,18 @@ return  lagacyShapeTypeMapping[shapeType] || shapeType
 function transformCells(mbtData:any){
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
-
   }
    let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
-     cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+    if(mbtData.modelDefinition?.props){
+      if(cell.type == 'standard.Link'){
+        cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+      }else if(cell.type == 'standard.HeaderedRectangle'){
+        cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+      }
+      cell=  {...cell,type:getShapeTypeMapping(cell.type)};
+    } 
+    
+     
      delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
@@ -315,14 +326,10 @@ function transformCells(mbtData:any){
 
 function getProperty(cell:any,mbtData:any){
   // if(cell.prop) return cell.prop;
-  if (!mbtData.modelDefinition.props) {
-    return {custom:{}}
-  }
   let prop = {custom:{}}
-  
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
-    Object.assign(prop.custom,{label:mbtData.modelDefinition.props[cell.id]?.props?.label, ruleData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
+    Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
@@ -367,8 +374,8 @@ onMounted(async () => {
   rappid.startRappid()
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
 
-    // rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
-    rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
+    rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
@@ -392,18 +399,105 @@ onMounted(async () => {
       rappid.selection.collection.reset([]);
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
-});
+    });
+  rappid.graph.on('change', function (evt) {
+    leaveRouter.value = true
+  })
+store.setRappid(rappid)
+rappid.toolbarService.toolbar.on({
+  'save:pointerclick': saveMbt.bind(this),
+  'preview:pointerclick': preview.bind(this),
+  'reload:pointerclick': reload.bind(this),
+  'chooseTem:pointerclick': chooseTem.bind(this),
+  // 'preview:pointerclick': this.showPreview.bind(this)
+})
+})
+// 离开路由时调用
+onBeforeRouteLeave((to,form,next) => {
+    
+  if(leaveRouter.value){
+    Modal.confirm({
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("MBTStore.leaveRouter"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            saveMbt()
+            next()
+            resolve()
+            
+          }).catch(() => console.log('Oops errors!'));
+        },
+        onCancel() {
+          next(false)
+        },
+      });
+  }else{
+    next()
+  }
+
 })
 
+// reload所有aw
+async function awqueryByBatchIds(ids: string ,perPage:number) {
+
+  let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
+  if (rst.data) {
+    // console.log('rst:', rst.data)
+    return rst.data;
+  }
+}
+
+async function reload(){
+  await store.getMbtmodel(idstr)
+  let sqlstr = ''
+  let newProp: { _id: any; prop: any; cell: any; }[] = []
+  if (store.getAlldata.modelDefinition.cellsinfo) {
+    rappid.graph.getCells().forEach((item: any) => {
+      if (item.attributes.type == "itea.mbt.test.MBTAW") {
+        newProp.push({_id:item.id , prop:item.get('prop').custom , cell:item})
+        if (item.get('prop').custom.step.data?._id) {
+          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        }
+        if (item.get('prop').custom.expectation.data?._id) {
+          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        }
+      }
+    })
+    
+    sqlstr = sqlstr.slice(0, sqlstr.length - 1);
+    let perPage = sqlstr.split('|')
+    let awDatas = awqueryByBatchIds(sqlstr, perPage.length);
+    awDatas.then((aws) => {
+      const awById = _.groupBy(aws, "_id")
+      newProp.forEach((obj: any) => {
+        console.log(obj.prop);
+        
+      if (obj.prop.step?.data?._id) {
+        if (awById[obj.prop.step?.data?._id]) {
+          obj.prop.step.data = awById[obj.prop.step?.data?._id][0]
+          obj.cell.prop('prop/custom/step' , obj.prop.step)
+        }
+        }
+        if (obj.prop.expectation?.data?._id) {
+        if (awById[obj.prop.expectation?.data?._id]) {
+          obj.prop.step.data = awById[obj.prop.expectation?.data?._id][0]
+          obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
+        }
+      }
+    })
+    })
+    
+  }
+}
 
 
 const saveMbt = () => {
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
-          return '保存成功'
+          return message.success('保存成功')
         }).catch(() => {
-          return '保存失败'
+          return message.error('保存失败')
         })
   }
 }
@@ -440,6 +534,7 @@ async function querycode(){
       return item.json
     })
     visiblepreciew.value = true
+    store.showPreview(false)
   }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
@@ -448,10 +543,12 @@ async function querycode(){
   })
   
 }
-const preview=async (data:any)=>{
+const preview=async ()=>{
+
+    searchPreview.mode="all"
+    await querycode()
   
-  searchPreview.mode="all"
-  await querycode()
+  
 }
 
 const openPreview = (record:any)=>{
@@ -469,6 +566,7 @@ const cencelpreview=()=>{
 }
 
 function handleChange (str: string , data:any) {
+  
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
@@ -497,34 +595,8 @@ function handleChange (str: string , data:any) {
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
         <div class="app-header">
-          <div class="app-title">
-            <a-button-group>
-              <span>
-            <a-button @click="saveMbt" type="primary" size="small" style="margin-right: 5px">
-              {{ $t("common.saveText") }}
-            </a-button>
-          </span>
-          <span>
-              <a-button type="primary"
-               size="small" 
-               @click="preview(route)"
-               style="margin-right: 5px">
-                {{ $t("layout.multipleTab.preview") }}
-              </a-button>
-            </span>
-            <span>
-              <a-button danger size="small">
-                {{ $t("layout.multipleTab.reload") }}
-              </a-button>
-            </span>
-          </a-button-group>
-
-          </div>
           <div class="toolbar-container">
             
-          </div>
-          <div class="choose-template">
-            <a-button type="primary" @click="chooseTem">Choose Template</a-button>
           </div>
         </div>
           <div class="app-body">
@@ -614,6 +686,7 @@ function handleChange (str: string , data:any) {
                       v-model="globalformData"
                       :schema="globalschema"
                       :formFooter="{show:false}"
+                      @change = 'attrsChange'
                     >
                      </VueForm>
                   </div>
@@ -638,7 +711,6 @@ function handleChange (str: string , data:any) {
                   <a-radio :value="2">Static Template</a-radio>
                   <a-radio :value="3">Input directly</a-radio>
                 </a-radio-group>
-              <KeepAlive>
                 <template-table
                   v-if="templateRadiovalue === 1"
                   :tableColumns="tableColumnsDynamic"
@@ -647,10 +719,9 @@ function handleChange (str: string , data:any) {
                   @update="handleDynamicTable"
                   @clear="handleDynamicTableClear"
                 ></template-table>
-                </KeepAlive>
                 <!-- --********---{{tableData}}**
                   ++++{{tableColumns}}########                   -->
-                <KeepAlive>
+          
                   <template-table
                   v-if="templateRadiovalue === 2"
                   :tableColumns="tableColumns"
@@ -658,7 +729,6 @@ function handleChange (str: string , data:any) {
                   :tableData="tableData"
                   @update="handleStaticTable"
                 ></template-table>
-                </KeepAlive>
                 <input-table
                   :tableColumns="tableColumnsDirectInput"
                   :tableData="tableDataDirectInput"
@@ -766,6 +836,7 @@ function handleChange (str: string , data:any) {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+@import "../assets/fonts/iconfont.css";
 
 .app-header{
   background-color: #717D98;

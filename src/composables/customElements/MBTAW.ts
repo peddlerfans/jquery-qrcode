@@ -21,11 +21,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
-        this.set({
-            'icon': 'user',
-            'content': ''
-        })
-        this.reRender()
+        this.set({ 'icon': 'user' })
 
         this.on('change', (evt: any) => {
             // debugger
@@ -33,7 +29,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
                 this.reRender();
             }
         })
-
+        this.reRender()
         // this.updateRectangles();
     }
 
@@ -50,46 +46,27 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
             'content': labelDesc
         })
-
-    }
-    static awData = {
-        step: {
-            data: {},
-            schema: {},
-            uiParams: {}
-        },
-        expectation: {
-            data: {},
-            schema: {},
-            uiParams: {}
-        },
-        description: ''
-    }
-    getPropertiesSchema() {
-        console.log(this.get('prop'));
-        const throwData = MBTAW.awData
-        if (this.get('prop').custom) {
-            return this.get('prop').custom
-        } else {
-            return throwData
+        if (this.get('content')) {
+            this.set({ size: { width: 200, height: 80 } })
         }
-        return this.get('prop').custom.step
-        throw new Error("Method not implemented.");
+
     }
 
-
+    getPropertiesSchema() {
+        // console.log(this.get('prop'));
+        return this.get('prop').custom
+    }
     // setPropertiesData每个函数接受都为统一属性，调用
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-
-
+        console.log(this.get('prop'));
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw
         temp.step = storeAw.getPrimaryAw
         this.prop('prop/custom', temp)
-        console.log(this.get('prop'));
+
     }
 
 

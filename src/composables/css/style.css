@@ -85,6 +85,45 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     background-repeat: no-repeat;
     background-image: url(../../assets/toolbar-icons-material.png);
 }
+.joint-widget.joint-theme-material[data-name="save"]:after{
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.975rem;
+    content: '\e936';
+    line-height: initial;
+}
+.joint-widget.joint-theme-material[data-name="preview"]:after{
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.875rem;
+    content: '\e636';
+    line-height: initial;
+}
+.joint-widget.joint-theme-material[data-name="reload"]:after{
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.875rem;
+    content: '\e7b8';
+    line-height: initial;
+}
+.joint-widget.joint-theme-material[data-name="chooseTem"]:after{
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.8rem;
+    content: '\e658';
+    line-height: initial;
+}
+.toolbar-container button:not(:empty) {
+    padding: 0px 2px !important;
+}
 
 html,
 body,
@@ -211,7 +250,7 @@ body {
     position: absolute;
     height: 100%;
     left: 0;
-    right: 350px;
+    right: 30px;
     box-sizing: border-box;
     background-color: #fff;
 }

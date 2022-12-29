@@ -10,8 +10,11 @@ import { MBTShapeInterface } from './customElements/MBTShapeInterface';
 import { defineEmits } from 'vue'
 import { getShapesNamespace } from '@/composables/customElements/';
 import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
-
-const emit = defineEmits(['awschemaDa'])
+import { MBTStore } from "@/stores/MBTModel"
+import request from '@/utils/request.js';
+import { realMBTUrl } from '@/appConfig.js';
+import { message } from 'ant-design-vue';
+const store = MBTStore()
 
 class MbtServe {
     el !: any;
@@ -237,7 +240,7 @@ class MbtServe {
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
-        console.log(' appShapes.shapes 238:', appShapes.shapes)
+        // console.log(' appShapes.shapes 238:', appShapes.shapes)
         const paper = this.paper = new joint.dia.Paper({
             width: 1100,
             height: 1000,
@@ -324,13 +327,11 @@ class MbtServe {
             this.selection.collection.reset([elementView.model]);
         });
     }
-    saveData() {
-        console.log('oooooooo data:', this.paper.model.toJSON())
-    }
+
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
-        console.log(this.toolbarService);
+        // console.log(this.toolbarService);
 
         this.toolbarService.toolbar.on({
             'svg:pointerclick': this.openAsSVG.bind(this),
@@ -340,8 +341,7 @@ class MbtServe {
             'layout:pointerclick': this.layoutDirectedGraph.bind(this),
             // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
-            'print:pointerclick': this.paper.print.bind(this.paper),
-            'save:pointerclick': this.saveData.bind(this),
+            'print:pointerclick': this.paper.print.bind(this.paper)
 
             // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });

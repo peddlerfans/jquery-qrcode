@@ -32,7 +32,10 @@ export class ToolbarService {
                 'zoom': { index: 8 },
                 'grid': { index: 9, default: 10 },
                 'snapline': { index: 10 },
-                'save': { index: 11 }
+                'save': { index: 11 },
+                'preview' : { index: 12 },
+                'reload' :{ index: 13 },
+                'chooseTem' :{ index: 14 }
             },
 
             tools: [
@@ -108,7 +111,7 @@ export class ToolbarService {
                     name: 'layout',
                     attrs: {
                         button: {
-                            // id: 'btn-layout',
+                            id: 'btn-layout',
                             'data-tooltip': 'Auto-layout Graph',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
@@ -162,54 +165,6 @@ export class ToolbarService {
                         }
                     }
                 },
-                // {
-                //     type: 'separator',
-                //     group: 'grid'
-                // },
-                // {
-                //     type: 'label',
-                //     name: 'grid-size-label',
-                //     group: 'grid',
-                //     text: 'Grid size:',
-                //     attrs: {
-                //         label: {
-                //             'data-tooltip': 'Change Grid Size',
-                //             'data-tooltip-position': 'top',
-                //             'data-tooltip-position-selector': '.toolbar-container'
-                //         }
-                //     }
-                // },
-                // {
-                //     type: 'range',
-                //     name: 'grid-size',
-                //     group: 'grid',
-                //     text: 'Grid size:',
-                //     min: 1,
-                //     max: 50,
-                //     step: 1,
-                //     value: 10
-                // },
-                // {
-                //     type: 'separator',
-                //     group: 'snapline'
-                // },
-                // {
-                //     type: 'checkbox',
-                //     name: 'snapline',
-                //     group: 'snapline',
-                //     label: 'Snaplines:',
-                //     value: true,
-                //     attrs: {
-                //         input: {
-                //             id: 'snapline-switch'
-                //         },
-                //         label: {
-                //             'data-tooltip': 'Enable/Disable Snaplines',
-                //             'data-tooltip-position': 'top',
-                //             'data-tooltip-position-selector': '.toolbar-container'
-                //         }
-                //     }
-                // },
                 {
                     type: 'fullscreen',
                     name: 'fullscreen',
@@ -225,12 +180,50 @@ export class ToolbarService {
                 {
                     type: 'button',
                     name: 'save',
-                    group: 'export',
-                    text: 'Save',
+                    group: 'save',
                     attrs: {
                         button: {
                             id: 'btn-save',
                             'data-tooltip': 'Save data to backend',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'preview',
+                    group: 'preview',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Show preview',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'reload',
+                    group: 'reload',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Reload',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'chooseTem',
+                    group: 'chooseTem',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Choose Template',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
                         }

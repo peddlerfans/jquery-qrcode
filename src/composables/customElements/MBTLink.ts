@@ -34,6 +34,8 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
       const custom = evt.changed?.prop?.custom
       if (custom) {
         const labelText = custom.description ? custom.description : custom?.label || ''
+        // console.log(labelText);
+        
         this.label(0, {
           attrs: {
             label: {
@@ -43,9 +45,20 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
         })
       }
     })
-
-
   }
+  //   reRender() {
+  //   const custom = this.get('prop').custom
+  //   // const desc = custom.description
+  //   const desc = custom?.description || ''
+  //   const dataLoopCount = custom?.loopCount ? custom?.loopCount + '次' : ''
+  //   // const _desc = dataDesc + dataLoopCount
+  //   const labelText = desc ? desc : dataLoopCount
+  //   this.attr({
+  //     'label': {
+  //       text: labelText
+  //     }
+  //   })
+  // }
 
   // static namespace = 'itea.mbt.test.Gateway';
   getInspectorSchema() {

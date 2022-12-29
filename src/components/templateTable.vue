@@ -267,12 +267,15 @@ let watchData = computed(() => { dataSource.value, columnsOrigin.value })
 
 watch(() => dataSource.value, (val: any) => {
   let dataFrom = ''
-  let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value}
-    if(templateCategory.value = 1){
-      dataFrom = "dynamic_template"
-    }else if(templateCategory.value = 2){
-      dataFrom = 'static_template'
-    }
+
+  if (templateCategory.value = 1) {
+    dataFrom = "dynamic_template"
+  } else if (templateCategory.value = 2) {
+    dataFrom = 'static_template'
+  } else {
+    dataFrom = 'input_template'
+   }
+        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom:dataFrom}
   if (isChoose(dataSource.value)) {
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
       storeAw.setDataDefinition(dataDefinition)

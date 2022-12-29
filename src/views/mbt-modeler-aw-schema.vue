@@ -19,6 +19,7 @@ import {
   EditOutlined
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
+import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
 
 interface Props {
   show: boolean
@@ -152,16 +153,28 @@ function updateAW (tar: string) {
   })
 }
 
+function deletePrimary() {
+  schema.value = _.cloneDeep(defaultAWSchema)
+  primaryUiSchema.value = {}
+  schemaValue.value = {}
+  store.setEditingPrimaryAw({
+    editingPrimaryAw: {
+      data: null,
+      schema: null,
+      uiParams: null
+    }
+  })
+}
+
 function deleteExpected() {
   expectedSchema.value = _.cloneDeep(defaultAWSchema)
   expectedUiSchema.value = {}
   expectedSchemaValue.value = {}
   store.setEditingExpectedAw({
-    editingExpectedAw: {
       data: null,
       schema: null,
       uiParams: null
-    }
+    
   })
 }
 
@@ -308,15 +321,21 @@ let rulesData = ref([{
   id: 1,
   conditions: [
     {
-      name: 'name',
-      operator: '=',
+      name: '',
+      operator: '',
       value: undefined,
       selectvalues: 'AND',
     },
   ],
   children: [],
 }])
-let formDatas = ref([{"value":"Memory","label":"Memory"},{"value":"GPU","label":"GPU"},{"value":"DPI","label":"DPI"},{"value":"key","label":"key"}])
+let formDatas = ref([
+  {
+    label: 'xx',
+    value: 'xx',
+    type: 'string'
+  }
+])
 let valueData = ref([{"name":"Memory","type":"string","values":["4G","2G","6G"]},{"name":"GPU","type":"number","values":[8,32,16]},{"name":"DPI","type":"string","values":["1080P","2K"]},{"name":"key","type":"number","values":[0,1,2,3,4,5,6,7,8]}])
 function rulesChange() {
 
@@ -366,8 +385,8 @@ defineExpose({
               <span>{{ $t('MBTStore.deleteAW') }}</span>
             </template>
             <delete-outlined
-                v-show="hasExpected"
-                @click="deleteExpected"
+                v-show="!isEmptyPrimarySchema"
+                @click="deletePrimary"
                 class="icon--primary-btn"
                 style="margin-right: 8px;"
             ></delete-outlined>
@@ -422,14 +441,18 @@ defineExpose({
           </div>
         </div>
 <!--        <div class="setting-assert">-->
+<!--          <div>-->
+<!--            <div class="title">断言描述：</div>-->
+<!--            <a-input v-model:value="assertDesc"></a-input>-->
+<!--          </div>-->
 <!--          <div class="title">设置断言：</div>-->
-<!--          <create-rule-->
+<!--          <mbt-modeler-condition-edit-->
 <!--            :keys="keys"-->
 <!--            :formDatas="formDatas"-->
 <!--            :valueData="valueData"-->
 <!--            :rulesData="rulesData"-->
 <!--            @rulesChange="rulesChange"-->
-<!--          ></create-rule>-->
+<!--          ></mbt-modeler-condition-edit>-->
 <!--        </div>-->
         <VueForm
             v-show="hasExpected"

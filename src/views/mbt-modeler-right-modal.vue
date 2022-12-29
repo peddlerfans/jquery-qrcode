@@ -168,10 +168,15 @@ function rulesChange (datas: any, key: string) {
 }
 watch(
   rulesData,
+  
   (newvalue: any) => {
     if (rulesData.value.length > 0) {
-      if ( showDrawer.value && _.has(data.value , 'label') && data.value.label == ''){
-        data.value.label = ifdata(newvalue)!;
+      if ( showDrawer.value && _.has(data.value , 'label')){
+        data.value.label = ifdata(newvalue);
+        if(data.value.label == 'name == undefined '){
+          data.value.label = ''
+        }
+        
       }
     }
   },
@@ -191,15 +196,20 @@ function handleAwData () {
 
 function handleData() {
   const el = store.getShowData
+  showDrawer.value = false
   
   if(el.attributes.source && el.attributes.target){
     const sourceId = el.attributes.source.id
-    const targetId = el.attributes.target.id
-    const sourceEl = el.graph.getCell(sourceId)
-    const targetEl = el.graph.getCell(targetId)
-    const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
-      && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
+    const targetId = el.attributes.target?.id
+    if(sourceId){
+      const sourceEl = el.graph.getCell(sourceId)
+      // const targetEl = el.graph.getCell(targetId)
+      // const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
+      //   && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
+      const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'  
       showDrawer.value = flag
+    }
+   
   }
   schemaData.value = el.getPropertiesSchema()
   data.value = el.getPropertiesData()
@@ -207,8 +217,9 @@ function handleData() {
     if(data.value.rulesData.length == 0){
     data.value.rulesData = [rulesDataDefaultItem]
   }
-  rulesData.value = data.value.rulesData
+  rulesData.value = data.value.rulesData  
 }
+
   show.value = true
 }
 
@@ -245,13 +256,12 @@ function handleShowData () {
 function handleChange () {
   if( _.has(data.value , 'rulesData')){
     data.value.rulesData = rulesData.value
+    if(data.value.label == undefined){
+      data.value.label = ''
+    }
+    
   }
-  console.log(12312312313);
   emit('change', getType() , data.value)
-}
-function handleAWChange(data:any){
-  console.log(data);
-  
 }
 //  {step:{schema:schema.value,data:schemaValue.value,uiParams:primaryUiSchema.value}
   // ,expectation:{schema:expectedSchema.value,data:expectedSchemaValue.value,uiParams:expectedUiSchema.value}}
