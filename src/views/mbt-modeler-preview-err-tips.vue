@@ -92,7 +92,7 @@ const close = () => {
   }
   .bottom-btn {
     display: flex;
-    justify-content: end;
+    justify-content: flex-end;
   }
   .close-btn {
     position: absolute;

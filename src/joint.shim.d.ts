@@ -4,7 +4,7 @@ import { PathParserOptions } from 'vue-router'
 import 'vue-router';
 import { any } from 'vue-types';
 import $ from 'jquery'
-import { S } from 'vitest/dist/global-d05ffb3f';
+
 import { Container } from 'postcss';
 import { StringDecoder } from 'string_decoder';
 
@@ -126,6 +126,7 @@ interface DynamicModel {
 }
 declare module 'axios' {
     interface ResponseData<T> {
+        [x: string]: any;
         headers: any;
         map: any;
         length: number;
