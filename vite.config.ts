@@ -1,7 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import DefineOptions from 'unplugin-vue-define-options/vite'
 import vue from '@vitejs/plugin-vue'
-import { viteCommonjs } from '@originjs/vite-plugin-commonjs'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
@@ -10,6 +9,7 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import postcssNesting from 'postcss-nesting'
 import autoprefixer from 'autoprefixer'
 import flexbugsFixes from 'postcss-flexbugs-fixes'
+// import { viteMockServe } from "vite-plugin-mock";
 
 function resolvePath(src: string) {
   return path.resolve(__dirname, src)
@@ -21,9 +21,6 @@ export default defineConfig({
   plugins: [
     vue(),
     DefineOptions(),
-    viteCommonjs(
-      {exclude:['ace-builds']}
-      ),
     // viteMockServe({
     //   supportTs: true, 
     // }),
@@ -36,9 +33,7 @@ export default defineConfig({
       symbolId: 'svg-[dir]-[name]',
     })
   ],
-  optimizeDeps: {
-    include: ['backbone']
-  },
+
 
   css: {
     preprocessorOptions: {

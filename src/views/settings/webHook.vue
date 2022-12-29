@@ -269,7 +269,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
 
 let checkUrl = async (_rule: Rule, value: string) => {
   if (!value) return Promise.reject(t('component.message.emptyUrl'))
-  const reg = /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/
+  const reg = /(((^https?:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)((?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)$/g
   let res = reg.test(value)
   if (!res) {
     return Promise.reject(t('component.message.realUrl'))

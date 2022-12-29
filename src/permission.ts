@@ -2,12 +2,12 @@ import router from './router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { appTitle } from './appConfig'
-import { getCookie, removeCookie, setCookie } from './utils'
+import {getCookie, removeCookie, setCookie} from './utils'
 import { userStore } from './stores/user'
 import { message } from 'ant-design-vue'
 import request from "@/utils/request";
-import { Stores } from "../types/stores";
-import { i18n } from '@/locales'
+import {Stores} from "../types/stores";
+import {i18n} from '@/locales'
 
 NProgress.configure({ showSpinner: false })
 
@@ -22,12 +22,12 @@ router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   document.title = `${t(to.meta.title as string)}-${appTitle}`
   // 路径命中白名单，放行通过
-  if (whitelist.includes(to.path)) {
+  if (whitelist.includes(to.path)){
     next()
   } else {
     const user = userStore()
-    // console.log("permission check")
-    //     console.log(user)
+console.log("permission check")
+    console.log(user)
     if (!user.name) {
       try {
         console.log("no user name")

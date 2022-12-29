@@ -62,7 +62,7 @@ function login(url:string) {
     location.href=url
   }).catch((err :any)=> {
     loading.login = false
-  //   message.error(err)
+    message.error(err)
   })
 }
 

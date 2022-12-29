@@ -1,166 +1,169 @@
 <script lang="ts">
 export default { name: 'Account' }
 </script>
+
 <script setup lang="ts">
-import MbtServe from "@/composables/mbtServe"
-import { StencilService } from '@/composables/stencil';
-import { ToolbarService } from '@/composables/Toolbar';
-import { HaloService } from "@/composables/haloService";
-import { InspectorService } from "@/composables/inspector";
-import { KeyboardService } from "@/composables/keyboard";
-import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import $ from 'jquery'
-import { onMounted, ref } from 'vue';
-import { func } from "vue-types";
-let rappid : MbtServe
-let apps : HTMLElement | any= ref()
-onMounted(() => {
- rappid = new MbtServe(
-    apps.value,
-    new StencilService(),
-    new ToolbarService(),
-    new HaloService(),
-    new InspectorService(),
-    new KeyboardService()
-  )
-  rappid.startRappid()
-})
-			var tabList:any = document.querySelectorAll('.lili');
-			var tabChild = document.querySelectorAll('.tab_child');
-      
-// 			console.log(tabList);
+import { ref, reactive, computed, onBeforeMount } from 'vue';
+import type { TreeProps } from 'ant-design-vue';
+import {
+  SyncOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+  SwapOutlined,
+} from '@ant-design/icons-vue';
+import { Tree, Dropdown, Space, Tooltip, Modal, Alert, Menu } from 'ant-design-vue';
+// import type { LoadDataParams } from '@/components/core/dynamic-table';
+// import type { TreeDataItem } from '@/core/permission/utils';
+import { SplitPanel } from '@/components/basic/split-panel';
+import request from "@/utils/request"
+// import { useTable } from '@/components/core/dynamic-table';
+// import {
 
-// 			for (let i = 0; i < tabList.length; i++) {
+//   getAWInfo
 
-// 				tabList[i].oncliick = () => {
-// 				console.log(i);
-// 					tabInit()
-// 					tabList[i].classList.add('active');
-// 					tabChild[i].setAttribute('style', 'display:block');
-// 				}
-// 			}
-// 			//初始化tab
-// 			function tabInit() {
-// 				for (let i = 0; i < tabList.length; i++) {
-// 					tabList[i].classList.remove('active')
-// 					tabChild[i].setAttribute('style', 'display:none')
-// 				}
-// }
-let li:any = ref()
-let style1: any = ref([])
-let style2: any = ref({})
-let show = ref(false)
-function qqq(n: any) {
-	if (n == 0) {
-		li.value.style.color =  '#ec1818'
-		console.log();
-		show.value = true
-		style1.value = {display:'block'}
-		style2.value = {display:'none'}
-		
-	} else {
-		
-		style1.value = {display:'none'}
-		style2.value = {display:'block'}
-		
-	}
+// } from '@/api/aw';
+// import { createDept, deleteDept, updateDept, getDeptList, transferDept } from '@/api/system/dept';
+// import { useFormModal } from '@/hooks/useModal/index';
+// import { formatDept2Tree, findChildById } from '@/core/permission/utils';
+
+// defineOptions({
+//   name: 'SystemUser',
+// });
+interface AWInfo {
+  name: string,
+  description: string,
+  path: string,
+  tags: string[],
+  params: string[],
+  name_hash: string,
+  description_hash: string,
+  _id: string,
+  _highlight: {
+    description: string[]
+  }
+};
+interface State {
+  expandedKeys: number[];
+  // departmentIds: number[];
+  // deptTree: TreeDataItem[];
 }
+
+// const [DynamicTable, dynamicTableInstance] = useTable();
+// const [showModal] = useFormModal();
+
+// const deptListLoading = ref(false);
+
+const state = reactive<State>({
+  expandedKeys: [],
+  // departmentIds: [],
+  // deptTree: [],
+});
+
+
+const rowSelection = ref({
+  selectedRowKeys: [] as number[],
+  // onChange: (selectedRowKeys: number[], selectedRows: TableListItem[]) => {
+  //   console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+  //   rowSelection.value.selectedRowKeys = selectedRowKeys;
+  // },
+});
+
+
+/**
+ * 获取aw列表
+ */
+const fetchAWList = async () => {
+  // deptListLoading.value = true;
+  // const dept = await getDeptList().finally(() => (deptListLoading.value = false));
+  // state.deptTree = formatDept2Tree(dept);
+  // state.expandedKeys = [...state.expandedKeys, ...state.deptTree.map((n) => Number(n.key))];
+};
+
+
+const expandedKeys = ref<string[]>(['0-0-0', '0-0-1']);
+
+const treeData: TreeProps['treeData'] = [
+  {
+    title: 'parent 1',
+    key: '0-0',
+    children: [
+      {
+        title: 'parent 1-0',
+        key: '0-0-0',
+        disabled: true,
+        children: [
+          { title: 'leaf', key: '0-0-0-0', disableCheckbox: true },
+          { title: 'leaf', key: '0-0-0-1' },
+        ],
+      },
+      {
+        title: 'parent 1-1',
+        key: '0-0-1',
+        children: [{ key: '0-0-1-0', title: 'sss' }],
+      },
+    ],
+  },
+];
+
 </script>
 
 <template>
-  <main class="joint-app joint-theme-modern" ref="apps">
-        <div class="app-header">
-          <div class="toolbar-container"/>
-        </div>
-          <div class="app-body">
-            <div ref="stencils" class="stencil-container"></div>
-            <div class="paper-container"/>
-            <div class="container" v-show="show">
-                <ul class="tab_ul">
-                  <li class="active lili" @click="qqq(0)" ref="li">选项一</li>
-                  <li @click="qqq(1)" ref="li">选项二</li>
-                </ul>
-                <div class="tab_content" >
-                  <div :style="style1" >
-                    <div class="inspector-container"/>
-                  </div>
-                  <div  :style="style2">
-                    <p>我上了那么多年学，熬了那么多夜，做那么多习题</p>
-                  </div>
-                  
-                </div>
-              </div>
-            <div class="navigator-container"/>
+  <main class="main">
+    <!-- <section class="block shadow flex-center"
+      style="width: 100%; min-height: 100%; color: var(--gray); font-size: 5rem;"> -->
+      <SplitPanel>
+        <template #left-content>
+          <div class="flex justify-between">
+            <!-- <div>
+              <p style="height:16px!important;">组织1架构</p>
+            </div> -->
+            <Space>
+              <Tooltip v-if="true" placement="top">
+                <template #title>新增部门 </template>
+                <!-- <PlusOutlined @click="openDeptModal({})" /> -->
+              </Tooltip>
+              <Tooltip placement="top">
+                <template #title>刷新 </template>
+                <!-- <SyncOutlined :spin="deptListLoading"  /> -->
+              </Tooltip>
+            </Space>
           </div>
-
+          <Tree v-model:expandedKeys="expandedKeys" auto-expand-parent :tree-data="treeData">
+            <template #title="{ key, title, formData }">
+              <Dropdown :trigger="['contextmenu']">
+                <span>{{ title }}</span>
+                <template #overlay>
+                  <Menu>
+                    <Menu.Item key="1">
+                      编辑
+                      <EditOutlined />
+                    </Menu.Item>
+                    <!-- <Menu.Item key="2" :disabled="!$auth('sys.dept.delete')" @click="delDept(key)">
+                  删除 <DeleteOutlined />
+                </Menu.Item> -->
+                  </Menu>
+                </template>
+              </Dropdown>
+            </template>
+          </Tree>
+        </template>
+        <template #right-content>
+          <!-- <p>
+            Show the details of organization
+          </p> -->
+        </template>
+      </SplitPanel>
+    <!-- </section> -->
   </main>
 </template>
 
-<style lang="scss">
-
-</style>
-<style lang="scss">
-@import "../../node_modules/@clientio/rappid/rappid.css";
-@import '../composables/css/style.css';
-
-.container{
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    /* navigator height */
-    width: 300px;
-    box-sizing: border-box;
-    .ant-tabs-content-holder > .ant-tabs-content{
-    height: 100%!important
+<style scoped lang="postcss">
+.main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
-.inspector-container {
-    overflow: auto;
-    height: 100%;
-	top:50px;
-    box-sizing: border-box;
-}
-.joint-inspector {
-  top: 3.125rem;
-}
-}
-
-ul {
-				list-style: none;
-			}
-			.tab_ul {
-				background-color: #717D98;
-				overflow: hidden;
-			}
-			.tab_ul li {
-				float: left;
-				padding: 15px;
-				cursor: pointer;
-			}
-			.tab_ul .active {
-				color: #ec1818;
-			}
-			.tab_content {
-				background-color: #F6F6F6;
-				min-height: 250px;
-				padding: 15px;
-				overflow: hidden;
-			}
-			.tab_child {
-				display: none;
-				animation: hideTab 0.5s;
-				-moz-animation: hideTab 0.6s;/* Firefox */
-				-webkit-animation: hideTab 0.6s;/* Safari and Chrome */
-			}
-			@keyframes hideTab {
-				0% {
-					opacity: 0;
-					transform: translate(200px, 0)
-				}
-				100% {
-					opacity: 1;
-					transform: translate(0, 0)
-				}
-			}
-
 </style>

@@ -57,7 +57,7 @@ export namespace Stores {
   interface mbtView {
     _id: string,
     name: string,
-    description: string,
+    descriptions: string,
     tags?: string,
     codegen_text?:any,
     codegen_script?:any,

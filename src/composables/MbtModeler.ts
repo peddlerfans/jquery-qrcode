@@ -1,8 +1,8 @@
 import * as joint from "jointjs";
-import { dia, shapes, g } from "jointjs";
+import { dia, shapes ,g } from "jointjs";
 // import { join } from "path";
 import { Ref, ref } from "vue";
-import { StencilService } from "@/composables/stencil";
+import { Stencil } from "@/composables/stencil";
 import _ from 'lodash';
 import { PaperClipOutlined } from "@ant-design/icons-vue";
 window.joint = joint
@@ -38,7 +38,7 @@ export class startNode extends joint.shapes.standard.Circle {
 }
 
 export class MbtModeler {
-  namespace = joint.shapes;
+  namespace = joint.shapes; 
   bodyAttributes = {
     fill: "#FCFCFC",
     stroke: "#333333",
@@ -58,48 +58,48 @@ export class MbtModeler {
     pointerEvents: "none",
   };
 
-  paper: dia.Paper;
+  paper: dia.Paper;  
   graph: dia.Graph = new joint.dia.Graph({ cellNamespace: this.namespace });
   boundaryTool = new joint.elementTools.Boundary();
   removeButton = new joint.elementTools.Remove({
-    rotate: true,
-    x: '100%',
-    y: '100%',
-    //   action: function(evt,view) {
-
-    //     // alert('View id: ' +view.model?.id);
-    //     view.model?.remove(view.model)
-    //     // return view.model
-    // }
-    // + JSON.stringify(view)
+    rotate:true,
+    x:'100%',
+    y:'100%',
+  //   action: function(evt,view) {
+      
+  //     // alert('View id: ' +view.model?.id);
+  //     view.model?.remove(view.model)
+  //     // return view.model
+  // }
+  // + JSON.stringify(view)
   });
   connectButton = new joint.elementTools.Connect({
     // rotate:true
   });
-
+  
 
   elementToolsView = new joint.dia.ToolsView({
-    tools: [this.boundaryTool, this.removeButton, this.connectButton],
+    tools: [this.boundaryTool, this.removeButton,this.connectButton],
   });
 
   targetArrowheadTool = new joint.linkTools.TargetArrowhead({
     focusOpacity: 0.5
-  });
-  sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
-    focusOpacity: 0.5
-  });
+});
+sourceArrowheadTool = new joint.linkTools.SourceArrowhead({
+  focusOpacity: 0.5
+});
 
   linkToolsView = new joint.dia.ToolsView({
-    tools: [this.removeButton, this.targetArrowheadTool, this.sourceArrowheadTool],
+    tools: [this.removeButton,this.targetArrowheadTool,this.sourceArrowheadTool],
   });
-  addElement(testClass: any, toolsView: dia.ToolsView, data?: any) {
+  addElement(testClass: any, toolsView:dia.ToolsView,data?: any) {
     let rect: joint.shapes.basic.Generic = new testClass(data);
     rect.addTo(this.graph);
     rect.findView(this.paper).addTools(this.elementToolsView);
     return rect;
   }
-  setupElementTool() { }
-
+  setupElementTool() {}
+ 
   constructor(canvas: any) {
 
     this.paper = new joint.dia.Paper({
@@ -109,7 +109,7 @@ export class MbtModeler {
       height: "100%",
       gridSize: 10,
       drawGrid: true,
-      cellViewNamespace: this.namespace,
+      cellViewNamespace: this.namespace ,
       defaultLink: new joint.shapes.standard.Link({
         router: { name: "normal" },
         connector: { name: "curve" },
@@ -121,34 +121,34 @@ export class MbtModeler {
         },
       })
     });
+ 
+  
+  this.paper.on('element:contextmenu', (elementView: dia.ElementView) => {
 
+    this.paper.removeTools(); 
 
-    this.paper.on('element:contextmenu', (elementView: dia.ElementView) => {
-
-      this.paper.removeTools();
-
-      if (!elementView.hasTools()) {
-        elementView.addTools(this.elementToolsView)
-
-      }
+    if (!elementView.hasTools()) {
+      elementView.addTools(this.elementToolsView)
+      
+    }
       elementView.showTools();
-    });
+  });
 
-    this.paper.on('link:contextmenu', (linkView: any) => {
+  this.paper.on('link:contextmenu', (linkView: any) => {
 
-      this.paper.removeTools();
+    this.paper.removeTools();
+    
+    if (!linkView.hasTools()) {
+      linkView.addTools(this.linkToolsView)
+    }
+    linkView.showTools();
 
-      if (!linkView.hasTools()) {
-        linkView.addTools(this.linkToolsView)
-      }
-      linkView.showTools();
 
-
-    });
-    ;
-    this.paper.on('blank:contextmenu', () => {
-      this.paper.removeTools();
-    });
-  }
+  });
+;
+  this.paper.on('blank:contextmenu', () => {
+    this.paper.removeTools();
+  });
+}
 
 }

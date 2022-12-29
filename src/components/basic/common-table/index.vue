@@ -774,12 +774,12 @@ defineExpose({
               <close-circle-outlined @click="cancel(record)" class="icon--err-btn" />
             </a-tooltip>
             <a-divider type="vertical" v-if="column.actionList.includes('check')" />
-            <template v-if="column.actionList.includes('check')">
+            <tempalte v-if="column.actionList.includes('check')">
               <a-checkbox
                   v-model:checked="record.required"
                   @change="(e: any) => tableCheckChange(e, record)"
               >{{ $t('component.table.isRequire') }}</a-checkbox>
-            </template>
+            </tempalte>
         </span>
         <span v-show="!record.editing">
           <template v-if="column.actionList.includes('detail')">
@@ -833,13 +833,13 @@ defineExpose({
             </a-tooltip>
           </template>
           <a-divider v-if="column.actionList.includes('check')" type="vertical" />
-          <template v-if="column.actionList.includes('check')">
+          <tempalte v-if="column.actionList.includes('check')">
             <a-checkbox
                 disabled
                 v-model:checked="record.required"
                 @change="(e: any) => tableCheckChange(e, record)"
             >{{ $t('component.table.isRequire') }}</a-checkbox>
-          </template>
+          </tempalte>
           <a-divider v-if="column.actionList.includes('clone')" type="vertical" />
           <template v-if="column.actionList.includes('clone')" >
              <a-tooltip placement="bottom">
