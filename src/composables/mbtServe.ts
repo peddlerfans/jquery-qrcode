@@ -327,16 +327,7 @@ class MbtServe {
             this.selection.collection.reset([elementView.model]);
         });
     }
-    saveData() {
-        store.setGraph(store.getRappid.paper.model.toJSON())  
-        if(store.getAlldata._id){
-            request.put(`${realMBTUrl}/${store.getAlldata._id}`, store.getAlldata).then(() => {
-                return message.success("保存成功")
-                }).catch(() => {
-                return message.error("保存失败")
-                })
-            } 
-        }
+
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
@@ -350,8 +341,7 @@ class MbtServe {
             'layout:pointerclick': this.layoutDirectedGraph.bind(this),
             // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
-            'print:pointerclick': this.paper.print.bind(this.paper),
-            'save:pointerclick': this.saveData.bind(this),
+            'print:pointerclick': this.paper.print.bind(this.paper)
 
             // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });

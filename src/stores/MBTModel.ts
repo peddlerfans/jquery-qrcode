@@ -9,6 +9,7 @@ import { realMBTUrl } from "@/appConfig";
 interface IElementType {
   mbtData: mbtmodel
   rappid:any
+  preview :boolean
 }
 
 interface codegen {
@@ -30,6 +31,7 @@ interface data {
 interface meta {
   schema: any
   data: object
+  detail:any
 }
 interface cellsinfo {
   paperscale: any
@@ -62,7 +64,8 @@ export const MBTStore = defineStore('mbtmodel', {
           },
           meta: {
             schema: {},
-            data: {}
+            data: {},
+            detail:{}
           },
           resources: []
         },
@@ -75,7 +78,8 @@ export const MBTStore = defineStore('mbtmodel', {
         tags: [],
         description: "",
       },
-      rappid:null
+      rappid:null,
+      preview:false
     }
 
   }
@@ -117,7 +121,8 @@ export const MBTStore = defineStore('mbtmodel', {
         return state.mbtData.dataDefinition.meta.data
       }
     },
-    getRappid:state => state.rappid
+    getRappid:state => state.rappid,
+    getPreview :state => state.preview
   },
   actions: {
     setMbtData(data: any) {
@@ -143,22 +148,18 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     // 添加attributes的函数
     saveattr(data: any) {
-      this.mbtData._id = data._id
-      this.mbtData.name = data.name
-      this.mbtData.description = data.description
-      if (data.codegen_text) {
-        this.mbtData.attributes.codegen_script = data.codegen_script
-        this.mbtData.attributes.codegen_text = data.codegen_text
+      this.mbtData._id = data?._id
+      this.mbtData.name = data?.name
+      this.mbtData.description = data?.description
+      if (data?.codegen_text && data?.codegen_script) {
+        console.log(this.mbtData);
+        
+        this.mbtData.attributes.codegen_script = data?.codegen_script
+        this.mbtData.attributes.codegen_text = data?.codegen_text
       }
     },
-    saveMeta(schema: any, data: any) {
-
-      if (this.mbtData.dataDefinition.hasOwnProperty('meta')) {
-        this.mbtData.dataDefinition.meta['schema'] = { ...schema }
-        this.mbtData.dataDefinition.meta['data'] = { ...data }
-      } else {
-        this.mbtData.dataDefinition['meta'] = { schema: schema, data: data }
-      }
+    saveMeta(data:any) {
+      this.mbtData.dataDefinition.meta = data
 
     },
     saveData(data: any, column: any, dataFrom: string) {
@@ -189,6 +190,9 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     setRappid(value:any){
       this.rappid = value
+    },
+    showPreview(value:boolean){
+      this.preview = value
     }
   }
 })

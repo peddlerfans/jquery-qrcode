@@ -230,10 +230,14 @@ const onresourcesDelete = (key: string) => {
 // 保存resource的函数
 function globalhandlerSubmit(data?:any) {
 }
+function attrsChange(){
+  console.log(132123123123);
+  
+  store.saveattr(globalformData.value);
+}
 
 // 关闭模态窗的函数
 const handleOk = () => {
-  store.saveattr(globalformData.value);
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
@@ -397,8 +401,18 @@ onMounted(async () => {
       rappid.paper.removeTools();
 });
 store.setRappid(rappid)
+rappid.toolbarService.toolbar.on({
+  'save:pointerclick': saveMbt.bind(this),
+  'preview:pointerclick': preview.bind(this),
+  'reload:pointerclick': save.bind(this),
+  'chooseTem:pointerclick': chooseTem.bind(this),
+  // 'preview:pointerclick': this.showPreview.bind(this)
 })
 
+})
+function save(){
+  console.log('diuaoyoing ');
+}
 
 
 const saveMbt = () => {
@@ -444,6 +458,7 @@ async function querycode(){
       return item.json
     })
     visiblepreciew.value = true
+    store.showPreview(false)
   }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
@@ -452,10 +467,12 @@ async function querycode(){
   })
   
 }
-const preview=async (data:any)=>{
+const preview=async ()=>{
+
+    searchPreview.mode="all"
+    await querycode()
   
-  searchPreview.mode="all"
-  await querycode()
+  
 }
 
 const openPreview = (record:any)=>{
@@ -502,34 +519,8 @@ function handleChange (str: string , data:any) {
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
         <div class="app-header">
-          <div class="app-title">
-            <a-button-group>
-              <!-- <span>
-            <a-button @click="saveMbt" type="primary" size="small" style="margin-right: 5px">
-              {{ $t("common.saveText") }}
-            </a-button>
-          </span> -->
-          <span>
-              <a-button type="primary"
-               size="small" 
-               @click="preview(route)"
-               style="margin-right: 5px">
-                {{ $t("layout.multipleTab.preview") }}
-              </a-button>
-            </span>
-            <span>
-              <a-button danger size="small">
-                {{ $t("layout.multipleTab.reload") }}
-              </a-button>
-            </span>
-          </a-button-group>
-
-          </div>
           <div class="toolbar-container">
             
-          </div>
-          <div class="choose-template">
-            <a-button type="primary" @click="chooseTem">Choose Template</a-button>
           </div>
         </div>
           <div class="app-body">
@@ -619,6 +610,7 @@ function handleChange (str: string , data:any) {
                       v-model="globalformData"
                       :schema="globalschema"
                       :formFooter="{show:false}"
+                      @change = 'attrsChange'
                     >
                      </VueForm>
                   </div>
@@ -643,7 +635,6 @@ function handleChange (str: string , data:any) {
                   <a-radio :value="2">Static Template</a-radio>
                   <a-radio :value="3">Input directly</a-radio>
                 </a-radio-group>
-              <KeepAlive>
                 <template-table
                   v-if="templateRadiovalue === 1"
                   :tableColumns="tableColumnsDynamic"
@@ -652,10 +643,9 @@ function handleChange (str: string , data:any) {
                   @update="handleDynamicTable"
                   @clear="handleDynamicTableClear"
                 ></template-table>
-                </KeepAlive>
                 <!-- --********---{{tableData}}**
                   ++++{{tableColumns}}########                   -->
-                <KeepAlive>
+          
                   <template-table
                   v-if="templateRadiovalue === 2"
                   :tableColumns="tableColumns"
@@ -663,7 +653,6 @@ function handleChange (str: string , data:any) {
                   :tableData="tableData"
                   @update="handleStaticTable"
                 ></template-table>
-                </KeepAlive>
                 <input-table
                   :tableColumns="tableColumnsDirectInput"
                   :tableData="tableDataDirectInput"
@@ -771,6 +760,7 @@ function handleChange (str: string , data:any) {
 <style lang="scss">
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
+@import "../assets/fonts/iconfont.css";
 
 .app-header{
   background-color: #717D98;

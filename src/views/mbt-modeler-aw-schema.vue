@@ -19,7 +19,7 @@ import {
   EditOutlined
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
-
+import '@/components/basic/itea-schema-item/input-select-item.vue'
 interface Props {
   show: boolean
 }
