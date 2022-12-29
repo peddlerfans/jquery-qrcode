@@ -152,6 +152,19 @@ function updateAW (tar: string) {
   })
 }
 
+function deletePrimary() {
+  schema.value = _.cloneDeep(defaultAWSchema)
+  primaryUiSchema.value = {}
+  schemaValue.value = {}
+  store.setEditingPrimaryAw({
+    editingPrimaryAw: {
+      data: null,
+      schema: null,
+      uiParams: null
+    }
+  })
+}
+
 function deleteExpected() {
   expectedSchema.value = _.cloneDeep(defaultAWSchema)
   expectedUiSchema.value = {}
@@ -359,8 +372,8 @@ defineExpose({
               <span>{{ $t('MBTStore.deleteAW') }}</span>
             </template>
             <delete-outlined
-                v-show="hasExpected"
-                @click="deleteExpected"
+                v-show="!isEmptyPrimarySchema"
+                @click="deletePrimary"
                 class="icon--primary-btn"
                 style="margin-right: 8px;"
             ></delete-outlined>
