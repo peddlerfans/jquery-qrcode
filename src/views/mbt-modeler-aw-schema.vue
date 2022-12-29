@@ -170,11 +170,10 @@ function deleteExpected() {
   expectedUiSchema.value = {}
   expectedSchemaValue.value = {}
   store.setEditingExpectedAw({
-    editingExpectedAw: {
       data: null,
       schema: null,
       uiParams: null
-    }
+    
   })
 }
 
@@ -204,6 +203,7 @@ function showAw (row: any) {
       appEndedSchema.forEach((field: any) => {
         Object.assign(schema.value.properties, field)
       })
+      
     }
     if (row.returnType) {
       Object.assign(schema.value.properties, {
@@ -214,6 +214,8 @@ function showAw (row: any) {
       })
     }
     setSchema('primary')
+    console.log('uischema' ,primaryUiSchema.value);
+    
     schema.value = getSchema(schema.value, row)
     // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
@@ -245,7 +247,7 @@ function showAw (row: any) {
     expectedSchema.value = getSchema(expectedSchema.value, row)
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-    store.setEditingPrimaryAw(expectedUiSchema.value, 'uiParams')
+    store.setEditingExpectedAw(expectedUiSchema.value, 'uiParams')
   }
   emit('change')
 }
@@ -281,9 +283,11 @@ function initSchema() {
 }
 
 function handleChange () {
-  // console.log("...........handleChange",hasExpected,expectedSchemaValue.value)
-  if (!isEmptyPrimarySchema) store.setEditingPrimaryAw(schemaValue.value, 'data')
-  if (hasExpected) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+
+  
+  // console.log("...........handleChange",schemaValue.value , isEmptyPrimarySchema)
+  if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
+  if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value
   store.setDescription(_desc)
   emit('change')
@@ -295,6 +299,8 @@ function handleData () {
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
+    console.log(schema.value,schemaValue.value);
+    
   } else {
     initPrimarySchema()
   }

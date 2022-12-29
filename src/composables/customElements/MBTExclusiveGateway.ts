@@ -54,7 +54,7 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
   }
 
   updateRectangles() {
-    console.log("++++","updateRectangles")
+    // console.log("++++","updateRectangles")
 
     this.attr({
       // 'background': { fill: '#454549' },

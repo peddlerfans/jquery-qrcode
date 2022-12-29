@@ -22,14 +22,14 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({'icon':'user'})
-        this.reRender()
+        
         this.on('change', (evt: any) => {
-           
+            // debugger
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
             }
         })
-
+        this.reRender()
         // this.updateRectangles();
     }
 
@@ -42,65 +42,33 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc
             ? desc
             : awSchemaStr ? awSchemaStr : ''
+            console.log(labelDesc);
+            
         this.set({
             'icon':  (primaryDesc || expectedDesc) ? 'service' : 'user' ,
             'content': labelDesc 
         })
+        if(this.get('content')){
+            this.set({size:{width:200,height:80}})
+        }
   
     }
-    static awData = {
-        step: {
-            data: {},
-            schema: {},
-            uiParams: {}
-        },
-        expectation: {
-            data: {},
-            schema: {},
-            uiParams: {}
-        },
-        description: ''
-    }
+
     getPropertiesSchema() {
-        const throwData = MBTAW.awData
-        if (this.get('prop').custom) {
-            return this.get('prop').custom
-        } else {
-            return throwData
-        }
-        return this.get('prop').custom.step
-        throw new Error("Method not implemented.");
+        // console.log(this.get('prop'));
+        return this.get('prop').custom
     }
-
-
     // setPropertiesData每个函数接受都为统一属性，调用
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
+        console.log(this.get('prop'));
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw
         temp.step = storeAw.getPrimaryAw
         this.prop('prop/custom' , temp)
-        // 实现传递的数据把规定
-        // if (description) {
-        //     this.attr({
-        //         'label': { text: description, fontSize: 16 },
-        //         'icon': { iconType: 'script' },
-        //     })
-        //     this.prop('attrs/icon/iconType', 'script')
-        // }
-        // if (expected && expected.schema) {
 
-        //     MBTAW.awData = { step: { ...primary }, expectation: { ...expected }, description: description }
-        //     this.prop('prop/custom/expectation', { ...expected })
-        // }
-        // MBTAW.awData = { step: { ...primary }, expectation: {}, description: description }
-        // // Object.assign(super.defaults().prop.custom.step,{schema:schema.value,data:data.value})
-
-        // this.prop('prop/custom/step', { ...primary })
-        // this.prop('prop/custom/description', description)
-        // MBTAW.awData = { step: {}, expectation: {}, description: '' }
     }
 
 
