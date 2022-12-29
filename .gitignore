@@ -6,7 +6,7 @@ dist
 .vscode
 tests/server/static
 tests/server/static/upload
-
+dist/
 .local
 # local env files
 .env.local
@@ -28,7 +28,6 @@ pnpm-debug.log*
 *.sln
 *.sw?
 *.png
-n
 # auto generate file
 components.d.ts
 playwright-report/
@@ -37,3 +36,5 @@ allure-results/
 package-lock.json
 package-lock*
 yarn.lock*
+yarn.lock
+components.d.ts

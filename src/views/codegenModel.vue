@@ -42,6 +42,10 @@ import dayjs from 'dayjs';
 import {SHA256} from "crypto-js";
 import { VAceEditor } from 'vue3-ace-editor';
 
+import { defineAsyncComponent } from 'vue'
+
+
+
 import "./componentTS/ace-config";
 import ace from 'ace-builds';
 

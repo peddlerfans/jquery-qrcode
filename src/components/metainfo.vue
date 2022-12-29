@@ -1,33 +1,58 @@
 <script setup lang="ts">
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-import { ref, onMounted, toRaw } from "vue";
+import { ref, onMounted, toRaw, watch, computed } from "vue";
 
-import { getTemplate, getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
-// const emit = defineEmits(['submitTemplate'])
+import { getAllTemplatesByCategory,IColumn,IJSONSchema } from "@/api/mbt/index";
+import {string2Obj, checkDataStructure} from "@/views/componentTS/schema-constructor";
+import request from "@/utils/request";
+import {generateSchema} from "@/utils/jsonschemaform";
+import { MbtData } from "@/stores/modules/mbt-data";
+import { MBTStore } from "@/stores/MBTModel"
+
+const store = MbtData()
+const storeMbt = MBTStore()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
 }>();
-
 
 const props = defineProps<{
   isFormVisible?: boolean;
   metatemplatedetailtableData?: object;
   schema?: IJSONSchema;
   metaformProps?: object;
-
   metatemplatecolumns?: IColumn[];
-  // metatemplatetableData?:[]
 }>();
+
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
 };
-console.log(props.isFormVisible);
 
 let tempschema = ref(props.schema);
+let uiSchema = ref({})
+
+function setSchema (schema: any, uiSchema: any) {
+  const temp = string2Obj(schema, uiSchema)
+  tempschema.value = temp.schema
+  uiSchema.value = temp.uiSchema
+}
+
+setSchema(tempschema.value, uiSchema.value)
 let metaformProps = ref(props.metaformProps);
 const isFormVisible = ref(props.isFormVisible);
 let metatemplatedetailtableData = ref(props.metatemplatedetailtableData);
+
+watch(metatemplatedetailtableData, (val: any) => {
+    for (let key in val) {
+      if (Array.isArray(val[key]) && val[key].length > 1) {
+        val[key] = [val[key].pop()]
+      }
+    }
+  }, {
+    deep: true
+  }
+)
+
 let metatemplatecolumns = ref(props.metatemplatecolumns);
 let metatemplatetableData = ref([]);
 
@@ -36,7 +61,6 @@ const isMetaTemplateEmpty = ref(false);
 onMounted(() => {
   
   getAllTemplatesByCategory('meta').then((rst: any[]) => {
-    //   console.log(rst)
     if (rst.length > 0) {
       isMetaTemplateEmpty.value = false;
       let temparr = rst;
@@ -49,14 +73,42 @@ onMounted(() => {
 function submitTemplate() {
   let metaObj = {};
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
-  Object.assign(metaObj, { data: toRaw(metatemplatedetailtableData.value) });
+  Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
+  Object.assign(metaObj, { detail: store.getMetaData.detail });
   emit("submitTemplate", metaObj);
 }
 
+async function getTemplate(metaId: string, category: string) {
+  
+  let currentschema = {
+    type: "object",
+    properties: {},
+  };
+  let rst1 = await request.get(`/api/templates/${metaId}`, {
+    params: {q: `category:${category}`, search: ""},
+  });
+  if (rst1.model) {
+    let temparr = rst1.model;
+    store.setMetaData(temparr, 'detail')
+    store.setMetaData(rst1._id, '_id')
+    console.log(store.mbtMeta);
+    
+    let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
+    Object.assign(currentschema, {required: required})
+    if (_.isArray(temparr)) {
+      let schemafileds = generateSchema(temparr,metaId);
+      schemafileds.forEach((schemafield: any) => {
+        Object.assign(currentschema.properties, schemafield);
+      });
+    }
+    
+    return string2Obj(currentschema, uiSchema.value).schema;
+  }
+}
 const showJSONSchemeForm = (templdateId: string) => {
   isFormVisible.value = !isFormVisible.value;
   getTemplate(templdateId,'meta').then((schema: any) => {
-    tempschema.value = schema;
+    setSchema(schema, uiSchema.value)
   });
 };
 
@@ -68,9 +120,15 @@ const onImportFromMetaTemplate = () => {
   if (tempschema && tempschema.value) tempschema.value.properties = {};
 };
 
-// const backFormMetaTemplate=()=>{
-//   isFormVisible.value=true
-// }
+const handleChange = () => {
+  let metaObj = {};
+  Object.assign(metaObj, { schema: toRaw(tempschema.value) });
+  Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
+  Object.assign(metaObj, { detail: store.getMetaData.detail });
+  console.log(metaObj);
+  
+  storeMbt.saveMeta(metaObj)
+}
 
 </script>
 <template>
@@ -81,18 +139,11 @@ const onImportFromMetaTemplate = () => {
       :schema="tempschema"
       :formProps="metaformProps"
       :formFooter="formExpectedFooter"
+      :uiSchema="uiSchema"
+      @change = 'handleChange'
     >
     </VueForm>
   </div>
-  <!-- <a-space :size="10">
-    <a-button
-      style="margin-right: 10px"
-      v-if="isFormVisible"
-      type="link"
-      @click="onImportFromMetaTemplate"
-      >Choose A Template</a-button
-    >
-  </a-space> -->
   <a-table
     v-if="!isFormVisible"
     :columns="metatemplatecolumns"
@@ -121,20 +172,19 @@ const onImportFromMetaTemplate = () => {
     <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
       Jump to Meta Template
     </a>
-    <a-button type="primary" @click="submitTemplate">Save</a-button>
     <!-- <div> -->
       <a-button
-      style="margin-right: 10px"
+      style="position: absolute; top: -2.25rem; right: 0;"
       v-if="isFormVisible"
-      type="link"
+      type="primary"
+      size="small"
       @click="onImportFromMetaTemplate"
       >Choose A Template</a-button>
-      <!-- <a-button
-      style="margin-right: 10px"
-      v-if="!isFormVisible"
-      danger
-      @click="backFormMetaTemplate"
-      >Back</a-button> -->
-    <!-- </div> -->
   </div>
 </template>
+
+<style scoped>
+.ant-form-item-control-input {
+  min-height: auto;
+}
+</style>
