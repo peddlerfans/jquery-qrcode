@@ -20,6 +20,7 @@ watch(
     (val: any) => {
       if (!val) return
       inputRef.value.type = val.type || inputRef.value.type
+      flag.value = inputRef.value.type === '2'
       inputRef.value.val = val.val || inputRef.value.val
     },
     { immediate: true }

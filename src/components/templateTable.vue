@@ -253,13 +253,19 @@ function HandleSubmit() {
 // 定义函数用来判断是否选择其中的模板
 function isChoose(data:any) : boolean{
   let b = false
-  data.forEach((item:any)=>{
+  if(data){
+    data.forEach((item:any)=>{
     if(item['_id']){
       b =  false
     }else{
       b = true
     }
   })
+  }else{
+    message.warning('模板无数据')
+    b = false
+  }
+  
   return b
 }
 
