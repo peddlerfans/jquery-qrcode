@@ -66,8 +66,8 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         // console.log(this.get('prop'));
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw
-        temp.step = storeAw.getPrimaryAw
+        temp.expectation = storeAw.getExpectedAw || {}
+        temp.step = storeAw.getPrimaryAw || {}
         this.prop('prop/custom', temp)
 
     }

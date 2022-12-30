@@ -208,7 +208,6 @@ function optOption (item: any) {
             size="small"
             placeholder="name"
           ></a-select>
-
           <template v-if="item.name">
             <a-select
               class="condition"
@@ -218,59 +217,12 @@ function optOption (item: any) {
               size="small"
               placeholder="operator"
             ></a-select>
-
-            <a-input v-model:value="item.value" class="condition"></a-input>
+            <a-input
+                v-model:value="item.value"
+                class="condition"
+                @change="rulesChange"
+            ></a-input>
           </template>
-<!--          <template v-for="(operaitem,opearindex) in valueData" :key="opearindex">-->
-<!--            <template v-if="operaitem.name==item.name">-->
-<!--              <template v-if="operaitem.type=='string'">-->
-<!--                <a-select-->
-<!--                    class="condition"-->
-<!--                    v-model:value="item.operator"-->
-<!--                    @change="rulesChange"-->
-<!--                    :options="stringOptions"-->
-<!--                    size="small"-->
-<!--                    placeholder="operator">-->
-<!--                </a-select>-->
-<!--              </template>-->
-<!--              <template v-else>-->
-<!--                <a-select-->
-<!--                    class="condition"-->
-<!--                    v-model:value="item.operator"-->
-<!--                    @change="rulesChange"-->
-<!--                    :options="numberOptions"-->
-<!--                    size="small"-->
-<!--                    placeholder="operator"-->
-<!--                >-->
-<!--                </a-select>-->
-<!--              </template>-->
-<!--            </template>-->
-<!--          </template>-->
-          <!-- 只有一个条件的参数比对 -->
-<!--          <div class="condition"  >-->
-<!--            <template v-for="(valueitem,indexs) in valueDatas" :key="indexs">-->
-<!--              <template v-if="valueitem.name==item.name">-->
-<!--                <a-select-->
-<!--                    v-if="item.operator=='IN' && item.value && valueitem.name==item.name"-->
-<!--                    :options="valueitem.values"-->
-<!--                    mode="multiple"-->
-<!--                    size="small"-->
-<!--                    v-model:value="item.value"-->
-<!--                    @change="rulesChange"-->
-<!--                    placeholder="value"-->
-<!--                ></a-select>-->
-
-<!--                <a-select-->
-<!--                    v-else-->
-<!--                    :options="valueitem.values"-->
-<!--                    size="small"-->
-<!--                    v-model:value="item.value"-->
-<!--                    @change="rulesChange"-->
-<!--                    placeholder="value"-->
-<!--                ></a-select>-->
-<!--              </template>-->
-<!--            </template>-->
-<!--          </div>-->
           <a-button
               class="button-select"
               @click="daeteCondition(index)"
