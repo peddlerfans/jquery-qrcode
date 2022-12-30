@@ -214,15 +214,12 @@ function showAw (row: any) {
       })
     }
     setSchema('primary')
-    console.log('uischema' ,primaryUiSchema.value);
-    
     schema.value = getSchema(schema.value, row)
-    // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
   } else if (selectAwTar === '2') {
-    // hasAWExpectedInfo.value = true;
+    debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {

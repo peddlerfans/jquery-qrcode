@@ -31,6 +31,9 @@ import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
+import { VAceEditor } from 'vue3-ace-editor';
+import "./componentTS/ace-config";
+
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -663,15 +666,14 @@ function handleChange(str: string, data: any) {
         </a-table>
           <!-- <div > -->
             <VAceEditor
-            v-if="previewScript"
-                          v-model:value="previewScript"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          :lang="outLang"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
+              v-model:value="previewScript"
+              class="ace-result"
+              :wrap="softwrap"
+              :readonly="true"
+              :lang="outLang"
+              theme="sqlserver"
+              :options="{ useWorker: true }"
+            />
           <!-- </div> -->
           </a-modal>
 
