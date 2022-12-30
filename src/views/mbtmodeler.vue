@@ -26,11 +26,13 @@ import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/a
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
-import { storeToRefs } from "pinia";
 import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
+import { VAceEditor } from 'vue3-ace-editor';
+import "./componentTS/ace-config";
+
 
 const store = MBTStore()
 const storeAw = MbtData()
@@ -226,9 +228,15 @@ const onresourcesDelete = (key: string) => {
     (item: { key: string; }) => item.key !== key
   );
 };
+watch(resourcesdataSource.value ,(newval:any)=>{
+  if(newval){
+    store.saveResources(newval)
+  }
+},{deep:true})
 
 // 保存resource的函数
 function globalhandlerSubmit(data?:any) {
+
 }
 function attrsChange(){
   console.log(132123123123);
@@ -348,6 +356,9 @@ onMounted(async () => {
   if (route.params._id) {
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
   }
+  if (route.params.name) {
+    localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
+  }
   getAllTemplatesByCategory('codegen').then((rst: any) => {
     if (rst && _.isArray(rst)) {
       rst.forEach((rec: any) => {
@@ -401,6 +412,7 @@ onMounted(async () => {
       rappid.paper.removeTools();
     });
   rappid.graph.on('change', function (evt) {
+    console.log(1)
     leaveRouter.value = true
   })
 store.setRappid(rappid)
@@ -434,7 +446,6 @@ onBeforeRouteLeave((to,form,next) => {
   }else{
     next()
   }
-
 })
 
 // reload所有aw
@@ -495,6 +506,7 @@ const saveMbt = () => {
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
+      leaveRouter.value = false
           return message.success('保存成功')
         }).catch(() => {
           return message.error('保存失败')
@@ -534,7 +546,7 @@ async function querycode(){
       return item.json
     })
     visiblepreciew.value = true
-    store.showPreview(false)
+    store.showPreview(false)    
   }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
@@ -662,15 +674,14 @@ function handleChange(str: string, data: any) {
         </a-table>
           <!-- <div > -->
             <VAceEditor
-            v-if="previewScript"
-                          v-model:value="previewScript"
-                          class="ace-result"
-                          :wrap="softwrap"
-                          :readonly="true"
-                          :lang="outLang"
-                          theme="sqlserver"
-                          :options="{ useWorker: true }"
-                      />
+              v-model:value="previewScript"
+              class="ace-result"
+              :wrap="softwrap"
+              :readonly="true"
+              :lang="outLang"
+              theme="sqlserver"
+              :options="{ useWorker: true }"
+            />
           <!-- </div> -->
           </a-modal>
 
@@ -861,6 +872,29 @@ function handleChange(str: string, data: any) {
 			.tab_ul .active {
 				color: #ec1818;
 			}
+
+      .previewclass .ant-table-tbody > tr > td{
+  padding: 0px;
+}
+.previewModel{
+  height: 50vw;
+  .ant-modal-content{
+    height: 100%;
+    .ant-modal-body{
+      height: 100%;
+      display: flex;
+      .ace-result{
+      flex: 1;
+      // margin-top: 15px;
+      font-size: 18px;
+      border: 1px solid;
+      height: 72%;
+      width:31.25rem
+}
+    }
+  }
+}
+
 
 .AwtabInspector{
     position: absolute;

@@ -34,6 +34,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
+        // debugger
         const desc = this.get('prop')?.custom?.description
         const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
@@ -53,18 +54,20 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     getPropertiesSchema() {
-        // console.log(this.get('prop'));
         return this.get('prop').custom
     }
     // setPropertiesData每个函数接受都为统一属性，调用
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        console.log(this.get('prop'));
+        // debugger
+        // console.log(4);
+        
+        // console.log(this.get('prop'));
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw
-        temp.step = storeAw.getPrimaryAw
+        temp.expectation = storeAw.getExpectedAw || {}
+        temp.step = storeAw.getPrimaryAw || {}
         this.prop('prop/custom', temp)
 
     }

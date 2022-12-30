@@ -133,7 +133,6 @@ function changeExpAW () {
 function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
-  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -147,7 +146,7 @@ function updateAW (tar: string) {
       _id,
       name,
       awupdate: 'mbtAW',
-      mbtid: mbtId,
+      mbtid: route.params._id,
       mbtname: localStorage.getItem('mbt_' + route.params.name)
     }
   })
@@ -158,12 +157,11 @@ function deletePrimary() {
   primaryUiSchema.value = {}
   schemaValue.value = {}
   store.setEditingPrimaryAw({
-    editingPrimaryAw: {
-      data: null,
-      schema: null,
-      uiParams: null
-    }
+    data: null,
+    schema: null,
+    uiParams: null
   })
+  emit('change')
 }
 
 function deleteExpected() {
@@ -176,6 +174,7 @@ function deleteExpected() {
       uiParams: null
     
   })
+  emit('change')
 }
 
 function showAw (row: any) {
@@ -215,15 +214,12 @@ function showAw (row: any) {
       })
     }
     setSchema('primary')
-    console.log('uischema' ,primaryUiSchema.value);
-    
     schema.value = getSchema(schema.value, row)
-    // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
   } else if (selectAwTar === '2') {
-    // hasAWExpectedInfo.value = true;
+    // debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {
@@ -285,8 +281,9 @@ function initSchema() {
 
 function handleChange () {
 
+  // console.log(3);
   
-  // console.log("...........handleChange",schemaValue.value , isEmptyPrimarySchema)
+  // console.log("...........handleChange",expectedSchema.value )
   if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value
@@ -313,6 +310,26 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
+  // getAllCustomVar()
+}
+
+function getAllCustomVar () {
+  const cell = store.getShowData
+  let arr = cell.graph.getCells()
+  arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
+  let temp: Array<any> = []
+  arr.forEach((b: any) => {
+    const schema = b.attributes.props?.custom?.step?.schema
+    const schemaVal = b.attributes.props?.custom?.step?.data
+    if (schema?.value?.properties?.variable && schemaVal?.variable) {
+      temp.push({
+        label: schemaVal?.variable,
+        value: schemaVal?.variable,
+        type: schema.properties.variable.type
+      })
+    }
+  })
+  console.log(temp)
 }
 
 const keys = 1
