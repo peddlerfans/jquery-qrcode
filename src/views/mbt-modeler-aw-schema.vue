@@ -281,9 +281,9 @@ function initSchema() {
 
 function handleChange () {
 
-  console.log(3);
+  // console.log(3);
   
-  console.log("...........handleChange",expectedSchema.value )
+  // console.log("...........handleChange",expectedSchema.value )
   if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value

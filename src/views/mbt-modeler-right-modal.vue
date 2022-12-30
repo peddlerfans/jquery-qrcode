@@ -186,7 +186,7 @@ watch(
 function handleAwData () {
   const el = store.getShowData
   
-  console.log(1);
+  // console.log(1);
   
   const checkAwProps = el.getPropertiesSchema()
   console.log(el.getPropertiesSchema());
