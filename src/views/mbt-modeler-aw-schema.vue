@@ -133,7 +133,6 @@ function changeExpAW () {
 function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
-  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -147,7 +146,7 @@ function updateAW (tar: string) {
       _id,
       name,
       awupdate: 'mbtAW',
-      mbtid: mbtId,
+      mbtid: route.params._id,
       mbtname: localStorage.getItem('mbt_' + route.params.name)
     }
   })
@@ -158,12 +157,11 @@ function deletePrimary() {
   primaryUiSchema.value = {}
   schemaValue.value = {}
   store.setEditingPrimaryAw({
-    editingPrimaryAw: {
-      data: null,
-      schema: null,
-      uiParams: null
-    }
+    data: null,
+    schema: null,
+    uiParams: null
   })
+  emit('change')
 }
 
 function deleteExpected() {
@@ -176,6 +174,7 @@ function deleteExpected() {
       uiParams: null
     
   })
+  emit('change')
 }
 
 function showAw (row: any) {
@@ -300,7 +299,7 @@ function handleData () {
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-    console.log(schema.value,schemaValue.value);
+    // console.log(schema.value,schemaValue.value);
     
   } else {
     initPrimarySchema()

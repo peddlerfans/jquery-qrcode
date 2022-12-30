@@ -7,14 +7,7 @@ import { InspectorService } from './inspector'
 import { KeyboardService } from "./keyboard"
 import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
-import { defineEmits } from 'vue'
-import { getShapesNamespace } from '@/composables/customElements/';
 import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
-import { MBTStore } from "@/stores/MBTModel"
-import request from '@/utils/request.js';
-import { realMBTUrl } from '@/appConfig.js';
-import { message } from 'ant-design-vue';
-const store = MBTStore()
 
 class MbtServe {
     el !: any;
@@ -203,8 +196,8 @@ class MbtServe {
         let element: any
         element = elementView.model;
         new joint.ui.FreeTransform({
-            minHeight:80,
-            minWidth:100,
+            minHeight: 80,
+            minWidth: 100,
             cellView: elementView,
             allowRotation: false,
             preserveAspectRatio: !!element.get('preserveAspectRatio'),
@@ -327,16 +320,7 @@ class MbtServe {
             this.selection.collection.reset([elementView.model]);
         });
     }
-    saveData() {
-        store.setGraph(store.getRappid.paper.model.toJSON())  
-        if(store.getAlldata._id){
-            request.put(`${realMBTUrl}/${store.getAlldata._id}`, store.getAlldata).then(() => {
-                return message.success("保存成功")
-                }).catch(() => {
-                return message.error("保存失败")
-                })
-            } 
-        }
+
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
@@ -350,8 +334,7 @@ class MbtServe {
             'layout:pointerclick': this.layoutDirectedGraph.bind(this),
             // 'snapline:change': this.changeSnapLines.bind(this),
             'clear:pointerclick': this.graph.clear.bind(this.graph),
-            'print:pointerclick': this.paper.print.bind(this.paper),
-            'save:pointerclick': this.saveData.bind(this),
+            'print:pointerclick': this.paper.print.bind(this.paper)
 
             // 'grid-size:change': this.paper.setGridSize.bind(this.paper)
         });

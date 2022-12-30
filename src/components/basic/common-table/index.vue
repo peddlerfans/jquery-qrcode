@@ -286,6 +286,7 @@ const tableCheckChange = (e: any, row: any) => {
 
 const editRow = (rowData: any) => {
   if (isEditing.value) return message.warning(t('component.message.errTip1'))
+  tempRow = rowData
   if (events.includes('edit') && !rowData.isNewRow) {
     emit('edit', rowData)
   } else {

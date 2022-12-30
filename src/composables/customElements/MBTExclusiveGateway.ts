@@ -14,7 +14,6 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
   constructor(e: Element, o: any) {
     super(e, o);
 
-
     this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
@@ -79,12 +78,12 @@ export class MBTExclusiveGateway extends joint.shapes.bpmn2.Gateway implements M
     return {
       ...super.defaults,
       type: 'itea.mbt.test',
-      
+
 
 
     }
   }
-  
+
 
 }
 

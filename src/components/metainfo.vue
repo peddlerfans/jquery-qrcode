@@ -120,16 +120,15 @@ const onImportFromMetaTemplate = () => {
   if (tempschema && tempschema.value) tempschema.value.properties = {};
 };
 
-// const backFormMetaTemplate=()=>{
-//   isFormVisible.value=true
-// }
-let watchData = computed(()=>{tempschema.value , metatemplatedetailtableData.value})
-watch(()=>watchData.value , (val:any)=>{
-
-  storeMbt.saveMeta(tempschema.value , metatemplatedetailtableData.value)
-
-} , {deep:true})
-
+const handleChange = () => {
+  let metaObj = {};
+  Object.assign(metaObj, { schema: toRaw(tempschema.value) });
+  Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
+  Object.assign(metaObj, { detail: store.getMetaData.detail });
+  console.log(metaObj);
+  
+  storeMbt.saveMeta(metaObj)
+}
 
 </script>
 <template>
@@ -141,6 +140,7 @@ watch(()=>watchData.value , (val:any)=>{
       :formProps="metaformProps"
       :formFooter="formExpectedFooter"
       :uiSchema="uiSchema"
+      @change = 'handleChange'
     >
     </VueForm>
   </div>
@@ -172,12 +172,12 @@ watch(()=>watchData.value , (val:any)=>{
     <a v-if="isMetaTemplateEmpty" href="/#/templatemanager/meta">
       Jump to Meta Template
     </a>
-    <a-button type="primary" @click="submitTemplate">Save</a-button>
     <!-- <div> -->
       <a-button
-      style="margin-right: 10px"
+      style="position: absolute; top: -2.25rem; right: 0;"
       v-if="isFormVisible"
-      type="link"
+      type="primary"
+      size="small"
       @click="onImportFromMetaTemplate"
       >Choose A Template</a-button>
   </div>

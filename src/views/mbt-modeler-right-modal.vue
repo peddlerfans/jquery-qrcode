@@ -185,6 +185,8 @@ watch(
 
 function handleAwData () {
   const el = store.getShowData
+  console.log(el);
+  
   const checkAwProps = el.getPropertiesSchema()
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
@@ -194,7 +196,7 @@ function handleAwData () {
 
 function handleData() {
   const el = store.getShowData
-  console.log(el);
+  showDrawer.value = false
   
   if(el.attributes.source && el.attributes.target){
     const sourceId = el.attributes.source.id

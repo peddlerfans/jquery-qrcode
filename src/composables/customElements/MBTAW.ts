@@ -5,8 +5,8 @@ import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const { dia, g, ui, shapes } = joint
 import { i18n } from "@/locales";
 import { MBTStore } from "@/stores/MBTModel"
-import {MbtData} from "@/stores/modules/mbt-data";
-import _, {isEmpty} from "lodash";
+import { MbtData } from "@/stores/modules/mbt-data";
+import _, { isEmpty } from "lodash";
 import { objectPick } from "@vueuse/core";
 import cloneDeep from "lodash-es/cloneDeep";
 const store = MBTStore()
@@ -14,15 +14,15 @@ const storeAw = MbtData()
 const { t } = i18n.global
 window.joint = joint
 export const name = 'aw';
-export const namespace = 'itea.mbt.test.'+name;
+export const namespace = 'itea.mbt.test.' + name;
 
 
 export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterface {
     static shapeName = name;
     constructor(e: Element, o: any) {
         super(e, o);
-        this.set({'icon':'user'})
-        
+        this.set({ 'icon': 'user' })
+
         this.on('change', (evt: any) => {
             // debugger
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
@@ -33,25 +33,23 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         // this.updateRectangles();
     }
 
-    reRender(){
+    reRender() {
         const desc = this.get('prop')?.custom?.description
-        const primaryDesc =  this.get('prop')?.custom?.step?.schema?.description || ''
+        const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc
             ? desc
             : awSchemaStr ? awSchemaStr : ''
-            console.log(labelDesc);
-            
         this.set({
-            'icon':  (primaryDesc || expectedDesc) ? 'service' : 'user' ,
-            'content': labelDesc 
+            'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
+            'content': labelDesc
         })
-        if(this.get('content')){
-            this.set({size:{width:200,height:80}})
+        if (this.get('content')) {
+            this.set({ size: { width: 200, height: 80 } })
         }
-  
+
     }
 
     getPropertiesSchema() {
@@ -62,12 +60,11 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        console.log(this.get('prop'));
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw
-        temp.step = storeAw.getPrimaryAw
-        this.prop('prop/custom' , temp)
+        temp.expectation = storeAw.getExpectedAw || {}
+        temp.step = storeAw.getPrimaryAw || {}
+        this.prop('prop/custom', temp)
 
     }
 
@@ -321,7 +318,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     }
     // reload CEll 
-        updateRectangles() {
+    updateRectangles() {
 
     }
     setSizeFromContent() {
@@ -347,10 +344,10 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
                     expectation: {
                     },
                     description: '',
-                    type:'aw'
+                    type: 'aw'
                 }
             },
         }
     }
-   
+
 }

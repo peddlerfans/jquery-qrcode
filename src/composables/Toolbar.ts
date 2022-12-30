@@ -32,7 +32,10 @@ export class ToolbarService {
                 'zoom': { index: 8 },
                 'grid': { index: 9, default: 10 },
                 'snapline': { index: 10 },
-                'save': { index: 11 }
+                'save': { index: 11 },
+                'preview' : { index: 12 },
+                'reload' :{ index: 13 },
+                'chooseTem' :{ index: 14 }
             },
 
             tools: [
@@ -178,11 +181,49 @@ export class ToolbarService {
                     type: 'button',
                     name: 'save',
                     group: 'save',
-                    text: 'Save',
+                    attrs: {
+                        button: {
+                            id: 'btn-save',
+                            'data-tooltip': 'Save data to backend',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'preview',
+                    group: 'preview',
                     attrs: {
                         button: {
                             // id: 'btn-save',
-                            'data-tooltip': 'Save data to backend',
+                            'data-tooltip': 'Show preview',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'reload',
+                    group: 'reload',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Reload',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'chooseTem',
+                    group: 'chooseTem',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Choose Template',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
                         }
