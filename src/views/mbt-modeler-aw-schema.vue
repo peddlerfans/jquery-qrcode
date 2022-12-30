@@ -148,7 +148,7 @@ function updateAW (tar: string) {
       name,
       awupdate: 'mbtAW',
       mbtid: mbtId,
-      mbtname: localStorage.getItem('mbt_' + route.params.name)
+      mbtname: localStorage.getItem('mbt_' + route.params.name+'aw')
     }
   })
 }
@@ -158,12 +158,11 @@ function deletePrimary() {
   primaryUiSchema.value = {}
   schemaValue.value = {}
   store.setEditingPrimaryAw({
-    editingPrimaryAw: {
       data: null,
       schema: null,
       uiParams: null
-    }
   })
+  handleChange()
 }
 
 function deleteExpected() {
@@ -174,8 +173,8 @@ function deleteExpected() {
       data: null,
       schema: null,
       uiParams: null
-    
-  })
+    })
+  handleChange()
 }
 
 function showAw (row: any) {
@@ -285,8 +284,9 @@ function initSchema() {
 
 function handleChange () {
 
+  console.log(3);
   
-  // console.log("...........handleChange",schemaValue.value , isEmptyPrimarySchema)
+  console.log("...........handleChange",expectedSchema.value )
   if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   const _desc = desc.value
@@ -300,7 +300,7 @@ function handleData () {
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-    console.log(schema.value,schemaValue.value);
+    // console.log(schema.value,schemaValue.value);
     
   } else {
     initPrimarySchema()
@@ -313,6 +313,9 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
+  // console.log(primaryUiSchema.value,expectedSchema.value);
+  console.log(2);
+  
 }
 
 const keys = 1

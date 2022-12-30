@@ -253,13 +253,19 @@ function HandleSubmit() {
 // 定义函数用来判断是否选择其中的模板
 function isChoose(data:any) : boolean{
   let b = false
-  data.forEach((item:any)=>{
+  if(data){
+    data.forEach((item:any)=>{
     if(item['_id']){
       b =  false
     }else{
       b = true
     }
   })
+  }else{
+    message.warning('模板无数据')
+    b = false
+  }
+  
   return b
 }
 
@@ -267,12 +273,15 @@ let watchData = computed(() => { dataSource.value, columnsOrigin.value })
 
 watch(() => dataSource.value, (val: any) => {
   let dataFrom = ''
-  let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value}
-    if(templateCategory.value = 1){
-      dataFrom = "dynamic_template"
-    }else if(templateCategory.value = 2){
-      dataFrom = 'static_template'
-    }
+
+  if (templateCategory.value = 1) {
+    dataFrom = "dynamic_template"
+  } else if (templateCategory.value = 2) {
+    dataFrom = 'static_template'
+  } else {
+    dataFrom = 'input_template'
+   }
+        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom:dataFrom}
   if (isChoose(dataSource.value)) {
       store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
       storeAw.setDataDefinition(dataDefinition)

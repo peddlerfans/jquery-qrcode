@@ -23,7 +23,7 @@ export class MBTSection extends MBTGroupBase {
     this.attr({
       // 'background': { fill: '#454549' },
       // 'icon': { iconType: 'receive' },
-      'label': { refY: '10', text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : this.get('prop').custom?.type},
+      'label': { refY: '10', text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : this.get('prop').custom?.type },
       markers: {
         iconTypes: ['ad-hoc'],
       }
@@ -41,7 +41,7 @@ export class MBTSection extends MBTGroupBase {
     // const desc = custom.description
     const desc = custom?.description || ''
     const labelText = desc ? desc : custom?.type
-    
+
     this.attr({
       'label': {
         text: labelText
