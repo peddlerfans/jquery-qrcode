@@ -30,7 +30,8 @@ interface MbtData {
     sectionData: any,
     awDescription: string,
     showSchema: boolean
-    showData:any
+    showData:any,
+    rappid: any
 }
 
 export const MbtData = defineStore({
@@ -69,7 +70,8 @@ export const MbtData = defineStore({
         expectedTableRow: {},
         awDescription: '',
         showSchema: false,
-        showData:{}
+        showData:{},
+        rappid: null
     }),
     getters: {
         getAllData: state => state.allData,
@@ -85,7 +87,8 @@ export const MbtData = defineStore({
         getSectionData: state => state.sectionData,
         getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
-        getShowData:state => state.showData
+        getShowData:state => state.showData,
+        getRappid: state => state.rappid
     },
     actions: {
         setAllData(data: any) {
@@ -156,6 +159,9 @@ export const MbtData = defineStore({
         },
         setData(data:any){
             this.showData = data
+        },
+        setRappid (data: any) {
+            this.rappid = data
         }
     }
 })

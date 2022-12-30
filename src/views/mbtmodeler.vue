@@ -397,6 +397,7 @@ onMounted(async () => {
       rappid.paper.removeTools();
 });
 store.setRappid(rappid)
+  storeAw.setRappid(rappid)
 })
 
 

@@ -313,6 +313,26 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
+  // getAllCustomVar()
+}
+
+function getAllCustomVar () {
+  const cell = store.getShowData
+  let arr = cell.graph.getCells()
+  arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
+  let temp: Array<any> = []
+  arr.forEach((b: any) => {
+    const schema = b.attributes.props?.custom?.step?.schema
+    const schemaVal = b.attributes.props?.custom?.step?.data
+    if (schema?.value?.properties?.variable && schemaVal?.variable) {
+      temp.push({
+        label: schemaVal?.variable,
+        value: schemaVal?.variable,
+        type: schema.properties.variable.type
+      })
+    }
+  })
+  console.log(temp)
 }
 
 const keys = 1
