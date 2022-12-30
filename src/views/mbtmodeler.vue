@@ -563,8 +563,12 @@ const preview=async ()=>{
   
 }
 
-const openPreview = (record:any)=>{
-  previewScript.value=record.script
+const openPreview = (record:any, index: number)=>{
+  previewScript.value = record.script
+  const id = record.id + index
+  if (expandRowKeys.value.includes(id)) {
+    expandRowKeys.value = expandRowKeys.value.filter((a: any) => a !== id)
+  } else expandRowKeys.value.push(id)
 }
 
 const preciewHandleOk = () =>{
@@ -600,6 +604,7 @@ function handleChange(str: string, data: any) {
   }
 }
 
+let expandRowKeys = ref<any>([])
 
 
 // 工具栏
@@ -644,14 +649,30 @@ function handleChange(str: string, data: any) {
           class="previewModel"
           @cancel="cencelpreview"
           >
-          <a-table :columns="previewcol" 
-          :data-source="previewData" 
-          :pagination="{pageSize:5}"
-          bordered
-          :rowKey="(record: any) => record.id"
-          class="previewclass"
+          <a-table
+              :columns="previewcol"
+              :data-source="previewData"
+              :pagination="{pageSize:5}"
+              bordered
+              :rowKey="(record: any, index) => record.id + index"
+              class="previewclass"
+              :defaultExpandAllRows="true"
+              :expandIconColumnIndex="-1"
           >
-        <template #bodyCell="{column,record}">
+            <template #expandedRowRender="{record, index}">
+              <VAceEditor
+                v-show="expandRowKeys.includes(record.id + index)"
+                style="width: 100%;height: 240px;"
+                v-model:value="record.script"
+                class="ace-result"
+                :wrap="softwrap"
+                :readonly="true"
+                :lang="outLang"
+                theme="sqlserver"
+                :options="{ useWorker: true }"
+              ></VAceEditor>
+            </template>
+        <template #bodyCell="{column,record, index}">
            <template v-if="column.key=='can_be_automated'">
             <p >{{record.can_be_automated}}</p>
           </template>
@@ -668,21 +689,10 @@ function handleChange(str: string, data: any) {
             <pre >{{record.expected_results}}</pre>
           </template>
           <template v-if="column.key=='action'">
-            <a-button type="link" @click="openPreview(record)">previewDetails</a-button>
+            <a-button type="link" @click="openPreview(record, index)">previewDetails</a-button>
           </template>
           </template>
         </a-table>
-          <!-- <div > -->
-            <VAceEditor
-              v-model:value="previewScript"
-              class="ace-result"
-              :wrap="softwrap"
-              :readonly="true"
-              :lang="outLang"
-              theme="sqlserver"
-              :options="{ useWorker: true }"
-            />
-          <!-- </div> -->
           </a-modal>
 
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
@@ -881,11 +891,10 @@ function handleChange(str: string, data: any) {
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
-      height: 100%;
-      display: flex;
+      overflow: auto;
+      height: calc(100% - 55px);
       .ace-result{
       flex: 1;
-      // margin-top: 15px;
       font-size: 18px;
       border: 1px solid;
       height: 72%;
