@@ -774,17 +774,17 @@ function handleChange(str: string, data: any) {
                             v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
                             @pressEnter="resourcessave(record.key)"
                           />
-                          <check-outlined
+                          <!-- <check-outlined
                             class="editable-cell-icon-check"
                             @click="resourcessave(record.key)"
-                          />
+                          /> -->
                         </div>
                         <div v-else class="editable-cell-text-wrapper">
                           {{ text || " " }}
-                          <edit-outlined
+                          <!-- <edit-outlined
                             class="editable-cell-icon"
                             @click="resourcesedit(record.key)"
-                          />
+                          /> -->
                         </div>
                       </div>
                     </template>
@@ -837,9 +837,9 @@ function handleChange(str: string, data: any) {
                     </template>
                   </template>
                 </a-table>
-                <a-button type="primary" @click="globalhandlerSubmit">{{
+                <!-- <a-button type="primary" @click="globalhandlerSubmit">{{
                   $t("common.saveText")
-                }}</a-button>
+                }}</a-button> -->
               </a-tab-pane>
             </a-tabs>
   </div>
