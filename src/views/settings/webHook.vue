@@ -305,8 +305,8 @@ const handleInputConfirm = () => {
     tags,
     inputVisible: false,
     inputValue: "",
-  });
-};
+  })
+}
 
 </script>
 
