@@ -219,7 +219,7 @@ function showAw (row: any) {
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
   } else if (selectAwTar === '2') {
-    debugger
+    // debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {
