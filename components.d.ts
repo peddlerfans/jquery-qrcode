@@ -40,6 +40,7 @@ declare module '@vue/runtime-core' {
     AResult: typeof import('ant-design-vue/es')['Result']
     ARow: typeof import('ant-design-vue/es')['Row']
     ASelect: typeof import('ant-design-vue/es')['Select']
+    ASpace: typeof import('ant-design-vue/es')['Space']
     AStep: typeof import('ant-design-vue/es')['Step']
     ASteps: typeof import('ant-design-vue/es')['Steps']
     ASwitch: typeof import('ant-design-vue/es')['Switch']

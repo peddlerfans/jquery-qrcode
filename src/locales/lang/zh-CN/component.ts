@@ -24,14 +24,16 @@ export default {
     settingFixedRight: '固定到右侧',
     settingFullScreen: '全屏',
     settingBordered: '边框',
-
+    views: '可见视图',
     index: '序号',
-
+    grantedResources: '资源及控制权限',
     total: '共 {total} 条数据',
     required: "必填",
     returnType: "返回类型",
     unrequired: '非必填',
     name: '名称',
+    email: '电邮',
+    roles: '角色',
     description: '描述',
     tags: '标签',
     url: '网址',
@@ -50,7 +52,7 @@ export default {
     operator: '关系',
     topics: '大纲',
     default: '默认',
-
+    role: '角色',
     clone: '克隆',
 
     isRequire: '是否必填',
