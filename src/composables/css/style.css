@@ -169,7 +169,35 @@ body {
     padding: 0;
     text-align: center;
 }
-
+.mbtScalable {
+    position: absolute;
+    right: 300px;
+    height: 100%;
+    min-width: 100px;
+    overflow: auto;
+    left: 0;
+}
+.mbtSeparator{
+    width: 5px;
+    height: 100%;
+    /* display: flex; */
+    position: absolute;
+    right: 0;
+    cursor: col-resize;
+}
+.right{
+    width: 300px;
+    min-width: 100px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    box-sizing: border-box;
+    overflow: auto;
+}
+.left{
+  overflow: auto;
+}
 /*  Paper  */
 .paper-container {
     position: absolute;
@@ -178,7 +206,7 @@ body {
     overflow: hidden;
     box-sizing: border-box;
     left: 180px;
-    right: 300px;
+    right: 0;
 }
 
 /*  Inspector  */

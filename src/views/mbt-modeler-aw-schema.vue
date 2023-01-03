@@ -328,12 +328,16 @@ function handleChange () {
   if (!isEmptyPrimarySchema.value) {
     store.setEditingPrimaryAw(schemaValue.value, 'data')}
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-  const _desc = desc.value
-  store.setDescription(_desc)
+  if(desc.value == ""){
+    store.setDescription('')
+  }else{
+    store.setDescription(desc.value)
+  }
   emit('change')
 }
 
 function handleData () {
+    desc.value = store.getDescription
   // debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
