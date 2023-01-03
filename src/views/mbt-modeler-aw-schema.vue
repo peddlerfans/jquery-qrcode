@@ -4,7 +4,7 @@ import {
   watch,
   onMounted,
   computed,
-inject
+  inject
 } from 'vue'
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
@@ -20,7 +20,6 @@ import {
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
-import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
 
 interface Props {
   show: boolean
@@ -123,6 +122,9 @@ const formProps = {
   labelWidth: '75px',
   labelSuffix: ':',
 }
+
+let assertDesc = ref<string>('')
+let assertList = ref<Array<any>>([])
 
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
@@ -291,7 +293,6 @@ function showAw (row: any) {
 
 
 function setSchema (tar: string) {
-  console.log(schema.value.properties,primaryUiSchema.value);
   let temp: any = {}
   if (tar === 'primary') {
     temp = data2schema(schema.value, primaryUiSchema.value)
@@ -322,9 +323,6 @@ function initSchema() {
 }
 
 function handleChange () {
-  
-  // console.log("...........handleChange",expectedSchema.value )
-  
   if (!isEmptyPrimarySchema.value) {
     store.setEditingPrimaryAw(schemaValue.value, 'data')}
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
@@ -334,7 +332,6 @@ function handleChange () {
 }
 
 function handleData () {
-  // debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
@@ -363,9 +360,9 @@ function getAllCustomVar () {
   arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
   let temp: Array<any> = []
   arr.forEach((b: any) => {
-    const schema = b.attributes.props?.custom?.step?.schema
-    const schemaVal = b.attributes.props?.custom?.step?.data
-    if (schema?.value?.properties?.variable && schemaVal?.variable) {
+    const schema = b.attributes.prop?.custom?.step?.schema
+    const schemaVal = b.attributes.prop?.custom?.step?.data
+    if (schema?.properties?.variable && schemaVal?.variable) {
       temp.push({
         label: schemaVal?.variable,
         value: schemaVal?.variable,
@@ -373,7 +370,7 @@ function getAllCustomVar () {
       })
     }
   })
-  console.log(temp)
+  assertList.value = temp
 }
 
 const keys = 1
@@ -502,20 +499,20 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-<!--        <div class="setting-assert">-->
-<!--          <div>-->
-<!--            <div class="title">断言描述：</div>-->
-<!--            <a-input v-model:value="assertDesc"></a-input>-->
-<!--          </div>-->
-<!--          <div class="title">设置断言：</div>-->
-<!--          <mbt-modeler-condition-edit-->
-<!--            :keys="keys"-->
-<!--            :formDatas="formDatas"-->
-<!--            :valueData="valueData"-->
-<!--            :rulesData="rulesData"-->
-<!--            @rulesChange="rulesChange"-->
-<!--          ></mbt-modeler-condition-edit>-->
-<!--        </div>-->
+        <div class="setting-assert" v-show="!hasExpected && assertList.length">
+          <div>
+            <div class="title">断言描述：</div>
+            <a-input v-model:value="assertDesc"></a-input>
+          </div>
+          <div class="title">设置断言：</div>
+          <mbt-modeler-condition-edit
+            :keys="keys"
+            :formDatas="formDatas"
+            :valueData="valueData"
+            :rulesData="rulesData"
+            @rulesChange="rulesChange"
+          ></mbt-modeler-condition-edit>
+        </div>
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"

@@ -219,11 +219,11 @@ async function query(id?: any) {
     // aceTemplate.value?._editor.setValue(modelState.templateText)
     aceTemplate.value?._editor.getSession().setUndoManager(new ace.UndoManager())
   }, 0)
-  setTimeout(() => {
-    let dom: any = document.getElementsByClassName('ace_editor')
-    dom[0].style.fontSize = '14px'
-    dom[1].style.fontSize = '14px'
-  }, 10)
+  // setTimeout(() => {
+  //   let dom: any = document.getElementsByClassName('ace_editor')
+  //   dom[0].style.fontSize = '14px'
+  //   dom[1].style.fontSize = '14px'
+  // }, 10)
 
 
 

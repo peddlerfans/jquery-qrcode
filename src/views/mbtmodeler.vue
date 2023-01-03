@@ -239,8 +239,6 @@ function globalhandlerSubmit(data?:any) {
 
 }
 function attrsChange(){
-  console.log(132123123123);
-  
   store.saveattr(globalformData.value);
 }
 
@@ -302,10 +300,7 @@ const lagacyShapeTypeMapping:any = {
 }
 
 function getShapeTypeMapping(shapeType:string) {
-  // if (!lagacyShapeTypeMapping[shapeType] ) {
-  //   console.log("============",shapeType)
-  // }
-return  lagacyShapeTypeMapping[shapeType] || shapeType
+  return  lagacyShapeTypeMapping[shapeType] || shapeType
 }
 function transformCells(mbtData:any){
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
@@ -327,16 +322,13 @@ function transformCells(mbtData:any){
     return cell
 
    })
-   console.log('cells:',cells)
    return {cells};
 
 }
 
 function getProperty(cell:any,mbtData:any){
-  // if(cell.prop) return cell.prop;
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
-    // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
@@ -412,7 +404,6 @@ onMounted(async () => {
       rappid.paper.removeTools();
     });
   rappid.graph.on('change', function (evt) {
-    console.log(1)
     leaveRouter.value = true
   })
 store.setRappid(rappid)
@@ -453,7 +444,6 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
 
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
   if (rst.data) {
-    // console.log('rst:', rst.data)
     return rst.data;
   }
 }
@@ -481,8 +471,6 @@ async function reload(){
     awDatas.then((aws) => {
       const awById = _.groupBy(aws, "_id")
       newProp.forEach((obj: any) => {
-        console.log(obj.prop);
-        
       if (obj.prop.step?.data?._id) {
         if (awById[obj.prop.step?.data?._id]) {
           obj.prop.step.data = awById[obj.prop.step?.data?._id][0]
@@ -538,7 +526,7 @@ async function querycode(){
       }
       previewcol.value.push(objJson)
     })
-    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+    previewcol.value.push({title:"action",dataIndex:"action",key:"action", width: '120px'})
     previewData.value=rst.results.map((item:any)=>{
       if(item.script){
         Object.assign(item.json,{script:item.script})
@@ -645,7 +633,8 @@ let expandRowKeys = ref<any>([])
           :footer="null"
           :keyboard="true"
           :mask-closable="true"
-          width="1280"
+          width="70%"
+            centered
           class="previewModel"
           @cancel="cencelpreview"
           >
@@ -662,7 +651,7 @@ let expandRowKeys = ref<any>([])
             <template #expandedRowRender="{record, index}">
               <VAceEditor
                 v-show="expandRowKeys.includes(record.id + index)"
-                style="width: 100%;height: 240px;"
+                style="width: 100%;height: 300px;"
                 v-model:value="record.script"
                 class="ace-result"
                 :wrap="softwrap"

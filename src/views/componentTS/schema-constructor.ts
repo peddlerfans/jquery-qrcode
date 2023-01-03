@@ -24,8 +24,6 @@ export function data2schema (awSchema: any, uiSchema?: any) {
     // 获取属性里面可自定义的表单项
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
-        
-        
         let prop = awSchema.properties
         prop[a.title] = {
             "title": a.title,
@@ -49,7 +47,7 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
+        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '变量') {
             arr.push(tar)
         }
     }
