@@ -32,6 +32,10 @@ import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
 import { VAceEditor } from 'vue3-ace-editor';
 import "./componentTS/ace-config";
+import { generateSchema } from "@/utils/jsonschemaform";
+import { data2schema } from "./componentTS/schema-constructor";
+import { SplitPanel } from "@/components/basic/split-panel";
+import { throttle } from "lodash-es";
 
 
 const store = MBTStore()
@@ -162,6 +166,41 @@ const globalschema = ref({
   },
 });
 
+let schemaValue :any = ref({})
+let schema = ref({
+    title: "AW",
+  type: "object",
+  description: '',
+  properties: {
+    _id: {
+      type: "string",
+      "ui:hidden": true,
+      required: true,
+    },
+    name: {
+      title: "AW Name",
+      type: "string",
+      readOnly: true,
+    },
+    description: {
+      title: "Description",
+      type: "string",
+      readOnly: true,
+      "ui:widget": "TextAreaWidget",
+    },
+    template: {
+      title: "Template",
+      type: "string",
+      readOnly: true,
+    },
+    tags: {
+      title: "Tags",
+      type: "string",
+      readOnly: true,
+    },
+  }
+  })
+  let primaryUiSchema = ref({})
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value=true
@@ -238,6 +277,7 @@ watch(resourcesdataSource.value ,(newval:any)=>{
 function globalhandlerSubmit(data?:any) {
 
 }
+
 function attrsChange(){
   store.saveattr(globalformData.value);
 }
@@ -323,8 +363,67 @@ function transformCells(mbtData:any){
 
    })
    return {cells};
-
 }
+
+function getSchema (schema: any, row?: any) {
+  const nameProp = schema.properties.name
+  const descProp = schema.properties.description
+  const tempProp = schema.properties.template
+  const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
+  if (nameProp) delete schema.properties.name
+  if (descProp) delete schema.properties.description
+  if (tempProp) delete schema.properties.template
+  if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
+  schema.title = row ? row.name : storeAw.getPrimaryAw.data?.name || ''
+  schema.description = row ? row.description : storeAw.getPrimaryAw.data?.description || ''
+  return schema
+}
+
+function awUiParams(row: any){
+   schemaValue.value = {
+      name: row.name,
+      description: row.description,
+      tags: '',
+      template: row.template,
+      _id: row._id,
+      path:row.path
+    }
+
+    if (_.isArray(row.tags)) {
+      _.forEach(row.tags, function (value: any) {
+        schemaValue.value.tags += value + " "
+      })
+    }
+    if (_.isArray(row.params) && row.params.length > 0) {
+      let appEndedSchema = generateSchema(row.params)
+      appEndedSchema.forEach((a: any) => {
+        Object.keys(a).forEach((b: any) => {
+          a[b].custom = 'awParams'
+        })
+      })
+      appEndedSchema.forEach((field: any) => {
+        Object.assign(schema.value.properties, field)
+      })
+      
+    }
+    if (row.returnType) {
+      Object.assign(schema.value.properties, {
+        variable: {
+          title: '变量',
+          type: 'string'
+        }
+      })
+    }
+    let temp :any = {}
+    temp = data2schema(schema.value, primaryUiSchema.value)
+    schema.value = temp.schema
+    primaryUiSchema.value = temp.uiSchema
+    schema.value = getSchema(schema.value, row)
+    return {schema , primaryUiSchema ,schemaValue}
+}
+
 
 function getProperty(cell:any,mbtData:any){
   let prop = {custom:{}}
@@ -333,13 +432,21 @@ function getProperty(cell:any,mbtData:any){
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
+    let awData:any = {}
+    if(awprop.aw){
+      awData = awUiParams(awprop.aw)
+    }    
     awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
-    Object.assign(prop.custom,{step : awprop})
+    Object.assign(prop.custom,{step : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
   } 
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
+    let awData:any = {}
+    if(awprop.aw){
+      awData = awUiParams(awprop.aw)
+    }
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
-    Object.assign(prop.custom,{expectation : awprop})
+    Object.assign(prop.custom,{expectation : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
   } 
    return prop
 
@@ -392,6 +499,8 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log(elementView.model);
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -413,6 +522,9 @@ rappid.toolbarService.toolbar.on({
   'reload:pointerclick': reload.bind(this),
   'chooseTem:pointerclick': chooseTem.bind(this),
   // 'preview:pointerclick': this.showPreview.bind(this)
+})
+rappid.paper.on('blank:pointerdblclick' ,() => {
+  isGlobal.value=true
 })
 })
 // 离开路由时调用
@@ -591,9 +703,27 @@ function handleChange(str: string, data: any) {
     }
   }
 }
-
+let startX: number;
+let startWidth: number;
+const scalable = ref<HTMLDivElement>();
 let expandRowKeys = ref<any>([])
+  const onDrag = throttle(function (e: MouseEvent) {
+    scalable.value && (scalable.value.style.width = `${startWidth + e.clientX - startX}px`);
+  }, 20);
+  const startDrag = (e: MouseEvent) => {
+    // debugger
+    startX = e.clientX;
+    scalable.value && (startWidth = parseInt(window.getComputedStyle(scalable.value).width, 10));
 
+    document.documentElement.style.userSelect = 'none';
+    document.documentElement.addEventListener('mousemove', onDrag);
+    document.documentElement.addEventListener('mouseup', dragEnd);
+  };
+  const dragEnd = () => {
+    document.documentElement.style.userSelect = 'unset';
+    document.documentElement.removeEventListener('mousemove', onDrag);
+    document.documentElement.removeEventListener('mouseup', dragEnd);
+  };
 
 // 工具栏
 
@@ -601,29 +731,38 @@ let expandRowKeys = ref<any>([])
 
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
+
         <div class="app-header">
           <div class="toolbar-container">
             
           </div>
         </div>
           <div class="app-body">
-            <div ref="stencils" class="stencil-container"/>
-            <div class="paper-container"/>
-            <div class="AwtabInspector" v-show="showpaper">
-              <ul class="tab_ul">
-                    <!-- <li v-if="!show">样式修改</li> -->
-                    <li
-                    v-if="true"
-                    >数据编辑</li>
-                    <div style="clear:both;"></div>
-              </ul>
+            <div ref = "scalable" class="mbtScalable">
+              <div calss="left">
+                <div ref="stencils" class="stencil-container"/>
+                <div class="paper-container"/>
+              </div>
+
+              <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
+            </div>
+            <div class="right">
+              <div class="AwtabInspector" v-show="showpaper">
+                <ul class="tab_ul">
+                      <!-- <li v-if="!show">样式修改</li> -->
+                      <li
+                      v-if="true"
+                      >数据编辑</li>
+                      <div style="clear:both;"></div>
+                </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
                 <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
               </div>
+              </div>
+              <div class="navigator-container"/>
             </div>
-        <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
-            <div class="navigator-container"/>
+            
           </div>
 
 
@@ -845,7 +984,7 @@ let expandRowKeys = ref<any>([])
 </a-modal>
 </template>
 
-<style lang="scss">
+<style lang="scss" >
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
@@ -899,7 +1038,7 @@ let expandRowKeys = ref<any>([])
     top: 0;
     right: 0;
     bottom: 120px;
-    width: 300px;
+    width: 100%;
     box-sizing: border-box;
     .dataStyle{
     top: 50px;

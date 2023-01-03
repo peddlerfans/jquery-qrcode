@@ -190,11 +190,14 @@ function handleAwData () {
   console.log(checkAwProps.step  , checkAwProps.expectation);
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
+  store.setDescription(checkAwProps.description)
+  
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
+  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
@@ -219,6 +222,7 @@ function handleData() {
   }
   rulesData.value = data.value.rulesData  
 }
+console.log(showDrawer.value);
 
   show.value = true
 }
@@ -229,6 +233,7 @@ function getType () {
 }
 
 function handleShowData () {
+  
   showAw.value = false
   show.value = false
   const type = getType()
