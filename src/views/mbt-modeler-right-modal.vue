@@ -186,10 +186,8 @@ watch(
 function handleAwData () {
   const el = store.getShowData
   
-  // console.log(1);
-  
   const checkAwProps = el.getPropertiesSchema()
-  console.log(el.getPropertiesSchema());
+  console.log(checkAwProps.step  , checkAwProps.expectation);
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
   showAw.value = true
