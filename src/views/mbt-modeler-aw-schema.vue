@@ -310,7 +310,7 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
-  // getAllCustomVar()
+  getAllCustomVar()
 }
 
 function getAllCustomVar () {
