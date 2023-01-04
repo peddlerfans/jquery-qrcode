@@ -227,16 +227,15 @@ function showAw (row: any) {
       appEndedSchema.forEach((field: any) => {
         Object.assign(schema.value.properties, field)
       })
-      
     }
-    if (row.returnType) {
-      Object.assign(schema.value.properties, {
-        variable: {
-          title: '变量',
-          type: 'string'
-        }
-      })
-    }
+    // if (row.returnType) {
+    //   Object.assign(schema.value.properties, {
+    //     variable: {
+    //       title: '变量',
+    //       type: 'string'
+    //     }
+    //   })
+    // }
     // schema添加path
     Object.assign(schema.value.properties, {
         path: {
@@ -274,14 +273,14 @@ function showAw (row: any) {
         Object.assign(expectedSchema.value.properties, field)
       })
     }
-        // schema添加path
-        Object.assign(expectedSchema.value.properties, {
-        path: {
-          title: 'path',
-          type: 'string',
-          readOnly:'true'
-        }
-      })
+    // schema添加path
+    Object.assign(expectedSchema.value.properties, {
+      path: {
+        title: 'path',
+        type: 'string',
+        readOnly:'true'
+      }
+    })
     
     setSchema('expected')
     expectedSchema.value = getEXpectedSchema(expectedSchema.value, row)
@@ -338,12 +337,12 @@ function handleChange () {
 
 function handleData () {
   desc.value = store.getDescription
+  debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-    // console.log(schema.value,schemaValue.value);
     setSchema('primary')
   } else {
     initPrimarySchema()

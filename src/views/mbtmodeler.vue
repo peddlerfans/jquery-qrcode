@@ -782,7 +782,7 @@ let expandRowKeys = ref<any>([])
               :data-source="previewData"
               :pagination="{pageSize:5}"
               bordered
-              :rowKey="(record: any, index) => record.id + index"
+              :rowKey="(record: any) => record.id"
               class="previewclass"
               :defaultExpandAllRows="true"
               :expandIconColumnIndex="-1"
