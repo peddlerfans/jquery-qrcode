@@ -23,8 +23,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         super(e, o);
         this.set({ 'icon': 'user' })
 
-        this.on('change', (evt: any) => {
-            // debugger
+        this.on('change', (evt: any) => {            
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
             }
@@ -34,15 +33,13 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
-        debugger
         const desc = this.get('prop')?.custom?.description
         const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
+        
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc ? desc: awSchemaStr ? awSchemaStr : ''
-        console.log(labelDesc);
-        
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
             'content': labelDesc
@@ -50,7 +47,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         if (this.get('content')) {
             this.set({ size: { width: 200, height: 80 } })
         }
-
     }
 
     getPropertiesSchema() {
@@ -61,7 +57,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
         // debugger
-        // console.log(4)
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
@@ -72,8 +67,8 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         if(temp.expectation?.data){
             // temp.expectation.data = this.paramsObj(temp.expectation?.schema, temp.expectation?.data)
         }
-        
         this.prop('prop/custom', temp)
+        this.reRender()
     }
 
     paramsObj(schema:any , data:any){

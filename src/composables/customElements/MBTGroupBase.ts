@@ -16,6 +16,18 @@ export class MBTGroupBase
   // static shapeName = name;
   constructor(e: Element, o: any) {
     super(e, o);
+    // if(this.attributes.embeds && this.attributes.embeds.length > 0){
+    //   this.fitEmbeds({
+    //     deep:true,
+    //     padding:{
+    //       top:20,
+    //       left: 10,
+    //       right: 10,
+    //       bottom: 20
+    //     }
+    //   })
+    // }
+    
   }
   ifEmbedable(child?: any):boolean {
     return child.attributes?.type !== NS_MBTSection;

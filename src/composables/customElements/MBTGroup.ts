@@ -28,19 +28,25 @@ export class MBTGroup extends MBTGroupBase {
         iconTypes: ['loop'],
       }
     })
-    this.on('change', (evt: any) => {
 
-
+    this.on('change', (evt: any) => {     
+      console.log(evt);
+       
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
         this.reRender();
       }
+      // if(evt.changed && evt.changed.embeds && evt.changed.embeds.length>0){
+      //   this.reRender()
+      // }
     })
-    this.reRender();
-
+    
+    // this.reRender();
+    // this.ifEmbedable()
   }
 
 
   reRender() {
+    
     const custom = this.get('prop').custom
     // const desc = custom.description
     const desc = custom?.description || ''
@@ -52,6 +58,18 @@ export class MBTGroup extends MBTGroupBase {
         text: labelText
       }
     })
+
+    if(this.attributes.embeds && this.attributes.embeds.length > 0){
+      this.fitEmbeds({
+        deep:true,
+        padding:{
+          top:20,
+          left: 10,
+          right: 10,
+          bottom: 20
+        }
+      })
+    }
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable(child)
@@ -64,6 +82,7 @@ export class MBTGroup extends MBTGroupBase {
   setPropertiesData(data: any) {
     const group = store.getGroupData
     this.prop('prop/custom', data)
+    this.reRender();
   }
 
   getInspectorSchema() {

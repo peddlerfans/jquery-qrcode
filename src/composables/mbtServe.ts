@@ -80,6 +80,8 @@ class MbtServe {
         // this.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
 
         //     if (keyboard.isActive('shift', evt)) {
+        //         console.log(123);
+                
         //         this.selection.startSelecting(evt);
         //     } else {
         //         this.selection.collection.reset([]);
@@ -233,7 +235,7 @@ class MbtServe {
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
-        // console.log(' appShapes.shapes 238:', appShapes.shapes)
+        
         const paper = this.paper = new joint.dia.Paper({
             width: 1100,
             height: 1000,
@@ -324,9 +326,9 @@ class MbtServe {
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
-        // console.log(this.toolbarService);
-
+        
         this.toolbarService.toolbar.on({
+            'undo-redo:pointerclick' : this.undo.bind(this),
             'svg:pointerclick': this.openAsSVG.bind(this),
             'png:pointerclick': this.openAsPNG.bind(this),
             'to-front:pointerclick': this.applyOnSelection.bind(this, 'toFront'),
@@ -465,6 +467,10 @@ class MbtServe {
         });
     }
     exportStylesheet = '.scalable * { vector-effect: non-scaling-stroke }';
+    undo(){
+        console.log(111111);
+        
+    }
     openAsSVG() {
 
         this.paper.hideTools().toSVG((svg: string) => {

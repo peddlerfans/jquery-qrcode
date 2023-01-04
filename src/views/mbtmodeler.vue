@@ -482,8 +482,24 @@ onMounted(async () => {
     new KeyboardService()
   )
   rappid.startRappid()
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+  // 屏蔽浏览器自导ctrl+s 功能
+  document.onkeydown = function (e :any) { 
+	         e=window.event||e; 
+           var key=e.keyCode;
+             if(key== 83 && e.ctrlKey){
+            	   /*延迟，兼容FF浏览器  */
+            	    setTimeout(function(){        		  
+            	   },1); 
+                    return false;      
+       		    }    
+           };
 
+  const keyboard = rappid.keyboardService.keyboard
+
+  keyboard.on({'ctrl+s' : () => {
+    throttle(function(){saveMbt()},2000)()
+  }})
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
     // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
@@ -512,20 +528,20 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
     });
-  rappid.graph.on('change', function (evt) {
-    leaveRouter.value = true
-  })
 store.setRappid(rappid)
 rappid.toolbarService.toolbar.on({
   'save:pointerclick': saveMbt.bind(this),
   'preview:pointerclick': preview.bind(this),
   'reload:pointerclick': reload.bind(this),
   'chooseTem:pointerclick': chooseTem.bind(this),
-  // 'preview:pointerclick': this.showPreview.bind(this)
 })
 rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
+if(rappid.commandManager.undoStack.length>0){
+  leaveRouter.value = true
+}
+
 })
 // 离开路由时调用
 onBeforeRouteLeave((to,form,next) => {
@@ -708,13 +724,15 @@ let startWidth: number;
 const scalable = ref<HTMLDivElement>();
 let expandRowKeys = ref<any>([])
   const onDrag = throttle(function (e: MouseEvent) {
-    scalable.value && (scalable.value.style.width = `${startWidth + e.clientX - startX}px`);
+    let w=window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+    scalable.value && (scalable.value.style.width = `${w - e.clientX}px`);
   }, 20);
   const startDrag = (e: MouseEvent) => {
     // debugger
     startX = e.clientX;
     scalable.value && (startWidth = parseInt(window.getComputedStyle(scalable.value).width, 10));
-
     document.documentElement.style.userSelect = 'none';
     document.documentElement.addEventListener('mousemove', onDrag);
     document.documentElement.addEventListener('mouseup', dragEnd);
@@ -738,7 +756,7 @@ let expandRowKeys = ref<any>([])
           </div>
         </div>
           <div class="app-body">
-            <div ref = "scalable" class="mbtScalable">
+            <div  class="mbtScalable">
               <div calss="left">
                 <div ref="stencils" class="stencil-container"/>
                 <div class="paper-container"/>
@@ -746,7 +764,7 @@ let expandRowKeys = ref<any>([])
 
               <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
             </div>
-            <div class="right">
+            <div class="mbtRight" ref = "scalable">
               <div class="AwtabInspector" v-show="showpaper">
                 <ul class="tab_ul">
                       <!-- <li v-if="!show">样式修改</li> -->
@@ -782,7 +800,7 @@ let expandRowKeys = ref<any>([])
               :data-source="previewData"
               :pagination="{pageSize:5}"
               bordered
-              :rowKey="(record: any, index) => record.id + index"
+              :rowKey="(record: any, index:any) => record.id + index"
               class="previewclass"
               :defaultExpandAllRows="true"
               :expandIconColumnIndex="-1"
@@ -1034,16 +1052,19 @@ let expandRowKeys = ref<any>([])
 
 
 .AwtabInspector{
-    position: absolute;
+    // position: absolute;
     top: 0;
     right: 0;
     bottom: 120px;
     width: 100%;
     box-sizing: border-box;
+    height: -moz-calc(100% - 120px);
+    height: -webkit-calc(100% - 120px);
+    height: calc(100% - 120px);
     .dataStyle{
     top: 50px;
     display: block;
-    position: absolute;
+    // position: absolute;
     bottom: 0;
     width: 100%;
     overflow: auto;
