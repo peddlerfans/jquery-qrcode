@@ -159,6 +159,8 @@ body {
 }
 
 .app-body {
+    display: flex;
+    justify-content: end;
     position: relative;
     height: -moz-calc(100% - 60px);
     height: -webkit-calc(100% - 60px);
@@ -187,21 +189,27 @@ body {
 .mbtSeparator {
     width: 5px;
     height: 100%;
-    /* display: flex; */
     position: absolute;
     right: 0;
     cursor: col-resize;
 }
 
-.right {
+.mbtI {
+    width: 1px;
+    height: 14px;
+    margin: 0 1px;
+    background-color: #e9e9e9;
+}
+
+.mbtRight {
     width: 300px;
     min-width: 100px;
-    position: relative;
-    top: 0;
-    right: 0;
-    bottom: 0;
+    display: flex;
+    justify-content: end;
+    flex-direction: column;
     box-sizing: border-box;
     overflow: auto;
+
 }
 
 .left {
@@ -217,6 +225,10 @@ body {
     box-sizing: border-box;
     left: 180px;
     right: 0;
+}
+
+.joint-navigator {
+    width: 300px;
 }
 
 /*  Inspector  */
@@ -252,7 +264,7 @@ body {
 
 /*  Navigator  */
 .navigator-container {
-    position: absolute;
+    /* position: absolute; */
     right: 0;
     bottom: 0;
     width: 300px;

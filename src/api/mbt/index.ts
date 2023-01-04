@@ -49,8 +49,6 @@ export async function getTemplatePreview(templateId: string) {
     .then((record: any) => {
 
       rst = record.data;
-      console.log(rst);
-
       if (rst.length > 0) {
         templatetableData = arr(rst);
       }
@@ -90,7 +88,7 @@ export async function getTemplate(metaId: string, category: string) {
     let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
     Object.assign(currentschema, { required: required })
     if (_.isArray(temparr)) {
-      let schemafileds = generateSchema(temparr,metaId);
+      let schemafileds = generateSchema(temparr, metaId);
       schemafileds.forEach((schemafield: any) => {
         Object.assign(currentschema.properties, schemafield);
       });

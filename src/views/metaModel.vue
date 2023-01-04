@@ -104,7 +104,6 @@ const clearFactorState = () => {
 
 // 点击save触发的函数
 const save = async (obj: any) => {
-  console.log(obj);
 
   obj.editing=false
   await updMeta(tableData.value)
@@ -114,7 +113,6 @@ const save = async (obj: any) => {
 const delmodel =async (obj: any) => {
   // delete tableData.value[tableData.value.indexOf(obj)]
   tableData.value=tableData.value.filter((item:any)=>item !==obj)
-  console.log(editableData[obj.key]);
   recordobj.value.model=tableData.value
   if(recordobj.value.__v){
     delete recordobj.value.__v
@@ -198,7 +196,6 @@ const handleInputConfirm = (record:any) => {
   let values = record.enum;
   if (record.inputValue && values.indexOf(record.inputValue) === -1) {
     values = [...values, record.inputValue];
-    console.log(values);
 
   }
   Object.assign(record, {
@@ -206,7 +203,6 @@ const handleInputConfirm = (record:any) => {
     inputVisible: false,
     inputValue: '',
  });
- console.log(record);
 
 }
 // 移除tags

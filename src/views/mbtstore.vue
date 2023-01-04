@@ -104,6 +104,7 @@ let mbtId = ref("");
  * Search the result
  */
 const handleFinish: FormProps["onFinish"] = (values: any) => {
+  tableParams.value.page = 1
   queryTableData()
 };
 const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
@@ -259,6 +260,7 @@ function pageChange(data: any) {
 
 function handleSelect(q: string) {
   tableParams.value.q = q
+  tableParams.value.page = 1
   queryTableData()
 }
 

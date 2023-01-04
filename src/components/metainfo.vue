@@ -91,7 +91,7 @@ async function getTemplate(metaId: string, category: string) {
     let temparr = rst1.model;
     store.setMetaData(temparr, 'detail')
     store.setMetaData(rst1._id, '_id')
-    console.log(store.mbtMeta);
+    // console.log(store.mbtMeta);
     
     let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
     Object.assign(currentschema, {required: required})
@@ -125,7 +125,7 @@ const handleChange = () => {
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
   Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
   Object.assign(metaObj, { detail: store.getMetaData.detail });
-  console.log(metaObj);
+  // console.log(metaObj);
   
   storeMbt.saveMeta(metaObj)
 }

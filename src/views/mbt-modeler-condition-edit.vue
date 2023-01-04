@@ -8,7 +8,7 @@ export default {
 import { message, SelectProps } from 'ant-design-vue';
 import { computed, onMounted, ref } from 'vue';
 
-let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
+let props=defineProps(['rulesData','keys','formDatas','topDatas','enableDeleteChild','autoIndex'])
 let emit=defineEmits(['changeObserver','rulesChange'])
 
 let selectvalue=ref('AND')
@@ -68,12 +68,6 @@ const numberOptions = [
     label: 'IN',
   }
 ]
-
-const valueDatas=computed(()=>{
-  return props.valueData.map((item: any,index: any)=>{
-    return {name:item.name,type:item.type,values:item.values.map((e: any) => { return { value: e, label: e } })}
-  })
-})
 
 const titleStyle=computed(()=>{
   if(props.rulesData[0].relation=="AND"){
@@ -235,7 +229,6 @@ function optOption (item: any) {
     </div>
     <mbt-modeler-condition-edit
         style="margin-left:35px"  v-if="rulesData[0].children.length > 0"
-        :valueData="valueData"
         :formDatas="formDatas"
         :topDatas="rulesData"
         :rulesData="rulesData[0].children"

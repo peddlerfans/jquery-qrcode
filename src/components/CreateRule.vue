@@ -14,8 +14,6 @@ onMounted(()=>{
     
     let props=defineProps(['rulesData','keys','formDatas','valueData','topDatas','enableDeleteChild','autoIndex'])
     let emit=defineEmits(['changeObserver','rulesChange'])
-    console.log(props.valueData);
-
     let selectvalue=ref('AND')
     const  relations=[{
                 label: "AND",

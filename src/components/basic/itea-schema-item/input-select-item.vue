@@ -50,13 +50,15 @@ function handleInput(e: any) {
 
 <template>
     <div class="schema-form-item">
-      <a-switch
-          v-model:checked="flag"
-          class="schema-switch"
-          @change="switchChange"
-          checked-children="自定义"
-          un-checked-children="选项"
-      ></a-switch>
+      <a-form-item-rest>
+        <a-switch
+            v-model:checked="flag"
+            class="schema-switch"
+            @change="switchChange"
+            checked-children="自定义"
+            un-checked-children="选项"
+        ></a-switch>
+      </a-form-item-rest>
       <a-select
           v-if="!flag"
           :value="inputRef.val"

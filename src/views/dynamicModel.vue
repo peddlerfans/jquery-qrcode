@@ -486,7 +486,6 @@ const previewModel = async () => {
   } else {
   previewErrorMsg.value=""
   }
-console.log(previewErrorMsg.value,rst);
 
   modelDataPreview.value=rst
   columnPreview.value=rst.model?.parameters.map((e:any)=>{
