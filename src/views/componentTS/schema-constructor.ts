@@ -25,15 +25,17 @@ export function data2schema (awSchema: any, uiSchema?: any) {
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
         let prop = awSchema.properties
+        const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
         prop[a.title] = {
             "title": a.title,
             "type": "string",
             "patternProperties": false,
+            "AWType": isSutType ? 'SUT' : 'string'
         }
         if (uiSchema) {
          uiSchema[a.title] = {            
             "ui:widget": schemaItem,
-            "ui:options": a.type === 'SUT' ? sutEnumList : enumList
+            "ui:options": isSutType ? sutEnumList : enumList
         }}
     })
     return {

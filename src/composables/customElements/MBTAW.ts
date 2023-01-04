@@ -56,7 +56,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        // debugger
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}

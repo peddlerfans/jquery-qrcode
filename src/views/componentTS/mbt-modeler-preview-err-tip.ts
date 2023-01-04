@@ -27,12 +27,12 @@ const getReason = (err: string) => {
         case 'not_start_end': {
             return errObj[err]
         }
-
     }
 }
 
 export const showErrCard = (errMsg: errMsg) => {
     let errAttrList = Object.keys(errMsg)
+    if (!errAttrList || !errAttrList.length) return
     let temp = errAttrList.map((err: string) => {
         return {
             err,

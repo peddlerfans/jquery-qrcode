@@ -41,7 +41,6 @@ watch(
 )
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search = ''
   staticTable.value.query(formState.search)
 };
 // 表单失败后的回调
