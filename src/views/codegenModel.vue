@@ -47,6 +47,7 @@ import { defineAsyncComponent } from 'vue'
 
 
 import "./componentTS/ace-config";
+import ace from 'ace-builds';
 
 
 
@@ -150,6 +151,8 @@ const themeOptions = ref<SelectProps['options']>([
   },
 ]);
 
+const aceTemplate = ref<AceEditor>();
+
 
 
 
@@ -168,6 +171,7 @@ onMounted(() => {
     message.error("Model cannot be found")
   }else{
     query(modelId)
+
   }
 })
 
@@ -208,10 +212,25 @@ async function query(id?: any) {
 
   console.log("modelState.model.history")
   console.log(modelState.model)
+  console.log("############")
+  console.log(aceTemplate.value?._editor)
+
+  setTimeout(()=> {
+    // aceTemplate.value?._editor.setValue(modelState.templateText)
+    aceTemplate.value?._editor.getSession().setUndoManager(new ace.UndoManager())
+  }, 0)
+  // setTimeout(() => {
+  //   let dom: any = document.getElementsByClassName('ace_editor')
+  //   dom[0].style.fontSize = '14px'
+  //   dom[1].style.fontSize = '14px'
+  // }, 10)
+
+
+
 
 }
 
-const aceTemplate = ref<AceEditor>();
+
 
 const saveModel = async () => {
   sessionStorage.setItem('codegen_theme', String(states.theme))
@@ -500,10 +519,12 @@ footer {
 .ace-template, .ace-result, .ace-data {
   flex: 1;
   margin-top: 15px;
-  /*font-size: 18px;*/
+  /*font-family: monospace;*/
+  /* font-size: 16px; */
   border: 1px solid;
   height: 70vh;
 }
+
 </style>
 <style>
 

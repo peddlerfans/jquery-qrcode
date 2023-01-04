@@ -37,7 +37,8 @@ interface Props {
   fetchObj: any,
   columns: any,
   tableRef: any,
-  isGlobal: boolean
+  isGlobal: boolean,
+  checkUrl?: string
 }
 
 let loading = ref(false)
@@ -53,7 +54,7 @@ const props = withDefaults(defineProps<Props>(), {
     noPage: false,
     createParams: '',
     searchText: '',
-    selection: null
+    selection: null,
   },
   columns: [],
   tableRef: '',
@@ -157,7 +158,7 @@ const query = async (searchText?: string) => {
 }
 
 const getSearchRes = async (name: string) => {
-  let url = props.fetchObj.url
+  let url = props.fetchObj.url || props.checkUrl
   if (!url) return []
   const qParams = props.fetchObj.createParams
   const params = {
@@ -229,7 +230,7 @@ const checkName = async (_rule: Rule, value: string) => {
     return Promise.reject(t('templateManager.namehefa'))
   } else {
     let rst: any = await getSearchRes(`@name:${value}`)
-    if (rst.data && rst.data.length > 0 && rst.data[0].name === value) {
+    if (rst.data && rst.data.length > 0 && rst.data.some((a: any) => a.name === value)) {
       return Promise.reject(t('templateManager.duplicate'))
     } else {
       return Promise.resolve();
@@ -286,6 +287,7 @@ const tableCheckChange = (e: any, row: any) => {
 
 const editRow = (rowData: any) => {
   if (isEditing.value) return message.warning(t('component.message.errTip1'))
+  tempRow = rowData
   if (events.includes('edit') && !rowData.isNewRow) {
     emit('edit', rowData)
   } else {

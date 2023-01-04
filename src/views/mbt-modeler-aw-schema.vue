@@ -4,7 +4,7 @@ import {
   watch,
   onMounted,
   computed,
-inject
+  inject
 } from 'vue'
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
@@ -80,14 +80,33 @@ function getSchema (schema: any, row?: any) {
   const descProp = schema.properties.description
   const tempProp = schema.properties.template
   const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
   if (nameProp) delete schema.properties.name
   if (descProp) delete schema.properties.description
   if (tempProp) delete schema.properties.template
   if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
   schema.title = row ? row.name : store.getPrimaryAw.data?.name || ''
   schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
+
+function getEXpectedSchema (schema: any, row?: any) {
+  const nameProp = schema.properties.name
+  const descProp = schema.properties.description
+  const tempProp = schema.properties.template
+  const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
+  if (nameProp) delete schema.properties.name
+  if (descProp) delete schema.properties.description
+  if (tempProp) delete schema.properties.template
+  if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
+  schema.title = row ? row.name : store.getExpectedAw.data?.name || ''
+  schema.description = row ? row.description : store.getExpectedAw.data?.description || ''
+  return schema
+}
+
 
 let selectAwTar: string = '1'
 let schema = ref(defaultAWSchema)
@@ -103,6 +122,9 @@ const formProps = {
   labelWidth: '75px',
   labelSuffix: ':',
 }
+
+let assertDesc = ref<string>('')
+let assertList = ref<Array<any>>([])
 
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
@@ -133,7 +155,6 @@ function changeExpAW () {
 function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
-  let mbtId = localStorage.getItem('mbt_' + route.params._id + route.params.name + '_id')
   if (tar === 'primary') {
    _id = schemaValue.value._id
    name = schemaValue.value.name
@@ -147,7 +168,7 @@ function updateAW (tar: string) {
       _id,
       name,
       awupdate: 'mbtAW',
-      mbtid: mbtId,
+      mbtid: route.params._id,
       mbtname: localStorage.getItem('mbt_' + route.params.name)
     }
   })
@@ -158,12 +179,11 @@ function deletePrimary() {
   primaryUiSchema.value = {}
   schemaValue.value = {}
   store.setEditingPrimaryAw({
-    editingPrimaryAw: {
-      data: null,
-      schema: null,
-      uiParams: null
-    }
+    data: null,
+    schema: null,
+    uiParams: null
   })
+  emit('change')
 }
 
 function deleteExpected() {
@@ -176,6 +196,7 @@ function deleteExpected() {
       uiParams: null
     
   })
+  emit('change')
 }
 
 function showAw (row: any) {
@@ -187,7 +208,8 @@ function showAw (row: any) {
       description: row.description,
       tags: '',
       template: row.template,
-      _id: row._id
+      _id: row._id,
+      path:row.path
     }
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value: any) {
@@ -214,16 +236,22 @@ function showAw (row: any) {
         }
       })
     }
+    // schema添加path
+    Object.assign(schema.value.properties, {
+        path: {
+          title: 'path',
+          type: 'string',
+          readOnly:'true'
+        }
+      })
+
     setSchema('primary')
-    console.log('uischema' ,primaryUiSchema.value);
-    
     schema.value = getSchema(schema.value, row)
-    // store.getShowData.setPropertiesData()
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
   } else if (selectAwTar === '2') {
-    // hasAWExpectedInfo.value = true;
+    // debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {
@@ -231,7 +259,8 @@ function showAw (row: any) {
       description: row.description,
       tags: '',
       template: row.template,
-      _id: row._id
+      _id: row._id,
+      path:row.path
     }
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value, key) {
@@ -244,14 +273,24 @@ function showAw (row: any) {
         Object.assign(expectedSchema.value.properties, field)
       })
     }
+        // schema添加path
+        Object.assign(expectedSchema.value.properties, {
+        path: {
+          title: 'path',
+          type: 'string',
+          readOnly:'true'
+        }
+      })
+    
     setSchema('expected')
-    expectedSchema.value = getSchema(expectedSchema.value, row)
+    expectedSchema.value = getEXpectedSchema(expectedSchema.value, row)
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
     store.setEditingExpectedAw(expectedUiSchema.value, 'uiParams')
   }
   emit('change')
 }
+
 
 function setSchema (tar: string) {
   let temp: any = {}
@@ -284,35 +323,58 @@ function initSchema() {
 }
 
 function handleChange () {
-
-  
-  // console.log("...........handleChange",schemaValue.value , isEmptyPrimarySchema)
-  if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
+  if (!isEmptyPrimarySchema.value) {
+    store.setEditingPrimaryAw(schemaValue.value, 'data')}
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-  const _desc = desc.value
-  store.setDescription(_desc)
+  if(desc.value == ""){
+    store.setDescription('')
+  }else{
+    store.setDescription(desc.value)
+  }
   emit('change')
 }
 
 function handleData () {
+  desc.value = store.getDescription
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
     // console.log(schema.value,schemaValue.value);
-    
+    setSchema('primary')
   } else {
     initPrimarySchema()
   }
   if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
     expectedSchema.value = store.getExpectedAw.schema
-    expectedSchema.value = getSchema(expectedSchema.value)
+    expectedSchema.value = getEXpectedSchema(expectedSchema.value)
     expectedSchemaValue.value = store.getExpectedAw.data || {}
     expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+    setSchema('expected')
   } else {
     initExpectedSchema()
   }
+  getAllCustomVar()
+}
+
+function getAllCustomVar () {
+  const cell = store.getShowData
+  let arr = cell.graph.getCells()
+  arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
+  let temp: Array<any> = []
+  arr.forEach((b: any) => {
+    const schema = b.attributes.prop?.custom?.step?.schema
+    const schemaVal = b.attributes.prop?.custom?.step?.data
+    if (schema?.properties?.variable && schemaVal?.variable) {
+      temp.push({
+        label: schemaVal?.variable,
+        value: schemaVal?.variable,
+        type: schema.properties.variable.type
+      })
+    }
+  })
+  assertList.value = temp
 }
 
 const keys = 1
@@ -399,7 +461,8 @@ defineExpose({
         :schema="schema"
         :formProps="formProps"
         :uiSchema="primaryUiSchema"
-        @change="handleChange">
+        @change="handleChange"
+        >
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
       <a-divider />
@@ -440,27 +503,28 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-<!--        <div class="setting-assert">-->
-<!--          <div>-->
-<!--            <div class="title">断言描述：</div>-->
-<!--            <a-input v-model:value="assertDesc"></a-input>-->
-<!--          </div>-->
-<!--          <div class="title">设置断言：</div>-->
-<!--          <mbt-modeler-condition-edit-->
-<!--            :keys="keys"-->
-<!--            :formDatas="formDatas"-->
-<!--            :valueData="valueData"-->
-<!--            :rulesData="rulesData"-->
-<!--            @rulesChange="rulesChange"-->
-<!--          ></mbt-modeler-condition-edit>-->
-<!--        </div>-->
+        <div class="setting-assert" v-show="!hasExpected && assertList.length">
+          <div>
+            <div class="title">断言描述：</div>
+            <a-input v-model:value="assertDesc"></a-input>
+          </div>
+          <div class="title">设置断言：</div>
+          <mbt-modeler-condition-edit
+            :keys="keys"
+            :formDatas="formDatas"
+            :valueData="valueData"
+            :rulesData="rulesData"
+            @rulesChange="rulesChange"
+          ></mbt-modeler-condition-edit>
+        </div>
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"
             :schema="expectedSchema"
             :formProps="formProps"
             :uiSchema="expectedUiSchema"
-            @change="handleChange">
+            @change="handleChange"
+            >
           <div slot-scope="{ schemaValue }">
           </div>
         </VueForm>

@@ -182,7 +182,9 @@ const onFinishForm = () => {
     modelstates.value.params = awParamsTable.value.getTableData()
     if (modelstates.value.params.some((a: any) => a.editing))
       return message.warning(t('component.message.tableEditingWarn'))
-    await updateAw(`/api/hlfs/${JSON.parse(getId)}`, modelstates.value)
+    const id = route.params?._id
+    if (!id) return
+    await updateAw(`/api/hlfs/${id}`, modelstates.value)
   }).catch((error:any)=>{
     disable.value=true
 
@@ -197,7 +199,7 @@ const onFinishFailedForm = (errorInfo: any) => {
     router.push({
       name:"mbtmodeler",
       params:{
-        _id:getmbtId,
+        _id: route.params?.mbtid,
         name:JSON.parse(getmbtname!)
       }
     })

@@ -34,14 +34,15 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
+        debugger
         const desc = this.get('prop')?.custom?.description
         const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
-        const labelDesc = desc
-            ? desc
-            : awSchemaStr ? awSchemaStr : ''
+        const labelDesc = desc ? desc: awSchemaStr ? awSchemaStr : ''
+        console.log(labelDesc);
+        
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
             'content': labelDesc
@@ -53,21 +54,42 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     getPropertiesSchema() {
-        // console.log(this.get('prop'));
         return this.get('prop').custom
     }
     // setPropertiesData每个函数接受都为统一属性，调用
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        console.log(this.get('prop'));
+        // debugger
+        // console.log(4)
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw
-        temp.step = storeAw.getPrimaryAw
+        temp.expectation = storeAw.getExpectedAw || {}
+        temp.step = storeAw.getPrimaryAw || {}
+        if(temp.step?.data){
+            // temp.step.data = this.paramsObj(temp.step?.schema, temp.step?.data)
+        }
+        if(temp.expectation?.data){
+            // temp.expectation.data = this.paramsObj(temp.expectation?.schema, temp.expectation?.data)
+        }
+        
         this.prop('prop/custom', temp)
-
     }
+
+    paramsObj(schema:any , data:any){
+        // debugger
+        let params :any = {}
+        for (let key in schema.properties) {
+              const tar = schema.properties[key]
+              if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
+                if(data[key]){
+                  params[key] = data[key]
+                }               
+              }
+          }
+          Object.assign(data , {params})  
+          return data  
+      }
 
 
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染

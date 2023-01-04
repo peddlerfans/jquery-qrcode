@@ -253,13 +253,19 @@ function HandleSubmit() {
 // 定义函数用来判断是否选择其中的模板
 function isChoose(data:any) : boolean{
   let b = false
-  data.forEach((item:any)=>{
+  if(data){
+    data.forEach((item:any)=>{
     if(item['_id']){
       b =  false
     }else{
       b = true
     }
   })
+  }else{
+    message.warning('模板无数据')
+    b = false
+  }
+  
   return b
 }
 
@@ -371,13 +377,13 @@ const chooseTemplateFunc = () => {
     <!-- </section> -->
   </main>
 
-      <a-button 
+      <!-- <a-button 
       style="position: absolute; top: -2.25rem; right: 9rem;"
        type="primary" 
        size="small"
        @click="HandleSubmit()"
         >Save</a-button
-      >
+      > -->
 
       <a-button
         v-if="chooseTemplate"
@@ -385,7 +391,7 @@ const chooseTemplateFunc = () => {
         type="primary"
         size="small"
         @click="chooseTemplateFunc()"
-        >choose template</a-button
+        >Choose A Template</a-button
       >
       
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"
