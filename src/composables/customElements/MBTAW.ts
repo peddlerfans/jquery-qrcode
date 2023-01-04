@@ -34,7 +34,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
-        debugger
         const desc = this.get('prop')?.custom?.description
         const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
@@ -60,8 +59,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        // debugger
-        // console.log(4)
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}

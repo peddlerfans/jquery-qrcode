@@ -184,6 +184,7 @@ function deletePrimary() {
     uiParams: null
   })
   emit('change')
+  getAllCustomVar()
 }
 
 function deleteExpected() {
@@ -243,15 +244,15 @@ function showAw (row: any) {
           type: 'string',
           readOnly:'true'
         }
-      })
-
+      }
+    )
     setSchema('primary')
     schema.value = getSchema(schema.value, row)
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
+    getAllCustomVar()
   } else if (selectAwTar === '2') {
-    // debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {
@@ -332,6 +333,7 @@ function handleChange () {
     store.setDescription(desc.value)
   }
   emit('change')
+  getAllCustomVar()
 }
 
 function handleData () {
@@ -355,11 +357,11 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
-  getAllCustomVar()
 }
 
 function getAllCustomVar () {
   const cell = store.getShowData
+  if (_.isEmpty(cell)) return
   let arr = cell.graph.getCells()
   arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
   let temp: Array<any> = []
@@ -391,17 +393,22 @@ let rulesData = ref([{
   ],
   children: [],
 }])
-let formDatas = ref([
-  {
-    label: 'xx',
-    value: 'xx',
-    type: 'string'
-  }
-])
-let valueData = ref([{"name":"Memory","type":"string","values":["4G","2G","6G"]},{"name":"GPU","type":"number","values":[8,32,16]},{"name":"DPI","type":"string","values":["1080P","2K"]},{"name":"key","type":"number","values":[0,1,2,3,4,5,6,7,8]}])
+
 function rulesChange() {
 
 }
+
+const assertShow = computed(() => {
+  return !hasExpected.value && assertList.value.length
+})
+
+function clearAssertData() {
+
+}
+
+watch(assertShow, (val) => {
+  if (!val) clearAssertData()
+})
 
 defineExpose({
   initSchema,
@@ -503,20 +510,19 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-        <div class="setting-assert" v-show="!hasExpected && assertList.length">
-          <div>
-            <div class="title">断言描述：</div>
-            <a-input v-model:value="assertDesc"></a-input>
-          </div>
-          <div class="title">设置断言：</div>
-          <mbt-modeler-condition-edit
-            :keys="keys"
-            :formDatas="formDatas"
-            :valueData="valueData"
-            :rulesData="rulesData"
-            @rulesChange="rulesChange"
-          ></mbt-modeler-condition-edit>
-        </div>
+<!--        <div class="setting-assert" v-show="assertShow">-->
+<!--          <div>-->
+<!--            <div class="title">断言描述：</div>-->
+<!--            <a-input v-model:value="assertDesc"></a-input>-->
+<!--          </div>-->
+<!--          <div class="title">设置断言：</div>-->
+<!--          <mbt-modeler-condition-edit-->
+<!--            :keys="keys"-->
+<!--            :formDatas="assertList"-->
+<!--            :rulesData="rulesData"-->
+<!--            @rulesChange="rulesChange"-->
+<!--          ></mbt-modeler-condition-edit>-->
+<!--        </div>-->
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"
