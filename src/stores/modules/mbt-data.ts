@@ -103,6 +103,7 @@ export const MbtData = defineStore({
             // @ts-ignore
             return state.handleSchema(row)
         },
+        getPrimaryAwData: state => state.editingPrimaryAw.aw,
         getPrimaryAwSchemaValue: state => state.editingPrimaryAw.data,
         getExpectedAw: state => state.editingExpectedAw,
         getExpectedAwSchema: state => {
@@ -111,6 +112,7 @@ export const MbtData = defineStore({
             // @ts-ignore
             return state.handleSchema(row)
         },
+        getExpectedAwData: state => state.editingExpectedAw.aw,
         getExpectedAwSchemaValue: state => state.editingExpectedAw.data,
         getDataPoolTableColumns: state => state.allData?.dataDefinition?.data?.tableColumns || [],
         getDataPoolResource: state => state.allData?.dataDefinition?.resources || [],
@@ -215,12 +217,12 @@ export const MbtData = defineStore({
             }
             if (row.returnType) {
                 Object.assign(schema.properties, {
-                  variable: {
-                    title: '变量',
-                    type: 'string'
-                  }
+                    variable: {
+                        title: '变量',
+                        type: 'string'
+                    }
                 })
-              }
+            }
             // schema添加path
             Object.assign(schema.properties, {
                     path: {

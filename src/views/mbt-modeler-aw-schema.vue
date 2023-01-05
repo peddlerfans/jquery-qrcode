@@ -71,11 +71,11 @@ function getExpectedSchema (schema: any, row?: any) {
 }
 
 let selectAwTar: string = '1'
-let schema = ref<any>(defaultAWSchema)
+let schema = ref<any>({})
 let schemaValue = ref<any>({})
 
 let primaryUiSchema = ref({})
-let expectedSchema = ref(defaultAWSchema)
+let expectedSchema = ref({})
 let expectedSchemaValue = ref<any>({})
 let expectedUiSchema = ref({})
 const formProps = {
@@ -89,11 +89,11 @@ let assertDesc = ref<string>('')
 let assertList = ref<Array<any>>([])
 
 const hasExpected = computed(() => {
-  return !_.isEmpty(store.getExpectedAw.schema) || !_.isEmpty(store.getExpectedAw.aw)
+  return !_.isEmpty(expectedSchema.value)
 })
 
 const isEmptyPrimarySchema = computed(() => {
-  return _.isEmpty(store.getPrimaryAw.schema) && _.isEmpty(store.getPrimaryAw.aw)
+  return _.isEmpty(schema.value)
 })
 
 function changAW () {
@@ -110,11 +110,11 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   if (tar === 'primary') {
-   _id = schemaValue.value._id
-   name = schemaValue.value.name
+   _id = schemaValue.value._id || store.getPrimaryAwData._id
+   name = schemaValue.value.name || store.getPrimaryAwData.name
   } else if (tar === 'expected') {
-    _id = expectedSchemaValue.value._id
-    name = expectedSchemaValue.value.name
+    _id = expectedSchemaValue.value._id || store.getExpectedAwData._id
+    name = expectedSchemaValue.value.name || store.getExpectedAwData.name
   }
   router.push({
     name: 'awupdate',
@@ -129,7 +129,8 @@ function updateAW (tar: string) {
 }
 
 function deletePrimary() {
-  schema.value = _.cloneDeep(defaultAWSchema)
+  // schema.value = _.cloneDeep(defaultAWSchema)
+  schema.value = {}
   primaryUiSchema.value = {}
   schemaValue.value = {}
   store.setEditingPrimaryAw({
@@ -143,7 +144,7 @@ function deletePrimary() {
 }
 
 function deleteExpected() {
-  expectedSchema.value = _.cloneDeep(defaultAWSchema)
+  expectedSchema.value = {}
   expectedUiSchema.value = {}
   expectedSchemaValue.value = {}
   store.setEditingExpectedAw({
@@ -159,31 +160,63 @@ function showAw (row: any) {
   showTable.value = false
   if (selectAwTar === '1') {
     store.setEditingPrimaryAw(row, 'aw')
+    store.setEditingPrimaryAw({}, 'data')
     let temp: any = store.getPrimaryAwSchema
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
-    schemaValue.value = store.getPrimaryAwSchemaValue
+    schemaValue.value = {}
     getAllCustomVar()
   } else if (selectAwTar === '2') {
-    store.setEditingPrimaryAw(row, 'aw')
-    let temp: any = store.getPrimaryAwSchema
+    store.setEditingExpectedAw(row, 'aw')
+    store.setEditingExpectedAw({}, 'data')
+    let temp: any = store.getExpectedAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
-    expectedSchemaValue.value = store.getPrimaryAwSchemaValue
+    expectedSchemaValue.value = {}
+    assertList.value = []
+    rulesData.value = [{
+      relation: 'AND',
+      id: 1,
+      conditions: [
+        {
+          name: '',
+          operator: '',
+          value: undefined,
+          selectvalues: 'AND',
+        },
+      ],
+      children: [],
+    }]
   }
   emit('change')
 }
 
 function initPrimarySchema () {
-  schema.value = defaultAWSchema
+  // schema.value = defaultAWSchema
+  schema.value = {}
   schemaValue.value = {}
   primaryUiSchema.value = {}
 }
 
 function initExpectedSchema () {
-  expectedSchema.value = defaultAWSchema
+  // expectedSchema.value = defaultAWSchema
+  expectedSchema.value = {}
   expectedSchemaValue.value = {}
   expectedUiSchema.value = {}
+  assertList.value = []
+  rulesData.value = [{
+    relation: 'AND',
+    id: 1,
+    conditions: [
+      {
+        name: '',
+        operator: '',
+        value: undefined,
+        selectvalues: 'AND',
+      },
+    ],
+    children: [],
+  }]
 }
 
 function initSchema() {
@@ -248,6 +281,7 @@ function handleData () {
 }
 
 // 获取当前模型所有带有 变量 属性并有 值 的数据
+// 只有 aw 版本为 version 3.0 以上才支持
 function getAllCustomVar () {
   const cell = store.getShowData
   if (_.isEmpty(cell)) return
@@ -255,13 +289,13 @@ function getAllCustomVar () {
   arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
   let temp: Array<any> = []
   arr.forEach((b: any) => {
-    const schema = b.attributes.prop?.custom?.step?.schema
+    const type = b.attributes.prop?.custom?.step?.aw?.returnType
     const schemaVal = b.attributes.prop?.custom?.step?.data
-    if (schema?.properties?.variable && schemaVal?.variable) {
+    if (schemaVal?.variable) {
       temp.push({
-        label: schemaVal?.variable,
-        value: schemaVal?.variable,
-        type: schema.properties.variable.type
+        label: schemaVal.variable,
+        value: schemaVal.variable,
+        type: type ? type : 'string'
       })
     }
   })
@@ -299,14 +333,6 @@ const assertShow = computed(() => {
   return !hasExpected.value && assertList.value.length && !isEmptyPrimarySchema.value
 })
 
-function clearAssertData() {
-
-}
-
-watch(assertShow, (val) => {
-  if (!val) clearAssertData()
-})
-
 defineExpose({
   initSchema,
   handleData
@@ -341,6 +367,7 @@ defineExpose({
               <span>{{ t('common.updateAw') }}</span>
             </template>
             <edit-outlined
+                v-show="!isEmptyPrimarySchema"
                 @click="updateAW('primary')"
                 class="icon--primary-btn"
                 style="margin-right: 8px;"
@@ -389,7 +416,8 @@ defineExpose({
                 <span>{{ $t('MBTStore.updateAw') }}</span>
               </template>
               <edit-outlined
-                  @click="updateAW('primary')"
+                  v-show="hasExpected"
+                  @click="updateAW('expected')"
                   class="icon--primary-btn"
                   style="margin-right: 8px;"
               ></edit-outlined>
