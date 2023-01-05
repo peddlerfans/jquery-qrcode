@@ -43,14 +43,14 @@ import {SHA256} from "crypto-js";
 import { VAceEditor } from 'vue3-ace-editor';
 
 import { defineAsyncComponent } from 'vue'
-
+import {useI18n} from "vue-i18n";
 
 
 import "./componentTS/ace-config";
 import ace from 'ace-builds';
 
 
-
+const { t } = useI18n()
 
 // Specify the api for dynamic template data CRUD
 let url = templateUrl;
@@ -167,7 +167,7 @@ onMounted(() => {
   modelId = sessionStorage.getItem('codegen_' + route.params._id)
 
   if (modelId === null){
-    message.error("Model cannot be found")
+    message.error(t('templateManager.noTemplate'))
   }else{
     query(modelId)
 
@@ -177,15 +177,18 @@ onMounted(() => {
 async function query(id?: any) {
   try {
     let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
-
     modelState._id = res._id
     modelState.name = res.name
     modelState.tags = res.tags
     modelState.description = res.description
-    modelState.model = res.model
+    modelState.model = res.hasOwnProperty('model') ? res.model : {
+      data: '',
+      templateEngine: '',
+      outputLanguage: ''
+    }
     modelState.templateText = res.templateText
 
-    if (modelState.model.data === '') {
+    if (modelState.model?.data === '') {
       modelState.model.data=sample
     }
 
@@ -202,7 +205,7 @@ async function query(id?: any) {
     }
 
   } catch (e) {
-    message.error("Query failed!")
+    message.error(t('templateManager.queryFail'))
   }
 
   setTimeout(()=> {
@@ -231,9 +234,9 @@ const saveModel = async () => {
   sessionStorage.setItem('codegen_theme', String(states.theme))
 
   if ( modelState.model.templateEngine.trim === ''){
-    message.warning("Please select a Template Engine")
+    message.warning(t('templateManager.emptyTemplate'))
   }else if (modelState.model.outputLanguage.trim === ''){
-    message.warning("Please select a Output Language")
+    message.warning(t('templateManager.emptyOutput'))
   }
 
   const currId=SHA256(String(modelState.templateText)).toString()
@@ -264,7 +267,7 @@ const saveModel = async () => {
       let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
 
     }catch (e){
-      message.error("Save failed!")
+      message.error(t('templateManager.saveErr'))
     }
 
     anno.setAnnotations([])
@@ -274,7 +277,7 @@ const saveModel = async () => {
       
 
       states.result=res.data
-      message.success("Preview successful!")
+      message.success(t('templateManager.previewSuccess'))
 
     }catch (err:any){
 
@@ -297,10 +300,10 @@ const saveModel = async () => {
       })
       anno.setAnnotations(allErr)
       states.result=''
-      message.error("Something wrong in the Template")
+      message.error(t('templateManager.templateErr'))
     }
   }else{
-    message.warning("Template engine cannot be null!")
+    message.warning(t('templateManager.emptyTemplateEngine'))
   }
 }
 
@@ -356,7 +359,7 @@ const loadHistory = (e:any)=>{
   modelState.model.outputLanguage = e.outputLanguage
   modelState.model.data = e.data
 
-  message.success("Load successful")
+  message.success(t('templateManager.loadSuccess'))
 }
 
 const softwrap=true

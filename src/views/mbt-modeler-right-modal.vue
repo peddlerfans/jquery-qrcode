@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import {computed, ref,watch} from "vue";
+import {computed, ref, watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
-import createRule from "@/components/CreateRule.vue"
 import {MbtData} from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
@@ -205,8 +204,7 @@ function handleData() {
       // const targetEl = el.graph.getCell(targetId)
       // const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
       //   && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
-      const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'  
-      showDrawer.value = flag
+      showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
    
   }

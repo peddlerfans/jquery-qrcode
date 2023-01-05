@@ -37,7 +37,6 @@ const getReason = (err: string) => {
 }
 
 export const showErrCard = (errMsg:any) => {
-    debugger
     let errAttrList = Object.keys(errMsg)
     let errTem:any
     let temp

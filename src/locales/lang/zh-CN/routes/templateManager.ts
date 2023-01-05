@@ -63,5 +63,14 @@ export default {
     editTemp: '编辑模板',
     previewTemp: '预览模板（只读）',
     saveApreview: '保存并预览',
-    editData: '编辑数据'
+    editData: '编辑数据',
+    queryFail: '获取数据失败!',
+    loadSuccess: '加载成功',
+    emptyTemplateEngine: '模板引擎不能为空！',
+    templateErr: '模板发生问题',
+    previewSuccess: '预览成功',
+    saveErr: '保存失败',
+    emptyOutput: '请选择一种输出格式',
+    emptyTemplate: '请选择一种模板引擎',
+    noTemplate: '找不到模板'
 }
