@@ -187,14 +187,16 @@ function handleAwData () {
   const el = store.getShowData
   
   const checkAwProps = el.getPropertiesSchema()
-  console.log(checkAwProps.step  , checkAwProps.expectation);
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
+  store.setDescription(checkAwProps.description)
+  
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
+  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
@@ -219,7 +221,6 @@ function handleData() {
   }
   rulesData.value = data.value.rulesData  
 }
-
   show.value = true
 }
 
@@ -229,6 +230,7 @@ function getType () {
 }
 
 function handleShowData () {
+  
   showAw.value = false
   show.value = false
   const type = getType()
@@ -253,9 +255,12 @@ function handleShowData () {
   }
 }
 
-function handleChange () {
+function handleChange() {
+  if(data.value.description == undefined){
+      data.value.description = ''
+    }
   if( _.has(data.value , 'rulesData')){
-    data.value.rulesData = rulesData.value
+    data.value.rulesData = rulesData.value    
     if(data.value.label == undefined){
       data.value.label = ''
     }

@@ -150,6 +150,7 @@ export const MbtData = defineStore({
         },
         resetEditingExpectedAw() {
             this.showData = {}
+            this.awDescription = ''
         },
         setVisible(flag: boolean) {
             this.showSchema = flag

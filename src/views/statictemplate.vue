@@ -41,7 +41,6 @@ watch(
 )
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search = ''
   staticTable.value.query(formState.search)
 };
 // 表单失败后的回调
@@ -65,7 +64,6 @@ let selectoptions:any = ref([
   },
 ])
 const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-  console.log(selectedOptions);
   let rst = await request.get("/api/templates/_tags", { params: { q: "category:static" } })
   const targetOption = selectedOptions[0];
   targetOption.loading = true
