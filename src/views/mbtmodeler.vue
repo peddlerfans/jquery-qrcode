@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n'
 import { cloneDeep, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute} from 'vue-router'
 import request from "@/utils/request";
-import { realMBTUrl } from "@/appConfig";
+import { realMBTUrl ,awModelUrl} from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
@@ -405,8 +405,17 @@ function awUiParams(row: any){
     return {schema , primaryUiSchema ,schemaValue}
 }
 
+function getAw(id:string){
+  request.get(`${awModelUrl}/${id}`).then((rec:any)=>{    
+      return rec    
+  }).catch(()=>{
+    message.error('当前页面aw节点被删除')
+  })
+}
+
 
 function getProperty(cell:any,mbtData:any){
+  debugger
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
@@ -416,18 +425,23 @@ function getProperty(cell:any,mbtData:any){
     let awData:any = {}
     if(awprop.aw){
       awData = awUiParams(awprop.aw)
+    }else if(awprop.data){
+      awData = awUiParams(getAw(awprop.data._id))
     }    
+
     awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
-    Object.assign(prop.custom,{step : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
+    Object.assign(prop.custom,{step : {aw:awprop.aw? awprop.aw : getAw(awprop.data._id), data:awData.schemaValue.value,uiParams:awData.primaryUiSchema.value}})
   } 
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
     let awData:any = {}
     if(awprop.aw){
       awData = awUiParams(awprop.aw)
-    }
+    }else if(awprop.data){
+      awData = awUiParams(getAw(awprop.data._id))
+    }  
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
-    Object.assign(prop.custom,{expectation : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
+    Object.assign(prop.custom,{expectation : {aw:awprop.aw? awprop.aw : getAw(awprop.data._id),data:awData.schemaValue.value,uiParams:awData.primaryUiSchema.value}})
   } 
    return prop
 
@@ -609,6 +623,7 @@ async function reload(){
 
 
 const saveMbt = () => {
+  store.setVersion('2.0')
   store.setGraph(rappid.paper.model.toJSON())  
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {

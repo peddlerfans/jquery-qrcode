@@ -37,22 +37,25 @@ const getReason = (err: string) => {
 }
 
 export const showErrCard = (errMsg:any) => {
-    debugger
     let errAttrList = Object.keys(errMsg)
     let errTem:any
     let temp
     if (!errAttrList || !errAttrList.length) return
     if(errMsg.hasOwnProperty('errors')){
         errMsg.errors.forEach((item:any) => {
-            if(item.results && item.results.length>0 && item.results[0].hasOwnProperty('errors')){
-                if(item.outputlange == 'yaml'){
+            if(item.results && item.results.length>0 && item.results[0].hasOwnProperty('error')){
+                if(item.outputLang== 'yaml'){
                     errTem = 'textErr'
                 }else{
                     errTem = 'scriptErr'
                 }
             }
+            
         });
-        temp = {errTem , reason: getReason(errTem)}
+        
+        if(errTem){
+            temp =[{errTem , reason: getReason(errTem)}]
+        }
     }else{
         temp = errAttrList.map((err: string) => {
             return {

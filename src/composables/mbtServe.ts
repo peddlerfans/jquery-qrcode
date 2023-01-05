@@ -211,6 +211,7 @@ class MbtServe {
         }).render();
 
         this.haloService.create(elementView);
+        // this.haloService({})
     }
 
     selectPrimaryLink(linkView: joint.dia.LinkView) {

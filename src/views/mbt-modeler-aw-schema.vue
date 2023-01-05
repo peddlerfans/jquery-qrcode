@@ -62,6 +62,13 @@ function getSchema (schema: any, row?: any) {
   schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
+function getExpectedSchema (schema: any, row?: any) {
+  const pathProp = schema.properties.path
+  if (pathProp) delete schema.properties.path
+  schema.title = row ? row.name : store.getExpectedAwSchemaValue?.name || ''
+  schema.description = row ? row.description : store.getExpectedAwSchemaValue?.description || ''
+  return schema
+}
 
 let selectAwTar: string = '1'
 let schema = ref<any>(defaultAWSchema)
@@ -222,7 +229,7 @@ function handleData () {
    * */
   if (store.getExpectedAw.schema) {
     let schemaTemp1: any = store.getExpectedAw.schema
-    schemaTemp1 = getSchema(schemaTemp1)
+    schemaTemp1 = getExpectedSchema(schemaTemp1)
     let temp: any = data2schema(schemaTemp1, store.getExpectedAw.uiParams)
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.params
