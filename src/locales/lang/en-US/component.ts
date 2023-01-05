@@ -24,7 +24,7 @@ export default {
     settingBordered: 'Bordered',
     index: 'Index',
     total: 'total of {total}',
-
+    views: 'Views visible',
     required: 'Required',
     unrequired: 'Not required',
     name: 'Name',
@@ -47,9 +47,9 @@ export default {
     operator: 'Operator',
     topics: 'Topics',
     default: 'Default',
-
+    grantedResources : 'Resources and operations',
     clone: 'clone',
-
+    role: 'Role',
     isRequire: 'Is required',
 
     pageTip: 'The {head} to {tail} currently displayed, {total} in total'

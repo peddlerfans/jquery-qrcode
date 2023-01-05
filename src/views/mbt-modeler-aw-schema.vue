@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
 
 interface Props {
   show: boolean
@@ -61,15 +62,6 @@ function getSchema (schema: any, row?: any) {
   schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
-
-function getEXpectedSchema (schema: any, row?: any) {
-  const pathProp = schema.properties.path
-  if (pathProp) delete schema.properties.path
-  schema.title = row ? row.name : store.getExpectedAw.data?.name || ''
-  schema.description = row ? row.description : store.getExpectedAw.data?.description || ''
-  return schema
-}
-
 
 let selectAwTar: string = '1'
 let schema = ref<any>(defaultAWSchema)
@@ -163,14 +155,14 @@ function showAw (row: any) {
     let temp: any = store.getPrimaryAwSchema
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
-    schemaValue = store.getPrimaryAwSchemaValue
+    schemaValue.value = store.getPrimaryAwSchemaValue
     getAllCustomVar()
   } else if (selectAwTar === '2') {
     store.setEditingPrimaryAw(row, 'aw')
     let temp: any = store.getPrimaryAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
-    expectedSchemaValue = store.getPrimaryAwSchemaValue
+    expectedSchemaValue.value = store.getPrimaryAwSchemaValue
   }
   emit('change')
 }
@@ -218,11 +210,16 @@ function handleData () {
     let temp: any = store.getPrimaryAwSchema
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
-    schemaValue = store.getPrimaryAwSchemaValue
+    schemaValue.value = store.getPrimaryAwSchemaValue
   } else {
     initPrimarySchema()
   }
-  // 同上逻辑
+  /**
+   * Expected 有三种情况：
+   * 1. 旧数据
+   * 2. 新数据
+   * 3. 没添加 Expected AW 但是有断言有值
+   * */
   if (store.getExpectedAw.schema) {
     let schemaTemp1: any = store.getExpectedAw.schema
     schemaTemp1 = getSchema(schemaTemp1)
@@ -235,12 +232,15 @@ function handleData () {
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
+  } else if (store.getExpectedAw.data) {
+    rulesData.value = store.getExpectedAw.data
   } else {
     initExpectedSchema()
   }
   getAllCustomVar()
 }
 
+// 获取当前模型所有带有 变量 属性并有 值 的数据
 function getAllCustomVar () {
   const cell = store.getShowData
   if (_.isEmpty(cell)) return
@@ -261,6 +261,7 @@ function getAllCustomVar () {
   assertList.value = temp
 }
 
+// 断言数据
 const keys = 1
 let rulesData = ref([{
   relation: 'AND',
@@ -277,7 +278,8 @@ let rulesData = ref([{
 }])
 
 function rulesChange() {
-
+  store.setEditingExpectedAw(rulesData.value, 'data')
+  emit('change')
 }
 
 /**
@@ -419,7 +421,7 @@ defineExpose({
             :uiSchema="expectedUiSchema"
             @change="handleChange"
             >
-          <div slot-scope="{ schemaValue }">
+          <div slot-scope="{ expectedSchemaValue }">
           </div>
         </VueForm>
         <a-divider />

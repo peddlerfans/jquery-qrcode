@@ -24,6 +24,8 @@ export function data2schema (awSchema: any, uiSchema?: any) {
     // 获取属性里面可自定义的表单项
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
+        
+        
         let prop = awSchema.properties
         const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
         prop[a.title] = {

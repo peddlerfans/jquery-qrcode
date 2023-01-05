@@ -11,23 +11,22 @@ const { t } = i18n.global;
 // export const namespace='itea.mbt.test'+name;
 export class MBTGroupBase
   extends joint.shapes.bpmn2.Activity
-  implements MBTShapeInterface
-{
+  implements MBTShapeInterface {
   // static shapeName = name;
   constructor(e: Element, o: any) {
     super(e, o);
   }
-  ifEmbedable(child?: any):boolean {
+  ifEmbedable(child?: any): boolean {
     return child.attributes?.type !== NS_MBTSection;
   }
 
-  ifDisallowLink() :boolean{
+  ifDisallowLink(): boolean {
     return true;
   }
 
-  getInspectorSchema() {}
+  getInspectorSchema() { }
 
-  setInspectorData() {}
+  setInspectorData() { }
 
 
   defaults() {

@@ -32,10 +32,10 @@ router.beforeEach(async (to, from, next) => {
       try {
         console.log("no user name")
         await user.getUserInfo()
-        console.log(user)
+        // console.log(user)
         next()
       } catch (e) {
-        console.log(e)
+        // console.log(e)
         // message.warning('User not logged, please login')
         // removeCookie('token') // 清除cookie
         next('/login')

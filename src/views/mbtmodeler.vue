@@ -30,12 +30,13 @@ import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
-import { VAceEditor } from 'vue3-ace-editor';
 import "./componentTS/ace-config";
 import { generateSchema } from "@/utils/jsonschemaform";
 import { data2schema } from "./componentTS/schema-constructor";
-import { SplitPanel } from "@/components/basic/split-panel";
 import { throttle } from "lodash-es";
+import { fitAncestors } from "@/utils/jointFun"
+import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
+
 
 
 const store = MBTStore()
@@ -46,7 +47,7 @@ let rappid : MbtServe
 let apps : HTMLElement | any= ref()
 let isGlobal = ref(false)
 let leaveRouter = ref(false)
-
+let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
 // Aw组件的数据
@@ -213,7 +214,7 @@ const handleRadioChange: any = (v: any) => {
 
 // 保存动态模板的函数
 const handleDynamicTable = (data: any) => {
-  console.log(data);
+  // console.log(data);
   
 };
 
@@ -482,8 +483,24 @@ onMounted(async () => {
     new KeyboardService()
   )
   rappid.startRappid()
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+  // 屏蔽浏览器自导ctrl+s 功能
+  document.onkeydown = function (e :any) { 
+	         e=window.event||e; 
+           var key=e.keyCode;
+             if(key== 83 && e.ctrlKey){
+            	   /*延迟，兼容FF浏览器  */
+            	    setTimeout(function(){        		  
+            	   },1); 
+                    return false;      
+       		    }    
+           };
 
+  const keyboard = rappid.keyboardService.keyboard
+
+  keyboard.on({'ctrl+s' : () => {
+    throttle(function(){saveMbt()},2000)()
+  }})
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
     // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
@@ -491,6 +508,7 @@ onMounted(async () => {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
+    fitAncestors(el)
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -512,24 +530,25 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
     });
-  rappid.graph.on('change', function (evt) {
-    leaveRouter.value = true
-  })
+
 store.setRappid(rappid)
 rappid.toolbarService.toolbar.on({
   'save:pointerclick': saveMbt.bind(this),
   'preview:pointerclick': preview.bind(this),
   'reload:pointerclick': reload.bind(this),
   'chooseTem:pointerclick': chooseTem.bind(this),
-  // 'preview:pointerclick': this.showPreview.bind(this)
 })
 rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
 })
 // 离开路由时调用
-onBeforeRouteLeave((to,form,next) => {
-    
+onBeforeRouteLeave((to, form, next) => {  
+    if (rappid.commandManager.undoStack.length > 0) {
+      leaveRouter.value = true
+    } else {
+      leaveRouter.value = false
+    }
   if(leaveRouter.value){
     Modal.confirm({
         icon: createVNode(ExclamationCircleOutlined),
@@ -615,8 +634,7 @@ const saveMbt = () => {
 }
 
 const visiblepreciew=ref(false)
-let previewcol:any=ref([])
-const previewData:any=ref([])
+const previewData: any = ref({})
 let previewScript = ref("")
 const softwrap=true
 let searchPreview=reactive({
@@ -626,24 +644,15 @@ let outLang=ref()
 
 
 async function querycode(){
+  spinning.value = true
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
-  if(rst && rst.results && rst.results.length>0){
+  if(rst && rst.results && rst.results.length > 0){
     outLang.value=rst.outputLang
-    Object.keys(rst.results[0].json).forEach((obj)=>{
-      let objJson={
-        title:obj,
-        dataIndex:obj,
-        key:obj,
-        width:50
+    previewData.value = rst.results.map((item:any)=>{
+      return {
+        ...item.json,
+        script: item.script || ''
       }
-      previewcol.value.push(objJson)
-    })
-    previewcol.value.push({title:"action",dataIndex:"action",key:"action", width: '120px'})
-    previewData.value=rst.results.map((item:any)=>{
-      if(item.script){
-        Object.assign(item.json,{script:item.script})
-      }
-      return item.json
     })
     visiblepreciew.value = true
     store.showPreview(false)    
@@ -652,7 +661,7 @@ async function querycode(){
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
-  })
+  }).finally(() => spinning.value = false)
   
 }
 const preview=async ()=>{
@@ -669,16 +678,6 @@ const openPreview = (record:any, index: number)=>{
   if (expandRowKeys.value.includes(id)) {
     expandRowKeys.value = expandRowKeys.value.filter((a: any) => a !== id)
   } else expandRowKeys.value.push(id)
-}
-
-const preciewHandleOk = () =>{
-  visiblepreciew.value=false
-  previewData.value=[]
-  previewcol.value=[]
-}
-const cencelpreview=()=>{
-  previewData.value=[]
-  previewcol.value=[]
 }
 
 function handleChange(str: string, data: any) {
@@ -705,15 +704,22 @@ function handleChange(str: string, data: any) {
 let startX: number;
 let startWidth: number;
 const scalable = ref<HTMLDivElement>();
+const scalableLeft = ref<HTMLDivElement>();
+const scalableN = ref<HTMLDivElement>();
 let expandRowKeys = ref<any>([])
-  const onDrag = throttle(function (e: MouseEvent) {
-    scalable.value && (scalable.value.style.width = `${startWidth + e.clientX - startX}px`);
-  }, 20);
+const onDrag = throttle(function (e: MouseEvent) {
+  let w=window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+  scalable.value && (scalable.value.style.width = `${w - e.clientX}px`);
+  scalableN.value && (scalableN.value.style.width = `${w - e.clientX}px`);
+  scalableLeft.value && (scalableLeft.value.style.width = `${startWidth + e.clientX - startX}px`);
+  
+}, 20);
   const startDrag = (e: MouseEvent) => {
     // debugger
     startX = e.clientX;
-    scalable.value && (startWidth = parseInt(window.getComputedStyle(scalable.value).width, 10));
-
+    scalableLeft.value && (startWidth = parseInt(window.getComputedStyle(scalableLeft.value).width, 10));
     document.documentElement.style.userSelect = 'none';
     document.documentElement.addEventListener('mousemove', onDrag);
     document.documentElement.addEventListener('mouseup', dragEnd);
@@ -726,102 +732,57 @@ let expandRowKeys = ref<any>([])
 
 // 工具栏
 
+function closePreviewModal() {
+  visiblepreciew.value = false
+}
+
 </script>
 
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
 
-        <div class="app-header">
-          <div class="toolbar-container">
-            
+    <div class="app-header">
+      <div class="toolbar-container">
+
+      </div>
+    </div>
+    <div class="app-body">
+      <div  class="mbtScalable"  ref = "scalableLeft">
+        <div calss="left">
+          <div ref="stencils" class="stencil-container"/>
+          <div class="paper-container"/>
+        </div>
+
+        <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
+      </div>
+      <div class="mbtRight"  ref = "scalable">
+        <div class="AwtabInspector" v-show="showpaper">
+          <ul class="tab_ul">
+            <!-- <li v-if="!show">样式修改</li> -->
+            <li
+                v-if="true"
+            >数据编辑</li>
+            <div style="clear:both;"></div>
+          </ul>
+          <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
+          <div class="dataStyle">
+            <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>
-          <div class="app-body">
-            <div ref = "scalable" class="mbtScalable">
-              <div calss="left">
-                <div ref="stencils" class="stencil-container"/>
-                <div class="paper-container"/>
-              </div>
+        <div class="navigator-container" ref = "scalableN"/>
+      </div>
 
-              <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
-            </div>
-            <div class="right">
-              <div class="AwtabInspector" v-show="showpaper">
-                <ul class="tab_ul">
-                      <!-- <li v-if="!show">样式修改</li> -->
-                      <li
-                      v-if="true"
-                      >数据编辑</li>
-                      <div style="clear:both;"></div>
-                </ul>
-              <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
-              <div class="dataStyle">
-                <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
-              </div>
-              </div>
-              <div class="navigator-container"/>
-            </div>
-            
-          </div>
+    </div>
 
 
   </main>
-   <a-modal v-model:visible="visiblepreciew" 
-          title="Preview Modal" @ok="handleOk" 
-          :footer="null"
-          :keyboard="true"
-          :mask-closable="true"
-          width="70%"
-            centered
-          class="previewModel"
-          @cancel="cencelpreview"
-          >
-          <a-table
-              :columns="previewcol"
-              :data-source="previewData"
-              :pagination="{pageSize:5}"
-              bordered
-              :rowKey="(record: any) => record.id"
-              class="previewclass"
-              :defaultExpandAllRows="true"
-              :expandIconColumnIndex="-1"
-          >
-            <template #expandedRowRender="{record, index}">
-              <VAceEditor
-                v-show="expandRowKeys.includes(record.id + index)"
-                style="width: 100%;height: 300px;"
-                v-model:value="record.script"
-                class="ace-result"
-                :wrap="softwrap"
-                :readonly="true"
-                :lang="outLang"
-                theme="sqlserver"
-                :options="{ useWorker: true }"
-              ></VAceEditor>
-            </template>
-        <template #bodyCell="{column,record, index}">
-           <template v-if="column.key=='can_be_automated'">
-            <p >{{record.can_be_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_implemented_automated'">
-            <p >{{record.is_implemented_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_in_project'">
-            <p >{{record.is_in_project}}</p>
-          </template>
-          <template v-if="column.key=='test_steps'">
-            <pre >{{record.test_steps}}</pre>
-          </template>
-          <template v-if="column.key=='expected_results'">
-            <pre >{{record.expected_results}}</pre>
-          </template>
-          <template v-if="column.key=='action'">
-            <a-button type="link" @click="openPreview(record, index)">previewDetails</a-button>
-          </template>
-          </template>
-        </a-table>
-          </a-modal>
 
+  <mbt-preview-modal
+      :visible="visiblepreciew"
+      @closeModal="closePreviewModal"
+      :preview-data="previewData"
+      :out-lang="outLang"
+  ></mbt-preview-modal>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
       @ok="handleOk"
       :width="1000"
@@ -1033,16 +994,20 @@ let expandRowKeys = ref<any>([])
 
 
 .AwtabInspector{
-    position: absolute;
+    display: flex;
+    flex-direction: column;
     top: 0;
     right: 0;
     bottom: 120px;
     width: 100%;
     box-sizing: border-box;
+    height: -moz-calc(100% - 120px);
+    height: -webkit-calc(100% - 120px);
+    height: calc(100% - 120px);
     .dataStyle{
     top: 50px;
     display: block;
-    position: absolute;
+    flex: 1;
     bottom: 0;
     width: 100%;
     overflow: auto;
