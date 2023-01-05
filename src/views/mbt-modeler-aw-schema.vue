@@ -43,28 +43,7 @@ const defaultAWSchema = {
       type: "string",
       "ui:hidden": true,
       required: true,
-    },
-    name: {
-      title: "AW Name",
-      type: "string",
-      readOnly: true,
-    },
-    description: {
-      title: "Description",
-      type: "string",
-      readOnly: true,
-      "ui:widget": "TextAreaWidget",
-    },
-    template: {
-      title: "Template",
-      type: "string",
-      readOnly: true,
-    },
-    tags: {
-      title: "Tags",
-      type: "string",
-      readOnly: true,
-    },
+    }
   }
 }
 
@@ -77,40 +56,15 @@ const { t } = useI18n()
  * 表单 description 转化为 schema 的 description
  * */
 function getSchema (schema: any, row?: any) {
-  const nameProp = schema.properties.name
-  const descProp = schema.properties.description
-  const tempProp = schema.properties.template
-  const tagsProp = schema.properties.tags
   const pathProp = schema.properties.path
-  if (nameProp) delete schema.properties.name
-  if (descProp) delete schema.properties.description
-  if (tempProp) delete schema.properties.template
-  if (tagsProp) delete schema.properties.tags
   if (pathProp) delete schema.properties.path
   schema.title = row ? row.name : store.getPrimaryAw.data?.name || ''
   schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
 
-function getEXpectedSchema (schema: any, row?: any) {
-  const nameProp = schema.properties.name
-  const descProp = schema.properties.description
-  const tempProp = schema.properties.template
-  const tagsProp = schema.properties.tags
-  const pathProp = schema.properties.path
-  if (nameProp) delete schema.properties.name
-  if (descProp) delete schema.properties.description
-  if (tempProp) delete schema.properties.template
-  if (tagsProp) delete schema.properties.tags
-  if (pathProp) delete schema.properties.path
-  schema.title = row ? row.name : store.getExpectedAw.data?.name || ''
-  schema.description = row ? row.description : store.getExpectedAw.data?.description || ''
-  return schema
-}
-
-
 let selectAwTar: string = '1'
-let schema = ref(defaultAWSchema)
+let schema = ref<any>(defaultAWSchema)
 let schemaValue = ref<any>({})
 
 let primaryUiSchema = ref({})
@@ -128,20 +82,12 @@ let assertDesc = ref<string>('')
 let assertList = ref<Array<any>>([])
 
 const hasExpected = computed(() => {
-  return !_.isEmpty(store.getExpectedAw.schema)
+  return !_.isEmpty(store.getExpectedAw.schema) || !_.isEmpty(store.getExpectedAw.aw)
 })
 
 const isEmptyPrimarySchema = computed(() => {
-  return _.isEmpty(store.getPrimaryAw.schema)
+  return _.isEmpty(store.getPrimaryAw.schema) && _.isEmpty(store.getPrimaryAw.aw)
 })
-
-function getAWBothDesc () {
-  let tempPrimaryDesc = schema.value.description || ''
-  let tempExpectedDesc = expectedSchema.value.description || ''
-  return tempPrimaryDesc && tempExpectedDesc
-      ? tempPrimaryDesc + '/' + tempExpectedDesc
-      : tempPrimaryDesc + tempExpectedDesc
-}
 
 function changAW () {
   selectAwTar = '1'
@@ -182,7 +128,8 @@ function deletePrimary() {
   store.setEditingPrimaryAw({
     data: null,
     schema: null,
-    uiParams: null
+    uiParams: null,
+    aw: null
   })
   emit('change')
   getAllCustomVar()
@@ -195,8 +142,8 @@ function deleteExpected() {
   store.setEditingExpectedAw({
       data: null,
       schema: null,
-      uiParams: null
-    
+      uiParams: null,
+      aw: null
   })
   emit('change')
 }
@@ -204,107 +151,20 @@ function deleteExpected() {
 function showAw (row: any) {
   showTable.value = false
   if (selectAwTar === '1') {
-    schema.value = _.cloneDeep(defaultAWSchema)
-    schemaValue.value = {
-      name: row.name,
-      description: row.description,
-      tags: '',
-      template: row.template,
-      _id: row._id,
-      path:row.path
-    }
-    if (_.isArray(row.tags)) {
-      _.forEach(row.tags, function (value: any) {
-        schemaValue.value.tags += value + " "
-      })
-    }
-    if (_.isArray(row.params) && row.params.length > 0) {
-      let appEndedSchema = generateSchema(row.params)
-      appEndedSchema.forEach((a: any) => {
-        Object.keys(a).forEach((b: any) => {
-          a[b].custom = 'awParams'
-        })
-      })
-      appEndedSchema.forEach((field: any) => {
-        Object.assign(schema.value.properties, field)
-      })
-    }
-    // if (row.returnType) {
-    //   Object.assign(schema.value.properties, {
-    //     variable: {
-    //       title: '变量',
-    //       type: 'string'
-    //     }
-    //   })
-    // }
-    // schema添加path
-    Object.assign(schema.value.properties, {
-        path: {
-          title: 'path',
-          type: 'string',
-          readOnly:'true'
-        }
-      }
-    )
-    setSchema('primary')
-    schema.value = getSchema(schema.value, row)
-    store.setEditingPrimaryAw(schema.value, 'schema')
-    store.setEditingPrimaryAw(schemaValue.value, 'data')
-    store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
-    getAllCustomVar()
-  } else if (selectAwTar === '2') {
-    expectedSchema.value = _.cloneDeep(defaultAWSchema)
-    store.setExpectedTableRow(row)
-    expectedSchemaValue.value = {
-      name: row.name,
-      description: row.description,
-      tags: '',
-      template: row.template,
-      _id: row._id,
-      path:row.path
-    }
-    if (_.isArray(row.tags)) {
-      _.forEach(row.tags, function (value, key) {
-        expectedSchemaValue.value.tags += value + ' '
-      })
-    }
-    if (_.isArray(row.params)) {
-      let appEndedSchema = generateSchema(row.params)
-      appEndedSchema.forEach((field: any) => {
-        Object.assign(expectedSchema.value.properties, field)
-      })
-    }
-    // schema添加path
-    Object.assign(expectedSchema.value.properties, {
-      path: {
-        title: 'path',
-        type: 'string',
-        readOnly:'true'
-      }
-    })
-    
-    setSchema('expected')
-    expectedSchema.value = getEXpectedSchema(expectedSchema.value, row)
-    store.setEditingExpectedAw(expectedSchema.value, 'schema')
-    store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-    store.setEditingExpectedAw(expectedUiSchema.value, 'uiParams')
-  }
-  emit('change')
-}
-
-
-function setSchema (tar: string) {
-  console.log(schema.value.properties,primaryUiSchema.value);
-  let temp: any = {}
-  if (tar === 'primary') {
-    temp = data2schema(schema.value, primaryUiSchema.value)
+    store.setEditingPrimaryAw(row, 'aw')
+    let temp: any = store.getPrimaryAwSchema
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
-  } else if (tar === 'expected') {
-    temp = data2schema(expectedSchema.value, expectedUiSchema.value)
+    schemaValue.value = store.getPrimaryAwSchemaValue
+    getAllCustomVar()
+  } else if (selectAwTar === '2') {
+    store.setEditingPrimaryAw(row, 'aw')
+    let temp: any = store.getPrimaryAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
+    expectedSchemaValue.value = store.getPrimaryAwSchemaValue
   }
+  emit('change')
 }
 
 function initPrimarySchema () {
@@ -326,40 +186,61 @@ function initSchema() {
 
 function handleChange () {
   if (!isEmptyPrimarySchema.value) {
-    store.setEditingPrimaryAw(schemaValue.value, 'data')}
-  if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-  if(desc.value == ""){
-    store.setDescription('')
-  }else{
-    store.setDescription(desc.value)
+    store.setEditingPrimaryAw(schemaValue.value, 'data')
   }
+  if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+  store.setDescription(desc.value)
   emit('change')
   getAllCustomVar()
 }
 
 function handleData () {
   desc.value = store.getDescription
-  // debugger
+  // 处理PrimaryAW数据，同事兼容新旧数据结构
+  // 旧aw数据结构
   if (store.getPrimaryAw.schema) {
-    schema.value = store.getPrimaryAw.schema
-    schema.value = getSchema(schema.value)
+    let schemaTemp: any = store.getPrimaryAw.schema
+    schemaTemp = getSchema(schemaTemp)
+    let temp: any = data2schema(schemaTemp, store.getPrimaryAw.uiParams || {})
+    schema.value = temp.schema
+    primaryUiSchema.value = temp.uiSchema
     schemaValue.value = store.getPrimaryAw.data || {}
-    primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-    setSchema('primary')
+  } else if (store.getPrimaryAw.aw) {
+    // 新aw数据结构
+    let temp: any = store.getPrimaryAwSchema
+    schema.value = temp.schema
+    primaryUiSchema.value = temp.uiSchema
+    schemaValue.value = store.getPrimaryAwSchemaValue
   } else {
     initPrimarySchema()
   }
-  if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
-    expectedSchema.value = store.getExpectedAw.schema
-    expectedSchema.value = getEXpectedSchema(expectedSchema.value)
+  /**
+   * Expected 有三种情况：
+   * 1. 旧数据
+   * 2. 新数据
+   * 3. 没添加 Expected AW 但是有断言有值
+   * */
+  if (store.getExpectedAw.schema) {
+    let schemaTemp1: any = store.getExpectedAw.schema
+    schemaTemp1 = getSchema(schemaTemp1)
+    let temp: any = data2schema(schemaTemp1, store.getExpectedAw.uiParams)
+    expectedSchema.value = temp.schema
+    expectedUiSchema.value = temp.params
     expectedSchemaValue.value = store.getExpectedAw.data || {}
-    expectedUiSchema.value = store.getExpectedAw.uiParams || {}
-    setSchema('expected')
+  } else if (store.getExpectedAw.aw) {
+    let temp: any = store.getExpectedAwSchema
+    expectedSchema.value = temp.schema
+    expectedUiSchema.value = temp.uiSchema
+    expectedSchemaValue.value = store.getExpectedAwSchemaValue
+  } else if (store.getExpectedAw.data) {
+    rulesData.value = store.getExpectedAw.data
   } else {
     initExpectedSchema()
   }
+  getAllCustomVar()
 }
 
+// 获取当前模型所有带有 变量 属性并有 值 的数据
 function getAllCustomVar () {
   const cell = store.getShowData
   if (_.isEmpty(cell)) return
@@ -380,6 +261,7 @@ function getAllCustomVar () {
   assertList.value = temp
 }
 
+// 断言数据
 const keys = 1
 let rulesData = ref([{
   relation: 'AND',
@@ -396,11 +278,18 @@ let rulesData = ref([{
 }])
 
 function rulesChange() {
-
+  store.setEditingExpectedAw(rulesData.value, 'data')
+  emit('change')
 }
 
+/**
+ * 显示断言条件：
+ * 1、primaryAw存在
+ * 2、ExpectedAw未设置
+ * 3、模型有PrimaryAw设置了变量
+ * */
 const assertShow = computed(() => {
-  return !hasExpected.value && assertList.value.length
+  return !hasExpected.value && assertList.value.length && !isEmptyPrimarySchema.value
 })
 
 function clearAssertData() {
@@ -511,19 +400,19 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-<!--        <div class="setting-assert" v-show="assertShow">-->
-<!--          <div>-->
-<!--            <div class="title">断言描述：</div>-->
-<!--            <a-input v-model:value="assertDesc"></a-input>-->
-<!--          </div>-->
-<!--          <div class="title">设置断言：</div>-->
-<!--          <mbt-modeler-condition-edit-->
-<!--            :keys="keys"-->
-<!--            :formDatas="assertList"-->
-<!--            :rulesData="rulesData"-->
-<!--            @rulesChange="rulesChange"-->
-<!--          ></mbt-modeler-condition-edit>-->
-<!--        </div>-->
+        <div class="setting-assert" v-show="assertShow">
+          <div>
+            <div class="title">断言描述：</div>
+            <a-input v-model:value="assertDesc"></a-input>
+          </div>
+          <div class="title">设置断言：</div>
+          <mbt-modeler-condition-edit
+            :keys="keys"
+            :formDatas="assertList"
+            :rulesData="rulesData"
+            @rulesChange="rulesChange"
+          ></mbt-modeler-condition-edit>
+        </div>
         <VueForm
             v-show="hasExpected"
             v-model="expectedSchemaValue"
@@ -532,7 +421,7 @@ defineExpose({
             :uiSchema="expectedUiSchema"
             @change="handleChange"
             >
-          <div slot-scope="{ schemaValue }">
+          <div slot-scope="{ expectedSchemaValue }">
           </div>
         </VueForm>
         <a-divider />

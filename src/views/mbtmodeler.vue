@@ -30,12 +30,12 @@ import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
 import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
-import { VAceEditor } from 'vue3-ace-editor';
 import "./componentTS/ace-config";
 import { generateSchema } from "@/utils/jsonschemaform";
 import { data2schema } from "./componentTS/schema-constructor";
 import { throttle } from "lodash-es";
 import { fitAncestors } from "@/utils/jointFun"
+import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 
 
 
@@ -47,7 +47,7 @@ let rappid : MbtServe
 let apps : HTMLElement | any= ref()
 let isGlobal = ref(false)
 let leaveRouter = ref(false)
-
+let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
 // Aw组件的数据
@@ -622,8 +622,7 @@ const saveMbt = () => {
 }
 
 const visiblepreciew=ref(false)
-let previewcol:any=ref([])
-const previewData:any=ref([])
+const previewData: any = ref({})
 let previewScript = ref("")
 const softwrap=true
 let searchPreview=reactive({
@@ -633,24 +632,15 @@ let outLang=ref()
 
 
 async function querycode(){
+  spinning.value = true
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
-  if(rst && rst.results && rst.results.length>0){
+  if(rst && rst.results && rst.results.length > 0){
     outLang.value=rst.outputLang
-    Object.keys(rst.results[0].json).forEach((obj)=>{
-      let objJson={
-        title:obj,
-        dataIndex:obj,
-        key:obj,
-        width:50
+    previewData.value = rst.results.map((item:any)=>{
+      return {
+        ...item.json,
+        script: item.script || ''
       }
-      previewcol.value.push(objJson)
-    })
-    previewcol.value.push({title:"action",dataIndex:"action",key:"action", width: '120px'})
-    previewData.value=rst.results.map((item:any)=>{
-      if(item.script){
-        Object.assign(item.json,{script:item.script})
-      }
-      return item.json
     })
     visiblepreciew.value = true
     store.showPreview(false)    
@@ -661,7 +651,7 @@ async function querycode(){
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
-  })
+  }).finally(() => spinning.value = false)
   
 }
 const preview=async ()=>{
@@ -680,18 +670,7 @@ const openPreview = (record:any, index: number)=>{
   } else expandRowKeys.value.push(id)
 }
 
-const preciewHandleOk = () =>{
-  visiblepreciew.value=false
-  previewData.value=[]
-  previewcol.value=[]
-}
-const cencelpreview=()=>{
-  previewData.value=[]
-  previewcol.value=[]
-}
-
 function handleChange(str: string, data: any) {
-
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
@@ -743,102 +722,57 @@ const onDrag = throttle(function (e: MouseEvent) {
 
 // 工具栏
 
+function closePreviewModal() {
+  visiblepreciew.value = false
+}
+
 </script>
 
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
 
-        <div class="app-header">
-          <div class="toolbar-container">
-            
+    <div class="app-header">
+      <div class="toolbar-container">
+
+      </div>
+    </div>
+    <div class="app-body">
+      <div  class="mbtScalable"  ref = "scalableLeft">
+        <div calss="left">
+          <div ref="stencils" class="stencil-container"/>
+          <div class="paper-container"/>
+        </div>
+
+        <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
+      </div>
+      <div class="mbtRight"  ref = "scalable">
+        <div class="AwtabInspector" v-show="showpaper">
+          <ul class="tab_ul">
+            <!-- <li v-if="!show">样式修改</li> -->
+            <li
+                v-if="true"
+            >数据编辑</li>
+            <div style="clear:both;"></div>
+          </ul>
+          <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
+          <div class="dataStyle">
+            <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>
-          <div class="app-body">
-            <div  class="mbtScalable"  ref = "scalableLeft">
-              <div calss="left">
-                <div ref="stencils" class="stencil-container"/>
-                <div class="paper-container"/>
-              </div>
+        <div class="navigator-container" ref = "scalableN"/>
+      </div>
 
-              <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
-            </div>
-            <div class="mbtRight"  ref = "scalable">
-              <div class="AwtabInspector" v-show="showpaper">
-                <ul class="tab_ul">
-                      <!-- <li v-if="!show">样式修改</li> -->
-                      <li
-                      v-if="true"
-                      >数据编辑</li>
-                      <div style="clear:both;"></div>
-                </ul>
-              <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
-              <div class="dataStyle">
-                <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
-              </div>
-              </div>
-              <div class="navigator-container" ref = "scalableN"/>
-            </div>
-            
-          </div>
+    </div>
 
 
   </main>
-   <a-modal v-model:visible="visiblepreciew" 
-          title="Preview Modal" @ok="handleOk" 
-          :footer="null"
-          :keyboard="true"
-          :mask-closable="true"
-          width="70%"
-            centered
-          class="previewModel"
-          @cancel="cencelpreview"
-          >
-          <a-table
-              :columns="previewcol"
-              :data-source="previewData"
-              :pagination="{pageSize:5}"
-              bordered
-              :rowKey="(record: any) => record.id"
-              class="previewclass"
-              :defaultExpandAllRows="true"
-              :expandIconColumnIndex="-1"
-          >
-            <template #expandedRowRender="{record, index}">
-              <VAceEditor
-                v-show="expandRowKeys.includes(record.id + index)"
-                style="width: 100%;height: 300px;"
-                v-model:value="record.script"
-                class="ace-result"
-                :wrap="softwrap"
-                :readonly="true"
-                :lang="outLang"
-                theme="sqlserver"
-                :options="{ useWorker: true }"
-              ></VAceEditor>
-            </template>
-        <template #bodyCell="{column,record, index}">
-           <template v-if="column.key=='can_be_automated'">
-            <p >{{record.can_be_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_implemented_automated'">
-            <p >{{record.is_implemented_automated}}</p>
-          </template>
-          <template v-if="column.key=='is_in_project'">
-            <p >{{record.is_in_project}}</p>
-          </template>
-          <template v-if="column.key=='test_steps'">
-            <pre >{{record.test_steps}}</pre>
-          </template>
-          <template v-if="column.key=='expected_results'">
-            <pre >{{record.expected_results}}</pre>
-          </template>
-          <template v-if="column.key=='action'">
-            <a-button type="link" @click="openPreview(record, index)">previewDetails</a-button>
-          </template>
-          </template>
-        </a-table>
-          </a-modal>
 
+  <mbt-preview-modal
+      :visible="visiblepreciew"
+      @closeModal="closePreviewModal"
+      :preview-data="previewData"
+      :out-lang="outLang"
+  ></mbt-preview-modal>
   <a-modal v-model:visible="isGlobal" title="Please select a template first" 
       @ok="handleOk"
       :width="1000"

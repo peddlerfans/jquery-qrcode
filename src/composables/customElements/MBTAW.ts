@@ -61,18 +61,11 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
-        if (temp.step?.data) {
-            // temp.step.data = this.paramsObj(temp.step?.schema, temp.step?.data)
-        }
-        if (temp.expectation?.data) {
-            // temp.expectation.data = this.paramsObj(temp.expectation?.schema, temp.expectation?.data)
-        }
         this.prop('prop/custom', temp)
         this.reRender()
         fitAncestors(this)
     }
     paramsObj(schema: any, data: any) {
-        // debugger
         let params: any = {}
         for (let key in schema.properties) {
             const tar = schema.properties[key]

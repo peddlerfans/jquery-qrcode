@@ -185,18 +185,15 @@ watch(
 
 function handleAwData () {
   const el = store.getShowData
-  
   const checkAwProps = el.getPropertiesSchema()
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
   store.setDescription(checkAwProps.description)
-  
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
-  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
@@ -264,12 +261,10 @@ function handleChange() {
     if(data.value.label == undefined){
       data.value.label = ''
     }
-    
   }
   emit('change', getType() , data.value)
 }
-//  {step:{schema:schema.value,data:schemaValue.value,uiParams:primaryUiSchema.value}
-  // ,expectation:{schema:expectedSchema.value,data:expectedSchemaValue.value,uiParams:expectedUiSchema.value}}
+
 defineExpose({
   handleShowData
 })
