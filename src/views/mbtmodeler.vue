@@ -36,6 +36,8 @@ import { data2schema } from "./componentTS/schema-constructor";
 import { throttle } from "lodash-es";
 import { fitAncestors } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
+import { func } from "vue-types";
+import { object } from "underscore";
 
 
 
@@ -313,6 +315,41 @@ function Datafintion(data: any) {
   }
 }
 
+function getAw(id:string){
+  request.get(`${awModelUrl}/${id}`).then((rec:any)=>{    
+      return rec    
+  }).catch(()=>{
+    message.error('当前页面aw节点被删除')
+  })
+}
+
+function getAwData(cell:any){
+  let prop = {custom:{}}
+  let awdata:any
+  let custom = cell.prop.custom
+  if(custom.step?.schema){
+    let schemakeys = Object.keys(custom.step.schema.properties)
+    let dataKeys =Object.keys(custom.step.data)
+    awdata = _.pick(custom.step.data , _.intersection(schemakeys,dataKeys))
+    if(custom.step.aw){
+      Object.assign(prop.custom , {data:awdata ,aw: custom.step.aw})
+    }else{
+      Object.assign(prop.custom , {data:awdata ,aw: getAw(custom.step.data._id)})
+    }
+  }
+  if(custom.expectation?.schema){
+    let schemakeys = Object.keys(custom.expectation.schema.properties)
+    let dataKeys =Object.keys(custom.expectation.data)
+    awdata = _.pick(custom.expectation.data , _.intersection(schemakeys,dataKeys))
+    if(custom.expectation.aw){
+      Object.assign(prop.custom , {data:awdata ,aw: custom.expectation.aw})
+    }else{
+      Object.assign(prop.custom , {data:awdata ,aw: getAw(custom.expectation.data._id)})
+    }
+  }
+  return prop
+}
+
 let idstr: any = null
 
 const lagacyShapeTypeMapping:any = {
@@ -324,6 +361,7 @@ function getShapeTypeMapping(shapeType:string) {
   return  lagacyShapeTypeMapping[shapeType] || shapeType
 }
 function transformCells(mbtData:any){
+  debugger
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
   }
@@ -336,8 +374,11 @@ function transformCells(mbtData:any){
       }
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     } 
-    
-     
+      
+      if(cell.type == 'itea.mbt.test.MBTAW'){
+        cell = { ...cell , prop:getAwData(cell)}
+      }
+      
      delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
@@ -362,60 +403,8 @@ function getSchema (schema: any, row?: any) {
   return schema
 }
 
-function awUiParams(row: any){
-   schemaValue.value = {
-      name: row.name,
-      description: row.description,
-      tags: '',
-      template: row.template,
-      _id: row._id,
-      path:row.path
-    }
-
-    if (_.isArray(row.tags)) {
-      _.forEach(row.tags, function (value: any) {
-        schemaValue.value.tags += value + " "
-      })
-    }
-    if (_.isArray(row.params) && row.params.length > 0) {
-      let appEndedSchema = generateSchema(row.params)
-      appEndedSchema.forEach((a: any) => {
-        Object.keys(a).forEach((b: any) => {
-          a[b].custom = 'awParams'
-        })
-      })
-      appEndedSchema.forEach((field: any) => {
-        Object.assign(schema.value.properties, field)
-      })
-      
-    }
-    if (row.returnType) {
-      Object.assign(schema.value.properties, {
-        variable: {
-          title: '变量',
-          type: 'string'
-        }
-      })
-    }
-    let temp :any = {}
-    temp = data2schema(schema.value, primaryUiSchema.value)
-    schema.value = temp.schema
-    primaryUiSchema.value = temp.uiSchema
-    schema.value = getSchema(schema.value, row)
-    return {schema , primaryUiSchema ,schemaValue}
-}
-
-function getAw(id:string){
-  request.get(`${awModelUrl}/${id}`).then((rec:any)=>{    
-      return rec    
-  }).catch(()=>{
-    message.error('当前页面aw节点被删除')
-  })
-}
-
 
 function getProperty(cell:any,mbtData:any){
-  debugger
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
@@ -424,9 +413,9 @@ function getProperty(cell:any,mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     let awData:any = {}
     if(awprop.aw){
-      awData = awUiParams(awprop.aw)
+      awData = storeAw.handleSchema(awprop.aw)
     }else if(awprop.data){
-      awData = awUiParams(getAw(awprop.data._id))
+      awData = storeAw.handleSchema(getAw(awprop.data._id))
     }    
 
     awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
@@ -436,9 +425,9 @@ function getProperty(cell:any,mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
     let awData:any = {}
     if(awprop.aw){
-      awData = awUiParams(awprop.aw)
+      awData = storeAw.handleSchema(awprop.aw)
     }else if(awprop.data){
-      awData = awUiParams(getAw(awprop.data._id))
+      awData = storeAw.handleSchema(getAw(awprop.data._id))
     }  
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     Object.assign(prop.custom,{expectation : {aw:awprop.aw? awprop.aw : getAw(awprop.data._id),data:awData.schemaValue.value,uiParams:awData.primaryUiSchema.value}})
@@ -513,12 +502,15 @@ onMounted(async () => {
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
       console.log(elementView.model);
-
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
     })
-
+    rappid.graph.on('remove' ,()=>{
+      showpaper.value = false
+    })
+       
     rappid.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
       showpaper.value = false
       rappid.selection.collection.reset([]);
@@ -536,7 +528,7 @@ rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
 if(rappid.graph.toJSON().cells.length > 0){
-  preview()
+  // preview()
 }
 })
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{

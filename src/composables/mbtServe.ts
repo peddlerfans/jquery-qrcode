@@ -95,18 +95,19 @@ class MbtServe {
         // });
 
         this.paper.on('element:pointerdown', (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
-
+            
+            
             // Select an element if CTRL/Meta key is pressed while the element is clicked.
             if (keyboard.isActive('ctrl meta', evt)) {
                 this.selection.collection.add(elementView.model);
             }
             // 获取到当前元素的schema
             // console.log(elementView.model?.getInspectorSchema());
-
         });
+        
 
         this.graph.on('remove', (cell: joint.dia.Cell) => {
-
+            
             // If element is removed from the graph, remove from the selection too.
             if (this.selection.collection.has(cell)) {
                 this.selection.collection.reset(this.selection.collection.models.filter(c => c !== cell));

@@ -213,6 +213,14 @@ export const MbtData = defineStore({
                     Object.assign(schema.properties, field)
                 })
             }
+            if (row.returnType) {
+                Object.assign(schema.properties, {
+                  variable: {
+                    title: '变量',
+                    type: 'string'
+                  }
+                })
+              }
             // schema添加path
             Object.assign(schema.properties, {
                     path: {
