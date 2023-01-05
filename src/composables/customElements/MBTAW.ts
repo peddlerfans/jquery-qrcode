@@ -8,6 +8,7 @@ import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from "@/stores/modules/mbt-data";
 import _, { isEmpty } from "lodash";
 import { objectPick } from "@vueuse/core";
+import { fitAncestors } from "@/utils/jointFun"
 import cloneDeep from "lodash-es/cloneDeep";
 const store = MBTStore()
 const storeAw = MbtData()
@@ -23,7 +24,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         super(e, o);
         this.set({ 'icon': 'user' })
 
-        this.on('change', (evt: any) => {            
+        this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
             }
@@ -36,10 +37,10 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const desc = this.get('prop')?.custom?.description
         const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
         const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
-        
+
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
-        const labelDesc = desc ? desc: awSchemaStr ? awSchemaStr : ''
+        const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
             'content': labelDesc
@@ -60,30 +61,30 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
-        if(temp.step?.data){
+        if (temp.step?.data) {
             // temp.step.data = this.paramsObj(temp.step?.schema, temp.step?.data)
         }
-        if(temp.expectation?.data){
+        if (temp.expectation?.data) {
             // temp.expectation.data = this.paramsObj(temp.expectation?.schema, temp.expectation?.data)
         }
         this.prop('prop/custom', temp)
         this.reRender()
+        fitAncestors(this)
     }
-
-    paramsObj(schema:any , data:any){
+    paramsObj(schema: any, data: any) {
         // debugger
-        let params :any = {}
+        let params: any = {}
         for (let key in schema.properties) {
-              const tar = schema.properties[key]
-              if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
-                if(data[key]){
-                  params[key] = data[key]
-                }               
-              }
-          }
-          Object.assign(data , {params})  
-          return data  
-      }
+            const tar = schema.properties[key]
+            if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
+                if (data[key]) {
+                    params[key] = data[key]
+                }
+            }
+        }
+        Object.assign(data, { params })
+        return data
+    }
 
 
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染

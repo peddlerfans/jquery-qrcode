@@ -19,7 +19,7 @@ export class MBTGroup extends MBTGroupBase {
     this.attr({
       'label': {
         refY: '10',
-        text: this.get('prop')?.custom?.description ? this.get('prop').custom?.description : 'Group'
+        text: this.reRender() ? this.reRender() : 'Group'
       },
       'border': {
         borderStyle: 'dashed'
@@ -29,24 +29,20 @@ export class MBTGroup extends MBTGroupBase {
       }
     })
 
-    this.on('change', (evt: any) => {     
-      console.log(evt);
-       
+    this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
         this.reRender();
       }
-      // if(evt.changed && evt.changed.embeds && evt.changed.embeds.length>0){
-      //   this.reRender()
-      // }
+
     })
-    
+
     // this.reRender();
     // this.ifEmbedable()
   }
 
 
   reRender() {
-    
+
     const custom = this.get('prop').custom
     // const desc = custom.description
     const desc = custom?.description || ''
@@ -58,18 +54,7 @@ export class MBTGroup extends MBTGroupBase {
         text: labelText
       }
     })
-
-    if(this.attributes.embeds && this.attributes.embeds.length > 0){
-      this.fitEmbeds({
-        deep:true,
-        padding:{
-          top:20,
-          left: 10,
-          right: 10,
-          bottom: 20
-        }
-      })
-    }
+    return labelText
   }
   ifEmbedable(child?: any): boolean {
     return super.ifEmbedable(child)
@@ -82,7 +67,7 @@ export class MBTGroup extends MBTGroupBase {
   setPropertiesData(data: any) {
     const group = store.getGroupData
     this.prop('prop/custom', data)
-    this.reRender();
+    // this.reRender();
   }
 
   getInspectorSchema() {

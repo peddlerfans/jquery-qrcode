@@ -337,7 +337,7 @@ function handleChange () {
 
 function handleData () {
   desc.value = store.getDescription
-  debugger
+  // debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
