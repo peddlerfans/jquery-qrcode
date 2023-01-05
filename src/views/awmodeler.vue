@@ -595,6 +595,7 @@ const expandedKeys = ref<(string | number)[]>([]);
 const autoExpandParent = ref<boolean>(false);
 const searchValues = ref<string>('');
 watch(searchValues, value => {
+  debugger
   if(value.length != 0){
     const expanded = treeData.value.map((item: any) => {
       if (item.title.indexOf(value) == -1) {

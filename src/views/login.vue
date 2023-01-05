@@ -42,8 +42,8 @@ const oauth = ref<oauthIf[] | null>();
 try{
   request.get("/api/oauthConfig").then((o:any)=>{
     oauth.value=o
-    console.log("oauth")
-    console.log(oauth)
+    // console.log("oauth")
+    // console.log(oauth)
   })
 }catch (e) {
   console.log(e)

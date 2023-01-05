@@ -27,15 +27,17 @@ export function data2schema (awSchema: any, uiSchema?: any) {
         
         
         let prop = awSchema.properties
+        const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
         prop[a.title] = {
             "title": a.title,
             "type": "string",
             "patternProperties": false,
+            "AWType": isSutType ? 'SUT' : 'string'
         }
         if (uiSchema) {
          uiSchema[a.title] = {            
             "ui:widget": schemaItem,
-            "ui:options": a.type === 'SUT' ? sutEnumList : enumList
+            "ui:options": isSutType ? sutEnumList : enumList
         }}
     })
     return {
@@ -49,7 +51,7 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
+        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '变量') {
             arr.push(tar)
         }
     }

@@ -6,6 +6,7 @@ import { mockMBTUrl, realMBTUrl } from "@/appConfig";
 import { message } from "ant-design-vue/es";
 import * as _ from "lodash";
 import { Stores } from "../../types/stores";
+import { SplitPanel } from '@/components/basic/split-panel';
 import {
   ref,
   reactive,
@@ -25,6 +26,8 @@ import { Rule } from "ant-design-vue/es/form";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { CommonTable } from '@/components/basic/common-table'
+import http from "@/utils/http";
+import {Table} from "ant-design-vue";
 
 // 表格数据
 const column3 = [
@@ -33,13 +36,57 @@ const column3 = [
   { title: "tags", width: 100 },
   { title: "action", width: 100, actionList: ['edit', 'delete', 'clone']},
 ]
-const MBTTableQuery = {
-  url: realMBTUrl,
-  searchText: '',
-  createParams: ''
+
+interface TableParams {
+  search: string,
+  q: string,
+  page: number,
+  perPage: number
+}
+
+let tableParams = ref<TableParams>({
+  search: '',
+  q: '',
+  page: 1,
+  perPage: 20
+})
+
+const AWTableQuery = {
+  selection: {
+    selections: [Table.SELECTION_ALL, Table.SELECTION_INVERT, Table.SELECTION_NONE]
+  },
 }
 
 let MBTTable = ref<any>(null)
+
+function queryTableData () {
+  MBTTable.value.loading = true
+  http.get(realMBTUrl, {
+    params: tableParams.value
+  }).then(({ data }) => {
+    if (data?.data) {
+      MBTTable.value.setTableData({
+        currentPage: tableParams.value.page,
+        pageSize: tableParams.value.perPage,
+        total: data.total,
+        tableData: data.data
+      })
+    }
+  }).finally(() => {
+    MBTTable.value.loading = false
+  })
+}
+
+// function queryTree () {
+//   http.get('/api/test-models/_tree').then(({ data }) => {
+//     treeData.value = objToArr(data)
+//   })
+// }
+
+onMounted(() => {
+  queryTableData()
+  // queryTree()
+})
 
 //Setting url for data fetching
 const url = realMBTUrl;
@@ -51,20 +98,14 @@ const formState: UnwrapRef<FormState> = reactive({
   search: "",
 });
 
-watch(
-    () => formState.search,
-    (value: string) => {
-      MBTTableQuery.searchText = value
-    }
-)
-
 let mbtId = ref("");
 
 /**
  * Search the result
  */
 const handleFinish: FormProps["onFinish"] = (values: any) => {
-  MBTTable.value.query(formState.search)
+  tableParams.value.page = 1
+  queryTableData()
 };
 const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
   console.log(errors);
@@ -116,7 +157,7 @@ const onSelectChange = async (value: any) => {
   })
 }
 const inputChange = (value: any) => {
-  if (formState.search == "@") {
+  if (tableParams.value.search == "@") {
     cascder.value = true
   }
 }
@@ -173,69 +214,147 @@ const copyOk=()=>{
 
   })
 }
-const clearValida =()=>{
+const clearValida = () => {
   refCopy.value.clearValidate()
 }
 
+function go2Detail (row: any) {
+  router.push(`/mbtmodeler/${row._id}/${row.name}`)
+}
+
+function saveTableItem(row: any) {
+  MBTTable.value.loading = true
+  const id = row._id
+  const url = id ? `/api/test-models/${id}` : '/api/test-models'
+  http({
+    url,
+    data: row,
+    method: id ? 'put' : 'post'
+  }).then(({ data }) => {
+    let tableData = MBTTable.value.getTableData()
+    tableData.splice(row.index, 1, data)
+    MBTTable.value.setTableData(tableData)
+    message.success(t('component.message.updateText'))
+  })
+      .catch(e => message.error(t('component.message.updateErr')))
+      .finally(() => MBTTable.value.loading = false)
+}
+
+function deleteTableItem(row: any) {
+  MBTTable.value.loading = true
+  const id = row._id
+  http.delete(`/api/test-models/${id}`).then(() => {
+    let tableData = MBTTable.value.getTableData()
+    const index = tableData.indexOf(row)
+    tableData.splice(index, 1)
+    MBTTable.value.setTableData(tableData)
+    message.success(t('component.message.delText'))
+  }).finally(() => MBTTable.value.loading = false)
+}
+
+function pageChange(data: any) {
+  tableParams.value.page = data.current
+  tableParams.value.perPage = data.pageSize
+  queryTableData()
+}
+
+function handleSelect(q: string) {
+  tableParams.value.q = q
+  tableParams.value.page = 1
+  queryTableData()
+}
+
+function handleAddAW(path: string) {
+  const selectList = MBTTable.value.selectionList
+  if (selectList.length > 0) {
+    let pool: any[] = []
+    selectList.forEach((item: any) => {
+      item.path = path
+      pool.push(request.put(`/api/test-models/${item._id}`, item))
+    })
+    MBTTable.value.loading = true
+    Promise.all(pool)
+        .then((res:any)=>{
+          let tableData = MBTTable.value.getTableData()
+          tableData = tableData.filter((a: any) => !selectList.includes(a))
+          MBTTable.value.setTableData(tableData)
+          if (res) {message.success("Modification succeeded")}
+        })
+        .catch(()=>{message.error("Modification failed")})
+        .finally(() => MBTTable.value.loading = false)
+  } else {
+    message.warning("Please select the Aw to be added")
+  }
+}
 
 </script>
 
 <template>
   <main style="height: 100%; overflow-x: hidden !important">
-    <header class="block shadow">
-      <!-- <section class="block shadow flex-center"> -->
-
-      <!-- 表单的查询 -->
-      <a-row>
-        <a-col :span="20">
-          <AForm
-            layout="inline"
-            class="search_form"
-            :model="formState"
-            @finish="handleFinish"
-            @finishFailed="handleFinishFailed"
-            :wrapper-col="{ span: 24 }"
-          >
+    <SplitPanel>
+      <template #left-content>
+       <itea-tree tree-url="/api/test-models" @select="handleSelect" @addAW="handleAddAW"></itea-tree>
+      </template>
+      <template #right-content>
+        <header class="block shadow">
+          <!-- 表单的查询 -->
+          <a-row>
             <a-col :span="20">
-            <a-input v-model:value="formState.search"
-            :placeholder="$t('awModeler.inputSearch1')"
-            @change="inputChange"
-            ref="searchInput"
-            >
-            </a-input>
-            <a-cascader
-            v-if="cascder"
-            :load-data="loadData"
-            v-model:value="selectvalue"
-            placeholder="Please select"
-            :options="selectoptions"
-            @change="onSelectChange"
-            ></a-cascader>
-            </a-col>
+              <AForm
+                  layout="inline"
+                  class="search_form"
+                  :model="tableParams"
+                  @finish="handleFinish"
+                  @finishFailed="handleFinishFailed"
+                  :wrapper-col="{ span: 24 }"
+              >
+                <a-col :span="20">
+                  <a-input v-model:value="tableParams.search"
+                           :placeholder="$t('awModeler.inputSearch1')"
+                           @change="inputChange"
+                           ref="searchInput"
+                  >
+                  </a-input>
+                  <a-cascader
+                      v-if="cascder"
+                      :load-data="loadData"
+                      v-model:value="selectvalue"
+                      placeholder="Please select"
+                      :options="selectoptions"
+                      @change="onSelectChange"
+                  ></a-cascader>
+                </a-col>
 
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+                <a-col :span="4">
+                  <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
+                </a-col>
+              </AForm>
             </a-col>
-          </AForm>
-        </a-col>
-        <a-col :span="4">
-          <a-button type="primary" @click="showModal">
-            <template #icon>
-              <plus-outlined />
-            </template>
-          </a-button>
-        </a-col>
-      </a-row>
-    </header>
-    <div class="tableContainer">
-      <common-table
-          :columns="column3"
-          :fetch-obj="MBTTableQuery"
-          tableRef="MBTTable"
-          ref="MBTTable"
-          @clone="clone"
-      ></common-table>
-    </div>
+            <a-col :span="4">
+              <a-button type="primary" @click="showModal">
+                <template #icon>
+                  <plus-outlined />
+                </template>
+              </a-button>
+            </a-col>
+          </a-row>
+        </header>
+        <div class="tableContainer">
+          <common-table
+              :columns="column3"
+              check-url="api/test-models"
+              tableRef="MBTTable"
+              :fetch-obj="AWTableQuery"
+              ref="MBTTable"
+              @clone="clone"
+              @go2Page="go2Detail"
+              @save="saveTableItem"
+              @delete="deleteTableItem"
+              @pageChange="pageChange"
+          ></common-table>
+        </div>
+      </template>
+    </SplitPanel>
     <a-modal v-model:visible="copyVisible" :title="$t('component.table.clone')" @ok="copyOk" :ok-text="$t('common.okText')" :cancel-text="$t('common.cancelText')" @cancel="clearValida">
       <AForm :model="copyData" ref="refCopy" :rules="copyRule">
           <a-form-item name="name" :label="$t('component.table.name')">
@@ -254,7 +373,7 @@ main {
 }
 
 header {
-  margin-bottom: 1rem;
+  margin-bottom: 2rem;
 }
 
 footer {
@@ -273,4 +392,10 @@ footer {
   overflow-x: hidden;
 }
 </style>
-<style></style>
+<style lang="less" scoped>
+.right-content {
+  .block {
+    width: 100%;
+  }
+}
+</style>

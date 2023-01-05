@@ -80,7 +80,7 @@ function HandleSubmit() {
  */
 //Row adding record
 const editableData1: UnwrapRef<Record<string, any>> = reactive({});
-console.log(tableData.value);
+// console.log(tableData.value);
 
 const addRow = () => {
   let colnames: any[] = [];
@@ -152,7 +152,7 @@ const cancelRow = (key: string) => {
 const editableHeaderData: UnwrapRef<Record<string, ColumnItem>> = reactive({});
 
 const addCol = () => {
-  console.log(tablecolcount.value);
+  // console.log(tablecolcount.value);
   
   let newcolumn = {
     title: `Property${tablecolcount.value}`,
