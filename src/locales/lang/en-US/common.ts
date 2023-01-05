@@ -27,7 +27,7 @@ export default {
   up: 'Up',
   down: 'Down',
   detail: 'Detail',
-
+  view: 'Views visible',
   inputText: 'Please enter',
   chooseText: 'Please choose',
 
@@ -40,5 +40,8 @@ export default {
   newTag: 'Add a New Tag',
   newValue: 'Add a New Value',
   clear: 'clear',
-  clone: 'clone'
+  clone: 'clone',
+  permissionManagement:'Permission Management',
+  resourceManagement:'Resource Management',
+  roleManagement:'Role Management',
 };

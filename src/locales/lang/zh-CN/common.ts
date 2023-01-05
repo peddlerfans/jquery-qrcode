@@ -27,7 +27,9 @@ export default {
   detail: '详情',
   saveError: "保存失败",
   cloneError: '克隆失败',
-
+  permissionManagement:'权限管理',
+  resourceManagement:'资源管理',
+  roleManagement:'角色管理',
   inputText: '请输入',
   chooseText: '请选择',
   clear: '清空',

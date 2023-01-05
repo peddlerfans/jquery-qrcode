@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import {computed, ref,watch} from "vue";
+import {computed, ref, watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
-import createRule from "@/components/CreateRule.vue"
 import {MbtData} from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
@@ -185,18 +184,15 @@ watch(
 
 function handleAwData () {
   const el = store.getShowData
-  
   const checkAwProps = el.getPropertiesSchema()
   store.setEditingPrimaryAw(checkAwProps.step)
   store.setEditingExpectedAw(checkAwProps.expectation)
   store.setDescription(checkAwProps.description)
-  
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
-  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
@@ -208,8 +204,7 @@ function handleData() {
       // const targetEl = el.graph.getCell(targetId)
       // const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
       //   && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
-      const flag = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'  
-      showDrawer.value = flag
+      showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
    
   }
@@ -264,12 +259,10 @@ function handleChange() {
     if(data.value.label == undefined){
       data.value.label = ''
     }
-    
   }
   emit('change', getType() , data.value)
 }
-//  {step:{schema:schema.value,data:schemaValue.value,uiParams:primaryUiSchema.value}
-  // ,expectation:{schema:expectedSchema.value,data:expectedSchemaValue.value,uiParams:expectedUiSchema.value}}
+
 defineExpose({
   handleShowData
 })

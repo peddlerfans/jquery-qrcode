@@ -70,7 +70,7 @@ const numberOptions = [
 ]
 
 const titleStyle=computed(()=>{
-  if(props.rulesData[0].relation=="AND"){
+  if(props.rulesData[0]?.relation=="AND"){
     return {backgroundColor:'#ffd591'}
   }else{
     return {backgroundColor:"#91d5ff"}
@@ -167,6 +167,7 @@ function rulesChange(rulesData:any,){
 }
 
 const checkrelation=(obj:any)=>{
+  if (!obj) return
   if(obj=="AND" || obj=="&&"){
     props.rulesData[0].relation="OR"
     selectvalue.value="OR"
@@ -189,10 +190,10 @@ function optOption (item: any) {
 </script>
 
 <template>
-  <div class="rules-box" :class="[props.rulesData[0].id%2==0 ? 'bgc-box':'bgc-box1']">
-    <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0].relation)">{{props.rulesData[0].relation}}</div>
+  <div class="rules-box" :class="[props.rulesData[0]?.id%2==0 ? 'bgc-box':'bgc-box1']">
+    <div :style="titleStyle" class="title"  @click="checkrelation(props.rulesData[0]?.relation)">{{props.rulesData[0]?.relation || 'AND'}}</div>
     <div class="ant-card-body" >
-      <template v-for="(item, index) in rulesData[0].conditions" :key="'condition'+index">
+      <template v-for="(item, index) in rulesData[0]?.conditions || []" :key="'condition'+index">
         <a-row  class="loop-child">
           <a-select
             class="condition"
@@ -228,7 +229,7 @@ function optOption (item: any) {
 
     </div>
     <mbt-modeler-condition-edit
-        style="margin-left:35px"  v-if="rulesData[0].children.length > 0"
+        style="margin-left:35px"  v-if="rulesData[0]?.children?.length > 0"
         :formDatas="formDatas"
         :topDatas="rulesData"
         :rulesData="rulesData[0].children"

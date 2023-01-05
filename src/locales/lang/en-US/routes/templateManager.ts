@@ -61,5 +61,14 @@ export default {
     editTemp: 'Edit Template',
     previewTemp: 'Preview Result (Read-only)',
     saveApreview: 'Save & Preview',
-    editData: 'Edit Data'
+    editData: 'Edit Data',
+    queryFail: 'Query failed!',
+    loadSuccess: 'Load successful',
+    emptyTemplateEngine: 'Template engine cannot be null!',
+    templateErr: 'Something wrong in the Template',
+    previewSuccess: 'Preview successful!',
+    saveErr: 'Save failed!',
+    emptyOutput: 'Please select a Output Language',
+    emptyTemplate: 'Please select a Template Engine',
+    noTemplate: 'Model cannot be found'
 }
