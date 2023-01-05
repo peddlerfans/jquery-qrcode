@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
 
 interface Props {
   show: boolean
@@ -293,6 +294,7 @@ function showAw (row: any) {
 
 
 function setSchema (tar: string) {
+  console.log(schema.value.properties,primaryUiSchema.value);
   let temp: any = {}
   if (tar === 'primary') {
     temp = data2schema(schema.value, primaryUiSchema.value)
