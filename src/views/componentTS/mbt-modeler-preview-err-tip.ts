@@ -9,6 +9,8 @@ interface errMsg {
     no_meta: string,
     no_templates_define: string,
     not_start_end: string
+    textErr:string
+    scriptErr:string
 }
 
 // 错误信息的属性名对应的原因
@@ -16,7 +18,9 @@ const errObj: errMsg = {
     no_data: '模板没有数据，可双击画布空表界面，进入 Data pool 页进行编辑',
     no_meta: '模板没有设置meta数据，可双击画布空表界面，进入 Meta 页进行编辑',
     no_templates_define: '模板没有设置模板引擎，可双击画布空表界面，进入 Attributes 页进行设置 Output Text 和 Output Script',
-    not_start_end: '模型连接线连接节点有断点，请仔细检查'
+    not_start_end: '模型连接线连接节点有断点，请仔细检查',
+    textErr : '代码生成文本模板出错',
+    scriptErr:'代码生成脚本模板出错'
 }
 
 const getReason = (err: string) => {
@@ -24,21 +28,40 @@ const getReason = (err: string) => {
         case 'no_data':
         case 'no_meta':
         case 'no_templates_define':
+        case 'textErr':
+        case 'scriptErr':
         case 'not_start_end': {
             return errObj[err]
         }
     }
 }
 
-export const showErrCard = (errMsg: errMsg) => {
+export const showErrCard = (errMsg:any) => {
+    debugger
     let errAttrList = Object.keys(errMsg)
+    let errTem:any
+    let temp
     if (!errAttrList || !errAttrList.length) return
-    let temp = errAttrList.map((err: string) => {
-        return {
-            err,
-            reason: getReason(err)
-        }
-    })
+    if(errMsg.hasOwnProperty('errors')){
+        errMsg.errors.forEach((item:any) => {
+            if(item.results && item.results.length>0 && item.results[0].hasOwnProperty('errors')){
+                if(item.outputlange == 'yaml'){
+                    errTem = 'textErr'
+                }else{
+                    errTem = 'scriptErr'
+                }
+            }
+        });
+        temp = {errTem , reason: getReason(errTem)}
+    }else{
+        temp = errAttrList.map((err: string) => {
+            return {
+                err,
+                reason: getReason(err)
+            }
+        })
+    }
+    
     store.setErrList(temp)
     store.setVisible(true)
 }

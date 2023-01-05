@@ -141,7 +141,8 @@ let globalformData = ref<Stores.mbtView>({
   codegen_text: '',
   codegen_script: '',
 });
-let codegennames: any = ref([]);
+let codegenTextName :any =ref([])
+let codegenScriptName :any =ref([])
 const globalschema = ref({
   type: "object",
   properties: {
@@ -157,12 +158,12 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      anyOf: codegennames.value,
+      anyOf: codegenTextName.value,
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      anyOf: codegennames.value,
+      anyOf: codegenScriptName.value,
     },
   },
 });
@@ -211,21 +212,6 @@ const chooseTem = () => {
 const handleRadioChange: any = (v: any) => {
   templateCategory.value = v;
 };
-
-// 保存动态模板的函数
-const handleDynamicTable = (data: any) => {
-  // console.log(data);
-  
-};
-
-// 清除动态模板的函数
-const handleDynamicTableClear = (data: any) => {
-};
-
-// 保存静态模板的函数
-const handleStaticTable = (data: any) => {
-};
-
 // 保存input模板的函数
 const handleDirectInput = (data: any) => {
 };
@@ -273,12 +259,6 @@ watch(resourcesdataSource.value ,(newval:any)=>{
     store.saveResources(newval)
   }
 },{deep:true})
-
-// 保存resource的函数
-function globalhandlerSubmit(data?:any) {
-
-}
-
 function attrsChange(){
   store.saveattr(globalformData.value);
 }
@@ -462,7 +442,14 @@ onMounted(async () => {
   getAllTemplatesByCategory('codegen').then((rst: any) => {
     if (rst && _.isArray(rst)) {
       rst.forEach((rec: any) => {
-        codegennames.value.push({ title: rec.name, const: rec._id })
+        if(rec.model && rec.model.outputLanguage){
+          if(rec.model.outputLanguage == 'yaml'){
+            codegenTextName.value.push({ title: rec.name , const: rec._id})
+          }else{
+            codegenScriptName.value.push({ title: rec.name , const: rec._id})
+          }
+        }
+      
       })
     }
   }).catch((err) => { console.log(err); })
@@ -494,12 +481,6 @@ onMounted(async () => {
                     return false;      
        		    }    
            };
-
-  const keyboard = rappid.keyboardService.keyboard
-
-  keyboard.on({'ctrl+s' : () => {
-    throttle(function(){saveMbt()},2000)()
-  }})
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
     // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
@@ -518,7 +499,7 @@ onMounted(async () => {
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
       console.log(elementView.model);
-      
+
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -530,7 +511,6 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
     });
-
 store.setRappid(rappid)
 rappid.toolbarService.toolbar.on({
   'save:pointerclick': saveMbt.bind(this),
@@ -541,6 +521,14 @@ rappid.toolbarService.toolbar.on({
 rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
+if(rappid.graph.toJSON().cells.length > 0){
+  preview()
+}
+})
+watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
+  if(val){
+    saveMbt()
+  }
 })
 // 离开路由时调用
 onBeforeRouteLeave((to, form, next) => {  
@@ -555,7 +543,6 @@ onBeforeRouteLeave((to, form, next) => {
         content: t("MBTStore.leaveRouter"),
         onOk() {
           return new Promise<void>((resolve, reject) => {
-            saveMbt()
             next()
             resolve()
             
@@ -626,6 +613,7 @@ const saveMbt = () => {
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false
+      storeAw.setIfsaveMbt(false)
           return message.success('保存成功')
         }).catch(() => {
           return message.error('保存失败')
@@ -668,6 +656,8 @@ async function querycode(){
     store.showPreview(false)    
   }
   }).catch((err)=>{
+    console.log(err);
+    
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
@@ -893,8 +883,7 @@ const onDrag = throttle(function (e: MouseEvent) {
                   :tableColumns="tableColumnsDynamic"
                   :templateCategory="templateCategory"
                   :tableData="tableDataDynamic"
-                  @update="handleDynamicTable"
-                  @clear="handleDynamicTableClear"
+                  
                 ></template-table>
                 <!-- --********---{{tableData}}**
                   ++++{{tableColumns}}########                   -->
@@ -904,7 +893,7 @@ const onDrag = throttle(function (e: MouseEvent) {
                   :tableColumns="tableColumns"
                   :templateCategory="templateCategory"
                   :tableData="tableData"
-                  @update="handleStaticTable"
+                  
                 ></template-table>
                 <input-table
                   :tableColumns="tableColumnsDirectInput"

@@ -85,8 +85,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         Object.assign(data, { params })
         return data
     }
-
-
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染
     getInspectorSchema() {
         const options = {

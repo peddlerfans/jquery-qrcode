@@ -31,6 +31,7 @@ interface MbtData {
     awDescription: string,
     showSchema: boolean
     showData: any
+    ifsaveMbt:boolean
 }
 
 export const MbtData = defineStore({
@@ -69,7 +70,8 @@ export const MbtData = defineStore({
         expectedTableRow: {},
         awDescription: '',
         showSchema: false,
-        showData: {}
+        showData: {},
+        ifsaveMbt:false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -85,7 +87,8 @@ export const MbtData = defineStore({
         getSectionData: state => state.sectionData,
         getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
-        getShowData: state => state.showData
+        getShowData: state => state.showData,
+        getifsaveMbt :state => state.ifsaveMbt
     },
     actions: {
         setAllData(data: any) {
@@ -157,6 +160,9 @@ export const MbtData = defineStore({
         },
         setData(data: any) {
             this.showData = data
+        },
+        setIfsaveMbt(data:boolean){
+            this.ifsaveMbt = data
         }
     }
 })
