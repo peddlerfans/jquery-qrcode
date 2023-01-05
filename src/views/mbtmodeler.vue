@@ -682,7 +682,6 @@ const cencelpreview=()=>{
 }
 
 function handleChange(str: string, data: any) {
-
   switch (str) {
     case 'itea.mbt.test.MBTAW': {
       storeAw.getShowData?.setPropertiesData()
