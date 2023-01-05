@@ -20,6 +20,7 @@ import {
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
 
 interface Props {
   show: boolean
@@ -80,14 +81,33 @@ function getSchema (schema: any, row?: any) {
   const descProp = schema.properties.description
   const tempProp = schema.properties.template
   const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
   if (nameProp) delete schema.properties.name
   if (descProp) delete schema.properties.description
   if (tempProp) delete schema.properties.template
   if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
   schema.title = row ? row.name : store.getPrimaryAw.data?.name || ''
   schema.description = row ? row.description : store.getPrimaryAw.data?.description || ''
   return schema
 }
+
+function getEXpectedSchema (schema: any, row?: any) {
+  const nameProp = schema.properties.name
+  const descProp = schema.properties.description
+  const tempProp = schema.properties.template
+  const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
+  if (nameProp) delete schema.properties.name
+  if (descProp) delete schema.properties.description
+  if (tempProp) delete schema.properties.template
+  if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
+  schema.title = row ? row.name : store.getExpectedAw.data?.name || ''
+  schema.description = row ? row.description : store.getExpectedAw.data?.description || ''
+  return schema
+}
+
 
 let selectAwTar: string = '1'
 let schema = ref(defaultAWSchema)
@@ -186,7 +206,8 @@ function showAw (row: any) {
       description: row.description,
       tags: '',
       template: row.template,
-      _id: row._id
+      _id: row._id,
+      path:row.path
     }
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value: any) {
@@ -213,6 +234,15 @@ function showAw (row: any) {
         }
       })
     }
+    // schema添加path
+    Object.assign(schema.value.properties, {
+        path: {
+          title: 'path',
+          type: 'string',
+          readOnly:'true'
+        }
+      })
+
     setSchema('primary')
     schema.value = getSchema(schema.value, row)
     store.setEditingPrimaryAw(schema.value, 'schema')
@@ -227,7 +257,8 @@ function showAw (row: any) {
       description: row.description,
       tags: '',
       template: row.template,
-      _id: row._id
+      _id: row._id,
+      path:row.path
     }
     if (_.isArray(row.tags)) {
       _.forEach(row.tags, function (value, key) {
@@ -240,8 +271,17 @@ function showAw (row: any) {
         Object.assign(expectedSchema.value.properties, field)
       })
     }
+        // schema添加path
+        Object.assign(expectedSchema.value.properties, {
+        path: {
+          title: 'path',
+          type: 'string',
+          readOnly:'true'
+        }
+      })
+    
     setSchema('expected')
-    expectedSchema.value = getSchema(expectedSchema.value, row)
+    expectedSchema.value = getEXpectedSchema(expectedSchema.value, row)
     store.setEditingExpectedAw(expectedSchema.value, 'schema')
     store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
     store.setEditingExpectedAw(expectedUiSchema.value, 'uiParams')
@@ -249,7 +289,9 @@ function showAw (row: any) {
   emit('change')
 }
 
+
 function setSchema (tar: string) {
+  console.log(schema.value.properties,primaryUiSchema.value);
   let temp: any = {}
   if (tar === 'primary') {
     temp = data2schema(schema.value, primaryUiSchema.value)
@@ -292,21 +334,23 @@ function handleChange () {
 }
 
 function handleData () {
+  // debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
     // console.log(schema.value,schemaValue.value);
-    
+    setSchema('primary')
   } else {
     initPrimarySchema()
   }
   if (store.getPrimaryAw.schema && store.getExpectedAw.schema) {
     expectedSchema.value = store.getExpectedAw.schema
-    expectedSchema.value = getSchema(expectedSchema.value)
+    expectedSchema.value = getEXpectedSchema(expectedSchema.value)
     expectedSchemaValue.value = store.getExpectedAw.data || {}
     expectedUiSchema.value = store.getExpectedAw.uiParams || {}
+    setSchema('expected')
   } else {
     initExpectedSchema()
   }
@@ -416,7 +460,8 @@ defineExpose({
         :schema="schema"
         :formProps="formProps"
         :uiSchema="primaryUiSchema"
-        @change="handleChange">
+        @change="handleChange"
+        >
         <div slot-scope="{ schemaValue }"></div>
       </VueForm>
       <a-divider />
@@ -477,7 +522,8 @@ defineExpose({
             :schema="expectedSchema"
             :formProps="formProps"
             :uiSchema="expectedUiSchema"
-            @change="handleChange">
+            @change="handleChange"
+            >
           <div slot-scope="{ schemaValue }">
           </div>
         </VueForm>

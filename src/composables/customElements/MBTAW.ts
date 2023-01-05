@@ -60,17 +60,28 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
-        // debugger
-        // console.log(4);
-        
-        // console.log(this.get('prop'));
+
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
         this.prop('prop/custom', temp)
-
     }
+
+    paramsObj(schema:any , data:any){
+        // debugger
+        let params :any = {}
+        for (let key in schema.properties) {
+              const tar = schema.properties[key]
+              if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
+                if(data[key]){
+                  params[key] = data[key]
+                }               
+              }
+          }
+          Object.assign(data , {params})  
+          return data  
+      }
 
 
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染

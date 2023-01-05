@@ -377,13 +377,13 @@ const chooseTemplateFunc = () => {
     <!-- </section> -->
   </main>
 
-      <a-button 
+      <!-- <a-button 
       style="position: absolute; top: -2.25rem; right: 9rem;"
        type="primary" 
        size="small"
        @click="HandleSubmit()"
         >Save</a-button
-      >
+      > -->
 
       <a-button
         v-if="chooseTemplate"
@@ -391,7 +391,7 @@ const chooseTemplateFunc = () => {
         type="primary"
         size="small"
         @click="chooseTemplateFunc()"
-        >choose template</a-button
+        >Choose A Template</a-button
       >
       
       <!-- <a-button v-if="!chooseTemplate && hasData" danger @click="HandleClear()"

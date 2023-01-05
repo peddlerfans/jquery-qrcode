@@ -4,8 +4,9 @@ import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vu
 
 const store = MbtData()
 
-export function data2schema (awSchema: any, uiSchema?: any) {
+export function data2schema (awSchema: any, uiSchema?: any) {    
     // 可选参数名
+    
     let enumList: Array<any> = []
     enumList = store.getDataPoolTableColumns.map((a: any) => {
         return {
@@ -23,16 +24,19 @@ export function data2schema (awSchema: any, uiSchema?: any) {
     // 获取属性里面可自定义的表单项
     let customInSchema = getCustomItems(awSchema)
     customInSchema.forEach((a: any) => {
+        
+        
         let prop = awSchema.properties
         prop[a.title] = {
             "title": a.title,
             "type": "string",
             "patternProperties": false,
         }
-        if (uiSchema) uiSchema[a.title] = {
+        if (uiSchema) {
+         uiSchema[a.title] = {            
             "ui:widget": schemaItem,
             "ui:options": a.type === 'SUT' ? sutEnumList : enumList
-        }
+        }}
     })
     return {
         schema: awSchema,
@@ -45,7 +49,7 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (tar.hasOwnProperty('custom') && tar.custom === 'awParams') {
+        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
             arr.push(tar)
         }
     }
