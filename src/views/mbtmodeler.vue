@@ -604,7 +604,7 @@ async function reload(){
     })
     })
     
-    
+    message.success(t("MBTStore.reloadTip"));
     
   }
 }
