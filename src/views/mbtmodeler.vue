@@ -381,9 +381,9 @@ function transformCells(mbtData:any){
       }else if(cell.type == 'standard.HeaderedRectangle'){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
       } else if (cell.type == 'itea.mbt.test.MBTAW') {
-        if (!mbtData?.version) {
-          cell = { ...cell , prop:getAwData(cell)}
-        }
+        // if (!mbtData?.version) {
+        //   cell = { ...cell , prop:getAwData(cell)}
+        // }
         
       }
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
