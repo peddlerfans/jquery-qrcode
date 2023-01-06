@@ -6,6 +6,22 @@ import {
   AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
 
+let isEmbedded = false
+
+/**
+ * 如果 MBTStore/MBTModeler 路由有 embedded 参数，实现大屏模式
+ * */
+function embeddedBigScreen (to: any) {
+  if (to.query.hasOwnProperty('embedded') || isEmbedded) {
+    isEmbedded = true
+    to.matched.forEach((a: any) => {
+      if (a.name === 'Mbtstore' || a.name === 'Mbtmodeler') {
+        a.components = null
+      }
+    })
+  }
+}
+
 export const dashboardRoute: RouteRecordRaw = {
   path: '/',
   component: Layout,
@@ -86,8 +102,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/mbtstore.vue'),
         meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
-    ]
-
+    ],
+    beforeEnter (to, from, next) {
+      embeddedBigScreen(to)
+      next()
+    }
   },
 
   {
@@ -200,6 +219,7 @@ export const routes: RouteRecordRaw[] = [
         to.meta.title = pathname
 
       }
+      embeddedBigScreen(to)
       next()
     }
   },
