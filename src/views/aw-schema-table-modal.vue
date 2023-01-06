@@ -3,8 +3,6 @@ import http from "@/utils/http";
 import {watch, ref, nextTick} from "vue";
 import  {SearchBar}  from "@/components/basic/search-bar";
 import  {CommonTable}  from "@/components/basic/common-table";
-import _ from "lodash";
-import {uuid} from "@/utils/Uuid";
 import {objToArr} from "@/utils/treeData";
 const emit = defineEmits(['clickRow', 'closeModal'])
 

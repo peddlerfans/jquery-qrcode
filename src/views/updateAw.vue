@@ -17,7 +17,7 @@ async function query (data?:any) {
   let rsts=await request.get(`/api/hlfs/${data}`)
   if(rsts){
     modelstates.value={...rsts} as any
-    if(!modelstates.value.returnType)modelstates.value.returnType = []
+    if(!modelstates.value.returnType) modelstates.value.returnType = ''
     awParamsTable.value.setTableData(modelstates.value.params)
     states.tags=rsts.tags!
     sessionStorage.setItem("awData"+route.params._id,JSON.stringify(rsts))
@@ -45,6 +45,33 @@ if (canEdit.value) awParamsColumn.push({
   width: 140,
   actionList: ['edit', 'delete', 'check', 'up', 'down']
 })
+
+const returnTypeOptions = [
+  {
+    value: 'str',
+    label: 'str',
+  },
+  {
+    value: 'float',
+    label: 'float',
+  },
+  {
+    value: 'boolean',
+    label: 'boolean',
+  },
+  {
+    value: 'number',
+    label: 'number',
+  },
+  {
+    value: 'int',
+    label: 'int',
+  },
+  {
+    value: 'SUT',
+    label:'SUT'
+  }
+]
 
 const deleteParams = (row: any) => {
   let tableData = awParamsTable.value.getTableData()
@@ -79,7 +106,7 @@ let modelstates = ref<ModelState>({
   template: "",
   template_en: "",
   validationError:"",
-  returnType: [],
+  returnType: '',
   _id: "",
   params:[],
   tags:[],
@@ -96,27 +123,6 @@ const addNewParams = () => {
     type : '',
     enum : []
   })
-}
-
-const handleReturnClose = (removedTag: string) => {
-  const tags = modelstates.value.returnType.filter((tag: string) => tag !== removedTag);
-  modelstates.value.returnType = tags;
-};
-
-const handleReturnConfirm = () => {
-  let tags: Array<String> = modelstates.value.returnType;
-  if (returnInput.value ) {
-    if (tags.length > 0) {
-      if (tags.indexOf(returnInput.value) === -1) {
-        modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
-      }
-    } else {
-      modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
-    }
-  }
-
-  returnInput.value = ''
-  returnVisibal.value = false
 }
 
 const showreturnInput = () => {
@@ -360,36 +366,13 @@ let rules: Record<string, Rule[]> = {
           {{ $t('common.newTag') }}
         </a-tag>
       </a-form-item>
-
-              <a-form-item :label="$t('component.table.returnType')" name="returnType">
-          <template v-for="tag in modelstates.returnType" :key="tag">
-            <a-tooltip v-if="tag.length > 20" :title="tag">
-              <a-tag :closable="true" @close="handleReturnClose(tag)">
-                {{ `${tag.slice(0, 20)}...` }}
-              </a-tag>
-            </a-tooltip>
-            <a-tag v-else-if="tag.length==0"></a-tag>
-            <a-tag v-else :closable="true" @close="handleReturnClose(tag)">
-              {{tag}}
-            </a-tag>
-          </template>
-          <a-input
-              v-if="returnVisibal"
-              ref="returnRef"
-              v-model:value="returnInput"
-              type="text"
-              size="small"
-              :style="{ width: '78px' }"
-              @blur="handleReturnConfirm"
-              @keyup.enter="handleReturnConfirm"
-          />
-          <a-tag
-          v-show="!returnVisibal && canEdit"
-           style="background: #fff; border-style: dashed"
-                  @click="showreturnInput">
-            <plus-outlined />
-            {{ $t('common.newTag') }}
-          </a-tag>
+      <a-form-item :label="$t('component.table.returnType')" name="returnType">
+        <a-select
+            :disabled="!canEdit"
+            v-model:value="modelstates.returnType"
+            :options="returnTypeOptions"
+            style="width: 120px;"
+        ></a-select>
         </a-form-item>
 
       <a-form-item
