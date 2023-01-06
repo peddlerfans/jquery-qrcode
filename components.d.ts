@@ -53,6 +53,7 @@ declare module '@vue/runtime-core' {
     EchartsModel: typeof import('./src/components/EchartsModel.vue')['default']
     InputSelectItem: typeof import('./src/components/basic/itea-schema-item/input-select-item.vue')['default']
     InputTable: typeof import('./src/components/inputTable.vue')['default']
+    IteaTree: typeof import('./src/components/itea-tree.vue')['default']
     JsonSchemaForm: typeof import('./src/components/JsonSchemaForm.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']

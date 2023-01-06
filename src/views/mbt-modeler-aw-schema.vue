@@ -4,7 +4,7 @@ import {
   watch,
   onMounted,
   computed,
-inject
+  inject
 } from 'vue'
 import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
@@ -124,6 +124,9 @@ const formProps = {
   labelSuffix: ':',
 }
 
+let assertDesc = ref<string>('')
+let assertList = ref<Array<any>>([])
+
 const hasExpected = computed(() => {
   return !_.isEmpty(store.getExpectedAw.schema)
 })
@@ -182,6 +185,7 @@ function deletePrimary() {
     uiParams: null
   })
   emit('change')
+  getAllCustomVar()
 }
 
 function deleteExpected() {
@@ -224,16 +228,15 @@ function showAw (row: any) {
       appEndedSchema.forEach((field: any) => {
         Object.assign(schema.value.properties, field)
       })
-      
     }
-    if (row.returnType) {
-      Object.assign(schema.value.properties, {
-        variable: {
-          title: '变量',
-          type: 'string'
-        }
-      })
-    }
+    // if (row.returnType) {
+    //   Object.assign(schema.value.properties, {
+    //     variable: {
+    //       title: '变量',
+    //       type: 'string'
+    //     }
+    //   })
+    // }
     // schema添加path
     Object.assign(schema.value.properties, {
         path: {
@@ -241,15 +244,15 @@ function showAw (row: any) {
           type: 'string',
           readOnly:'true'
         }
-      })
-
+      }
+    )
     setSchema('primary')
     schema.value = getSchema(schema.value, row)
     store.setEditingPrimaryAw(schema.value, 'schema')
     store.setEditingPrimaryAw(schemaValue.value, 'data')
     store.setEditingPrimaryAw(primaryUiSchema.value, 'uiParams')
+    getAllCustomVar()
   } else if (selectAwTar === '2') {
-    // debugger
     expectedSchema.value = _.cloneDeep(defaultAWSchema)
     store.setExpectedTableRow(row)
     expectedSchemaValue.value = {
@@ -271,14 +274,14 @@ function showAw (row: any) {
         Object.assign(expectedSchema.value.properties, field)
       })
     }
-        // schema添加path
-        Object.assign(expectedSchema.value.properties, {
-        path: {
-          title: 'path',
-          type: 'string',
-          readOnly:'true'
-        }
-      })
+    // schema添加path
+    Object.assign(expectedSchema.value.properties, {
+      path: {
+        title: 'path',
+        type: 'string',
+        readOnly:'true'
+      }
+    })
     
     setSchema('expected')
     expectedSchema.value = getEXpectedSchema(expectedSchema.value, row)
@@ -328,19 +331,23 @@ function handleChange () {
   // console.log("...........handleChange",expectedSchema.value )
   if (!isEmptyPrimarySchema.value) store.setEditingPrimaryAw(schemaValue.value, 'data')
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
-  const _desc = desc.value
-  store.setDescription(_desc)
+  if(desc.value == ""){
+    store.setDescription('')
+  }else{
+    store.setDescription(desc.value)
+  }
   emit('change')
+  getAllCustomVar()
 }
 
 function handleData () {
+  desc.value = store.getDescription
   // debugger
   if (store.getPrimaryAw.schema) {
     schema.value = store.getPrimaryAw.schema
     schema.value = getSchema(schema.value)
     schemaValue.value = store.getPrimaryAw.data || {}
     primaryUiSchema.value = store.getPrimaryAw.uiParams || {}
-    // console.log(schema.value,schemaValue.value);
     setSchema('primary')
   } else {
     initPrimarySchema()
@@ -354,18 +361,18 @@ function handleData () {
   } else {
     initExpectedSchema()
   }
-  // getAllCustomVar()
 }
 
 function getAllCustomVar () {
   const cell = store.getShowData
+  if (_.isEmpty(cell)) return
   let arr = cell.graph.getCells()
   arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
   let temp: Array<any> = []
   arr.forEach((b: any) => {
-    const schema = b.attributes.props?.custom?.step?.schema
-    const schemaVal = b.attributes.props?.custom?.step?.data
-    if (schema?.value?.properties?.variable && schemaVal?.variable) {
+    const schema = b.attributes.prop?.custom?.step?.schema
+    const schemaVal = b.attributes.prop?.custom?.step?.data
+    if (schema?.properties?.variable && schemaVal?.variable) {
       temp.push({
         label: schemaVal?.variable,
         value: schemaVal?.variable,
@@ -373,7 +380,7 @@ function getAllCustomVar () {
       })
     }
   })
-  console.log(temp)
+  assertList.value = temp
 }
 
 const keys = 1
@@ -390,17 +397,22 @@ let rulesData = ref([{
   ],
   children: [],
 }])
-let formDatas = ref([
-  {
-    label: 'xx',
-    value: 'xx',
-    type: 'string'
-  }
-])
-let valueData = ref([{"name":"Memory","type":"string","values":["4G","2G","6G"]},{"name":"GPU","type":"number","values":[8,32,16]},{"name":"DPI","type":"string","values":["1080P","2K"]},{"name":"key","type":"number","values":[0,1,2,3,4,5,6,7,8]}])
+
 function rulesChange() {
 
 }
+
+const assertShow = computed(() => {
+  return !hasExpected.value && assertList.value.length
+})
+
+function clearAssertData() {
+
+}
+
+watch(assertShow, (val) => {
+  if (!val) clearAssertData()
+})
 
 defineExpose({
   initSchema,
@@ -502,7 +514,7 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-<!--        <div class="setting-assert">-->
+<!--        <div class="setting-assert" v-show="assertShow">-->
 <!--          <div>-->
 <!--            <div class="title">断言描述：</div>-->
 <!--            <a-input v-model:value="assertDesc"></a-input>-->
@@ -510,8 +522,7 @@ defineExpose({
 <!--          <div class="title">设置断言：</div>-->
 <!--          <mbt-modeler-condition-edit-->
 <!--            :keys="keys"-->
-<!--            :formDatas="formDatas"-->
-<!--            :valueData="valueData"-->
+<!--            :formDatas="assertList"-->
 <!--            :rulesData="rulesData"-->
 <!--            @rulesChange="rulesChange"-->
 <!--          ></mbt-modeler-condition-edit>-->

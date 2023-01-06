@@ -5,6 +5,7 @@ import  {SearchBar}  from "@/components/basic/search-bar";
 import  {CommonTable}  from "@/components/basic/common-table";
 import _ from "lodash";
 import {uuid} from "@/utils/Uuid";
+import {objToArr} from "@/utils/treeData";
 const emit = defineEmits(['clickRow', 'closeModal'])
 
 let treeData = ref<any>([])
@@ -74,30 +75,6 @@ function getTreeData () {
   http.get('/api/hlfs/_tree').then(({data}) => {
     treeData.value = objToArr(data)
   })
-}
-
-// 数据格式化的函数
-function objToArr(obj: any) {
-  const arr = []
-  if (_.isObject(obj)) {
-    for (let i in obj) {
-      let oo: any = {
-        title: i,
-        key: uuid(),
-        children: objToArr(obj[i as keyof typeof objToArr])
-      };
-      if(i === ""){
-        i = "/"
-        oo = {
-          title: i,
-          key: uuid(),
-          children: objToArr(obj["" as keyof typeof objToArr])
-        }
-      }
-      arr.push(oo)
-    }
-  }
-  return arr
 }
 
 function showAw (row: any) {

@@ -32,6 +32,11 @@ import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
 import { VAceEditor } from 'vue3-ace-editor';
 import "./componentTS/ace-config";
+import { generateSchema } from "@/utils/jsonschemaform";
+import { data2schema } from "./componentTS/schema-constructor";
+import { throttle } from "lodash-es";
+import { fitAncestors } from "@/utils/jointFun"
+
 
 
 const store = MBTStore()
@@ -162,6 +167,41 @@ const globalschema = ref({
   },
 });
 
+let schemaValue :any = ref({})
+let schema = ref({
+    title: "AW",
+  type: "object",
+  description: '',
+  properties: {
+    _id: {
+      type: "string",
+      "ui:hidden": true,
+      required: true,
+    },
+    name: {
+      title: "AW Name",
+      type: "string",
+      readOnly: true,
+    },
+    description: {
+      title: "Description",
+      type: "string",
+      readOnly: true,
+      "ui:widget": "TextAreaWidget",
+    },
+    template: {
+      title: "Template",
+      type: "string",
+      readOnly: true,
+    },
+    tags: {
+      title: "Tags",
+      type: "string",
+      readOnly: true,
+    },
+  }
+  })
+  let primaryUiSchema = ref({})
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value=true
@@ -174,7 +214,7 @@ const handleRadioChange: any = (v: any) => {
 
 // 保存动态模板的函数
 const handleDynamicTable = (data: any) => {
-  console.log(data);
+  // console.log(data);
   
 };
 
@@ -238,9 +278,8 @@ watch(resourcesdataSource.value ,(newval:any)=>{
 function globalhandlerSubmit(data?:any) {
 
 }
+
 function attrsChange(){
-  console.log(132123123123);
-  
   store.saveattr(globalformData.value);
 }
 
@@ -302,10 +341,7 @@ const lagacyShapeTypeMapping:any = {
 }
 
 function getShapeTypeMapping(shapeType:string) {
-  // if (!lagacyShapeTypeMapping[shapeType] ) {
-  //   console.log("============",shapeType)
-  // }
-return  lagacyShapeTypeMapping[shapeType] || shapeType
+  return  lagacyShapeTypeMapping[shapeType] || shapeType
 }
 function transformCells(mbtData:any){
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
@@ -327,27 +363,91 @@ function transformCells(mbtData:any){
     return cell
 
    })
-   console.log('cells:',cells)
    return {cells};
-
 }
 
+function getSchema (schema: any, row?: any) {
+  const nameProp = schema.properties.name
+  const descProp = schema.properties.description
+  const tempProp = schema.properties.template
+  const tagsProp = schema.properties.tags
+  const pathProp = schema.properties.path
+  if (nameProp) delete schema.properties.name
+  if (descProp) delete schema.properties.description
+  if (tempProp) delete schema.properties.template
+  if (tagsProp) delete schema.properties.tags
+  if (pathProp) delete schema.properties.path
+  schema.title = row ? row.name : storeAw.getPrimaryAw.data?.name || ''
+  schema.description = row ? row.description : storeAw.getPrimaryAw.data?.description || ''
+  return schema
+}
+
+function awUiParams(row: any){
+   schemaValue.value = {
+      name: row.name,
+      description: row.description,
+      tags: '',
+      template: row.template,
+      _id: row._id,
+      path:row.path
+    }
+
+    if (_.isArray(row.tags)) {
+      _.forEach(row.tags, function (value: any) {
+        schemaValue.value.tags += value + " "
+      })
+    }
+    if (_.isArray(row.params) && row.params.length > 0) {
+      let appEndedSchema = generateSchema(row.params)
+      appEndedSchema.forEach((a: any) => {
+        Object.keys(a).forEach((b: any) => {
+          a[b].custom = 'awParams'
+        })
+      })
+      appEndedSchema.forEach((field: any) => {
+        Object.assign(schema.value.properties, field)
+      })
+      
+    }
+    if (row.returnType) {
+      Object.assign(schema.value.properties, {
+        variable: {
+          title: '变量',
+          type: 'string'
+        }
+      })
+    }
+    let temp :any = {}
+    temp = data2schema(schema.value, primaryUiSchema.value)
+    schema.value = temp.schema
+    primaryUiSchema.value = temp.uiSchema
+    schema.value = getSchema(schema.value, row)
+    return {schema , primaryUiSchema ,schemaValue}
+}
+
+
 function getProperty(cell:any,mbtData:any){
-  // if(cell.prop) return cell.prop;
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
-    // console.log("ccccoooo",mbtData.modelDefinition.props[cell.id]?.props?.label, mbtData.modelDefinition.props[cell.id]?.props?.ruleData)
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
   }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
+    let awData:any = {}
+    if(awprop.aw){
+      awData = awUiParams(awprop.aw)
+    }    
     awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
-    Object.assign(prop.custom,{step : awprop})
+    Object.assign(prop.custom,{step : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
   } 
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
+    let awData:any = {}
+    if(awprop.aw){
+      awData = awUiParams(awprop.aw)
+    }
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
-    Object.assign(prop.custom,{expectation : awprop})
+    Object.assign(prop.custom,{expectation : {data:awData.schemaValue.value,schema:awData.schema.value,uiParams:awData.primaryUiSchema.value}})
   } 
    return prop
 
@@ -383,8 +483,24 @@ onMounted(async () => {
     new KeyboardService()
   )
   rappid.startRappid()
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+  // 屏蔽浏览器自导ctrl+s 功能
+  document.onkeydown = function (e :any) { 
+	         e=window.event||e; 
+           var key=e.keyCode;
+             if(key== 83 && e.ctrlKey){
+            	   /*延迟，兼容FF浏览器  */
+            	    setTimeout(function(){        		  
+            	   },1); 
+                    return false;      
+       		    }    
+           };
 
+  const keyboard = rappid.keyboardService.keyboard
+
+  keyboard.on({'ctrl+s' : () => {
+    throttle(function(){saveMbt()},2000)()
+  }})
+  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
     // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
@@ -392,6 +508,7 @@ onMounted(async () => {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
   }
   rappid.graph.on("add", function (el: any) {
+    fitAncestors(el)
     storeAw.resetEditingExpectedAw()
     storeAw.setData(el)
     if (el && el.hasOwnProperty("id")) {
@@ -400,6 +517,8 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log(elementView.model);
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -411,22 +530,25 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
     });
-  rappid.graph.on('change', function (evt) {
-    console.log(1)
-    leaveRouter.value = true
-  })
+
 store.setRappid(rappid)
 rappid.toolbarService.toolbar.on({
   'save:pointerclick': saveMbt.bind(this),
   'preview:pointerclick': preview.bind(this),
   'reload:pointerclick': reload.bind(this),
   'chooseTem:pointerclick': chooseTem.bind(this),
-  // 'preview:pointerclick': this.showPreview.bind(this)
+})
+rappid.paper.on('blank:pointerdblclick' ,() => {
+  isGlobal.value=true
 })
 })
 // 离开路由时调用
-onBeforeRouteLeave((to,form,next) => {
-    
+onBeforeRouteLeave((to, form, next) => {  
+    if (rappid.commandManager.undoStack.length > 0) {
+      leaveRouter.value = true
+    } else {
+      leaveRouter.value = false
+    }
   if(leaveRouter.value){
     Modal.confirm({
         icon: createVNode(ExclamationCircleOutlined),
@@ -453,7 +575,6 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
 
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
   if (rst.data) {
-    // console.log('rst:', rst.data)
     return rst.data;
   }
 }
@@ -481,8 +602,6 @@ async function reload(){
     awDatas.then((aws) => {
       const awById = _.groupBy(aws, "_id")
       newProp.forEach((obj: any) => {
-        console.log(obj.prop);
-        
       if (obj.prop.step?.data?._id) {
         if (awById[obj.prop.step?.data?._id]) {
           obj.prop.step.data = awById[obj.prop.step?.data?._id][0]
@@ -538,7 +657,7 @@ async function querycode(){
       }
       previewcol.value.push(objJson)
     })
-    previewcol.value.push({title:"action",dataIndex:"action",key:"action"})
+    previewcol.value.push({title:"action",dataIndex:"action",key:"action", width: '120px'})
     previewData.value=rst.results.map((item:any)=>{
       if(item.script){
         Object.assign(item.json,{script:item.script})
@@ -603,9 +722,34 @@ function handleChange(str: string, data: any) {
     }
   }
 }
-
+let startX: number;
+let startWidth: number;
+const scalable = ref<HTMLDivElement>();
+const scalableLeft = ref<HTMLDivElement>();
+const scalableN = ref<HTMLDivElement>();
 let expandRowKeys = ref<any>([])
-
+const onDrag = throttle(function (e: MouseEvent) {
+  let w=window.innerWidth
+|| document.documentElement.clientWidth
+|| document.body.clientWidth;
+  scalable.value && (scalable.value.style.width = `${w - e.clientX}px`);
+  scalableN.value && (scalableN.value.style.width = `${w - e.clientX}px`);
+  scalableLeft.value && (scalableLeft.value.style.width = `${startWidth + e.clientX - startX}px`);
+  
+}, 20);
+  const startDrag = (e: MouseEvent) => {
+    // debugger
+    startX = e.clientX;
+    scalableLeft.value && (startWidth = parseInt(window.getComputedStyle(scalableLeft.value).width, 10));
+    document.documentElement.style.userSelect = 'none';
+    document.documentElement.addEventListener('mousemove', onDrag);
+    document.documentElement.addEventListener('mouseup', dragEnd);
+  };
+  const dragEnd = () => {
+    document.documentElement.style.userSelect = 'unset';
+    document.documentElement.removeEventListener('mousemove', onDrag);
+    document.documentElement.removeEventListener('mouseup', dragEnd);
+  };
 
 // 工具栏
 
@@ -613,29 +757,38 @@ let expandRowKeys = ref<any>([])
 
 <template>
   <main class="joint-app joint-theme-modern" ref="apps">
+
         <div class="app-header">
           <div class="toolbar-container">
             
           </div>
         </div>
           <div class="app-body">
-            <div ref="stencils" class="stencil-container"/>
-            <div class="paper-container"/>
-            <div class="AwtabInspector" v-show="showpaper">
-              <ul class="tab_ul">
-                    <!-- <li v-if="!show">样式修改</li> -->
-                    <li
-                    v-if="true"
-                    >数据编辑</li>
-                    <div style="clear:both;"></div>
-              </ul>
+            <div  class="mbtScalable"  ref = "scalableLeft">
+              <div calss="left">
+                <div ref="stencils" class="stencil-container"/>
+                <div class="paper-container"/>
+              </div>
+
+              <div ref="separator" class="mbtSeparator" @mousedown="startDrag"><i calss="mbtI"></i><i calss="mbtI"></i></div>
+            </div>
+            <div class="mbtRight"  ref = "scalable">
+              <div class="AwtabInspector" v-show="showpaper">
+                <ul class="tab_ul">
+                      <!-- <li v-if="!show">样式修改</li> -->
+                      <li
+                      v-if="true"
+                      >数据编辑</li>
+                      <div style="clear:both;"></div>
+                </ul>
               <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
               <div class="dataStyle">
                 <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
               </div>
+              </div>
+              <div class="navigator-container" ref = "scalableN"/>
             </div>
-        <!-- <div v-show="!show || !showGroup || !showSection || !showLink" class="inspector-container"></div> -->
-            <div class="navigator-container"/>
+            
           </div>
 
 
@@ -645,7 +798,8 @@ let expandRowKeys = ref<any>([])
           :footer="null"
           :keyboard="true"
           :mask-closable="true"
-          width="1280"
+          width="70%"
+            centered
           class="previewModel"
           @cancel="cencelpreview"
           >
@@ -654,7 +808,7 @@ let expandRowKeys = ref<any>([])
               :data-source="previewData"
               :pagination="{pageSize:5}"
               bordered
-              :rowKey="(record: any, index) => record.id + index"
+              :rowKey="(record: any) => record.id"
               class="previewclass"
               :defaultExpandAllRows="true"
               :expandIconColumnIndex="-1"
@@ -662,7 +816,7 @@ let expandRowKeys = ref<any>([])
             <template #expandedRowRender="{record, index}">
               <VAceEditor
                 v-show="expandRowKeys.includes(record.id + index)"
-                style="width: 100%;height: 240px;"
+                style="width: 100%;height: 300px;"
                 v-model:value="record.script"
                 class="ace-result"
                 :wrap="softwrap"
@@ -867,7 +1021,7 @@ let expandRowKeys = ref<any>([])
 </a-modal>
 </template>
 
-<style lang="scss">
+<style lang="scss" >
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
@@ -918,16 +1072,20 @@ let expandRowKeys = ref<any>([])
 
 
 .AwtabInspector{
-    position: absolute;
+    display: flex;
+    flex-direction: column;
     top: 0;
     right: 0;
     bottom: 120px;
-    width: 300px;
+    width: 100%;
     box-sizing: border-box;
+    height: -moz-calc(100% - 120px);
+    height: -webkit-calc(100% - 120px);
+    height: calc(100% - 120px);
     .dataStyle{
     top: 50px;
     display: block;
-    position: absolute;
+    flex: 1;
     bottom: 0;
     width: 100%;
     overflow: auto;

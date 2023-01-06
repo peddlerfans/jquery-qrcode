@@ -8,7 +8,7 @@ import { KeyboardService } from "./keyboard"
 import * as appShapes from './app-shapes';
 import { MBTShapeInterface } from './customElements/MBTShapeInterface';
 import { MBTLink, MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
-
+import { fitAncestors } from "@/utils/jointFun"
 class MbtServe {
     el !: any;
     graph!: joint.dia.Graph;
@@ -26,7 +26,9 @@ class MbtServe {
     haloService !: HaloService;
     InspectorService !: InspectorService;
     keyboardService !: KeyboardService;
+    setcell: any;
     constructor(
+
         el: any,
         stencilService: StencilService,
         toolbarService: ToolbarService,
@@ -37,10 +39,12 @@ class MbtServe {
         this.el = el;
         // apply current joint js theme
         const view = new joint.mvc.View({ el });
+
         view.delegateEvents({
             'mouseup input[type="range"]': (evt) => evt.target.blur()
         });
-
+        // var Container = joint.shapes.Container.Parent;
+        // var Child = joint.shapes.Container.Child;
         this.stencilService = stencilService;
         this.toolbarService = toolbarService;
         this.haloService = haloService;
@@ -80,6 +84,8 @@ class MbtServe {
         // this.paper.on('blank:pointerdown', (evt: joint.dia.Event, x: number, y: number) => {
 
         //     if (keyboard.isActive('shift', evt)) {
+        //         console.log(123);
+
         //         this.selection.startSelecting(evt);
         //     } else {
         //         this.selection.collection.reset([]);
@@ -233,7 +239,7 @@ class MbtServe {
         });
 
         this.commandManager = new joint.dia.CommandManager({ graph: graph });
-        // console.log(' appShapes.shapes 238:', appShapes.shapes)
+
         const paper = this.paper = new joint.dia.Paper({
             width: 1100,
             height: 1000,
@@ -274,6 +280,18 @@ class MbtServe {
                 this.renderContextToolbar({ x: evt.clientX, y: evt.clientY }, [cellView.model]);
             }
         });
+        paper.on('element:pointerdown', (elementView) => {
+            // console.log(1231212);
+            // this.setcell = elementView.model
+            var element: any = elementView.model;
+            // element.toggle();
+            fitAncestors(element);
+        });
+
+        paper.on('element:pointerup', (elementView) => {
+            var element = elementView.model;
+            fitAncestors(element);
+        });
 
         this.snaplines = new joint.ui.Snaplines({ paper: paper });
 
@@ -309,14 +327,14 @@ class MbtServe {
         stencilService.setShapes();
 
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
-            var type = elementView.model?.get('type');
-            if (type == 'itea.mbt.test.MBTAW') {
-                elementView.model?.set('size', { width: 100, height: 30 })
-            } else if (type == 'itea.mbt.test.MBTGroup') {
-                elementView.model?.set('size', { width: 150, height: 100 })
-            } else if (type == 'itea.mbt.test.MBTSection') {
-                elementView.model?.set('size', { width: 150, height: 100 })
-            }
+            // var type = elementView.model?.get('type');
+            // if (type == 'itea.mbt.test.MBTAW') {
+            //     elementView.model?.set('size', { width: 100, height: 30 })
+            // } else if (type == 'itea.mbt.test.MBTGroup') {
+            //     elementView.model?.set('size', { width: 150, height: 100 })
+            // } else if (type == 'itea.mbt.test.MBTSection') {
+            //     elementView.model?.set('size', { width: 150, height: 100 })
+            // }
             this.selection.collection.reset([elementView.model]);
         });
     }
@@ -324,7 +342,6 @@ class MbtServe {
     initializeToolbar() {
 
         this.toolbarService.create(this.commandManager, this.paperScroller);
-        // console.log(this.toolbarService);
 
         this.toolbarService.toolbar.on({
             'svg:pointerclick': this.openAsSVG.bind(this),

@@ -161,7 +161,6 @@ const states = reactive<AceState>({
   lang: 'json',
   result: '',
 });
-// console.log(states.theme);
 
 
 onMounted(() => {
@@ -178,9 +177,6 @@ onMounted(() => {
 async function query(id?: any) {
   try {
     let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
-
-    console.log('query')
-    // console.log(res)
 
     modelState._id = res._id
     modelState.name = res.name
@@ -207,18 +203,22 @@ async function query(id?: any) {
 
   } catch (e) {
     message.error("Query failed!")
-    console.log(e)
   }
-
-  console.log("modelState.model.history")
-  console.log(modelState.model)
-  console.log("############")
-  console.log(aceTemplate.value?._editor)
 
   setTimeout(()=> {
     // aceTemplate.value?._editor.setValue(modelState.templateText)
     aceTemplate.value?._editor.getSession().setUndoManager(new ace.UndoManager())
   }, 0)
+  /**
+   * 修复VACEEditor光标错位问题
+   * 定位不到具体问题
+   * 临时处理方法
+   * */
+  setTimeout(() => {
+    let dom: any = document.getElementsByClassName('ace_editor')
+    dom[0].style.fontSize = '14px'
+    dom[1].style.fontSize = '14px'
+  }, 10)
 
 
 
@@ -251,9 +251,6 @@ const saveModel = async () => {
       }
   )
 
-  console.log("saveModel")
-  console.log(modelState)
-
   if (modelState.model.history.length>10) modelState.model.history.splice(-1)
 
   if (modelState.templateText){
@@ -273,18 +270,13 @@ const saveModel = async () => {
     anno.setAnnotations([])
 
     try {
-      // console.log("Preview "+route.params._id)
-      // console.log(toRaw(modelState.model.data))
       let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
-      // console.log(res);
       
 
       states.result=res.data
       message.success("Preview successful!")
 
     }catch (err:any){
-      console.log("catch preview error: ")
-      console.log(err)
 
       let allErr=anno.getAnnotations()
 
@@ -316,8 +308,6 @@ let inputData = ref<string>('')
 
 watch(inputData,(newValue,oldValue)=>{
   modelState.model.data = JSON.parse(newValue)
-  console.log("##")
-  console.log(toRaw(modelState.model.data))
 })
 
 
@@ -330,7 +320,6 @@ const showModal = () => {
 };
 
 const handleOk = (e: MouseEvent) => {
-  console.log(e);
   visible.value = false;
 };
 
@@ -464,7 +453,7 @@ const softwrap=true
 
     <h2 style="margin-top:30px">History</h2>
 
-    <a-table :columns="columns" :data-source="modelState.model.history" bordered>
+    <a-table :columns="columns" :data-source="modelState.model?.history || []" bordered>
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
@@ -519,6 +508,7 @@ footer {
   border: 1px solid;
   height: 70vh;
 }
+
 </style>
 <style>
 
