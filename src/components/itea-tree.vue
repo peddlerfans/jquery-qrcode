@@ -11,12 +11,15 @@ const emit = defineEmits(['select', 'addAW'])
 
 interface Props {
   treeUrl: string,
-  selectionList: any
+  selectionList: any,
+  rootPath:string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   treeUrl: '',
-  selectionList: []
+  selectionList: [],
+  rootPath : ''
+
 })
 
 let treeData = ref<Array<any>>([])
@@ -36,20 +39,32 @@ const addKey: any = (arr: any[]) => (arr??[]).map(item => ({
 }))
 
 function getTreeData() {
+  const path =props.rootPath
   const url = props.treeUrl
   if (!url) return
   http.get(url + '/_tree').then(({ data }) => {
+    console.log(data,path)
+
+    if(path){
+      path.split('/').forEach(p=>{
+        if(data[p]) {data = data[p]}
+        
+      })
+      data = {"":data}
+    }
+    
     treeData.value = addKey(objToArr(data))
   })
 }
 
 function onSelect(selectedKeys: any, info?: any) {
+
   if(info.node.dataRef.title === '/'){
     emit('select', '')
   } else {
-    let str = getPath(info.node.dataRef.title, treeData.value)
-    str = str.substring(1, str.length)
-    emit('select', `path:${str}`)
+    let str = getPath(info.node.dataRef.key, treeData.value)
+    str = str.substring(1, str.length)    
+    emit('select', `path:${props.rootPath||""}${str}`)
   }
 }
 
@@ -161,7 +176,7 @@ function getPathByKey(value: string, key: string, arr: string | any[]) {
 // 定义一个返回路径的函数
 function getPath(key:any, treeArr: any){
   let rst:any
-  let res = getPathByKey(key,'title', treeArr)
+  let res = getPathByKey(key,'key', treeArr)
   rst = res?.map((obj: any) => {
     return obj.title
   }).join('/')
