@@ -749,7 +749,7 @@ function closePreviewModal() {
 
 <template>
   <a-spin class="loading-wrap" tip="预览加载中" :spinning="spinning"></a-spin>
-  <main class="joint-app joint-theme-modern" ref="apps" :style="{opacity: spinning ? '.5' : '1', zIndex: spinning ? '7' : '9'}">
+  <main class="joint-app joint-theme-modern" ref="apps" :class="spinning ? 'show-spin' : 'hide-spin'">
 
     <div class="app-header">
       <div class="toolbar-container">
@@ -968,6 +968,16 @@ function closePreviewModal() {
   height: 100vh;
   position: absolute;
   z-index: 8;
+}
+
+.show-spin {
+  opacity: .5;
+  z-index: 7;
+}
+
+.hide-spin {
+  opacity: 1;
+  z-index: 9;
 }
 
 .app-header{
