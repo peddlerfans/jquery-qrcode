@@ -85,7 +85,6 @@ let selectoptions:any = ref([
   },
 ])
 const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-    console.log(selectedOptions);
       let rst = await request.get("/api/templates/_tags", { params: { q: "category:dynamic" } })
       const targetOption = selectedOptions[0];
       targetOption.loading = true

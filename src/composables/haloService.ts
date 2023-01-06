@@ -28,7 +28,8 @@ export class HaloService {
         new joint.ui.Halo({
             cellView,
             handles: haloConfig,
-            useModelGeometry: true
+            useModelGeometry: true,
+            
         }).render();
     }
 

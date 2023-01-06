@@ -151,7 +151,6 @@ function TimeTrans(timestamp: string | number | Date){
 // 需要的参数 start   end   interval（x轴时间间隔）
 async function query(){
   let rst:any=await request.post(dashboradUrl,search)
-  console.log(rst);
   
   if(rst){
     sendXdata.value=rst.map((item:any)=>{
@@ -226,7 +225,6 @@ const datachange=async (value:SelectValue)=>{
     search.interval="1d"
   }
   await query()
-  console.log(sendXdata.value,cpuData.value,memory.value,lineDatas.value,throughput.value);
 }
 
 
