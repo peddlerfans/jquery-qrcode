@@ -36,6 +36,8 @@ interface meta {
 interface cellsinfo {
   paperscale: any
   cellsinfo: any
+  props?:any
+  version?:any
 }
 
 interface mbtmodel {
@@ -215,10 +217,10 @@ export const MBTStore = defineStore('mbtmodel', {
       if(this.mbtData?.modelDefinition){
         Object.assign(this.mbtData?.modelDefinition , {version:data})
       }else{
-        this.mbtData['modelDefinition'] = {version:data}
+        Object.assign(this.mbtData['modelDefinition'] , {version:data})
       }      
-      if(this.mbtData.modelDefinition && this.mbtData.modelDefinition.props){
-        delete this.mbtData.modelDefinition.props
+      if(this.mbtData.modelDefinition && this.mbtData.modelDefinition?.props){
+        delete this.mbtData.modelDefinition?.props
       }
     },
   }
