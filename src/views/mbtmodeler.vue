@@ -538,7 +538,7 @@ rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
 if(rappid.graph.toJSON().cells.length > 0){
-  preview(true)
+  preview(false)
 }
 })
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
@@ -659,7 +659,7 @@ async function querycode(show?:boolean){
         script: item.script || ''
       }
     })
-    if(show){
+    if(!show){
       visiblepreciew.value = false
     }else{
       visiblepreciew.value = true
