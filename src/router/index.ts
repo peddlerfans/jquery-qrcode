@@ -89,6 +89,21 @@ export const routes: RouteRecordRaw[] = [
     ]
 
   },
+
+  {
+    path: '/mbtstoreembedded',
+    name: 'Mbtstoreembedded',
+    meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined },
+    children: [
+      {
+        path: 'index',
+        name: 'Mbtstoreembedded',
+        component: () => import('@/views/mbtstore.vue'),
+        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
+      }
+    ]
+
+  },
   {
     path: '/templatemanager',
     name: 'templatemanager',

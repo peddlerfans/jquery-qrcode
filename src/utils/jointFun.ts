@@ -1,6 +1,4 @@
 export function fitAncestors(element: any) {
-    console.log(element.getAncestors());
-
     var padding = 20;
     var headerHeight = 20;
     element.getAncestors().forEach(function (container: any) {
