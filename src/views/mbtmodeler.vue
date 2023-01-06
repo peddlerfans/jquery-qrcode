@@ -538,7 +538,7 @@ rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
 if(rappid.graph.toJSON().cells.length > 0){
-  preview(true)
+  preview(false)
 }
 })
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
@@ -575,7 +575,6 @@ onBeforeRouteLeave((to, form, next) => {
 
 // reload所有aw
 async function awqueryByBatchIds(ids: string ,perPage:number) {
-
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
   if (rst.data) {
     return rst.data;
@@ -659,7 +658,9 @@ async function querycode(show?:boolean){
         script: item.script || ''
       }
     })
-    if(show){
+    console.log(show);
+    
+    if(!show){
       visiblepreciew.value = false
     }else{
       visiblepreciew.value = true
