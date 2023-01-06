@@ -233,35 +233,35 @@ let 	minutes = endDate.getMinutes()
 
 const steps=ref<any>([
   {
-    title: 'Step 1',
+    title: 'dashboard.step1',
     description: 'dashboard.defineAW',
     content: 'dashboard.step1Content',
     name: 'dashboard.AWUnit',
     number: 0
   },
   {
-    title: 'Step 2',
+    title: 'dashboard.step2',
     description: 'dashboard.defineMBT',
     content: 'dashboard.step2Content',
     name: 'dashboard.metaTemp',
     number: 0
   },
   {
-    title: 'Step 3',
+    title: 'dashboard.step3',
     description: 'dashboard.defineData',
     content: 'dashboard.step3Content',
     name: ['dashboard.staticData','dashboard.dynamicData'],
     number: [0,0]
   },
   {
-    title: 'Step 4',
+    title: 'dashboard.step4',
     description: 'dashboard.defineTest',
     content: 'dashboard.step4Content',
     name: 'dashboard.MBTTemp',
     number: 0
   },
   {
-    title: 'Step 5',
+    title: 'dashboard.step5',
     description: 'dashboard.generateMBT',
     content: 'dashboard.step5Content',
     name: 'dashboard.codegenTemp',
@@ -317,7 +317,7 @@ const dataZoom=(val1:any,val2:any)=>{
       <div class="steps-div">
         <h2>{{ $t('dashboard.guide') }}</h2>
         <a-steps v-model:current="current">
-          <a-step v-for="item in steps" :key="item.title" :title="item.title" :description="$t(item.description)" />
+          <a-step v-for="item in steps" :key="item.title" :title="$t(item.title)" :description="$t(item.description)" />
         </a-steps>
         <div class="steps-content">
           <a-row type="flex" justify="center" align="top">
@@ -351,7 +351,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
 
       <a-row style="margin-top:2.25rem; ">
-      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
+      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data {{ $t('dashboard.dataMonitoring') }}</a-col>
       <a-col :span="5" style="display:flex">
           <a-select
           :options="options"

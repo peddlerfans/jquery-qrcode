@@ -15,13 +15,6 @@ const props = withDefaults(defineProps<Props>(), {
   show: false
 })
 
-let searchObj = {
-  url: '/api/hlfs/_tags',
-  params: {
-    q: 'category:meta'
-  }
-}
-
 watch(
     () => props.show,
     (val) => {
@@ -110,8 +103,7 @@ function onSelect (selectedKeys: any, info?: any) {
       @cancel="closeModal"
       :footer="null">
     <search-bar
-        :url="searchObj.url"
-        :params="searchObj.params"
+        url="/api/hlfs/_tags"
         @search="search"
     ></search-bar>
     <div class="content-wrap">

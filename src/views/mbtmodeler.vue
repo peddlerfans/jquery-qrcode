@@ -202,7 +202,7 @@ let schema = ref({
   })
 // 选择模板的函数
 const chooseTem = () => {
-    isGlobal.value=true
+    isGlobal.value = true
 }
 
 // 选择动态，静态模板的函数
@@ -617,9 +617,9 @@ const saveMbt = () => {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false
       storeAw.setIfsaveMbt(false)
-          return message.success('保存成功')
+          return message.success(t('common.saveSuccess'))
         }).catch(() => {
-          return message.error('保存失败')
+          return message.error(t('common.saveError'))
         })
   }
 }
@@ -653,7 +653,7 @@ async function querycode(show?:boolean){
     
     store.showPreview(false)    
   }
-  }).catch((err)=>{    
+  }).catch((err)=>{
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
@@ -735,7 +735,8 @@ function closePreviewModal() {
 </script>
 
 <template>
-  <main class="joint-app joint-theme-modern" ref="apps">
+  <a-spin class="loading-wrap" tip="预览加载中" :spinning="spinning"></a-spin>
+  <main class="joint-app joint-theme-modern" ref="apps" :class="spinning ? 'show-spin' : 'hide-spin'">
 
     <div class="app-header">
       <div class="toolbar-container">
@@ -943,6 +944,28 @@ function closePreviewModal() {
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
+
+// 遮罩层样式
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100vh;
+  height: 100vh;
+  position: absolute;
+  z-index: 8;
+}
+
+.show-spin {
+  opacity: .5;
+  z-index: 7;
+}
+
+.hide-spin {
+  opacity: 1;
+  z-index: 9;
+}
 
 .app-header{
   background-color: #717D98;

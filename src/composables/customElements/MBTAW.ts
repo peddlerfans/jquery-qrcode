@@ -34,7 +34,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
-        debugger
+        
         const desc = this.get('prop')?.custom?.description
         let primaryDesc :string
         let expectedDesc :string

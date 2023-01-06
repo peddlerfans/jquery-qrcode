@@ -227,7 +227,7 @@ const clearValida =()=>{
               v-if="cascder"
               :load-data="loadData"
               v-model:value="selectvalue"
-              placeholder="Please select"
+              :placeholder="$t('common.selectTip')"
               :options="selectoptions"
               @change="onSelectChange"
               ></a-cascader>

@@ -27,6 +27,7 @@ import { Rule } from "ant-design-vue/es/form";
 import { PlusOutlined, EditOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import { CommonTable } from '@/components/basic/common-table'
+import { SearchBar } from '@/components/basic/search-bar'
 import http from "@/utils/http";
 import {Table} from "ant-design-vue";
 
@@ -101,17 +102,6 @@ const formState: UnwrapRef<FormState> = reactive({
 
 let mbtId = ref("");
 
-/**
- * Search the result
- */
-const handleFinish: FormProps["onFinish"] = (values: any) => {
-  tableParams.value.page = 1
-  queryTableData()
-};
-const handleFinishFailed: FormProps["onFinishFailed"] = (errors: any) => {
-  console.log(errors);
-};
-
 const showModal = () => {
   MBTTable.value.createNewRow({
     name: '',
@@ -121,47 +111,6 @@ const showModal = () => {
 };
 
 let searchInput = ref()
-let cascder = ref(false)
-let selectvalue:any = ref("")
-let selectoptions:any = ref([
-   {
-    value: 'tags:',
-    label: 'tags:',
-    isLeaf: false,
-  },
-  {
-    value: 'name:',
-    label: 'name:',
-
-  },
-])
-const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-      let rst = await request.get("/api/test-models/_tags", { params: { q: "category:meta" } })
-      const targetOption = selectedOptions[0];
-      targetOption.loading = true
-        if (rst.length > 0) {
-          rst = rst.map((item: any) => ({ value: item, label: item }))
-          targetOption.children = rst
-        }
-        targetOption.loading = false;
-        selectoptions.value = [...selectoptions.value];
-    };
-const onSelectChange = async (value: any) => {
-  if (value) {
-    let reg = new RegExp("," ,"g")
-    formState.search += value.toString().replace(reg,'')
-  }
-  selectvalue.value = ''
-  cascder.value = false
-  nextTick(() => {
-    searchInput.value.focus()
-  })
-}
-const inputChange = (value: any) => {
-  if (tableParams.value.search == "@") {
-    cascder.value = true
-  }
-}
 
 
 let checkName = async (_rule: Rule, value: string) => {
@@ -279,13 +228,19 @@ function handleAddAW(path: string) {
           let tableData = MBTTable.value.getTableData()
           tableData = tableData.filter((a: any) => !selectList.includes(a))
           MBTTable.value.setTableData(tableData)
-          if (res) {message.success("Modification succeeded")}
+          if (res) {message.success(t('common.modificationSuccess'))}
         })
-        .catch(()=>{message.error("Modification failed")})
+        .catch(()=>{message.error(t('common.modificationError'))})
         .finally(() => MBTTable.value.loading = false)
   } else {
-    message.warning("Please select the Aw to be added")
+    message.warning(t('awModeler.selectAwTip'))
   }
+}
+
+function handleSearch(keyword: string) {
+  tableParams.value.page = 1
+  tableParams.value.search = keyword
+  queryTableData()
 }
 
 </script>
@@ -301,35 +256,7 @@ function handleAddAW(path: string) {
           <!-- 表单的查询 -->
           <a-row>
             <a-col :span="20">
-              <AForm
-                  layout="inline"
-                  class="search_form"
-                  :model="tableParams"
-                  @finish="handleFinish"
-                  @finishFailed="handleFinishFailed"
-                  :wrapper-col="{ span: 24 }"
-              >
-                <a-col :span="20">
-                  <a-input v-model:value="tableParams.search"
-                           :placeholder="$t('awModeler.inputSearch1')"
-                           @change="inputChange"
-                           ref="searchInput"
-                  >
-                  </a-input>
-                  <a-cascader
-                      v-if="cascder"
-                      :load-data="loadData"
-                      v-model:value="selectvalue"
-                      placeholder="Please select"
-                      :options="selectoptions"
-                      @change="onSelectChange"
-                  ></a-cascader>
-                </a-col>
-
-                <a-col :span="4">
-                  <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
-                </a-col>
-              </AForm>
+              <search-bar url="/api/test-models/_tags" @search="handleSearch"></search-bar>
             </a-col>
             <a-col :span="4">
               <a-button type="primary" @click="showModal">

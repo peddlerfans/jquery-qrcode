@@ -19,6 +19,7 @@ import { nodeListProps } from 'ant-design-vue/lib/vc-tree/props';
 import { Key } from 'ant-design-vue/es/_util/type';
 import awModeler from "@/locales/lang/zh-CN/routes/awModeler";
 import { CommonTable } from '@/components/basic/common-table'
+import { SearchBar } from '@/components/basic/search-bar'
 import router from '@/router';
 
 const { t } = useI18n()
@@ -132,65 +133,12 @@ const formState: UnwrapRef<FormState> = reactive({
   q:'',
   search:''
 });
-// 表单提交成功时的回调
-const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  if (clickKey.path) {
-    formState.q = `path:${clickKey.path}`
-  }
-  await query(formState)
-};
-// 表单提交失败时的回调
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {};
+
 // 模态窗数据
 const visible = ref<boolean>(false);
 const showModal = () => {
   visible.value = true;
 };
-
-let searchInput = ref()
-let cascder = ref(false)
-let selectvalue:any = ref("")
-let selectoptions:any = ref([
-  {
-    value: 'tags:',
-    label: 'tags:',
-    isLeaf: false,
-  },
-  {
-    value: 'name:',
-    label: 'name:',
-
-  },
-])
-const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-  let rst = await request.get("/api/hlfs/_tags", { params: { q: "category:meta" } })
-  const targetOption = selectedOptions[0];
-  targetOption.loading = true
-  if (rst.length > 0) {
-    rst = rst.map((item: any) => ({ value: item, label: item }))
-    targetOption.children = rst
-  }
-  targetOption.loading = false;
-  selectoptions.value = [...selectoptions.value];
-};
-const onSelectAwChange = async (value: any) => {
-  if (value) {
-    let reg = new RegExp("," ,"g")
-    formState.search += value.toString().replace(reg,'')
-  }
-  selectvalue.value = ''
-  cascder.value = false
-  nextTick(() => {
-    searchInput.value.focus()
-  })
-}
-const inputChange = (value: any) => {
-  if (formState.search == "@") {
-    cascder.value = true
-  } else {
-    cascder.value = false
-  }
-}
 
 let disable=ref(true)
 
@@ -305,21 +253,13 @@ let checkDesc = async (_rule: Rule, value: string) => {
     }else{
       return Promise.resolve();
     }
-    // }
-    // }
-
   }
 
 }
 let checktem = async (_rule: Rule, value: string) => {
-  // let reg=/^[a-zA-Z\_$][a-zA-Z\d_]*$/
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
-  }else{
   }
-  // else if(!reg.test(value)){
-  //     return Promise.reject('The AW name is not standardized')
-  // }
   disable.value=false
 }
 let rules: Record<string, Rule[]> = {
@@ -335,8 +275,6 @@ const handleOk = (data: any) => {
   })
 // onFinishForm(modelstates)
 };
-const onFinishForm =  (modelstates: any) => {}
-const onFinishFailedForm = (errorInfo: any) => {};
 // 添加的表单tags
 let inputRef = ref();
 let states = reactive<statesTs>({
@@ -621,7 +559,6 @@ const onExpand = (keys: any) => {
 // 失去焦点，真正修改树节点的地方
 const onchangtitle =async (data: any) => {
   let nowNode=getTreeDataByItem(treeData.value,data)
-
   let parentchild=getTreeParentChilds(treeData.value,data)
   if(updTreedata.value){
     let searchobj=parentchild.filter((e:any)=>e.title==updTreedata.value)
@@ -639,10 +576,7 @@ const onchangtitle =async (data: any) => {
       await request.post("/api/hlfs/_rename?force=true",{path:str,newPath:pathnew})
       nowNode.title=updTreedata.value
     }
-  }else{
-    nowNode.title=nowNode.title
   }
-
   updTreedata.value=""
   nowNode.showEdit=false
   expandedKeys.value=[nowNode.key]
@@ -674,21 +608,16 @@ const pushSubtree =async (key: any,title:any) => {
   let nowNode=getTreeDataByItem(treeData.value,key)
   getloop(treeData.value,key,nowNode.children.length)
   treeData.value = [...treeData.value]
-  let expandKey=queryKey(treeData.value,key)
   let res=getPathByKey(nowNode.title,"title",treeData.value);
   let str:any=res?.map((item:any)=>{
     return item.title
   }).join("/")
   str = str.substring(1, str.length)
   let pushPath
-  // if(title=="/"){pushPath="/childNode"}else{
     pushPath=nowNode.children.length?str+'/'+`childNode${nowNode.children.length}`:str+'/'+'childNode0'
-  // }
-
   await request.post("/api/hlfs?isFolder=true&focre=true",{path:pushPath})
   expandedKeys.value = [key];
   autoExpandParent.value=true
-  // queryTree()
 }
 // 找到需要展开节点的key
 const queryKey=(arr:any,key:string)=>{
@@ -728,8 +657,6 @@ const getloop=(arr:Array<any>, key:string,lenghts:any)=> {
     } else if (arr[s].children && arr[s].children.length > 0) {
       // 递归条件
       getloop(arr[s].children, key,length);
-    } else {
-      continue;
     }
   }
 }
@@ -756,8 +683,6 @@ const pushSib=async(arr:Array<any>, key:string,length:any)=> {
     } else if (arr[s].children && arr[s].children.length > 0) {
       // 递归条件
       pushSib(arr[s].children, key,length);
-    } else {
-      continue;
     }
   }
 }
@@ -767,30 +692,19 @@ const addSib=async(key:any)=>{
   // 根据当前传来的key，获取父节点的对象children
   let nowNode = getTreeDataByItem(treeData.value, key)
   let parentNode=getTreeParentChilds(treeData.value,key)
-
-
-  // let rst=getTreeParentChilds(treeData.value,key)
-  // rst.push({...topTree.value})
   let str = getPath(nowNode.title, treeData.value)
   str = str.substring(1, str.length)
-  console.log(str.indexOf('/'));
-
-
   if(str.indexOf('/')>=0){
     let newStrIndex=str.lastIndexOf('/')
     let newStr=str.substring(0,newStrIndex+1)
     let pathnew =parentNode.lenght? newStr + `NewNode${parentNode.length}`:newStr+`NewNode0`
-    console.log(pathnew);
     await request.post("/api/hlfs?isFolder=true",{path:pathnew})
   }else{
     await request.post("/api/hlfs?isFolder=true",{path:parentNode.lenght?`/NewNode${parentNode.lenght}`:'/NewNode0'})
   }
   pushSib(treeData.value,key,parentNode.length)
-  // treeData.value = [...treeData.value]
   expandedKeys.value = [nowNode.key];
   autoExpandParent.value=true
-
-  // queryTree()7
 }
 
 // 删除树形控件数据
@@ -815,12 +729,6 @@ const confirmtree =async (key:any,title:string) => {
 // 右键展开菜单项
 const onContextMenuClick = (treeKey: string) => { };
 
-const selectedRowKeys = ref<any>([]); // Check here to configure the default column
-
-const onSelectChange = (changableRowKeys: Key[]) => {
-  selectedRowKeys.value = changableRowKeys;
-};
-
 // 获取拖拽的对象
 // 右键添加Aw的path
 const addAwmodel= (key:any,title:string)=>{
@@ -844,7 +752,7 @@ const addAwmodel= (key:any,title:string)=>{
       .catch(()=>{message.error("Modification failed")})
       .finally(() => awModelTable.value.loading = false)
     } else {
-     message.warning("Please select the Aw to be added")
+     message.warning(t('awModeler.selectAwTip'))
   }
 }
 
@@ -889,6 +797,13 @@ const clearValida = () => {
   unref(refCopy).clearValidate()
 }
 
+function handleSearch (keyword: string) {
+  formState.search = keyword
+  if (clickKey.path) {
+    formState.q = `path:${clickKey.path}`
+  }
+  query(formState)
+}
 
 </script>
 <template>
@@ -974,37 +889,15 @@ const clearValida = () => {
           <!-- 表单的查询 -->
           <a-row>
             <a-col :span="20">
-              <AForm
-                  layout="inline"
-                  class="search_form"
-                  :model="formState"
-                  @finish="handleFinish"
-                  @finishFailed="handleFinishFailed"
-                  :wrapperCol="wrapperCol">
-                <a-col :span="20">
-                  <a-input v-model:value="formState.search"
-                           :placeholder="$t('awModeler.inputSearch1')"
-                           @change="inputChange"
-                           ref="searchInput"
-                  >
-
-                  </a-input>
-                  <a-cascader
-                      v-if="cascder"
-                      :load-data="loadData"
-                      v-model:value="selectvalue"
-                      placeholder="Please select"
-                      :options="selectoptions"
-                      @change="onSelectAwChange"
-                  ></a-cascader>
-                </a-col>
-                <a-col :span="4">
-                  <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
-                </a-col>
-              </AForm>
+              <search-bar
+                  url="/api/hlfs/_tags"
+                  @search="handleSearch"
+              ></search-bar>
             </a-col>
-            <a-col :span="2"><a-button type="primary" @click="showModal" >
-              <template #icon><plus-outlined /></template></a-button>
+            <a-col :span="2">
+              <a-button type="primary" @click="showModal" >
+                <template #icon><plus-outlined /></template>
+              </a-button>
             </a-col>
           </a-row>
           <!-- 模态窗 -->
