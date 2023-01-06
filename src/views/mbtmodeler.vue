@@ -658,8 +658,6 @@ async function querycode(show?:boolean){
         script: item.script || ''
       }
     })
-    console.log(show);
-    
     if(!show){
       visiblepreciew.value = false
     }else{
