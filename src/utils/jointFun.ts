@@ -1,5 +1,5 @@
 export function fitAncestors(element: any) {
-    // console.log(element.parent());
+    console.log(element.getAncestors());
 
     var padding = 20;
     var headerHeight = 20;

@@ -212,7 +212,7 @@ export const MBTStore = defineStore('mbtmodel', {
       this.preview = value
     },
     setVersion(data : string){
-      Object.assign(this.mbtData , {version:data})
+      Object.assign(this.mbtData.modelDefinition , {version:data})
     }
   }
 })

@@ -11,7 +11,7 @@ import { KeyboardService } from "@/composables/keyboard";
 import metainfo from "@/components/metainfo.vue";
 import inputTable from "@/components/inputTable.vue";
 import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined, ExclamationCircleOutlined} from '@ant-design/icons-vue'
-import { booleanLiteral, stringLiteral } from "@babel/types";
+import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import $ from 'jquery'
@@ -200,7 +200,6 @@ let schema = ref({
     },
   }
   })
-  let primaryUiSchema = ref({})
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value=true
@@ -336,23 +335,34 @@ function newData(aw: any, data: any) {
   }
   return newdata
 }
+function ifuiSchema(uiSchema:any, data:any){
+  let Awdata:any = {}
+  if(uiSchema){
+    let uikey = Object.keys(uiSchema)
+    let dataKey = Object .keys(uiSchema)
+    Awdata = _.pick(data, _.intersection(uikey, dataKey))
+  }else{
+    Awdata = {}
+  }
+  return Awdata
+}
 
-async function getAwData(cell: any) {
+function getAwData(cell: any) {
   // debugger
   let prop = {custom:{}}
   let awdata:any
   let custom = cell.prop.custom
   if (custom.step?.aw) {
-    Object.assign(prop.custom,{step : {aw:custom.step?.aw, data:newData(custom.step?.aw,custom.step?.data),uiParams:custom.step?.uiSchema || {}}})
+    Object.assign(prop.custom,{step : {aw:custom.step?.aw || {}, data:newData(custom.step?.aw,custom.step?.data),uiParams:custom.step?.uiParams || {}}})
   } else {
-      Object.assign(prop.custom,{step : {aw:custom.step?.data, data:{},uiParams:custom.step?.uiSchema || {}}})
+      Object.assign(prop.custom,{step : {aw:custom.step?.data || {}, data:ifuiSchema(custom.step?.uiParams, custom.step?.data),uiParams:custom.step?.uiParams || {}}})
     }
 
   
   if (custom.expectation?.aw) {
-    Object.assign(prop.custom,{expectation : {aw:custom.expectation?.aw, data:newData(custom.expectation.aw,custom.expectation?.data),uiParams:custom.expectation?.uiSchema || {}}})
+    Object.assign(prop.custom,{expectation : {aw:custom.expectation?.aw, data:newData(custom.expectation.aw,custom.expectation?.data),uiParams:custom.expectation?.uiParams || {}}})
   } else {
-     Object.assign(prop.custom,{expectation : {aw:custom.expectation?.data, data:{},uiParams:custom.expectation?.uiSchema || {}}})
+     Object.assign(prop.custom,{expectation : {aw:custom.expectation?.data, data:ifuiSchema(custom.expectation?.uiParams , custom.expectation?.data),uiParams:custom.expectation?.uiParams || {}}})
   }
   
   return prop
@@ -370,7 +380,6 @@ function getShapeTypeMapping(shapeType:string) {
   return  lagacyShapeTypeMapping[shapeType] || shapeType
 }
 function transformCells(mbtData:any){
-  // debugger
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
   }
@@ -381,13 +390,18 @@ function transformCells(mbtData:any){
       }else if(cell.type == 'standard.HeaderedRectangle'){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
       } else if (cell.type == 'itea.mbt.test.MBTAW') {
-        if (!mbtData?.version) {
+        if (!mbtData?.modelDefinition?.version) {
           cell = { ...cell , prop:getAwData(cell)}
         }
         
       }
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     } 
+    if(cell.type == 'itea.mbt.test.MBTAW'){
+      if(!mbtData?.version){
+        cell = { ...cell , prop:getAwData(cell)}
+      }
+    }
       
       
       
@@ -396,7 +410,7 @@ function transformCells(mbtData:any){
     return cell
 
    })
-   console.log(cells);
+  //  console.log(cells);
    
    return {cells};
 }
@@ -502,7 +516,8 @@ onMounted(async () => {
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
     })
-    rappid.graph.on('remove' ,()=>{
+    rappid.graph.on('remove' ,function(el: any){
+      fitAncestors(el)
       showpaper.value = false
     })
        
@@ -523,7 +538,7 @@ rappid.paper.on('blank:pointerdblclick' ,() => {
   isGlobal.value=true
 })
 if(rappid.graph.toJSON().cells.length > 0){
-  // preview()
+  preview(true)
 }
 })
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
@@ -633,7 +648,7 @@ let searchPreview=reactive({
 let outLang=ref()
 
 
-async function querycode(){
+async function querycode(show?:boolean){
   spinning.value = true
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
   if(rst && rst.results && rst.results.length > 0){
@@ -644,7 +659,12 @@ async function querycode(){
         script: item.script || ''
       }
     })
-    visiblepreciew.value = true
+    if(show){
+      visiblepreciew.value = false
+    }else{
+      visiblepreciew.value = true
+    }
+    
     store.showPreview(false)    
   }
   }).catch((err)=>{
@@ -656,10 +676,10 @@ async function querycode(){
   }).finally(() => spinning.value = false)
   
 }
-const preview=async ()=>{
+const preview=async (show?:boolean)=>{
 
     searchPreview.mode="all"
-    await querycode()
+    await querycode(show)
   
   
 }
