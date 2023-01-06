@@ -53,7 +53,7 @@ export const showErrCard = (errMsg:any) => {
             
         });
         
-        if(errTem){
+        if(errTem){            
             temp =[{errTem , reason: getReason(errTem)}]
         }
     }else{

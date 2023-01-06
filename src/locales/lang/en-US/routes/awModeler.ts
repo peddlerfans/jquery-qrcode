@@ -11,5 +11,6 @@ export default {
     tip1: 'This node already contains a node of',
     tip2: 'Please complete the modification first',
     emptyTemp: 'Template or template_en is required',
-    pageTotal: '{total} in total'
+    pageTotal: '{total} in total',
+    selectAwTip: 'Please select the Aw to be added'
 }

@@ -202,7 +202,7 @@ let schema = ref({
   })
 // 选择模板的函数
 const chooseTem = () => {
-    isGlobal.value=true
+    isGlobal.value = true
 }
 
 // 选择动态，静态模板的函数
@@ -314,61 +314,38 @@ function Datafintion(data: any) {
 //   return await request.get(`${awModelUrl}/${id}`) 
 // }
 // 依据uiSchema更新data数据
-function newData(aw: any, data: any) {
+function newData(aw: any, data?: any) {
+  // debugger
   let newdata:any = {}
   if (_.isEmpty(aw)) {
     newdata = {}
   } else {
-    if (aw.params && aw.params.length > 0) {
+    if(!data){
+      newdata = {}
+    }else{
+      if (aw.params && aw.params.length > 0) {
       let paramsName = _.map(aw.params, 'name');
-      let dataKey = Object.keys(data)
+      let dataKey = Object.keys(data)      
       newdata = _.pick(data, _.intersection(paramsName, dataKey))
     }
-    if (!_.isEmpty(newData)) {
+    if (!_.isEmpty(newdata)) {
       for (let key in newdata) {
         if (isValidKey(key, newdata)) {
-          newdata[key] = {val:newData[key] , type:'2'}
+          if(_.isObject(newdata[key])){
+            newdata
+          }else{
+            newdata[key] = {val: data[key] , type:'2'}
+          }
         }
       }
     }
+    Object.assign(newdata , {_id:data._id})
+    }
+    
     
   }
   return newdata
 }
-function ifuiSchema(uiSchema:any, data:any){
-  let Awdata:any = {}
-  if(uiSchema){
-    let uikey = Object.keys(uiSchema)
-    let dataKey = Object .keys(uiSchema)
-    Awdata = _.pick(data, _.intersection(uikey, dataKey))
-  }else{
-    Awdata = {}
-  }
-  return Awdata
-}
-
-function getAwData(cell: any) {
-  // debugger
-  let prop = {custom:{}}
-  let awdata:any
-  let custom = cell.prop.custom
-  if (custom.step?.aw) {
-    Object.assign(prop.custom,{step : {aw:custom.step?.aw || {}, data:newData(custom.step?.aw,custom.step?.data),uiParams:custom.step?.uiParams || {}}})
-  } else {
-      Object.assign(prop.custom,{step : {aw:custom.step?.data || {}, data:ifuiSchema(custom.step?.uiParams, custom.step?.data),uiParams:custom.step?.uiParams || {}}})
-    }
-
-  
-  if (custom.expectation?.aw) {
-    Object.assign(prop.custom,{expectation : {aw:custom.expectation?.aw, data:newData(custom.expectation.aw,custom.expectation?.data),uiParams:custom.expectation?.uiParams || {}}})
-  } else {
-     Object.assign(prop.custom,{expectation : {aw:custom.expectation?.data, data:ifuiSchema(custom.expectation?.uiParams , custom.expectation?.data),uiParams:custom.expectation?.uiParams || {}}})
-  }
-  
-  return prop
-}
-
-
 let idstr: any = null
 
 const lagacyShapeTypeMapping:any = {
@@ -391,26 +368,19 @@ function transformCells(mbtData:any){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
       } else if (cell.type == 'itea.mbt.test.MBTAW') {
         if (!mbtData?.modelDefinition?.version) {
-          cell = { ...cell , prop:getAwData(cell)}
+          cell = { ...cell , prop:getProperty(cell , mbtData)}
         }
         
       }
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
-    } 
-    if(cell.type == 'itea.mbt.test.MBTAW'){
-      if(!mbtData?.version){
-        cell = { ...cell , prop:getAwData(cell)}
-      }
-    }
-      
-      
+    }   
       
      delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
 
    })
-  //  console.log(cells);
+   console.log(cells);
    
    return {cells};
 }
@@ -425,20 +395,23 @@ function transformCells(mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
     if (awprop?.aw) {
-        Object.assign(prop.custom,{step : {aw:awprop?.aw, data:newData(awprop.aw,awprop.data),uiParams:{}}})
+        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw).uiSchema}})
     } else {
-        Object.assign(prop.custom,{step : {aw:awprop.data, data:{},uiParams:{}}})
+      message.error('当前Aw节点无数据,请reload')
+      Object.assign(prop.custom,{step : {aw:{}, data:awprop.data,uiParams:{}}})
       }
-      
-      }
+    }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
     
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     if (awprop.aw) {
-      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:{}} })
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw).uiSchema} })
+    }else{
+      message.error('当前Aw节点无数据,请reload')
+      Object.assign(prop.custom, { expectation: { aw: {}, data: awprop.data, uiParams:{} } })
     }
-    Object.assign(prop.custom, { expectation: { aw: awprop?.data, data: {}, uiParams:{} } })
+    
      }
    return prop
   } 
@@ -606,18 +579,32 @@ async function reload(){
       newProp.forEach((obj: any) => {
       if (obj.prop.step?.data?._id) {
         if (awById[obj.prop.step?.data?._id]) {
-          obj.prop.step.data = awById[obj.prop.step?.data?._id][0]
+          obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
+          obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
+          obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
+          storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
+          storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
+          storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
           obj.cell.prop('prop/custom/step' , obj.prop.step)
         }
         }
         if (obj.prop.expectation?.data?._id) {
         if (awById[obj.prop.expectation?.data?._id]) {
-          obj.prop.step.data = awById[obj.prop.expectation?.data?._id][0]
+          obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
+          obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
+          obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
+          storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
+          storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
+          storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
           obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
         }
       }
+      storeAw.setData(obj.cell)
+      obj.cell.setPropertiesData()
     })
     })
+    
+    message.success(t("MBTStore.reloadTip"));
     
   }
 }
@@ -630,9 +617,9 @@ const saveMbt = () => {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false
       storeAw.setIfsaveMbt(false)
-          return message.success('保存成功')
+          return message.success(t('common.saveSuccess'))
         }).catch(() => {
-          return message.error('保存失败')
+          return message.error(t('common.saveError'))
         })
   }
 }
@@ -667,8 +654,6 @@ async function querycode(show?:boolean){
     store.showPreview(false)    
   }
   }).catch((err)=>{
-    console.log(err);
-    
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
@@ -750,7 +735,8 @@ function closePreviewModal() {
 </script>
 
 <template>
-  <main class="joint-app joint-theme-modern" ref="apps">
+  <a-spin class="loading-wrap" tip="预览加载中" :spinning="spinning"></a-spin>
+  <main class="joint-app joint-theme-modern" ref="apps" :class="spinning ? 'show-spin' : 'hide-spin'">
 
     <div class="app-header">
       <div class="toolbar-container">
@@ -958,6 +944,28 @@ function closePreviewModal() {
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
+
+// 遮罩层样式
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100vh;
+  height: 100vh;
+  position: absolute;
+  z-index: 8;
+}
+
+.show-spin {
+  opacity: .5;
+  z-index: 7;
+}
+
+.hide-spin {
+  opacity: 1;
+  z-index: 9;
+}
 
 .app-header{
   background-color: #717D98;

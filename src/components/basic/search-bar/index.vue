@@ -80,7 +80,7 @@ function search () {
          v-show="cascader"
          :load-data="loadData"
          v-model:value="selectOption"
-         placeholder="Please select"
+         :placeholder="$t('common.selectTip')"
          :options="selectOptions"
          @change="onSelectChange"
      ></a-cascader>
@@ -93,6 +93,7 @@ function search () {
 
 <style scoped lang="less">
 .search-wrap {
+  margin-right: 16px;
   display: flex;
   margin-bottom: 12px;
   .search {
