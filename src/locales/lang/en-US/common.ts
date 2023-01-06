@@ -22,6 +22,9 @@ export default {
   preview: 'Preview',
   submitText: 'Submit',
   saveError: "Save failed",
+  saveSuccess: 'Save successfully',
+  modificationSuccess: 'Modification successfully',
+  modificationError: 'Modification failed',
   cloneError: 'Clone failed',
   close: 'Close',
   up: 'Up',
@@ -36,6 +39,8 @@ export default {
 
   light: 'Light',
   dark: 'Dark',
+
+  selectTip: 'Please select',
 
   newTag: 'Add a New Tag',
   newValue: 'Add a New Value',

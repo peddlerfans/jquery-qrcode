@@ -351,7 +351,7 @@ const dataZoom=(val1:any,val2:any)=>{
     </a-row>
 
       <a-row style="margin-top:2.25rem; ">
-      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data monitoring</a-col>
+      <a-col :span="18" style="fontSize:20px;fontWeight:700">Data {{ $t('dashboard.dataMonitoring') }}</a-col>
       <a-col :span="5" style="display:flex">
           <a-select
           :options="options"

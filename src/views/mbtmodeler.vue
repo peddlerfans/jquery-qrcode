@@ -630,9 +630,9 @@ const saveMbt = () => {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false
       storeAw.setIfsaveMbt(false)
-          return message.success('保存成功')
+          return message.success(t('common.saveSuccess'))
         }).catch(() => {
-          return message.error('保存失败')
+          return message.error(t('common.saveError'))
         })
   }
 }

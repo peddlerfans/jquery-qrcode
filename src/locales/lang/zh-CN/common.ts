@@ -26,6 +26,9 @@ export default {
   down: '下降一位',
   detail: '详情',
   saveError: "保存失败",
+  saveSuccess: '保存成功',
+  modificationSuccess: '修改成功',
+  modificationError: '修改失败',
   cloneError: '克隆失败',
   permissionManagement:'权限管理',
   resourceManagement:'资源管理',
@@ -39,8 +42,9 @@ export default {
   light: '亮色主题',
   dark: '黑暗主题',
 
+  selectTip: '请选择',
+
   newTag: '添加标签',
   newValue: '添加值',
-
   clone: '复制'
 };
