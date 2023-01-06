@@ -51,3 +51,4 @@ export const templateUrl = '/api/templates'
 export const dashboradUrl="/api/apm-report"
 
 export const settingsWebHook = '/api/webhooks'
+export const awModelUrl = '/api/hlfs'

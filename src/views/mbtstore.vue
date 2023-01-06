@@ -60,15 +60,8 @@ const AWTableQuery = {
 
 let MBTTable = ref<any>(null)
 
-function queryTableData (rootpath?:string) {
-  MBTTable.value.loading = true  
-  if(/path\:/.test(tableParams.value.q)){
-    tableParams.value.q.replace(/path\:[^ \t]+/, 'path:'+rootpath);
-  }else{
-    tableParams.value.q += 'path:'+rootpath;
-  }
-  
-  
+function queryTableData () {
+  MBTTable.value.loading = true
   http.get(realMBTUrl, {
     params: tableParams.value
   }).then(({ data }) => {
@@ -91,15 +84,8 @@ function queryTableData (rootpath?:string) {
 //   })
 // }
 
-let rootpath='';
-
-onBeforeMount(() => {
-  rootpath =route.query.rootpath?(String)(route.query.rootpath):'';
-  console.log(rootpath)
-}) 
 onMounted(() => {
-
-  queryTableData(rootpath)
+  queryTableData()
   // queryTree()
 })
 
@@ -274,10 +260,9 @@ function pageChange(data: any) {
 }
 
 function handleSelect(q: string) {
-  
   tableParams.value.q = q
   tableParams.value.page = 1
-  queryTableData(q)
+  queryTableData()
 }
 
 function handleAddAW(path: string) {
@@ -309,8 +294,7 @@ function handleAddAW(path: string) {
   <main style="height: 100%; overflow-x: hidden !important">
     <SplitPanel>
       <template #left-content>
-
-       <itea-tree tree-url="/api/test-models" :root-path="rootpath"   @select="handleSelect" @addAW="handleAddAW"></itea-tree>
+       <itea-tree tree-url="/api/test-models" @select="handleSelect" @addAW="handleAddAW"></itea-tree>
       </template>
       <template #right-content>
         <header class="block shadow">

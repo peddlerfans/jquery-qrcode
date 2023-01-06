@@ -35,9 +35,15 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
 
     reRender() {
         const desc = this.get('prop')?.custom?.description
-        const primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
-        const expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
-
+        let primaryDesc :string
+        let expectedDesc :string
+        if(this.get('prop')?.custom?.step?.aw){
+            primaryDesc = this.get('prop')?.custom?.step?.aw?.description || ''
+            expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
+        }else{
+            primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
+            expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
+        }
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
@@ -66,7 +72,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         fitAncestors(this)
     }
     paramsObj(schema: any, data: any) {
-        // debugger
         let params: any = {}
         for (let key in schema.properties) {
             const tar = schema.properties[key]
@@ -79,8 +84,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         Object.assign(data, { params })
         return data
     }
-
-
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染
     getInspectorSchema() {
         const options = {
