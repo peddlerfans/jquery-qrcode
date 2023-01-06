@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import _ from "lodash";
-import {generateSchema} from "@/utils/jsonschemaform";
+import { generateSchema } from "@/utils/jsonschemaform";
 import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
 
 const defaultAWSchema = {
@@ -49,7 +49,7 @@ interface MbtData {
     awDescription: string,
     showSchema: boolean
     showData: any
-    ifsaveMbt:boolean
+    ifsaveMbt: boolean
 }
 
 export const MbtData = defineStore({
@@ -91,7 +91,7 @@ export const MbtData = defineStore({
         awDescription: '',
         showSchema: false,
         showData: {},
-        ifsaveMbt:false
+        ifsaveMbt: false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -124,7 +124,7 @@ export const MbtData = defineStore({
         getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
         getShowData: state => state.showData,
-        getifsaveMbt :state => state.ifsaveMbt
+        getifsaveMbt: state => state.ifsaveMbt
     },
     actions: {
         setAllData(data: any) {
@@ -197,10 +197,10 @@ export const MbtData = defineStore({
         setData(data: any) {
             this.showData = data
         },
-        setIfsaveMbt(data:boolean){
+        setIfsaveMbt(data: boolean) {
             this.ifsaveMbt = data
         },
-        handleSchema (row: any) {
+        handleSchema(row: any) {
             let schema = _.cloneDeep(defaultAWSchema)
             schema.title = row.name
             schema.description = row.description
@@ -223,19 +223,10 @@ export const MbtData = defineStore({
                     }
                 })
             }
-            // schema添加path
-            Object.assign(schema.properties, {
-                    path: {
-                        title: 'path',
-                        type: 'string',
-                        readOnly:'true'
-                    }
-                }
-            )
             // @ts-ignore
             return this.data2schema(schema, {})
         },
-        data2schema (awSchema: any, uiSchema?: any) {
+        data2schema(awSchema: any, uiSchema?: any) {
             // 可选参数名
             let enumList: Array<any> = []
             enumList = this.getDataPoolTableColumns.map((a: any) => {
@@ -275,7 +266,7 @@ export const MbtData = defineStore({
             }
         },
         // 获取 schema.properties 里面自定义编辑的元素
-        getCustomItems (awSchema: any) {
+        getCustomItems(awSchema: any) {
             let arr: any = []
             for (let key in awSchema.properties) {
                 const tar = awSchema.properties[key]

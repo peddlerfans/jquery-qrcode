@@ -31,13 +31,9 @@ import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
 import "./componentTS/ace-config";
-import { generateSchema } from "@/utils/jsonschemaform";
-import { data2schema } from "./componentTS/schema-constructor";
 import { throttle } from "lodash-es";
-import { fitAncestors } from "@/utils/jointFun"
+import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
-import { func } from "vue-types";
-import { object } from "underscore";
 
 
 
@@ -315,40 +311,53 @@ function Datafintion(data: any) {
   }
 }
 
-function getAw(id:string){
-  request.get(`${awModelUrl}/${id}`).then((rec:any)=>{    
-      return rec    
-  }).catch(()=>{
-    message.error('当前页面aw节点被删除')
-  })
+// async function getAw(id: string){
+//   return await request.get(`${awModelUrl}/${id}`) 
+// }
+// 依据uiSchema更新data数据
+function newData(aw: any, data: any) {
+  let newdata:any = {}
+  if (_.isEmpty(aw)) {
+    newdata = {}
+  } else {
+    if (aw.params && aw.params.length > 0) {
+      let paramsName = _.map(aw.params, 'name');
+      let dataKey = Object.keys(data)
+      newdata = _.pick(data, _.intersection(paramsName, dataKey))
+    }
+    if (!_.isEmpty(newData)) {
+      for (let key in newdata) {
+        if (isValidKey(key, newdata)) {
+          newdata[key] = {val:newData[key] , type:'2'}
+        }
+      }
+    }
+    
+  }
+  return newdata
 }
 
-function getAwData(cell:any){
+async function getAwData(cell: any) {
+  // debugger
   let prop = {custom:{}}
   let awdata:any
   let custom = cell.prop.custom
-  if(custom.step?.schema){
-    let schemakeys = Object.keys(custom.step.schema.properties)
-    let dataKeys =Object.keys(custom.step.data)
-    awdata = _.pick(custom.step.data , _.intersection(schemakeys,dataKeys))
-    if(custom.step.aw){
-      Object.assign(prop.custom , {data:awdata ,aw: custom.step.aw})
-    }else{
-      Object.assign(prop.custom , {data:awdata ,aw: getAw(custom.step.data._id)})
+  if (custom.step?.aw) {
+    Object.assign(prop.custom,{step : {aw:custom.step?.aw, data:newData(custom.step?.aw,custom.step?.data),uiParams:custom.step?.uiSchema || {}}})
+  } else {
+      Object.assign(prop.custom,{step : {aw:custom.step?.data, data:{},uiParams:custom.step?.uiSchema || {}}})
     }
+
+  
+  if (custom.expectation?.aw) {
+    Object.assign(prop.custom,{expectation : {aw:custom.expectation?.aw, data:newData(custom.expectation.aw,custom.expectation?.data),uiParams:custom.expectation?.uiSchema || {}}})
+  } else {
+     Object.assign(prop.custom,{expectation : {aw:custom.expectation?.data, data:{},uiParams:custom.expectation?.uiSchema || {}}})
   }
-  if(custom.expectation?.schema){
-    let schemakeys = Object.keys(custom.expectation.schema.properties)
-    let dataKeys =Object.keys(custom.expectation.data)
-    awdata = _.pick(custom.expectation.data , _.intersection(schemakeys,dataKeys))
-    if(custom.expectation.aw){
-      Object.assign(prop.custom , {data:awdata ,aw: custom.expectation.aw})
-    }else{
-      Object.assign(prop.custom , {data:awdata ,aw: getAw(custom.expectation.data._id)})
-    }
-  }
+  
   return prop
 }
+
 
 let idstr: any = null
 
@@ -361,7 +370,7 @@ function getShapeTypeMapping(shapeType:string) {
   return  lagacyShapeTypeMapping[shapeType] || shapeType
 }
 function transformCells(mbtData:any){
-  debugger
+  // debugger
   if(!mbtData?.modelDefinition?.cellsinfo?.cells){
     return [];
   }
@@ -371,71 +380,57 @@ function transformCells(mbtData:any){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
       }else if(cell.type == 'standard.HeaderedRectangle'){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
+      } else if (cell.type == 'itea.mbt.test.MBTAW') {
+        if (!mbtData?.version) {
+          cell = { ...cell , prop:getAwData(cell)}
+        }
+        
       }
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     } 
       
-      if(cell.type == 'itea.mbt.test.MBTAW'){
-        cell = { ...cell , prop:getAwData(cell)}
-      }
+      
       
      delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
 
    })
+   console.log(cells);
+   
    return {cells};
 }
 
-function getSchema (schema: any, row?: any) {
-  const nameProp = schema.properties.name
-  const descProp = schema.properties.description
-  const tempProp = schema.properties.template
-  const tagsProp = schema.properties.tags
-  const pathProp = schema.properties.path
-  if (nameProp) delete schema.properties.name
-  if (descProp) delete schema.properties.description
-  if (tempProp) delete schema.properties.template
-  if (tagsProp) delete schema.properties.tags
-  if (pathProp) delete schema.properties.path
-  schema.title = row ? row.name : storeAw.getPrimaryAw.data?.name || ''
-  schema.description = row ? row.description : storeAw.getPrimaryAw.data?.description || ''
-  return schema
-}
-
-
-function getProperty(cell:any,mbtData:any){
+ function getProperty(cell: any, mbtData: any) {
+  // debugger
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
   }
-  if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')){
+  if (mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('primaryprops')) {
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
-    let awData:any = {}
-    if(awprop.aw){
-      awData = storeAw.handleSchema(awprop.aw)
-    }else if(awprop.data){
-      awData = storeAw.handleSchema(getAw(awprop.data._id))
-    }    
-
-    awprop.schema.description = awprop.aw?.description || awprop.data?.description ||awprop.schema.description
-    Object.assign(prop.custom,{step : {aw:awprop.aw? awprop.aw : getAw(awprop.data._id), data:awData.schemaValue.value,uiParams:awData.primaryUiSchema.value}})
-  } 
+    awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
+    if (awprop?.aw) {
+        Object.assign(prop.custom,{step : {aw:awprop?.aw, data:newData(awprop.aw,awprop.data),uiParams:{}}})
+    } else {
+        Object.assign(prop.custom,{step : {aw:awprop.data, data:{},uiParams:{}}})
+      }
+      
+      }
   if(mbtData.modelDefinition.props[cell.id]?.props?.hasOwnProperty('expectedprops')){
     let awprop = mbtData.modelDefinition.props[cell.id].props.expectedprops;
-    let awData:any = {}
-    if(awprop.aw){
-      awData = storeAw.handleSchema(awprop.aw)
-    }else if(awprop.data){
-      awData = storeAw.handleSchema(getAw(awprop.data._id))
-    }  
+    
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
-    Object.assign(prop.custom,{expectation : {aw:awprop.aw? awprop.aw : getAw(awprop.data._id),data:awData.schemaValue.value,uiParams:awData.primaryUiSchema.value}})
-  } 
+    if (awprop.aw) {
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:{}} })
+    }
+    Object.assign(prop.custom, { expectation: { aw: awprop?.data, data: {}, uiParams:{} } })
+     }
    return prop
+  } 
+   
 
-}
-onMounted(async () => {
+onMounted(async () => {  
   if (route.params._id) {
     localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
   }
