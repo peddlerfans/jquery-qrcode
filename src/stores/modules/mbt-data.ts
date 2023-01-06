@@ -246,13 +246,17 @@ export const MbtData = defineStore({
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
-                prop[a.title] = {
-                    "title": a.title,
-                    "type": "string",
-                    "patternProperties": false,
-                    "AWType": isSutType ? 'SUT' : 'string'
+                let isSutType
+                if(prop[a.title]?.AWType){
+                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    prop[a.title] = {
+                        "title": a.title,
+                        "type": "string",
+                        "patternProperties": false,
+                        "AWType": isSutType ? 'SUT' : 'string'
+                    }
                 }
+                
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,

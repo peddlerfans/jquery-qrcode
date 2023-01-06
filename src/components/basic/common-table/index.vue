@@ -140,7 +140,7 @@ const isEditing = computed(() => {
 })
 
 const query = async (searchText?: string) => {
-  debugger
+  // debugger
   let url = props.fetchObj.url
   if (!url) return
   loading.value = true
