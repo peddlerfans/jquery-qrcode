@@ -169,6 +169,7 @@ function showAw (row: any) {
   } else if (selectAwTar === '2') {
     store.setEditingExpectedAw(row, 'aw')
     store.setEditingExpectedAw({}, 'data')
+    store.setEditingExpectedAw(false, 'isAssert')
     let temp: any = store.getExpectedAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
@@ -217,6 +218,7 @@ function initExpectedSchema () {
     ],
     children: [],
   }]
+  assertDesc.value = ''
 }
 
 function initSchema() {
@@ -274,6 +276,7 @@ function handleData () {
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
   } else if (store.getExpectedAw.data) {
     rulesData.value = store.getExpectedAw.data
+    assertDesc.value = store.getExpectedAw.assertDesc || ''
   } else {
     initExpectedSchema()
   }
@@ -320,6 +323,12 @@ let rulesData = ref([{
 
 function rulesChange() {
   store.setEditingExpectedAw(rulesData.value, 'data')
+  store.setEditingExpectedAw(true, 'isAssert')
+  emit('change')
+}
+
+function assertInputChange() {
+  store.setEditingExpectedAw(assertDesc.value, 'assertDesc')
   emit('change')
 }
 
@@ -438,7 +447,7 @@ defineExpose({
         <div class="setting-assert" v-show="assertShow">
           <div>
             <div class="title">断言描述：</div>
-            <a-input v-model:value="assertDesc"></a-input>
+            <a-input v-model:value="assertDesc" @change="assertInputChange"></a-input>
           </div>
           <div class="title">设置断言：</div>
           <mbt-modeler-condition-edit
