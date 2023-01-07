@@ -22,7 +22,7 @@ const column = [
   { title: "name", link: 'staticModeler', require: true },
   { title: "description", require: true },
   { title: "tags" },
-  { title: "action", actionList: ['edit', 'delete'] },
+  { title: "action", actionList: ['edit', 'delete', 'clone'] },
 ]
 
 const { t } = useI18n()
@@ -41,7 +41,6 @@ watch(
 )
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search = ''
   staticTable.value.query(formState.search)
 };
 // 表单失败后的回调
@@ -51,7 +50,7 @@ const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
 
 let searchInput = ref()
 let cascder = ref(false)
-let selectvalue = ref("")
+let selectvalue:any = ref("")
 let selectoptions:any = ref([
   {
     value: 'tags:',
@@ -65,7 +64,6 @@ let selectoptions:any = ref([
   },
 ])
 const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-  console.log(selectedOptions);
   let rst = await request.get("/api/templates/_tags", { params: { q: "category:static" } })
   const targetOption = selectedOptions[0];
   targetOption.loading = true
@@ -185,7 +183,7 @@ const clearValida =()=>{
               v-if="cascder"
               :load-data="loadData"
               v-model:value="selectvalue"
-              placeholder="Please select"
+              :placeholder="$t('common.selectTip')"
               :options="selectoptions"
               @change="onSelectChange"
               ></a-cascader>

@@ -486,7 +486,6 @@ const previewModel = async () => {
   } else {
   previewErrorMsg.value=""
   }
-console.log(previewErrorMsg.value,rst);
 
   modelDataPreview.value=rst
   columnPreview.value=rst.model?.parameters.map((e:any)=>{
@@ -512,7 +511,6 @@ const factorsColumn = [
 // 点击保存回调
 const saveFactorRow = (row: any) => {
   let temp = row.index
-  delete row.isNewRow
   delete row.index
   finalModel.factor.splice(temp, 1, row)
   factorsTable.value.setTableData(finalModel.factor)
@@ -552,8 +550,11 @@ const deleteconstraint = (obj:any) => {
   condata.value.splice(obj.keys, 1)
   finalModel.constraint.splice(obj.keys, 1)
   finalModel.constraintif.splice(obj.keys, 1)
-  console.log(finalModel)
   saveModel()
+}
+
+const handleOk = () => {
+  prev.value = false
 }
 
 </script>
@@ -668,30 +669,26 @@ const deleteconstraint = (obj:any) => {
                 style="margin-bottom: 8px">{{ $t('templateManager.saveModel') }}</a-button>
                 <a-button @click="previewModel()">{{ $t('common.preview') }}</a-button>
     </div>
-    <a-modal v-model:visible="prev" :title="modelId? 'Model preview':'Model preview'" :width="900">
-
-<!-- Model meta info -->
-
-<a-tabs v-model:activeKey="activeKey">
-  <a-tab-pane key="1" tab="Data">
+    <a-modal v-model:visible="prev" :title="$t('templateManager.previewModel')" :width="900">
+    <!-- Model meta info -->
+      <a-tabs v-model:activeKey="activeKey">
+        <a-tab-pane key="1" :tab="$t('templateManager.data')">
           <a-table v-if="!previewErrorMsg" :columns="columnPreview" :data-source="modelDataPreview.data" bordered :scroll="{ x: true }">
-
-
-
             <template #bodyCell="{ column, text, record }">
-      <!--          <template v-if='column.key==="name"'><div>{{ text }}</div></template>-->
-      <!--          <template v-if='column.key==="age"'><div>{{ text }}</div></template>-->
-      <!--          <template v-if='column.key==="address"'><div>{{ text }}</div></template>-->
-          {{ text }}
-        </template>
-      </a-table>
-      <p v-else style="color:#ff4d4f;">{{previewErrorMsg}}</p>
-  </a-tab-pane>
-  <a-tab-pane key="2" tab="Model" >
-    <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
-  </a-tab-pane>
-</a-tabs>
-</a-modal>
+              {{ text }}
+            </template>
+          </a-table>
+          <p v-else style="color:#ff4d4f;">{{previewErrorMsg}}</p>
+        </a-tab-pane>
+        <a-tab-pane key="2" :tab="$t('templateManager.template')" >
+          <pre>{{ JSON.stringify(toRaw(modelDataPreview.model), null, 2) }}</pre>
+        </a-tab-pane>
+      </a-tabs>
+      <template #footer>
+        <a-button key="back" @click="handleOk">{{ $t('common.cancelText') }}</a-button>
+        <a-button key="submit" type="primary" @click="handleOk">{{ $t('common.okText') }}</a-button>
+      </template>
+    </a-modal>
 
   </main>
 </template>

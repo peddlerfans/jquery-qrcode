@@ -42,10 +42,15 @@ import dayjs from 'dayjs';
 import {SHA256} from "crypto-js";
 import { VAceEditor } from 'vue3-ace-editor';
 
+import { defineAsyncComponent } from 'vue'
+import {useI18n} from "vue-i18n";
+
+
 import "./componentTS/ace-config";
+import ace from 'ace-builds';
 
 
-
+const { t } = useI18n()
 
 // Specify the api for dynamic template data CRUD
 let url = templateUrl;
@@ -146,6 +151,8 @@ const themeOptions = ref<SelectProps['options']>([
   },
 ]);
 
+const aceTemplate = ref<AceEditor>();
+
 
 
 
@@ -154,34 +161,34 @@ const states = reactive<AceState>({
   lang: 'json',
   result: '',
 });
-// console.log(states.theme);
 
 
 onMounted(() => {
   modelId = sessionStorage.getItem('codegen_' + route.params._id)
 
   if (modelId === null){
-    message.error("Model cannot be found")
+    message.error(t('templateManager.noTemplate'))
   }else{
     query(modelId)
+
   }
 })
 
 async function query(id?: any) {
   try {
     let res = await request.get(`/api/templates/${id}`, { params: { category: 'codegen' } })
-
-    console.log('query')
-    // console.log(res)
-
     modelState._id = res._id
     modelState.name = res.name
     modelState.tags = res.tags
     modelState.description = res.description
-    modelState.model = res.model
+    modelState.model = res.hasOwnProperty('model') ? res.model : {
+      data: '',
+      templateEngine: '',
+      outputLanguage: ''
+    }
     modelState.templateText = res.templateText
 
-    if (modelState.model.data === '') {
+    if (modelState.model?.data === '') {
       modelState.model.data=sample
     }
 
@@ -198,24 +205,38 @@ async function query(id?: any) {
     }
 
   } catch (e) {
-    message.error("Query failed!")
-    console.log(e)
+    message.error(t('templateManager.queryFail'))
   }
 
-  console.log("modelState.model.history")
-  console.log(modelState.model)
+  setTimeout(()=> {
+    // aceTemplate.value?._editor.setValue(modelState.templateText)
+    aceTemplate.value?._editor.getSession().setUndoManager(new ace.UndoManager())
+  }, 0)
+  /**
+   * 修复VACEEditor光标错位问题
+   * 定位不到具体问题
+   * 临时处理方法
+   * */
+  setTimeout(() => {
+    let dom: any = document.getElementsByClassName('ace_editor')
+    dom[0].style.fontSize = '14px'
+    dom[1].style.fontSize = '14px'
+  }, 10)
+
+
+
 
 }
 
-const aceTemplate = ref<AceEditor>();
+
 
 const saveModel = async () => {
   sessionStorage.setItem('codegen_theme', String(states.theme))
 
   if ( modelState.model.templateEngine.trim === ''){
-    message.warning("Please select a Template Engine")
+    message.warning(t('templateManager.emptyTemplate'))
   }else if (modelState.model.outputLanguage.trim === ''){
-    message.warning("Please select a Output Language")
+    message.warning(t('templateManager.emptyOutput'))
   }
 
   const currId=SHA256(String(modelState.templateText)).toString()
@@ -233,9 +254,6 @@ const saveModel = async () => {
       }
   )
 
-  console.log("saveModel")
-  console.log(modelState)
-
   if (modelState.model.history.length>10) modelState.model.history.splice(-1)
 
   if (modelState.templateText){
@@ -249,24 +267,19 @@ const saveModel = async () => {
       let res = await request.put(url+`/${route.params._id}`, toRaw(modelState))
 
     }catch (e){
-      message.error("Save failed!")
+      message.error(t('templateManager.saveErr'))
     }
 
     anno.setAnnotations([])
 
     try {
-      // console.log("Preview "+route.params._id)
-      // console.log(toRaw(modelState.model.data))
       let res = await request.post(url+`/${route.params._id}/preview`, toRaw(modelState.model.data))
-      // console.log(res);
       
 
       states.result=res.data
-      message.success("Preview successful!")
+      message.success(t('templateManager.previewSuccess'))
 
     }catch (err:any){
-      console.log("catch preview error: ")
-      console.log(err)
 
       let allErr=anno.getAnnotations()
 
@@ -287,10 +300,10 @@ const saveModel = async () => {
       })
       anno.setAnnotations(allErr)
       states.result=''
-      message.error("Something wrong in the Template")
+      message.error(t('templateManager.templateErr'))
     }
   }else{
-    message.warning("Template engine cannot be null!")
+    message.warning(t('templateManager.emptyTemplateEngine'))
   }
 }
 
@@ -298,8 +311,6 @@ let inputData = ref<string>('')
 
 watch(inputData,(newValue,oldValue)=>{
   modelState.model.data = JSON.parse(newValue)
-  console.log("##")
-  console.log(toRaw(modelState.model.data))
 })
 
 
@@ -312,7 +323,6 @@ const showModal = () => {
 };
 
 const handleOk = (e: MouseEvent) => {
-  console.log(e);
   visible.value = false;
 };
 
@@ -349,7 +359,7 @@ const loadHistory = (e:any)=>{
   modelState.model.outputLanguage = e.outputLanguage
   modelState.model.data = e.data
 
-  message.success("Load successful")
+  message.success(t('templateManager.loadSuccess'))
 }
 
 const softwrap=true
@@ -446,7 +456,7 @@ const softwrap=true
 
     <h2 style="margin-top:30px">History</h2>
 
-    <a-table :columns="columns" :data-source="modelState.model.history" bordered>
+    <a-table :columns="columns" :data-source="modelState.model?.history || []" bordered>
       <template #headerCell="{ column }">
         <span>{{ $t(column.title) }}</span>
       </template>
@@ -496,10 +506,12 @@ footer {
 .ace-template, .ace-result, .ace-data {
   flex: 1;
   margin-top: 15px;
-  font-size: 18px;
+  /*font-family: monospace;*/
+  /* font-size: 16px; */
   border: 1px solid;
   height: 70vh;
 }
+
 </style>
 <style>
 

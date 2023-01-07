@@ -14,10 +14,19 @@ export default {
     end: '结束',
     concurrency: '并发',
     branch: '分支',
+    previewModel: '预览',
+    noPreviewData: '暂无预览数据',
     // MBTModeler detail
-    primary: '主要数据',
+    primary: '操作步骤',
     expected: '预期结果',
     configAW: '配置AW',
-    leaveRouter:'当前编辑未保存，是否退出',
+    leaveRouter: '当前编辑未保存，是否退出',
+    configLink: '设置连接线',
 
+    // mbt-modeler-aw-schema
+    updateAw: '修改AW',
+    deleteAW: '删除AW',
+
+    // mbt-preview-modal.vue
+    selectTip: '请选择左边节点以展示数据'
 }

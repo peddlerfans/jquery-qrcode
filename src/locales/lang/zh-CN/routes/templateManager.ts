@@ -11,7 +11,7 @@ export default {
     metaName: "模板名称",
     metaDescription: "模板描述",
     nameinput: "请输入名称",
-    namehefa: "名称不合规",
+    namehefa: "必须以字母、下划线、中文或者美元符$开头，后面的部分可以有字母、下划线、美元符$、中文以及数字组成",
     duplicate: "名称已存在",
     description: "请输入描述信息",
 
@@ -63,5 +63,14 @@ export default {
     editTemp: '编辑模板',
     previewTemp: '预览模板（只读）',
     saveApreview: '保存并预览',
-    editData: '编辑数据'
+    editData: '编辑数据',
+    queryFail: '获取数据失败!',
+    loadSuccess: '加载成功',
+    emptyTemplateEngine: '模板引擎不能为空！',
+    templateErr: '模板发生问题',
+    previewSuccess: '预览成功',
+    saveErr: '保存失败',
+    emptyOutput: '请选择一种输出格式',
+    emptyTemplate: '请选择一种模板引擎',
+    noTemplate: '找不到模板'
 }

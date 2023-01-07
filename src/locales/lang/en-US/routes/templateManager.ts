@@ -9,7 +9,7 @@ export default {
     metaName: "Meta Name",
     metaDescription: "Meta Description",
     nameinput: "place input your name",
-    namehefa: "The name is not standardized",
+    namehefa: "Must start with a letter, underscore, Chinese or dollar sign $, followed by letters, underscore, dollar sign $, Chinese and numbers",
     duplicate: "Duplicate name",
     description: "place input your description",
 
@@ -61,5 +61,14 @@ export default {
     editTemp: 'Edit Template',
     previewTemp: 'Preview Result (Read-only)',
     saveApreview: 'Save & Preview',
-    editData: 'Edit Data'
+    editData: 'Edit Data',
+    queryFail: 'Query failed!',
+    loadSuccess: 'Load successful',
+    emptyTemplateEngine: 'Template engine cannot be null!',
+    templateErr: 'Something wrong in the Template',
+    previewSuccess: 'Preview successful!',
+    saveErr: 'Save failed!',
+    emptyOutput: 'Please select a Output Language',
+    emptyTemplate: 'Please select a Template Engine',
+    noTemplate: 'Model cannot be found'
 }

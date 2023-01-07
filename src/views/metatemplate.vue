@@ -17,7 +17,7 @@ const column = [
   { title: "name", width: 40, link: 'metaModeler', require: true },
   { title: "description", width: 120, require: true },
   { title: "tags", width: 100 },
-  { title: "action", width: 100, actionList: ['edit', 'delete','clone'] },
+  { title: "action", width: 100, actionList: ['edit', 'delete', 'clone'] },
 ]
 
 const metaTableQuery = {
@@ -42,7 +42,6 @@ watch(
 
 // 表单完成后的回调
 const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  formState.search = ''
   metaTable.value.query(formState.search)
 };
 // 表单失败后的回调
@@ -61,7 +60,7 @@ const createMeta = () => {
 
 let searchInput = ref()
 let cascder = ref(false)
-let selectvalue = ref("")
+let selectvalue:any = ref("")
 let selectoptions:any = ref([
   {
     value: 'tags:',
@@ -75,7 +74,6 @@ let selectoptions:any = ref([
   },
 ])
 const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-  console.log(selectedOptions);
   let rst = await request.get("/api/templates/_tags", { params: { q: "category:meta" } })
   const targetOption = selectedOptions[0];
   targetOption.loading = true
@@ -107,10 +105,8 @@ let checkName=async (_rule:Rule,value:string)=>{
   let reg=/^[a-zA-Z\$_][a-zA-Z\d_]*$/
   let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if(!value){
-   
     return Promise.reject(t('templateManager.nameinput'))
   }else if(!reg.test(value) && !reg1.test(value)){
-
     return Promise.reject(t('templateManager.namehefa'))
   }else{
     let rst=await request.get("/api/templates",{params:{q:"category:meta",search:`@name:${value}`}})
@@ -186,7 +182,7 @@ const clearValida =()=>{
             v-if="cascder"
             :load-data="loadData"
             v-model:value="selectvalue"
-            placeholder="Please select"
+            :placeholder="$t('common.selectTip')"
             :options="selectoptions"
             @change="onSelectChange"
             ></a-cascader>

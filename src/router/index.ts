@@ -17,6 +17,7 @@ export const dashboardRoute: RouteRecordRaw = {
       name: 'Dashboard',
       component: () => import('@/views/dashboard.vue'),
       meta: { title: 'component.route.dashboard', icon: HomeOutlined }
+
     }
   ]
 }
@@ -82,6 +83,21 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'index',
         name: 'mbtstore',
+        component: () => import('@/views/mbtstore.vue'),
+        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
+      }
+    ]
+
+  },
+
+  {
+    path: '/mbtstoreembedded',
+    name: 'Mbtstoreembedded',
+    meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined },
+    children: [
+      {
+        path: 'index',
+        name: 'Mbtstoreembedded',
         component: () => import('@/views/mbtstore.vue'),
         meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
@@ -299,7 +315,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/settings',
     name: 'Settings',
     component: Layout,
-    meta: { title:'Settings',icon:ExportOutlined },
+    meta: { title:'component.route.account',icon:ExportOutlined },
     children: [
       {
         path: 'webHook',

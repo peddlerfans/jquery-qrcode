@@ -1,65 +1,72 @@
-import { removeCookie, setCookie } from "@/utils"
+import { getCookie, removeCookie, setCookie } from "@/utils"
 import { defineStore } from "pinia"
 import request from "@/utils/request"
 import { message } from "ant-design-vue"
 import { Stores } from "types/stores"
 
+
+const DEFAULT_AVATAR = 'https://avatars.dicebear.com/v2/female/2fbcf95095f75f17153ca201cd277611.svg'
+const DEFAULT_EMAIL = 'example@oppo.com'
+
 export const userStore = defineStore('user', {
+
   state: (): Stores.user => ({
     name: '',
-    age: null,
-    sex: 'unknown',
-    token: ''
+    token: '',
+    email: '',
+    avatar_url: '',
   }),
   actions: {
     async login(username: string, password: string) {
-      const data ={username,password};
-      return new Promise((resolve, reject) => {
-        request.post<Stores.user>('/user/login', {
-          username, password
-        }).then((res:any) => {
-          const { data, msg } = res
-          if (data) {
-            this.name = data.name
-            this.age = data.age
-            this.sex = data.sex
-            this.token = `${username}Token`
-            setCookie('token', this.token)
-            resolve(msg)
-          } else {
-            reject(msg)
-          }
+      // const data ={username,password};
+      try {
+        let res: any = await request.post<Stores.user>('/api/auth/login', {
+          email: username, password
         })
-      })
+        if (res.success) {
+          let res1 = await this.getUserInfo()
+          // console.log(res1)
+          return res1
+        }
+      } catch (e) {
+        console.log(e)
+      }
+
     },
     async logout() {
       return new Promise((resolve) => {
-         request.get<Stores.user>('/user/logout').then((res:any) => {
-          const { msg } = res
-          removeCookie('token')
-          message.success(msg)
-          resolve(msg)
+        this.name = ''
+        this.email = ''
+        this.avatar_url = ''
+        this.token = ''
+        request.post<Stores.user>('/api/auth/logout').then((res: any) => {
+          // const { msg } = res
+          // console.log('logout')
+          // console.log(res)
+          removeCookie('redirect_url')
+          message.success("Logout successful")
+          resolve("Logout successful")
+          // router.push('/login')
         })
       })
     },
-    async getUserInfo(token: string): Promise<string> {
+    async getUserInfo(): Promise<string> {
       return new Promise((resolve, reject) => {
-        request.get<Stores.user>('/user/info', {
-          params: {
-            token: token
-          }
-        }).then((res:any) => {
-          const { data, msg } = res
-          if (data) {
-            this.name = data.name
-            this.age = data.age
-            this.sex = data.sex
-            this.token = token
-            setCookie('token', this.token)
-            resolve(msg)
+        request.get<Stores.user>('/api/user_profile').then((res: any) => {
+          if (!res.error) {
+            this.name = res.name
+            this.email = res.email
+            this.avatar_url = res.avatar_url || DEFAULT_AVATAR
+            this.token = `${encodeURIComponent(res.name)}`
+
+            resolve('Login successful')
           } else {
-            reject(msg)
+            reject(res.error)
           }
+        }).catch((res: any) => {
+          console.log('catch')
+          console.log(res)
+          reject('User not logged, please login')
         })
       })
     }

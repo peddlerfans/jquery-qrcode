@@ -21,10 +21,16 @@ export default {
   next: 'Next',
   preview: 'Preview',
   submitText: 'Submit',
-  close: 'close',
   saveError: "Save failed",
+  saveSuccess: 'Save successfully',
+  modificationSuccess: 'Modification successfully',
+  modificationError: 'Modification failed',
   cloneError: 'Clone failed',
-
+  close: 'Close',
+  up: 'Up',
+  down: 'Down',
+  detail: 'Detail',
+  view: 'Views visible',
   inputText: 'Please enter',
   chooseText: 'Please choose',
 
@@ -34,8 +40,13 @@ export default {
   light: 'Light',
   dark: 'Dark',
 
+  selectTip: 'Please select',
+
   newTag: 'Add a New Tag',
   newValue: 'Add a New Value',
   clear: 'clear',
-  clone: 'clone'
+  clone: 'clone',
+  permissionManagement:'Permission Management',
+  resourceManagement:'Resource Management',
+  roleManagement:'Role Management',
 };

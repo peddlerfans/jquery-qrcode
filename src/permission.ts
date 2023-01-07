@@ -2,10 +2,12 @@ import router from './router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { appTitle } from './appConfig'
-import { getCookie, removeCookie } from './utils'
+import { getCookie, removeCookie, setCookie } from './utils'
 import { userStore } from './stores/user'
 import { message } from 'ant-design-vue'
-import {i18n} from '@/locales'
+import request from "@/utils/request";
+import { Stores } from "../types/stores";
+import { i18n } from '@/locales'
 
 NProgress.configure({ showSpinner: false })
 
@@ -20,20 +22,22 @@ router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   document.title = `${t(to.meta.title as string)}-${appTitle}`
   // 路径命中白名单，放行通过
-  if (whitelist.includes(to.path)) next()
-  else {
-    // 判断是否有token
-    const token = getCookie('token')
+  if (whitelist.includes(to.path)) {
+    next()
+  } else {
     const user = userStore()
-    if (!token) {
-      next('/login')
-    } else if (!user.token) {
+    // console.log("permission check")
+    //     console.log(user)
+    if (!user.name) {
       try {
-        await user.getUserInfo(token)
+        console.log("no user name")
+        await user.getUserInfo()
+        // console.log(user)
         next()
-      } catch (_) {
-        message.error('token失效，请重新登录')
-        removeCookie('token') // 清除cookie
+      } catch (e) {
+        // console.log(e)
+        // message.warning('User not logged, please login')
+        // removeCookie('token') // 清除cookie
         next('/login')
       }
     } else {
