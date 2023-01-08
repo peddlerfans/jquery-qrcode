@@ -40,7 +40,7 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
         typeinschema = "boolean";
         break;
       case "SUT":
-        typeinschema = "SUT";
+        typeinschema = "string";
         break;
       default:
         break;

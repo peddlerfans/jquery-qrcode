@@ -28,7 +28,9 @@ interface MbtData {
         data: any,
         schema: any,
         uiParams: any,
-        aw: any
+        aw: any,
+        isAssert?: boolean
+        assertDesc?: string
     },
     expectedTableRow: any
     mbtMeta: {
