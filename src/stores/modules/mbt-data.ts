@@ -249,7 +249,7 @@ export const MbtData = defineStore({
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
                 let isSutType
-                if(prop[a.title]?.AWType){
+                if (prop[a.title]?.custom) {
                     isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
                     prop[a.title] = {
                         "title": a.title,
@@ -266,6 +266,7 @@ export const MbtData = defineStore({
                     }
                 }
             })
+            console.log(awSchema.properties)
             return {
                 schema: awSchema,
                 uiSchema
