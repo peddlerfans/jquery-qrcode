@@ -221,11 +221,7 @@ async function query(id?: any) {
     let dom: any = document.getElementsByClassName('ace_editor')
     dom[0].style.fontSize = '14px'
     dom[1].style.fontSize = '14px'
-  }, 10)
-
-
-
-
+  }, 500)
 }
 
 
