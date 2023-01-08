@@ -634,8 +634,8 @@ let searchPreview=reactive({
 let outLang=ref()
 
 
-async function querycode(show?:boolean){
-  spinning.value = true
+async function querycode(show?: boolean) {
+  spinning.value = !!show
   request.get(`${realMBTUrl}/${route.params._id}/codegen`,{params:searchPreview}).then((rst)=>{
   if(rst && rst.results && rst.results.length > 0){
     outLang.value=rst.outputLang
@@ -645,9 +645,9 @@ async function querycode(show?:boolean){
         script: item.script || ''
       }
     })
-    if(!show){
+    if (!show) {
       visiblepreciew.value = false
-    }else{
+    } else {
       visiblepreciew.value = true
     }
     
@@ -657,6 +657,7 @@ async function querycode(show?:boolean){
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     showErrCard(errMsg)
+    message.error(t('common.previewError'))
   }).finally(() => spinning.value = false)
   
 }
@@ -780,7 +781,7 @@ function closePreviewModal() {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" title="Please select a template first" 
+  <a-modal v-model:visible="isGlobal" :title="$t('common.template')" 
       @ok="handleOk"
       :width="1000"
       ok-text="save"
