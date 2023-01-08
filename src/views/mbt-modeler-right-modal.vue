@@ -193,6 +193,7 @@ function handleAwData () {
 }
 
 function handleData() {
+  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
