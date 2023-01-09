@@ -20,10 +20,8 @@ import {
   PlusOutlined
 } from '@ant-design/icons-vue';
 import { Rule } from 'ant-design-vue/es/form';
-import {
-  FormState
-} from "./componentTS/dynamictemplate";
 import { CommonTable } from '@/components/basic/common-table'
+import { SearchBar } from '@/components/basic/search-bar'
 
 // 表格数据
 const column = [
@@ -41,76 +39,12 @@ let dynamicTable = ref<any>(null)
 
 const { t } = useI18n()
 const url = templateUrl
-// 表单的数据
-const formState: UnwrapRef<FormState> = reactive({
-  search: '',
-  q: "category:dynamic",
-});
-
-watch(
-    () => formState.search,
-    (value) => {
-      dynamicTableQuery.searchText = value
-    }
-)
 
 // 表格的数据
 let tableData = ref<Array<any>>([])
 
 // 点击跳转metamodel
 let router = useRouter()
-
-const handleFinish: FormProps['onFinish'] = (values: any) => {
-  dynamicTable.value.query(formState.search)
-};
-
-// Catch search failed
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
-  console.log(errors);
-};
-
-let searchInput = ref()
-let cascder = ref(false)
-let selectvalue:any = ref("")
-let selectoptions:any = ref([
-   {
-    value: 'tags:',
-    label: 'tags:',
-    isLeaf: false,
-  },
-  {
-    value: 'name:',
-    label: 'name:',
-
-  },
-])
-const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-      let rst = await request.get("/api/templates/_tags", { params: { q: "category:dynamic" } })
-      const targetOption = selectedOptions[0];
-      targetOption.loading = true
-        if (rst.length > 0) {
-          rst = rst.map((item: any) => ({ value: item, label: item }))
-          targetOption.children = rst
-        }
-        targetOption.loading = false;
-        selectoptions.value = [...selectoptions.value];
-    };
-const onSelectChange = async (value: any) => {
-  if (value) {
-    let reg = new RegExp("," ,"g")
-    formState.search += value.toString().replace(reg,'')
-  }
-  selectvalue.value = ''
-  cascder.value = false
-  nextTick(() => {
-    searchInput.value.focus()
-  })
-}
-const inputChange = (value: any) => {
-  if (formState.search == "@") {
-    cascder.value = true
-  }
-}
 
 const showModal = () => {
   dynamicTable.value.createNewRow({
@@ -172,6 +106,14 @@ const clearValida =()=>{
   refCopy.value.clearValidate()
 }
 
+function handleSearch(str: string) {
+  dynamicTable.value.query(str)
+}
+
+function handleChange(str: string) {
+  dynamicTableQuery.searchText = str
+}
+
 </script>
 
 <template>
@@ -181,30 +123,12 @@ const clearValida =()=>{
       <!-- 表单的查询 -->
       <a-row>
         <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-                            <a-input v-model:value="formState.search"
-              :placeholder="$t('awModeler.inputSearch1')"
-              @change="inputChange"
-              ref="searchInput"
-              >
-              </a-input>
-              <a-cascader
-              v-if="cascder"
-              :load-data="loadData"
-              v-model:value="selectvalue"
-              :placeholder="$t('common.selectTip')"
-              :options="selectoptions"
-              @change="onSelectChange"
-              ></a-cascader>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
-            </a-col>
-
-          </AForm>
+          <search-bar
+              url="/api/templates/_tags"
+              :params="{ q: 'category:dynamic'}"
+              @change="handleChange"
+              @search="handleSearch"
+          ></search-bar>
         </a-col>
         <a-col :span="4">
           <a-button type="primary" @click="showModal">

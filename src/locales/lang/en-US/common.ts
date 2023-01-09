@@ -22,6 +22,7 @@ export default {
   preview: 'Preview',
   template: 'Template Settings',
   previewError: 'Code generation failed',
+  previewLoad: 'Preview loading',
   submitText: 'Submit',
   saveError: "Save failed",
   saveSuccess: 'Save successfully',

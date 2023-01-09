@@ -6,15 +6,21 @@ import {
 } from '@ant-design/icons-vue'
 import {
   ref,
-  computed
+  computed,
+provide,
+onMounted
 } from 'vue'
 import { errTipTool } from "@/stores/modules/modeler-preview-err-msg";
 
 let index = ref<number>(0)
 const store = errTipTool()
+let check = ref<boolean>(false)
 
 const currentErr: any = computed(() => {
   return store.getErrList[index.value]
+})
+const loadErr: any = computed(() => {
+  return store.getCheck
 })
 
 const pre = () => {
@@ -27,6 +33,7 @@ const next = () => {
   index.value++
 }
 
+
 const solve = () => {
 
 }
@@ -34,10 +41,14 @@ const solve = () => {
 const close = () => {
   store.setVisible(false)
 }
-
+const checkPreview = () => {
+  store.setCheck(true)
+  store.setIndex(index.value)  
+}
 </script>
 
 <template>
+  <!-- <a-spin class="loading-wrap" :tip="$t('common.previewLoad')" :spinning="loadErr"></a-spin> -->
   <div class="mbt-modeler-preview-err-tips">
     <close-outlined class="close-btn" @click="close" />
     <div class="title">预览错误：{{ `${index + 1} / ${store.getLength}`}}</div>
@@ -52,6 +63,7 @@ const close = () => {
 <!--      <a-button type="link" @click="solve">定位问题</a-button>-->
       <a-button type="link" @click="pre" :disabled="index <= 0">上个错误</a-button>
       <a-button type="link" @click="next" :disabled="index + 1 >= store.getLength">下个错误</a-button>
+      <a-button type="primary" @click="checkPreview">查看问题</a-button>
     </div>
   </div>
 </template>

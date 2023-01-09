@@ -14,13 +14,11 @@ class MbtServe {
     graph!: joint.dia.Graph;
     paper!: joint.dia.Paper;
     paperScroller!: joint.ui.PaperScroller;
-
     commandManager!: joint.dia.CommandManager;
     snaplines!: joint.ui.Snaplines;
     clipboard!: joint.ui.Clipboard;
     selection!: joint.ui.Selection;
     navigator!: joint.ui.Navigator;
-
     stencilService !: StencilService;
     toolbarService !: ToolbarService;
     haloService !: HaloService;
@@ -28,7 +26,6 @@ class MbtServe {
     keyboardService !: KeyboardService;
     setcell: any;
     constructor(
-
         el: any,
         stencilService: StencilService,
         toolbarService: ToolbarService,
@@ -184,6 +181,8 @@ class MbtServe {
     }
     // 获取选择元素内容的函数
     selectPrimaryCell(cellView: joint.dia.CellView) {
+        console.log(cellView);
+
         let cell: any
         cell = cellView.model;
         if (cell.isElement()) {

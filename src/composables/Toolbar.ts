@@ -35,7 +35,8 @@ export class ToolbarService {
                 'save': { index: 11 },
                 'preview' : { index: 12 },
                 'reload' :{ index: 13 },
-                'chooseTem' :{ index: 14 }
+                'chooseTem' :{ index: 14 },
+                'closeMbt': {index: 15}
             },
 
             tools: [
@@ -224,6 +225,19 @@ export class ToolbarService {
                         button: {
                             // id: 'btn-save',
                             'data-tooltip': 'Choose Template',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'closeMbt',
+                    group: 'closeMbt',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': 'Exit the current mbt',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
                         }
