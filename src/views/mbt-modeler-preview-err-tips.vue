@@ -59,6 +59,7 @@ const close = () => {
 
 <style lang="less">
 .mbt-modeler-preview-err-tips {
+  z-index: 9;
   position: fixed;
   margin-left: 24px;
   left: 0;

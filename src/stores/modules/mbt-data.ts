@@ -28,7 +28,9 @@ interface MbtData {
         data: any,
         schema: any,
         uiParams: any,
-        aw: any
+        aw: any,
+        isAssert?: boolean
+        assertDesc?: string
     },
     expectedTableRow: any
     mbtMeta: {
@@ -246,13 +248,17 @@ export const MbtData = defineStore({
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
-                prop[a.title] = {
-                    "title": a.title,
-                    "type": "string",
-                    "patternProperties": false,
-                    "AWType": isSutType ? 'SUT' : 'string'
+                let isSutType
+                if (prop[a.title]?.custom) {
+                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    prop[a.title] = {
+                        "title": a.title,
+                        "type": "string",
+                        "patternProperties": false,
+                        "AWType": isSutType ? 'SUT' : 'string'
+                    }
                 }
+                
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
@@ -260,6 +266,7 @@ export const MbtData = defineStore({
                     }
                 }
             })
+            console.log(awSchema.properties)
             return {
                 schema: awSchema,
                 uiSchema

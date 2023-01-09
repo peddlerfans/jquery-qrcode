@@ -161,7 +161,7 @@ const conditionstr = (arr: any) => {
     .substring(0, ifcondition.join("").toString().length - 4);
 };
 
-const rulesData = ref([rulesDataDefaultItem])
+const rulesData :any = ref([rulesDataDefaultItem])
 function rulesChange (datas: any, key: string) {
   rulesData.value = datas
 }
@@ -169,10 +169,12 @@ watch(
   rulesData,
   
   (newvalue: any) => {
+    // debugger
     if (rulesData.value.length > 0) {
       if ( showDrawer.value && _.has(data.value , 'label')){
         data.value.label = ifdata(newvalue);
-        if(data.value.label == 'name == undefined '){
+        rulesData.value = newvalue
+        if (data.value.label == 'name == undefined ') {          
           data.value.label = ''
         }
         
@@ -193,7 +195,6 @@ function handleAwData () {
 }
 
 function handleData() {
-  // debugger
   const el = store.getShowData
   showDrawer.value = false
   
@@ -256,12 +257,17 @@ function handleChange() {
       data.value.description = ''
     }
   if( _.has(data.value , 'rulesData')){
-    data.value.rulesData = rulesData.value    
+    data.value.rulesData = rulesData.value 
     if(data.value.label == undefined){
       data.value.label = ''
     }
-  }
-  emit('change', getType() , data.value)
+  }  
+  emit('change', getType(), data.value)  
+  // schemaData.value = {}
+  // data.value = {}
+  // rulesData.value = [rulesDataDefaultItem]
+  // console.log(rulesData.value);
+  
 }
 
 defineExpose({

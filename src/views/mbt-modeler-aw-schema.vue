@@ -10,17 +10,20 @@ import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
+import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
 import {useRoute, useRouter} from "vue-router";
 import {
   PlusCircleOutlined,
   DeleteOutlined,
   EditOutlined,
+  CloseCircleOutlined,
   PlusSquareOutlined
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
 import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
+import { message } from 'ant-design-vue';
 
 interface Props {
   show: boolean
@@ -36,6 +39,19 @@ const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
 let showAssert = ref<boolean>(false)
+const defaultAssertData = [{
+  relation: 'AND',
+  id: 1,
+  conditions: [
+    {
+      name: '',
+      operator: '',
+      value: undefined,
+      selectvalues: 'AND',
+    },
+  ],
+  children: [],
+}]
 
 const store = MbtData()
 const { t } = useI18n()
@@ -130,7 +146,6 @@ function deletePrimary() {
     aw: null
   })
   emit('change')
-  getAllCustomVar()
 }
 
 function deleteExpected() {
@@ -155,22 +170,13 @@ function showAw (row: any) {
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
     schemaValue.value = {}
-    getAllCustomVar()
   } else if (selectAwTar === '2') {
+    // 清空断言信息
+    store.setEditingExpectedAw(false, 'isAssert')
+    store.setEditingExpectedAw('', 'assertDesc')
     assertList.value = []
-    rulesData.value = [{
-      relation: 'AND',
-      id: 1,
-      conditions: [
-        {
-          name: '',
-          operator: '',
-          value: undefined,
-          selectvalues: 'AND',
-        },
-      ],
-      children: [],
-    }]
+    showAssert.value = false
+    rulesData.value = _.cloneDeep(defaultAssertData)
     store.setEditingExpectedAw(row, 'aw')
     store.setEditingExpectedAw({}, 'data')
     let temp: any = store.getExpectedAwSchema
@@ -182,31 +188,18 @@ function showAw (row: any) {
 }
 
 function initPrimarySchema () {
-  // schema.value = defaultAWSchema
   schema.value = {}
   schemaValue.value = {}
   primaryUiSchema.value = {}
 }
 
 function initExpectedSchema () {
-  // expectedSchema.value = defaultAWSchema
   expectedSchema.value = {}
   expectedSchemaValue.value = {}
   expectedUiSchema.value = {}
   assertList.value = []
-  rulesData.value = [{
-    relation: 'AND',
-    id: 1,
-    conditions: [
-      {
-        name: '',
-        operator: '',
-        value: undefined,
-        selectvalues: 'AND',
-      },
-    ],
-    children: [],
-  }]
+  rulesData.value = _.cloneDeep(defaultAssertData)
+  assertDesc.value = ''
 }
 
 function initSchema() {
@@ -214,14 +207,27 @@ function initSchema() {
   initExpectedSchema()
 }
 
+/**
+ * schema item 为空会把值变为 undefined
+ * 而 joint.js 不能成功设置值为 undefined 的数据
+ * 当前只发现值为 string 类型的 schema item 会有如下情况
+ * 需要做处理
+ * */
+function handleSchemaValue(schemaValue: any) {
+  let temp = _.cloneDeep(schemaValue)
+  if (temp.hasOwnProperty('variable') && temp.variable === void 0) {
+    temp.variable = ''
+  }
+  return temp
+}
+
 function handleChange () {
   if (!isEmptyPrimarySchema.value) {
-    store.setEditingPrimaryAw(schemaValue.value, 'data')
+    store.setEditingPrimaryAw(handleSchemaValue(schemaValue.value), 'data')
   }
   if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   store.setDescription(desc.value)
   emit('change')
-  getAllCustomVar()
 }
 
 function handleData () {
@@ -262,12 +268,15 @@ function handleData () {
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
-  } else if (store.getExpectedAw.data) {
+    showAssert.value = false
+  } else if (store.getExpectedAw.isAssert) {
+    getAllCustomVar()
     rulesData.value = store.getExpectedAw.data
+    assertDesc.value = store.getExpectedAw.assertDesc || ''
+    showAssert.value = true
   } else {
     initExpectedSchema()
   }
-  getAllCustomVar()
 }
 
 // 获取当前模型所有带有 变量 属性并有 值 的数据
@@ -279,7 +288,8 @@ function getAllCustomVar () {
   arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
   let temp: Array<any> = []
   arr.forEach((b: any) => {
-    const type = b.attributes.prop?.custom?.step?.aw?.returnType
+    let type = b.attributes.prop?.custom?.step?.aw?.returnType
+    if (Array.isArray(type)) type = type[0] || ''
     const schemaVal = b.attributes.prop?.custom?.step?.data
     if (schemaVal?.variable) {
       temp.push({
@@ -294,23 +304,27 @@ function getAllCustomVar () {
 
 // 断言数据
 const keys = 1
-let rulesData = ref([{
-  relation: 'AND',
-  id: 1,
-  conditions: [
-    {
-      name: '',
-      operator: '',
-      value: undefined,
-      selectvalues: 'AND',
-    },
-  ],
-  children: [],
-}])
+let rulesData = ref(_.cloneDeep(defaultAssertData))
 
 function rulesChange() {
   store.setEditingExpectedAw(rulesData.value, 'data')
+  store.setEditingExpectedAw(true, 'isAssert')
   emit('change')
+}
+
+function assertInputChange() {
+  store.setEditingExpectedAw(assertDesc.value, 'assertDesc')
+  emit('change')
+}
+
+function clearAssert() {
+  assertDesc.value = ''
+  rulesData.value = _.cloneDeep(defaultAssertData)
+  store.setEditingExpectedAw('', 'assertDesc')
+  store.setEditingExpectedAw(false, 'isAssert')
+  store.setEditingExpectedAw(null, 'data')
+  emit('change')
+  showAssert.value = false
 }
 
 /**
@@ -319,12 +333,28 @@ function rulesChange() {
  * 2、ExpectedAw未设置
  * 3、模型有PrimaryAw设置了变量
  * */
-const assertShow = computed(() => {
-  return !hasExpected.value && assertList.value.length && !isEmptyPrimarySchema.value
-})
-
 function addAssert() {
-  deleteExpected()
+  if (showAssert.value) return
+  getAllCustomVar()
+  if (assertList.value.length) {
+    expectedSchema.value = {}
+    expectedUiSchema.value = {}
+    expectedSchemaValue.value = {}
+    store.setEditingExpectedAw({
+      data: _.cloneDeep(defaultAssertData),
+      schema: null,
+      uiParams: null,
+      aw: null,
+      isAssert: true,
+      assertDesc: ''
+    })
+    assertDesc.value = ''
+    rulesData.value = _.cloneDeep(defaultAssertData)
+    showAssert.value = true
+    emit('change')
+  } else {
+    message.warning(t('MBTStore.assertTip'))
+  }
 }
 
 defineExpose({
@@ -437,12 +467,23 @@ defineExpose({
                   style="margin-right: 8px;"
               ></delete-outlined>
             </a-tooltip>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ $t('MBTStore.clearAssert') }}</span>
+              </template>
+              <close-circle-outlined
+                  v-show="showAssert"
+                  @click="clearAssert"
+                  class="icon--primary-btn"
+                  style="margin-right: 8px;"
+              ></close-circle-outlined>
+            </a-tooltip>
           </div>
         </div>
         <div class="setting-assert" v-show="showAssert">
           <div>
             <div class="title">断言描述：</div>
-            <a-input v-model:value="assertDesc"></a-input>
+            <a-input v-model:value="assertDesc" @change="assertInputChange"></a-input>
           </div>
           <div class="title">设置断言：</div>
           <mbt-modeler-condition-edit

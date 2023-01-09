@@ -828,11 +828,11 @@ function handleSearch (keyword: string) {
                 </template>
                 <span v-else-if="!showEdit">{{ title }}</span>
                 <a-input v-else="showEdit"
-                         type="text"
-                         ref="updDom"
-                         v-model:value="updTreedata"
-                         @blur="onchangtitle(treeKey)"
-                         @keyup.enter="onchangtitle(treeKey)"
+                    type="text"
+                    ref="updDom"
+                    v-model:value="updTreedata"
+                    @blur="onchangtitle(treeKey)"
+                    @keyup.enter="onchangtitle(treeKey)"
                 />
                 <template #overlay>
                   <a-menu @click="() => onContextMenuClick(treeKey)">
