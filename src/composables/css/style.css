@@ -126,6 +126,16 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     line-height: initial;
 }
 
+.joint-widget.joint-theme-material[data-name="closeMbt"]:after {
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.8rem;
+    content: '\e609';
+    line-height: initial;
+}
+
 .toolbar-container button:not(:empty) {
     padding: 0px 2px !important;
 }
@@ -175,6 +185,38 @@ body {
     height: 100%;
     padding: 0;
     text-align: center;
+}
+
+/* previewErr */
+/* .modelPre {
+    width: 58.75rem;
+} */
+
+.aceErr-results {
+    width: 55.25rem;
+    height: 21.875rem;
+}
+
+/*遮罩层样式*/
+.loading-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 100vh;
+    height: 100vh;
+    position: absolute;
+    z-index: 8;
+}
+
+.show-spin {
+    opacity: .5;
+    z-index: 7;
+}
+
+.hide-spin {
+    opacity: 1;
+    z-index: 9;
 }
 
 .mbtScalable {

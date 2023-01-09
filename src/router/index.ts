@@ -5,6 +5,27 @@ import {
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
   AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
+import { RouteInfo } from "@/stores/modules/route";
+
+const routeStore = RouteInfo()
+
+// 判断是否是内嵌在 iframe 上
+let isEmbedded = window.top !== window.self
+routeStore.setEmbedded(isEmbedded)
+
+/**
+ * 如果 MBTStore/MBTModeler 路由有 embedded 参数，实现大屏模式
+ * */
+function embeddedBigScreen (to: any) {
+  if (to.query.hasOwnProperty('embedded') || isEmbedded) {
+    isEmbedded = true
+    to.matched.forEach((a: any) => {
+      if (a.name === 'Mbtstore' || a.name === 'Mbtmodeler') {
+        a.components = null
+      }
+    })
+  }
+}
 
 export const dashboardRoute: RouteRecordRaw = {
   path: '/',
@@ -86,23 +107,11 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/mbtstore.vue'),
         meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
-    ]
-
-  },
-
-  {
-    path: '/mbtstoreembedded',
-    name: 'Mbtstoreembedded',
-    meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined },
-    children: [
-      {
-        path: 'index',
-        name: 'Mbtstoreembedded',
-        component: () => import('@/views/mbtstore.vue'),
-        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
-      }
-    ]
-
+    ],
+    beforeEnter (to, from, next) {
+      embeddedBigScreen(to)
+      next()
+    }
   },
   {
     path: '/templatemanager',
@@ -200,6 +209,7 @@ export const routes: RouteRecordRaw[] = [
         to.meta.title = pathname
 
       }
+      embeddedBigScreen(to)
       next()
     }
   },
