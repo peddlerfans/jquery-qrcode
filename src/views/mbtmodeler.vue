@@ -14,8 +14,7 @@ import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,Clos
 import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import $ from 'jquery'
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode, inject } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute} from 'vue-router'
@@ -26,19 +25,22 @@ import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/a
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
-import {MBTShapeInterface} from "@/composables/customElements/MBTShapeInterface"
-import {showErrCard} from "@/views/componentTS/mbt-modeler-preview-err-tip";
+import { errTipTool } from '@/stores/modules/modeler-preview-err-msg'
+import {showErrCard ,CodegenErr , setErrData} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
 import { message, Modal } from "ant-design-vue";
 import "./componentTS/ace-config";
 import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
+import { VAceEditor } from 'vue3-ace-editor';
+import Preview from "ant-design-vue/lib/vc-image/src/Preview";
 
 
 
 const store = MBTStore()
 const storeAw = MbtData()
+const storePre = errTipTool()
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -166,40 +168,6 @@ const globalschema = ref({
   },
 });
 
-let schemaValue :any = ref({})
-let schema = ref({
-    title: "AW",
-  type: "object",
-  description: '',
-  properties: {
-    _id: {
-      type: "string",
-      "ui:hidden": true,
-      required: true,
-    },
-    name: {
-      title: "AW Name",
-      type: "string",
-      readOnly: true,
-    },
-    description: {
-      title: "Description",
-      type: "string",
-      readOnly: true,
-      "ui:widget": "TextAreaWidget",
-    },
-    template: {
-      title: "Template",
-      type: "string",
-      readOnly: true,
-    },
-    tags: {
-      title: "Tags",
-      type: "string",
-      readOnly: true,
-    },
-  }
-  })
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value = true
@@ -500,25 +468,83 @@ onMounted(async () => {
       rappid.paperScroller.startPanning(evt);
       rappid.paper.removeTools();
     });
-store.setRappid(rappid)
-rappid.toolbarService.toolbar.on({
-  'save:pointerclick': saveMbt.bind(this),
-  'preview:pointerclick': preview.bind(this),
-  'reload:pointerclick': reload.bind(this),
-  'chooseTem:pointerclick': chooseTem.bind(this),
+    store.setRappid(rappid)
+    rappid.toolbarService.toolbar.on({
+      'save:pointerclick': saveMbt.bind(this),
+      'preview:pointerclick': preview.bind(this),
+      'reload:pointerclick': reload.bind(this),
+      'chooseTem:pointerclick': chooseTem.bind(this),
+    })
+    rappid.paper.on('blank:pointerdblclick' ,() => {
+      isGlobal.value=true
+    })
+    if(rappid.graph.toJSON().cells.length > 0){
+      preview(false)
+      storePre.setVisible(true)
+    }
 })
-rappid.paper.on('blank:pointerdblclick' ,() => {
-  isGlobal.value=true
-})
-if(rappid.graph.toJSON().cells.length > 0){
-  preview(false)
-}
-})
+
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
   if(val){
     saveMbt()
   }
 })
+watch(() => storePre.getCheck ,(newval: boolean) => {
+    if(newval){
+      let index = storePre.getIndex
+      console.log(storePre.getIndex,storePre.getErrList[index]);
+      
+        checkChange(newval,storePre.getErrList[index]?.err)
+    }
+})
+let vaceErr = ref()
+let previewErr = ref(false)
+let errOutLang = ref()
+
+
+function checkChange(check:boolean,str:any) {
+  storePre.setCheck(false)
+    switch (str) {
+      case 'no_data': {
+        isGlobal.value = true ,
+        activeKey.value = "3" ,
+        templateRadiovalue.value = 1
+        break
+      }
+      case 'no_meta':{
+        isGlobal.value = true ,
+        activeKey.value = "2" 
+        break
+      }
+      case 'no_templates_define': {
+        isGlobal.value = true ,
+        activeKey.value = "1" 
+        break
+      }
+      case 'textErr': {
+        if(storePre.getErrmsg){
+          console.log(CodegenErr(storePre.getErrmsg,'textErr'));
+          
+          vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
+          errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          previewErr.value = true
+        }
+        break
+      }
+      case 'scriptErr': {
+        if(storePre.getErrmsg){
+          vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
+          errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          previewErr.value = true
+          }
+        break
+      }
+      case 'not_start_end': {
+        
+        break
+      }
+    }
+  }
 // 离开路由时调用
 onBeforeRouteLeave((to, form, next) => {  
     if (rappid.commandManager.undoStack.length > 0) {
@@ -534,7 +560,7 @@ onBeforeRouteLeave((to, form, next) => {
           return new Promise<void>((resolve, reject) => {
             next()
             resolve()
-            
+            storePre.setVisible(false)
           }).catch(() => console.log('Oops errors!'));
         },
         onCancel() {
@@ -543,6 +569,7 @@ onBeforeRouteLeave((to, form, next) => {
       });
   }else{
     next()
+    storePre.setVisible(false)
   }
 })
 
@@ -655,26 +682,16 @@ async function querycode(show?: boolean) {
   }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
-    const errMsg = err.response.data
+    const errMsg = err.response.data    
     showErrCard(errMsg)
+    setErrData(errMsg)
     message.error(t('common.previewError'))
   }).finally(() => spinning.value = false)
   
 }
 const preview=async (show?:boolean)=>{
-
     searchPreview.mode="all"
     await querycode(show)
-  
-  
-}
-
-const openPreview = (record:any, index: number)=>{
-  previewScript.value = record.script
-  const id = record.id + index
-  if (expandRowKeys.value.includes(id)) {
-    expandRowKeys.value = expandRowKeys.value.filter((a: any) => a !== id)
-  } else expandRowKeys.value.push(id)
 }
 
 function handleChange(str: string, data: any) {
@@ -735,8 +752,8 @@ function closePreviewModal() {
 
 </script>
 
-<template>
-  <a-spin class="loading-wrap" tip="预览加载中" :spinning="spinning"></a-spin>
+<template >
+  <a-spin class="loading-wrap" :tip="$t('common.previewLoad')" :spinning="spinning"></a-spin>
   <main class="joint-app joint-theme-modern" ref="apps" :class="spinning ? 'show-spin' : 'hide-spin'">
 
     <div class="app-header">
@@ -939,6 +956,18 @@ function closePreviewModal() {
             </a-tabs>
   </div>
 </a-modal>
+<a-modal v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+  <!-- preview错误信息 -->
+  <VAceEditor 
+  v-model:value="vaceErr"
+  class="aceErr-results"
+  :lang="errOutLang"
+  :wrap="true"
+  :readonly="true"
+  theme="sqlserver"
+  :options="{ useWorker: true }"
+  ></VAceEditor>
+</a-modal>
 </template>
 
 <style lang="scss" >
@@ -946,27 +975,9 @@ function closePreviewModal() {
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
 
-// 遮罩层样式
-.loading-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  width: 100vh;
-  height: 100vh;
-  position: absolute;
-  z-index: 8;
-}
 
-.show-spin {
-  opacity: .5;
-  z-index: 7;
-}
 
-.hide-spin {
-  opacity: 1;
-  z-index: 9;
-}
+
 
 .app-header{
   background-color: #717D98;

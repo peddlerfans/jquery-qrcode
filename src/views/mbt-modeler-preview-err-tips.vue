@@ -6,12 +6,14 @@ import {
 } from '@ant-design/icons-vue'
 import {
   ref,
-  computed
+  computed,
+provide
 } from 'vue'
 import { errTipTool } from "@/stores/modules/modeler-preview-err-msg";
 
 let index = ref<number>(0)
 const store = errTipTool()
+let check = ref<boolean>(false)
 
 const currentErr: any = computed(() => {
   return store.getErrList[index.value]
@@ -34,7 +36,10 @@ const solve = () => {
 const close = () => {
   store.setVisible(false)
 }
-
+const checkPreview = () => {
+  store.setCheck(true)
+  store.setIndex(index.value)  
+}
 </script>
 
 <template>
@@ -52,6 +57,7 @@ const close = () => {
 <!--      <a-button type="link" @click="solve">定位问题</a-button>-->
       <a-button type="link" @click="pre" :disabled="index <= 0">上个错误</a-button>
       <a-button type="link" @click="next" :disabled="index + 1 >= store.getLength">下个错误</a-button>
+      <a-button type="primary" @click="checkPreview">查看问题</a-button>
     </div>
   </div>
 </template>

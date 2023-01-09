@@ -266,7 +266,6 @@ export const MbtData = defineStore({
                     }
                 }
             })
-            console.log(awSchema.properties)
             return {
                 schema: awSchema,
                 uiSchema

@@ -1,6 +1,8 @@
 import {
     errTipTool
 } from '@/stores/modules/modeler-preview-err-msg'
+import { Item } from 'ant-design-vue/lib/menu'
+import _ from 'lodash'
 
 const store = errTipTool()
 
@@ -37,9 +39,9 @@ const getReason = (err: string) => {
 }
 
 export const showErrCard = (errMsg:any) => {
-    let errAttrList = Object.keys(errMsg)
+    let errAttrList = Object.keys(errMsg)    
     let errTem:any
-    let temp
+    let temp: any = []
     if (!errAttrList || !errAttrList.length) return
     if(errMsg.hasOwnProperty('errors')){
         errMsg.errors.forEach((item:any) => {
@@ -49,13 +51,16 @@ export const showErrCard = (errMsg:any) => {
                 }else{
                     errTem = 'scriptErr'
                 }
-            }
+            }                   
+            temp.push({err:errTem , reason: getReason(errTem)})
+            console.log(temp);
             
         });
         
-        if(errTem){            
-            temp =[{errTem , reason: getReason(errTem)}]
-        }
+        // if(errTem){
+        //     temp = [{errTem , reason: getReason(errTem)}]
+        // }
+        
     }else{
         temp = errAttrList.map((err: string) => {
             return {
@@ -67,4 +72,30 @@ export const showErrCard = (errMsg:any) => {
     
     store.setErrList(temp)
     store.setVisible(true)
+}
+
+export function CodegenErr(errmsg:any , codegenMsg: string) :any{
+    let outputLang
+    let vaceErr
+    if(codegenMsg == 'textErr'){
+        let codegenErr = errmsg.errors.filter((item: any)=> item.outputLang == 'yaml')
+        codegenErr.forEach((obj: any) => {
+            if(obj.results[0].hasOwnProperty('error') && obj.outputLang){
+                outputLang = obj.outputLang
+                vaceErr = obj.results[0].error
+            }
+        })
+    }else{
+        errmsg.errors.filter((item: any)=> item.outputLang !== 'yaml').forEach((obj: any) => {
+            if(obj.results[0].hasOwnProperty('error') && obj.outputLang){
+                outputLang = obj.outputLang
+                vaceErr = obj.results[0].error
+            }
+        })
+    }    
+    return {outputLang ,vaceErr}
+}
+
+export function setErrData(msg:any){
+    store.setErrmsg(msg)
 }

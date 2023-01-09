@@ -177,6 +177,34 @@ body {
     text-align: center;
 }
 
+/* previewErr */
+.aceErr-results{
+    width: 31.25rem;
+    height: 21.875rem;
+}
+
+/*遮罩层样式*/ 
+.loading-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100vh;
+  height: 100vh;
+  position: absolute;
+  z-index: 8;
+}
+
+.show-spin {
+  opacity: .5;
+  z-index: 7;
+}
+
+.hide-spin {
+  opacity: 1;
+  z-index: 9;
+}
+
 .mbtScalable {
     position: absolute;
     right: 300px;
