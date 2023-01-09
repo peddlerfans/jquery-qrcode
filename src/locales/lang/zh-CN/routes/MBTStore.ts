@@ -9,6 +9,7 @@ export default {
     tip6: '确定删除该测试建模?',
 
     // MBTModeler
+    addAssert: '添加断言',
     reloadTip: '测试建模已重新加载',
     start: '开始',
     end: '结束',

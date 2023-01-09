@@ -10,13 +10,13 @@ import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
 import {useRoute, useRouter} from "vue-router";
 import {
   PlusCircleOutlined,
   DeleteOutlined,
-  EditOutlined
+  EditOutlined,
+  PlusSquareOutlined
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
@@ -30,22 +30,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['change'])
+
 let desc = ref<string>('')
 const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
-const defaultAWSchema = {
-  title: "AW",
-  type: "object",
-  description: '',
-  properties: {
-    _id: {
-      type: "string",
-      "ui:hidden": true,
-      required: true,
-    }
-  }
-}
+let showAssert = ref<boolean>(false)
 
 const store = MbtData()
 const { t } = useI18n()
@@ -167,12 +157,6 @@ function showAw (row: any) {
     schemaValue.value = {}
     getAllCustomVar()
   } else if (selectAwTar === '2') {
-    store.setEditingExpectedAw(row, 'aw')
-    store.setEditingExpectedAw({}, 'data')
-    let temp: any = store.getExpectedAwSchema
-    expectedSchema.value = temp.schema
-    expectedUiSchema.value = temp.uiSchema
-    expectedSchemaValue.value = {}
     assertList.value = []
     rulesData.value = [{
       relation: 'AND',
@@ -187,6 +171,12 @@ function showAw (row: any) {
       ],
       children: [],
     }]
+    store.setEditingExpectedAw(row, 'aw')
+    store.setEditingExpectedAw({}, 'data')
+    let temp: any = store.getExpectedAwSchema
+    expectedSchema.value = temp.schema
+    expectedUiSchema.value = temp.uiSchema
+    expectedSchemaValue.value = {}
   }
   emit('change')
 }
@@ -333,6 +323,10 @@ const assertShow = computed(() => {
   return !hasExpected.value && assertList.value.length && !isEmptyPrimarySchema.value
 })
 
+function addAssert() {
+  deleteExpected()
+}
+
 defineExpose({
   initSchema,
   handleData
@@ -413,6 +407,16 @@ defineExpose({
             </a-tooltip>
             <a-tooltip placement="top">
               <template #title>
+                <span>{{ $t('MBTStore.addAssert') }}</span>
+              </template>
+              <plus-square-outlined
+                  @click="addAssert"
+                  class="icon--primary-btn"
+                  style="margin-right: 8px;"
+              ></plus-square-outlined>
+            </a-tooltip>
+            <a-tooltip placement="top">
+              <template #title>
                 <span>{{ $t('MBTStore.updateAw') }}</span>
               </template>
               <edit-outlined
@@ -435,7 +439,7 @@ defineExpose({
             </a-tooltip>
           </div>
         </div>
-        <div class="setting-assert" v-show="assertShow">
+        <div class="setting-assert" v-show="showAssert">
           <div>
             <div class="title">断言描述：</div>
             <a-input v-model:value="assertDesc"></a-input>
