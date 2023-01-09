@@ -5,8 +5,13 @@ import {
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
   AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
 } from '@ant-design/icons-vue'
+import { RouteInfo } from "@/stores/modules/route";
 
-let isEmbedded = false
+const routeStore = RouteInfo()
+
+// 判断是否是内嵌在 iframe 上
+let isEmbedded = window.top !== window.self
+routeStore.setEmbedded(isEmbedded)
 
 /**
  * 如果 MBTStore/MBTModeler 路由有 embedded 参数，实现大屏模式
@@ -107,21 +112,6 @@ export const routes: RouteRecordRaw[] = [
       embeddedBigScreen(to)
       next()
     }
-  },
-
-  {
-    path: '/mbtstoreembedded',
-    name: 'Mbtstoreembedded',
-    meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined },
-    children: [
-      {
-        path: 'index',
-        name: 'Mbtstoreembedded',
-        component: () => import('@/views/mbtstore.vue'),
-        meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
-      }
-    ]
-
   },
   {
     path: '/templatemanager',
