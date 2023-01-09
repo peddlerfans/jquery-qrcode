@@ -7,7 +7,8 @@ import {
 import {
   ref,
   computed,
-provide
+provide,
+onMounted
 } from 'vue'
 import { errTipTool } from "@/stores/modules/modeler-preview-err-msg";
 
@@ -17,6 +18,9 @@ let check = ref<boolean>(false)
 
 const currentErr: any = computed(() => {
   return store.getErrList[index.value]
+})
+const loadErr: any = computed(() => {
+  return store.getCheck
 })
 
 const pre = () => {
@@ -28,6 +32,7 @@ const next = () => {
   if (index.value === store.getLength - 1) return
   index.value++
 }
+
 
 const solve = () => {
 
@@ -43,6 +48,7 @@ const checkPreview = () => {
 </script>
 
 <template>
+  <!-- <a-spin class="loading-wrap" :tip="$t('common.previewLoad')" :spinning="loadErr"></a-spin> -->
   <div class="mbt-modeler-preview-err-tips">
     <close-outlined class="close-btn" @click="close" />
     <div class="title">预览错误：{{ `${index + 1} / ${store.getLength}`}}</div>

@@ -52,6 +52,7 @@ let leaveRouter = ref(false)
 let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
+const toolbarDom = ref()
 // Aw组件的数据
 let rightSchemaModal = ref()
 let showpaper =ref(false)
@@ -481,12 +482,12 @@ onMounted(async () => {
     })
     if(rappid.graph.toJSON().cells.length > 0){
       preview(false)
-      storePre.setVisible(true)
-    }
+  }
+    toolbarDom.value.firstChild.lastChild.style.display = 'none'
     if(storeRoute.getIsEmbedded){
       storeAw.setUpdateAw(true)
-    }
-
+      toolbarDom.value.firstChild.lastChild.style.display = 'block'
+  }    
 })
 
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
@@ -496,9 +497,7 @@ watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
 })
 watch(() => storePre.getCheck ,(newval: boolean) => {
     if(newval){
-      let index = storePre.getIndex
-      console.log(storePre.getIndex,storePre.getErrList[index]);
-      
+      let index = storePre.getIndex      
         checkChange(newval,storePre.getErrList[index]?.err)
     }
 })
@@ -527,9 +526,7 @@ function checkChange(check:boolean,str:any) {
         break
       }
       case 'textErr': {
-        if(storePre.getErrmsg){
-          console.log(CodegenErr(storePre.getErrmsg,'textErr'));
-          
+        if(storePre.getErrmsg){          
           vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           previewErr.value = true
@@ -538,14 +535,23 @@ function checkChange(check:boolean,str:any) {
       }
       case 'scriptErr': {
         if(storePre.getErrmsg){
-          vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
-          errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          vaceErr.value = CodegenErr(storePre.getErrmsg,'scriptErr').vaceErr
+          errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
           previewErr.value = true
           }
         break
       }
       case 'not_start_end': {
-        
+        if (storePre.getErrmsg) {
+          storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
+            cellIdArr.forEach((cellId: any) => {
+              console.log(cellId);
+              
+              rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
+            });
+            
+          })
+        }
         break
       }
     }
@@ -687,9 +693,13 @@ async function querycode(show?: boolean) {
   }
   }).catch((err)=>{
     // 这里提示用户详细错误问题
-    const errMsg = err.response.data    
-    showErrCard(errMsg)
+    const errMsg = err.response.data
+    console.log(errMsg);
+    
     setErrData(errMsg)
+    if (storePre.getErrmsg) {
+      showErrCard(errMsg)
+    }
     message.error(t('common.previewError'))
   }).finally(() => spinning.value = false)
   
@@ -762,7 +772,7 @@ function closePreviewModal() {
   <main class="joint-app joint-theme-modern" ref="apps" :class="spinning ? 'show-spin' : 'hide-spin'">
 
     <div class="app-header">
-      <div class="toolbar-container">
+      <div class="toolbar-container" ref="toolbarDom">
 
       </div>
     </div>
@@ -961,7 +971,7 @@ function closePreviewModal() {
             </a-tabs>
   </div>
 </a-modal>
-<a-modal v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+<a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
   <!-- preview错误信息 -->
   <VAceEditor 
   v-model:value="vaceErr"
