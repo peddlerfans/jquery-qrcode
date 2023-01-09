@@ -453,8 +453,6 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      console.log(elementView.model);
-      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -544,9 +542,7 @@ function checkChange(check:boolean,str:any) {
       case 'not_start_end': {
         if (storePre.getErrmsg) {
           storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
-            cellIdArr.forEach((cellId: any) => {
-              console.log(cellId);
-              
+            cellIdArr.forEach((cellId: any) => {             
               rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
             });
             
