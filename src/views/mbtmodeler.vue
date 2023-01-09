@@ -998,8 +998,6 @@ function closePreviewModal() {
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
-      overflow: auto;
-      height: calc(100% - 55px);
       .ace-result{
       flex: 1;
       font-size: 18px;

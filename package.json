@@ -39,6 +39,7 @@
     "crypto-js": "^4.1.1",
     "dagre": "^0.8.5",
     "echarts": "^5.4.0",
+    "exceljs": "^4.3.0",
     "graphlib": "^2.1.8",
     "jointjs": "^3.6.2",
     "jquery": "^3.6.1",

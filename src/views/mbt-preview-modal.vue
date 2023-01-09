@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import {nextTick, ref, watch} from "vue";
+import {ref, watch} from "vue";
 import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
+import ExcelJs from 'exceljs'
 
 const { t } = useI18n()
 let tableData = ref<any>([])
@@ -65,6 +66,61 @@ function selectTreeNode(selectedKeys: any, info: any) {
   script.value = info.node.script
 }
 
+function setExcelCell(workbook: any) {
+  const col :Partial<ExcelJs.Column>[] = []
+  let headerList: Array<string> = Object.keys(props.previewData[0]).filter((str: string) => str !== 'script')
+  const workSheet = workbook.addWorksheet('是我')
+  headerList.forEach((head: string) => {
+    col.push({
+      header: head,
+      key: head,
+      width: 120
+    })
+  })
+  workSheet.columns = col
+  props.previewData.forEach((a: any) => {
+    workSheet.addRow(a)
+  })
+  // workSheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
+  //   row.height = 240
+  // })
+}
+
+function exportData() {
+  const workbook = new ExcelJs.Workbook()
+  // workbook.creator = 'zfTest'
+  // workbook.lastModifiedBy = 'zf'
+  // workbook.creator = String(new Date())
+  // workbook.modified = new Date()
+  // workbook.lastPrinted = new Date(1997, 2, 3)
+
+  workbook.views = [
+    {
+      x: 0,
+      y: 0,
+      width: 1000,
+      height: 2000,
+      firstSheet: 0,
+      activeTab: 1,
+      visibility: 'visible'
+    }
+  ]
+
+  setExcelCell(workbook)
+
+  workbook.xlsx.writeBuffer().then((data) => {
+    let blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'zf' + '.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(a.href);
+    a.remove()
+  });
+}
+
 </script>
 
 <template>
@@ -118,6 +174,13 @@ function selectTreeNode(selectedKeys: any, info: any) {
         </template>
       </div>
     </div>
+    <div class="btn-wrap" slot="footer">
+      <a-divider></a-divider>
+      <div class="btn-list">
+        <a-button type="primary" @click="exportData">导出</a-button>
+        <a-button @click="cancelPreview">关闭</a-button>
+      </div>
+    </div>
   </a-modal>
 </template>
 
@@ -129,7 +192,7 @@ function selectTreeNode(selectedKeys: any, info: any) {
   display: flex;
   height: 100%;
   .left-tree {
-    height: 100%;
+    height: 55vh;
     overflow: auto;
     min-width: 140px;
   }
@@ -144,6 +207,17 @@ function selectTreeNode(selectedKeys: any, info: any) {
         width: 100%;
         height: 100%;
       }
+    }
+  }
+}
+.btn-wrap {
+  .btn-list {
+    display: flex;
+    justify-content: end;
+    padding-left: 16px;
+    padding-bottom: 16px;
+    .ant-btn {
+      margin-left: 16px;
     }
   }
 }
