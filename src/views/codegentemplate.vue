@@ -52,6 +52,7 @@ import {
 } from "./componentTS/dynamictemplate";
 import { useI18n } from "vue-i18n";
 import { CommonTable } from '@/components/basic/common-table'
+import { SearchBar } from '@/components/basic/search-bar'
 
 const { t } = useI18n()
 
@@ -74,75 +75,8 @@ let codegenTable = ref<any>(null)
 
 const tableRef = ref()
 
-// 表单的数据
-const formState: UnwrapRef<FormState> = reactive({
-  search: '',
-  q: "category:codegen",
-});
-
-watch(
-    () => formState.search,
-    (value) => {
-      codegenTableQuery.searchText = value
-    }
-)
-
 // 点击跳转metamodel
 let router = useRouter()
-
-const handleFinish: FormProps['onFinish'] = (values: any) => {
-  codegenTable.value.query(formState.search)
-
-};
-
-// Catch search failed
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
-  console.log(errors);
-};
-
-let searchInput = ref()
-let cascder = ref(false)
-let selectvalue:any = ref("")
-let selectoptions:any = ref([
-   {
-    value: 'tags:',
-    label: 'tags:',
-    isLeaf: false,
-  },
-  {
-    value: 'name:',
-    label: 'name:',
-
-  },
-])
-const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-    console.log(selectedOptions);
-      let rst = await request.get("/api/templates/_tags", { params: { q: "category:codegen" } })
-      const targetOption = selectedOptions[0];
-      targetOption.loading = true
-        if (rst.length > 0) {
-          rst = rst.map((item: any) => ({ value: item, label: item }))
-          targetOption.children = rst
-        }
-        targetOption.loading = false;
-        selectoptions.value = [...selectoptions.value];
-    };
-const onSelectChange = async (value: any) => {
-  if (value) {
-    let reg = new RegExp("," ,"g")
-    formState.search += value.toString().replace(reg,'')
-  }
-  selectvalue.value = ''
-  cascder.value = false
-  nextTick(() => {
-    searchInput.value.focus()
-  })
-}
-const inputChange = (value: any) => {
-  if (formState.search == "@") {
-    cascder.value = true
-  }
-}
 
 const showModal = () => {
   codegenTable.value.createNewRow({
@@ -205,6 +139,15 @@ const copyOk=()=>{
 const clearValida =()=>{
   refCopy.value.clearValidate()
 }
+
+function handleSearch(str: string) {
+  codegenTable.value.query(str)
+}
+
+function handleChange(str: string) {
+  codegenTableQuery.searchText = str
+}
+
 </script>
 
 <template>
@@ -213,31 +156,12 @@ const clearValida =()=>{
       <!-- 表单的查询 -->
       <a-row>
         <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-                 @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-               <a-input v-model:value="formState.search"
-              :placeholder="$t('awModeler.inputSearch1')"
-              @change="inputChange"
-              ref="searchInput"
-              >
-              </a-input>
-              <a-cascader
-              v-if="cascder"
-              :load-data="loadData"
-              v-model:value="selectvalue"
-              :placeholder="$t('common.selectTip')"
-              :options="selectoptions"
-              @change="onSelectChange"
-              ></a-cascader>
-            </a-col>
-
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
-            </a-col>
-
-          </AForm>
+          <search-bar
+              url="/api/templates/_tags"
+              :params="{ q: 'category:codegen'}"
+              @change="handleChange"
+              @search="handleSearch"
+          ></search-bar>
         </a-col>
         <a-col :span="4">
           <a-button type="primary" @click="showModal">

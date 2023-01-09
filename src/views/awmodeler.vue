@@ -11,7 +11,7 @@ import { message } from 'ant-design-vue/es'
 import request from '@/utils/request';
 import http from '@/utils/http'
 import { Rule } from 'ant-design-vue/es/form';
-import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
+import { tableSearch, paramsobj, ModelState, statesTs ,clickobj} from "./componentTS/awmodeler";
 import _ from 'lodash';
 import {uuid} from '@/utils/Uuid'
 import { any } from 'vue-types';
@@ -82,9 +82,9 @@ const AWParamsColumn = [
 
 let treeRequireTime = 0
 
-async function query(data?: any) {
+async function query() {
   awModelTable.value.loading = true
-  const params: any = data || searchobj
+  const params: any = searchobj
   const rst = await http.get("/api/hlfs", { params })
   /**
    * 该请求有请求覆盖bug
@@ -128,11 +128,6 @@ onMounted(() => {
 })
 
 const instance=getCurrentInstance()
-// 表单的数据
-const formState: UnwrapRef<FormState> = reactive({
-  q:'',
-  search:''
-});
 
 // 模态窗数据
 const visible = ref<boolean>(false);
@@ -434,12 +429,14 @@ const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
     str=str.substring(1,str.length)
     clickKey.path=str
     clickKey.dataRef=info.node.dataRef
+    searchobj.q = `path:${str}`
+    searchobj.search = ''
     if(info.node.dataRef.children.length==0){
       // 这里走精准匹配
-      await query({q:`path:${str}`,search:''})
+      await query()
     }else{
       // 这里走前置匹配
-      await query({q:`path:${str}`,search:''})
+      await query()
     }
   }
 
@@ -798,11 +795,12 @@ const clearValida = () => {
 }
 
 function handleSearch (keyword: string) {
-  formState.search = keyword
+  searchobj.search = keyword
+  searchobj.page = 1
   if (clickKey.path) {
-    formState.q = `path:${clickKey.path}`
+    searchobj.q = `path:${clickKey.path}`
   }
-  query(formState)
+  query()
 }
 
 </script>
