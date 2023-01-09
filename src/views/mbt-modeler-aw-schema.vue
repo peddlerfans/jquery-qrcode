@@ -39,6 +39,7 @@ const showTable = ref<boolean>(false)
 const router = useRouter()
 const route = useRoute()
 let showAssert = ref<boolean>(false)
+const isUpdateAw = ref(true)
 const defaultAssertData = [{
   relation: 'AND',
   id: 1,
@@ -231,6 +232,9 @@ function handleChange () {
 }
 
 function handleData () {
+  if(store.getUpdateAw){
+    isUpdateAw.value = false
+  }
   desc.value = store.getDescription
   // 处理PrimaryAW数据，同事兼容新旧数据结构
   // 旧aw数据结构
@@ -386,7 +390,7 @@ defineExpose({
                 style="margin-right: 8px;"
             ></plus-circle-outlined>
           </a-tooltip>
-          <a-tooltip placement="top">
+          <a-tooltip placement="top" v-show="isUpdateAw">
             <template #title>
               <span>{{ t('common.updateAw') }}</span>
             </template>

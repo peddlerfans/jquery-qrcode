@@ -51,7 +51,8 @@ interface MbtData {
     awDescription: string,
     showSchema: boolean
     showData: any
-    ifsaveMbt: boolean
+    ifsaveMbt: boolean,
+    isUpdataAw: boolean
 }
 
 export const MbtData = defineStore({
@@ -93,7 +94,8 @@ export const MbtData = defineStore({
         awDescription: '',
         showSchema: false,
         showData: {},
-        ifsaveMbt: false
+        ifsaveMbt: false,
+        isUpdataAw: false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -126,7 +128,8 @@ export const MbtData = defineStore({
         getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
         getShowData: state => state.showData,
-        getifsaveMbt: state => state.ifsaveMbt
+        getifsaveMbt: state => state.ifsaveMbt,
+        getUpdateAw: state => state.isUpdataAw
     },
     actions: {
         setAllData(data: any) {
@@ -281,6 +284,9 @@ export const MbtData = defineStore({
                 }
             }
             return arr
+        },
+        setUpdateAw(value:boolean){
+            this.isUpdataAw = value
         }
     }
 })

@@ -25,6 +25,7 @@ import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/a
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
+import { RouteInfo } from "@/stores/modules/route"
 import { errTipTool } from '@/stores/modules/modeler-preview-err-msg'
 import {showErrCard ,CodegenErr , setErrData} from "@/views/componentTS/mbt-modeler-preview-err-tip";
 import MbtModelerRightModal from "@/views/mbt-modeler-right-modal.vue";
@@ -41,6 +42,7 @@ import Preview from "ant-design-vue/lib/vc-image/src/Preview";
 const store = MBTStore()
 const storeAw = MbtData()
 const storePre = errTipTool()
+const storeRoute = RouteInfo()
 const { t } = useI18n()
 const route = useRoute()
 let rappid : MbtServe
@@ -436,7 +438,6 @@ onMounted(async () => {
            };
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
-    // rappid.graph.fromJSON(JSON.parse(JSON.stringify(store.getAlldata.modelDefinition.cellsinfo)));
   }
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
     rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
@@ -482,6 +483,10 @@ onMounted(async () => {
       preview(false)
       storePre.setVisible(true)
     }
+    if(storeRoute.getIsEmbedded){
+      storeAw.setUpdateAw(true)
+    }
+
 })
 
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{

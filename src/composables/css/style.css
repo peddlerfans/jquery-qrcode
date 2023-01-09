@@ -126,6 +126,16 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     line-height: initial;
 }
 
+.joint-widget.joint-theme-material[data-name="closeMbt"]:after {
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.8rem;
+    content: '\e609';
+    line-height: initial;
+}
+
 .toolbar-container button:not(:empty) {
     padding: 0px 2px !important;
 }
