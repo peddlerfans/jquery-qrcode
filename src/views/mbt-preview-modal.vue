@@ -4,7 +4,9 @@ import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
+import {saveAs} from '@/utils/fileAction'
 import ExcelJs from 'exceljs'
+import JSZip from "jszip";
 
 const { t } = useI18n()
 let tableData = ref<any>([])
@@ -74,26 +76,18 @@ function setExcelCell(workbook: any) {
     col.push({
       header: head,
       key: head,
-      width: 120
+      width: 120,
     })
   })
   workSheet.columns = col
   props.previewData.forEach((a: any) => {
     workSheet.addRow(a)
   })
-  // workSheet.eachRow({ includeEmpty: true }, (row: any, rowNumber: number) => {
-  //   row.height = 240
-  // })
 }
 
-function exportData() {
+async function exportData() {
   const workbook = new ExcelJs.Workbook()
-  // workbook.creator = 'zfTest'
-  // workbook.lastModifiedBy = 'zf'
-  // workbook.creator = String(new Date())
-  // workbook.modified = new Date()
-  // workbook.lastPrinted = new Date(1997, 2, 3)
-
+  const jsZip = new JSZip()
   workbook.views = [
     {
       x: 0,
@@ -105,20 +99,19 @@ function exportData() {
       visibility: 'visible'
     }
   ]
-
   setExcelCell(workbook)
-
-  workbook.xlsx.writeBuffer().then((data) => {
-    let blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'zf' + '.xlsx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(a.href);
-    a.remove()
-  });
+  let excelData = await workbook.xlsx.writeBuffer()
+  let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  jsZip.file('zftext.xlsx', blob)
+  props.previewData.forEach((item: any) => {
+    const txtBlob = new Blob([item.script])
+    jsZip.file(`${item.id}.txt`, txtBlob)
+  })
+  jsZip.generateAsync({
+    type: 'blob'
+  }).then(blob => {
+    saveAs(blob, `zfText.zip`)
+  })
 }
 
 </script>
@@ -192,7 +185,7 @@ function exportData() {
   display: flex;
   height: 100%;
   .left-tree {
-    height: 55vh;
+    height: 59vh;
     overflow: auto;
     min-width: 140px;
   }
@@ -211,6 +204,9 @@ function exportData() {
   }
 }
 .btn-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
   .btn-list {
     display: flex;
     justify-content: end;

@@ -124,7 +124,10 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     getRappid: state => state.rappid,
-    getPreview: state => state.preview
+    getPreview: state => state.preview,
+    getMeta: state => state.mbtData?.dataDefinition?.meta,
+    getDataPool: state => state.mbtData?.dataDefinition?.data,
+    getResource: state => state.mbtData?.dataDefinition?.resources,
   },
   actions: {
     setMbtData(data: any) {

@@ -34,6 +34,7 @@ import "./componentTS/ace-config";
 import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
+import {exportFile} from "@/utils/fileAction";
 
 
 
@@ -733,6 +734,73 @@ function closePreviewModal() {
   visiblepreciew.value = false
 }
 
+function exportMeta() {
+  const props = store.getMeta?.schema?.properties
+  const data: any = store.getMeta.data
+  if (!props || _.isEmpty(props)) return message.warning('暂无数据')
+  console.log(store.getMeta)
+  console.log(props)
+  const cols = Object.keys(props).map((a: string) => {
+    return {
+      title: a
+    }
+  })
+  const arr: any = [{}, {}]
+  debugger
+  Object.keys(props).forEach((key: string) => {
+    debugger
+    const val = data[key]
+    if (val) {
+      arr[0].key = val.val
+      arr[1].key = val.key === '2' ? '自定义输入' : '选项输入'
+    } else {
+      arr[0].key = ''
+      arr[1].key = '选项输入'
+    }
+  })
+  debugger
+  console.log(arr)
+  exportFile(cols, arr)
+}
+
+function exportDataPool() {
+  const dataPool = store.getDataPool
+  if (!dataPool) return message.warning('暂无数据')
+  exportFile(dataPool.tableColumns, dataPool.tableData)
+}
+
+function exportResource() {
+  const resource = store.getResource
+  if (!resource || !resource.length) return message.warning('暂无数据')
+  const cols = Object.keys(resource[0]).map((key: string) => {
+    return {
+      title: key
+    }
+  })
+  exportFile(cols, resource)
+}
+
+function exportData() {
+  switch (activeKey.value) {
+    case '2': {
+      exportMeta()
+      break
+    }
+    case '3': {
+      exportDataPool()
+      break
+    }
+    case '4': {
+      exportResource()
+      break
+    }
+  }
+}
+
+function importData() {
+
+}
+
 </script>
 
 <template>
@@ -781,10 +849,12 @@ function closePreviewModal() {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" :title="$t('common.template')" 
+  <a-modal v-model:visible="isGlobal" :title="$t('common.template')"
       @ok="handleOk"
+      :bodyStyle="{paddingBottom: '50px'}"
       :width="1000"
       ok-text="save"
+      :footer="null"
       >
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
@@ -938,6 +1008,12 @@ function closePreviewModal() {
               </a-tab-pane>
             </a-tabs>
   </div>
+    <div class="mbt-modeler-btn-wrap" slot="footer">
+      <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
+      <a-button type="primary" @click="importData" v-show="activeKey === '4'">导入</a-button>
+      <a-button @click="isGlobal = false">取消</a-button>
+      <a-button type="primary" @click="handleOk">保存</a-button>
+    </div>
 </a-modal>
 </template>
 
@@ -1063,6 +1139,19 @@ function closePreviewModal() {
 
 .infoPanel{
   position: relative;
+}
+
+.mbt-modeler-btn-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: end;
+  .ant-btn {
+    margin-right: 8px;
+  }
 }
 
 .joint-navigator{
