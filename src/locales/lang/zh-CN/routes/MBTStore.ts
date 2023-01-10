@@ -9,6 +9,8 @@ export default {
     tip6: '确定删除该测试建模?',
 
     // MBTModeler
+    addAssert: '添加断言',
+    assertTip: '只有该模型至少一个aw节点的操作步骤有设置变量，才能添加断言',
     reloadTip: '测试建模已重新加载',
     start: '开始',
     end: '结束',
@@ -26,6 +28,7 @@ export default {
     // mbt-modeler-aw-schema
     updateAw: '修改AW',
     deleteAW: '删除AW',
+    clearAssert: '清空断言',
 
     // mbt-preview-modal.vue
     selectTip: '请选择左边节点以展示数据'

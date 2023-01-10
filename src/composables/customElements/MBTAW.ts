@@ -34,15 +34,16 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
+        
         const desc = this.get('prop')?.custom?.description
         let primaryDesc :string
         let expectedDesc :string
         if(this.get('prop')?.custom?.step?.aw){
-            primaryDesc = this.get('prop')?.custom?.step?.aw?.description || ''
+            primaryDesc = this.get('prop').custom.step.aw.description || ''
             expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
         }else{
-            primaryDesc = this.get('prop')?.custom?.step?.schema?.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.schema?.description || ''
+            primaryDesc = this.get('prop')?.custom?.step?.data?.description || ''
+            expectedDesc = this.get('prop')?.custom?.expectation?.data?.description || ''
         }
         // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
         const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
@@ -67,6 +68,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
+        console.log(temp)
         this.prop('prop/custom', temp)
         this.reRender()
         fitAncestors(this)

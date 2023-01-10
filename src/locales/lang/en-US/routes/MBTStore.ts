@@ -9,6 +9,7 @@ export default {
     tip6: 'Are you sure delete this task?',
 
     // MBTModeler
+    addAssert: 'Add assert',
     reloadTip: 'MBT model reloaded',
     start: 'Start',
     end: 'End',
@@ -27,6 +28,7 @@ export default {
     // mbt-modeler-aw-schema
     updateAw: 'Edit AW',
     deleteAW: 'Delete AW',
+    clearAssert: 'Clear assert',
 
     // mbt-preview-modal.vue
     selectTip: 'Please select the left node to display the data'

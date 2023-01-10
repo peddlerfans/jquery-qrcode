@@ -3,13 +3,14 @@ import { ref, reactive, UnwrapRef, onMounted, nextTick, unref, watch } from 'vue
 import { CascaderProps, FormProps, message  } from 'ant-design-vue';
 import {  PlusOutlined} from '@ant-design/icons-vue';
 import request from "@/utils/request"
-import { tableSearch ,FormState, statesTs} from './componentTS/metatemplate';
+import { tableSearch, statesTs} from './componentTS/metatemplate';
 import cloneDeep from 'lodash-es/cloneDeep';
 import { useI18n } from "vue-i18n";
 import { useRouter,onBeforeRouteLeave } from 'vue-router';
 import { Rule } from 'ant-design-vue/es/form';
 import { RadarChart } from 'echarts/charts';
 import { CommonTable } from '@/components/basic/common-table'
+import { SearchBar } from '@/components/basic/search-bar'
 
 // table data
 let metaTable = ref<any>(null)
@@ -27,28 +28,6 @@ const metaTableQuery = {
 }
 
 const { t } = useI18n()
-// 表单查询的数据
-const formState: UnwrapRef<FormState> = reactive({
-      search: '',
-      q:'category:meta'
-});
-
-watch(
-    () => formState.search,
-    (value) => {
-      metaTableQuery.searchText = value
-    }
-)
-
-// 表单完成后的回调
-const handleFinish: FormProps['onFinish'] = async (values: any) => {
-  metaTable.value.query(formState.search)
-};
-// 表单失败后的回调
-const handleFinishFailed: FormProps['onFinishFailed'] = (errors: any) => {
-      console.log(errors);
-};
-
 const createMeta = () => {
   metaTable.value.createNewRow({
     name: '',
@@ -56,49 +35,6 @@ const createMeta = () => {
     category: 'meta',
     tags: []
   })
-}
-
-let searchInput = ref()
-let cascder = ref(false)
-let selectvalue:any = ref("")
-let selectoptions:any = ref([
-  {
-    value: 'tags:',
-    label: 'tags:',
-    isLeaf: false,
-  },
-  {
-    value: 'name:',
-    label: 'name:',
-
-  },
-])
-const loadData: CascaderProps['loadData'] = async (selectedOptions:any  ) => {
-  let rst = await request.get("/api/templates/_tags", { params: { q: "category:meta" } })
-  const targetOption = selectedOptions[0];
-  targetOption.loading = true
-  if (rst.length > 0) {
-    rst = rst.map((item: any) => ({ value: item, label: item }))
-    targetOption.children = rst
-  }
-  targetOption.loading = false;
-  selectoptions.value = [...selectoptions.value];
-};
-const onSelectChange = async (value: any) => {
-  if (value) {
-    let reg = new RegExp("," ,"g")
-    formState.search += value.toString().replace(reg,'')
-  }
-  selectvalue.value = ''
-  cascder.value = false
-  nextTick(() => {
-    searchInput.value.focus()
-  })
-}
-const inputChange = (value: any) => {
-  if (formState.search == "@") {
-    cascder.value = true
-  }
 }
 
 let checkName=async (_rule:Rule,value:string)=>{
@@ -160,6 +96,13 @@ const clearValida =()=>{
   refCopy.value.clearValidate()
 }
 
+function handleSearch(str: string) {
+  metaTable.value.query(str)
+}
+
+function handleChange(str: string) {
+  metaTableQuery.searchText = str
+}
 
 </script>
 
@@ -168,29 +111,12 @@ const clearValida =()=>{
       <header class="block shadow" style="width:100%;margin-bottom: 1rem">
         <a-row>
         <a-col :span="20">
-          <AForm layout="inline" class="search_form" :model="formState" @finish="handleFinish"
-            @finishFailed="handleFinishFailed" :wrapper-col="{ span: 24 }">
-            <a-col :span="20">
-
-            <a-input v-model:value="formState.search"
-            :placeholder="$t('awModeler.inputSearch1')"
-            @change="inputChange"
-            ref="searchInput"
-            >
-            </a-input>
-            <a-cascader
-            v-if="cascder"
-            :load-data="loadData"
-            v-model:value="selectvalue"
-            placeholder="Please select"
-            :options="selectoptions"
-            @change="onSelectChange"
-            ></a-cascader>
-            </a-col>
-            <a-col :span="4">
-              <a-button type="primary" html-type="submit">{{ $t('common.searchText') }}</a-button>
-            </a-col>
-          </AForm>
+          <search-bar
+              url="/api/templates/_tags"
+              :params="{ q: 'category:meta'}"
+              @change="handleChange"
+              @search="handleSearch"
+          ></search-bar>
         </a-col>
         <a-col :span="4">
           <a-button type="primary" @click="createMeta">

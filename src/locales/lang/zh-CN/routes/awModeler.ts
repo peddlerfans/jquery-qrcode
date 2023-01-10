@@ -11,5 +11,7 @@ export default {
     tip1: '此节点已包含的节点数为',
     tip2: '请先完成修改',
     emptyTemp: '模板或英文模板是必填的',
-    pageTotal: '共{total}条'
+    pageTotal: '共{total}条',
+    selectTip: '请选择',
+    selectAwTip: '请选择要添加的AW'
 }

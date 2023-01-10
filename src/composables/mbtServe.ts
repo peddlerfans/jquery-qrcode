@@ -14,13 +14,11 @@ class MbtServe {
     graph!: joint.dia.Graph;
     paper!: joint.dia.Paper;
     paperScroller!: joint.ui.PaperScroller;
-
     commandManager!: joint.dia.CommandManager;
     snaplines!: joint.ui.Snaplines;
     clipboard!: joint.ui.Clipboard;
     selection!: joint.ui.Selection;
     navigator!: joint.ui.Navigator;
-
     stencilService !: StencilService;
     toolbarService !: ToolbarService;
     haloService !: HaloService;
@@ -28,7 +26,6 @@ class MbtServe {
     keyboardService !: KeyboardService;
     setcell: any;
     constructor(
-
         el: any,
         stencilService: StencilService,
         toolbarService: ToolbarService,
@@ -95,8 +92,8 @@ class MbtServe {
         // });
 
         this.paper.on('element:pointerdown', (elementView: joint.dia.ElementView, evt: joint.dia.Event) => {
-            
-            
+
+
             // Select an element if CTRL/Meta key is pressed while the element is clicked.
             if (keyboard.isActive('ctrl meta', evt)) {
                 this.selection.collection.add(elementView.model);
@@ -104,10 +101,10 @@ class MbtServe {
             // 获取到当前元素的schema
             // console.log(elementView.model?.getInspectorSchema());
         });
-        
+
 
         this.graph.on('remove', (cell: joint.dia.Cell) => {
-            
+
             // If element is removed from the graph, remove from the selection too.
             if (this.selection.collection.has(cell)) {
                 this.selection.collection.reset(this.selection.collection.models.filter(c => c !== cell));
@@ -184,6 +181,8 @@ class MbtServe {
     }
     // 获取选择元素内容的函数
     selectPrimaryCell(cellView: joint.dia.CellView) {
+        console.log(cellView);
+
         let cell: any
         cell = cellView.model;
         if (cell.isElement()) {
@@ -324,13 +323,14 @@ class MbtServe {
         this.renderPlugin('.stencil-container', stencilService.stencil);
         stencilService.setShapes();
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
-            fitAncestors(elementView.model)
+
             var type = elementView.model?.get('type');
             if (type == 'itea.mbt.test.MBTGroup') {
                 elementView.model?.set('size', { width: 150, height: 100 })
             } else if (type == 'itea.mbt.test.MBTSection') {
                 elementView.model?.set('size', { width: 150, height: 100 })
             }
+            fitAncestors(elementView.model)
             this.selection.collection.reset([elementView.model]);
         });
     }
@@ -518,7 +518,8 @@ class MbtServe {
             setVertices: true,
             rankDir: 'TB',
             marginX: 100,
-            marginY: 100
+            marginY: 100,
+            clusterPadding: 20
         });
 
         this.paperScroller.centerContent({ useModelGeometry: true });

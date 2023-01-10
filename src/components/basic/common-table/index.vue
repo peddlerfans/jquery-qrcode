@@ -140,7 +140,6 @@ const isEditing = computed(() => {
 })
 
 const query = async (searchText?: string) => {
-  debugger
   let url = props.fetchObj.url
   if (!url) return
   loading.value = true
@@ -174,7 +173,7 @@ const getSearchRes = async (name: string) => {
 // 分页数据
 const pagination = reactive({
   current: 1,
-  pageSize: 20,
+  pageSize: 10,
   total: 0,
   pageSizeOptions: ['10', '20', '50', '100', '200'],
   showSizeChanger: true,

@@ -28,7 +28,9 @@ interface MbtData {
         data: any,
         schema: any,
         uiParams: any,
-        aw: any
+        aw: any,
+        isAssert?: boolean
+        assertDesc?: string
     },
     expectedTableRow: any
     mbtMeta: {
@@ -49,7 +51,8 @@ interface MbtData {
     awDescription: string,
     showSchema: boolean
     showData: any
-    ifsaveMbt: boolean
+    ifsaveMbt: boolean,
+    isUpdataAw: boolean
 }
 
 export const MbtData = defineStore({
@@ -91,7 +94,8 @@ export const MbtData = defineStore({
         awDescription: '',
         showSchema: false,
         showData: {},
-        ifsaveMbt: false
+        ifsaveMbt: false,
+        isUpdataAw: false
     }),
     getters: {
         getAllData: state => state.allData,
@@ -124,7 +128,8 @@ export const MbtData = defineStore({
         getDescription: state => state.awDescription,
         getVisible: state => state.showSchema,
         getShowData: state => state.showData,
-        getifsaveMbt: state => state.ifsaveMbt
+        getifsaveMbt: state => state.ifsaveMbt,
+        getUpdateAw: state => state.isUpdataAw
     },
     actions: {
         setAllData(data: any) {
@@ -246,13 +251,17 @@ export const MbtData = defineStore({
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                const isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
-                prop[a.title] = {
-                    "title": a.title,
-                    "type": "string",
-                    "patternProperties": false,
-                    "AWType": isSutType ? 'SUT' : 'string'
+                let isSutType
+                if (prop[a.title]?.custom) {
+                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    prop[a.title] = {
+                        "title": a.title,
+                        "type": "string",
+                        "patternProperties": false,
+                        "AWType": isSutType ? 'SUT' : 'string'
+                    }
                 }
+                
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
@@ -275,6 +284,9 @@ export const MbtData = defineStore({
                 }
             }
             return arr
+        },
+        setUpdateAw(value:boolean){
+            this.isUpdataAw = value
         }
     }
 })

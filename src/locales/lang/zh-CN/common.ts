@@ -25,11 +25,17 @@ export default {
   up: '上升一位',
   down: '下降一位',
   detail: '详情',
+  template: '模板设置',
   saveError: "保存失败",
+  previewError: '代码生成失败',
+  previewLoad: '预览加载中',
+  saveSuccess: '保存成功',
+  modificationSuccess: '修改成功',
+  modificationError: '修改失败',
   cloneError: '克隆失败',
-  permissionManagement:'权限管理',
-  resourceManagement:'资源管理',
-  roleManagement:'角色管理',
+  permissionManagement: '权限管理',
+  resourceManagement: '资源管理',
+  roleManagement: '角色管理',
   inputText: '请输入',
   chooseText: '请选择',
   clear: '清空',
@@ -39,8 +45,9 @@ export default {
   light: '亮色主题',
   dark: '黑暗主题',
 
+  selectTip: '请选择',
+
   newTag: '添加标签',
   newValue: '添加值',
-
   clone: '复制'
 };
