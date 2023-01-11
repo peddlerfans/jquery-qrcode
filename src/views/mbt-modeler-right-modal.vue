@@ -5,10 +5,10 @@ import {MbtData} from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 
-import testParser from "@/api/parser.js"
-console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
+// import testParser from "@/api/parser.js"
+// console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
 
-let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
+// let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
 
 function ruleData(data: any){
   // if(data.body && data.body.length > 0 && data.body[0].expression){
