@@ -13,6 +13,7 @@ interface errMsg {
     not_start_end: string
     textErr: string
     scriptErr: string
+    uncaught_exception: string
 }
 
 // 错误信息的属性名对应的原因
@@ -22,7 +23,8 @@ const errObj: errMsg = {
     no_templates_define: '模板没有设置模板引擎，可双击画布空表界面，进入 Attributes 页进行设置 Output Text 和 Output Script',
     not_start_end: '模型连接线连接节点有断点，请仔细检查',
     textErr: '代码生成文本模板出错',
-    scriptErr: '代码生成脚本模板出错'
+    scriptErr: '代码生成脚本模板出错',
+    uncaught_exception: '当前模型部分Aw无数据'
 }
 
 const getReason = (err: string) => {
@@ -32,6 +34,7 @@ const getReason = (err: string) => {
         case 'no_templates_define':
         case 'textErr':
         case 'scriptErr':
+        case 'uncaught_exception':
         case 'not_start_end': {
             return errObj[err]
         }
