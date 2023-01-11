@@ -188,9 +188,9 @@ const handleDirectInput = (data: any) => {
 const resourceshandleAdd = () => {
   const newData = {
     key: `${resourcescount.value}`,
-    alias: `Resource ${resourcescount.value}`,
-    class: `Class. ${resourcescount.value}`,
-    resourcetype: `resource type. ${resourcescount.value}`,
+    alias: `Resourc${resourcescount.value}`,
+    class: `Class${resourcescount.value}`,
+    resourcetype: `resourceType${resourcescount.value}`,
   };
   resourcesdataSource.value.push(newData);
 };
@@ -647,6 +647,7 @@ async function reload(){
 const saveMbt = () => {
   store.setVersion('2.0')
   store.setGraph(rappid.paper.model.toJSON())  
+  rappid.commandManager.undoStack.length = 0
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false

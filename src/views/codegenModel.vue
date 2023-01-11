@@ -237,7 +237,7 @@ const saveModel = async () => {
 
   const currId=SHA256(String(modelState.templateText)).toString()
 
-  modelState.model.history = toRaw(modelState.model.history).filter(obj => obj.id!==currId)
+  modelState.model.history = toRaw(modelState.model.history || []).filter(obj => obj.id!==currId)
 
   modelState.model.history.unshift(
       {
