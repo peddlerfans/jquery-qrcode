@@ -738,28 +738,24 @@ function exportMeta() {
   const props = store.getMeta?.schema?.properties
   const data: any = store.getMeta.data
   if (!props || _.isEmpty(props)) return message.warning('暂无数据')
-  console.log(store.getMeta)
-  console.log(props)
   const cols = Object.keys(props).map((a: string) => {
     return {
       title: a
     }
   })
   const arr: any = [{}, {}]
-  debugger
   Object.keys(props).forEach((key: string) => {
-    debugger
     const val = data[key]
     if (val) {
-      arr[0].key = val.val
-      arr[1].key = val.key === '2' ? '自定义输入' : '选项输入'
+      arr[0][key] = val.val
+      arr[1][key] = val.key === '2' ? '自定义输入' : '选项输入'
     } else {
-      arr[0].key = ''
-      arr[1].key = '选项输入'
+      arr[0][key] = ''
+      arr[1][key] = '选项输入'
     }
   })
-  debugger
   console.log(arr)
+  debugger
   exportFile(cols, arr)
 }
 
