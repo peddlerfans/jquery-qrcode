@@ -49,7 +49,7 @@ export const httpFnList = [
 
 export const testMod_httpFnList = [
     {
-        label: '请求数据',
+        label: '创建数据',
         value: 'post'
     },
     {
