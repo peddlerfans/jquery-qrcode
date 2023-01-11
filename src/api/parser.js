@@ -265,13 +265,11 @@ module.exports = /*
         peg$c106 = peg$literalExpectation("/", false),
         peg$c107 = function(pattern, flags) {
               var value;
-
               try {
                 value = new RegExp(pattern, flags);
               } catch (e) {
                 error(e.message);
               }
-
               return { type: "Literal", value: value };
             },
         peg$c108 = /^[*\\\/[]/,
@@ -506,7 +504,6 @@ module.exports = /*
         peg$c255 = function(head, tail) {
               return tail.reduce(function(result, element) {
                 element[TYPES_TO_PROPERTY_NAMES[element.type]] = result;
-
                 return element;
               }, head);
             },
@@ -529,7 +526,6 @@ module.exports = /*
               var type = (operator === "++" || operator === "--")
                 ? "UpdateExpression"
                 : "UnaryExpression";
-
               return {
                 type: type,
                 operator: operator,
@@ -12784,46 +12780,39 @@ module.exports = /*
         CallExpression:   "callee",
         MemberExpression: "object",
       };
-
       function filledArray(count, value) {
         return Array.apply(null, new Array(count))
           .map(function() { return value; });
       }
-
       function extractOptional(optional, index) {
         return optional ? optional[index] : null;
       }
-
       function extractList(list, index) {
         return list.map(function(element) { return element[index]; });
       }
-
       function buildList(head, tail, index) {
         return [head].concat(extractList(tail, index));
       }
-
       function buildBinaryExpression(head, tail) {
         return tail.reduce(function(result, element) {
           return {
             type: "BinaryExpression",
-            operator: element[1],
+            operator:  element[1] == "&&" ? "AND" : element[1] == "||" ? "OR" : element[1],
             left: result,
             right: element[3]
           };
         }, head);
       }
-
       function buildLogicalExpression(head, tail) {
         return tail.reduce(function(result, element) {
           return {
             type: "LogicalExpression",
-            operator: element[1],
+            operator: element[1] == "&&" ? "AND" : element[1] == "||" ? "OR" : element[1],
             left: result,
             right: element[3]
           };
         }, head);
       }
-
       function optionalList(value) {
         return value !== null ? value : [];
       }
