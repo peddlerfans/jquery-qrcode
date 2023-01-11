@@ -647,6 +647,7 @@ async function reload(){
 const saveMbt = () => {
   store.setVersion('2.0')
   store.setGraph(rappid.paper.model.toJSON())  
+  rappid.commandManager.undoStack.length = 0
   if (idstr) {
     request.put(`${realMBTUrl}/${idstr}`, store.getAlldata).then(() => {
       leaveRouter.value = false

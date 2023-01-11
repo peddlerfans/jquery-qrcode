@@ -7,17 +7,16 @@ import _ from "lodash";
 
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
-
 // let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
 
 function ruleData(data: any){
-  // if(data.body && data.body.length > 0 && data.body[0].expression){
-  //   let jiegou = data.body[0].expression
-  //   let child :any = []
-  //   if(jiegou.operator && jiegou.operator == "And" || jiegou.operator == "OR"){
-  //     child.push({})
-  //   }
-  // }
+  if(data.body && data.body.length > 0 && data.body[0].expression){
+    let jiegou = data.body[0].expression
+    let child :any = []
+    if(jiegou.operator && jiegou.operator == "And" || jiegou.operator == "OR"){
+      child.push({})
+    }
+  }
   if(data.operator && data.operator == "AND" || data.operator == "OR"){
     if(data.right.operator == "AND" || data.right.operator == "OR"){
       ruleData(data.right)
