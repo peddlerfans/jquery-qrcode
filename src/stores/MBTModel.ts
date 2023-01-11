@@ -228,6 +228,9 @@ export const MBTStore = defineStore('mbtmodel', {
         delete this.mbtData.modelDefinition?.props
       }
     },
+    setResource(arr: any) {
+      this.mbtData.dataDefinition.resources = arr
+    }
   }
 })
 

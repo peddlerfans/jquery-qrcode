@@ -1,6 +1,6 @@
-import { utils, writeFile } from 'xlsx'
+import {utils, writeFile, read} from 'xlsx'
 import ExcelJs from 'exceljs'
-import { accDiv } from './mathUtils'
+import {accDiv} from './mathUtils'
 
 export function getFileSuffix(filename: string) {
   const index = filename.lastIndexOf('.')
@@ -68,7 +68,6 @@ export function exportSheetFile(sheetData: unknown[][], filename: string) {
  * @description 下载、导出数据
  * @param {Object} blob
  * @param {string} fileName
- * @returns {Boolean}
  */
 export function saveAs(blob: any, fileName: string) {
   const a = document.createElement('a')
@@ -82,10 +81,32 @@ export function saveAs(blob: any, fileName: string) {
 }
 
 /**
+ * @description 获取导入的 Excel 数据
+ * @param {Object} blob
+ * @returns {Promise}
+ */
+export function getExcelData(blob: any) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsBinaryString(blob)
+    reader.onload = (e) => {
+      let data = e?.target?.result
+      if (!data) reject()
+      const workBook = read(data, {
+        type: 'binary'
+      })
+      const tempArr = Object.keys(workBook.Sheets).map((tab: string) => {
+        return utils.sheet_to_json(workBook.Sheets[tab])
+      })
+      resolve(tempArr)
+    }
+  })
+}
+
+/**
  * @description 导出单个文件
  * @param {array} cols
  * @param {array} data
- * @returns {Boolean}
  */
 export function exportFile(cols: Array<any>, data: Array<any>) {
   const workBook = new ExcelJs.Workbook()
@@ -102,14 +123,13 @@ export function exportFile(cols: Array<any>, data: Array<any>) {
   ]
   // 设置表头数据
   const workSheet = workBook.addWorksheet('tab1')
-  let tempCols = cols.map((a: any) => {
+  workSheet.columns = cols.map((a: any) => {
     return {
       header: a.title,
-      key: a.title,
+      key: a.key ? a.key : a.title,
       width: a.width || 120,
     }
   })
-  workSheet.columns = tempCols
   data.forEach((a: any) => {
     workSheet.addRow(a)
   })

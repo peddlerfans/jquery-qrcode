@@ -34,7 +34,8 @@ import "./componentTS/ace-config";
 import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
-import {exportFile} from "@/utils/fileAction";
+import {exportFile, getExcelData} from "@/utils/fileAction";
+import {UploadChangeParam} from "ant-design-vue";
 
 
 
@@ -738,24 +739,28 @@ function exportMeta() {
   const props = store.getMeta?.schema?.properties
   const data: any = store.getMeta.data
   if (!props || _.isEmpty(props)) return message.warning('暂无数据')
-  const cols = Object.keys(props).map((a: string) => {
+  const cols = [
+    {
+      title: '字段名',
+      key: 'name'
+    },
+    {
+      title: '值',
+      key: 'value'
+    },
+    {
+      title: '输入类型',
+      key: 'type'
+    }
+  ]
+  const arr = Object.keys(props).map((a: any) => {
+    const val = data[a]
     return {
-      title: a
+      name: a,
+      type: val && val.type === '2' ? '自定义输入' : '选项输入',
+      value: val && val.val ? val.val : ''
     }
   })
-  const arr: any = [{}, {}]
-  Object.keys(props).forEach((key: string) => {
-    const val = data[key]
-    if (val) {
-      arr[0][key] = val.val
-      arr[1][key] = val.key === '2' ? '自定义输入' : '选项输入'
-    } else {
-      arr[0][key] = ''
-      arr[1][key] = '选项输入'
-    }
-  })
-  console.log(arr)
-  debugger
   exportFile(cols, arr)
 }
 
@@ -793,8 +798,27 @@ function exportData() {
   }
 }
 
-function importData() {
+function customRequest() {
+  //
+}
 
+async function handleUploadChange(file: any) {
+  let data: any = await getExcelData(file)
+  data = data.flat(Infinity)
+  if (resourcesdataSource.value.length) {
+    Modal.confirm({
+      content: '导入后resources原本数据会被清除，还要进行导入操作吗？',
+      onOk() {
+        resourcesdataSource.value = data
+      },
+      cancelText: '取消',
+      onCancel() {
+        Modal.destroyAll()
+      }
+    })
+  } else {
+    resourcesdataSource.value = data
+  }
 }
 
 </script>
@@ -1006,7 +1030,9 @@ function importData() {
   </div>
     <div class="mbt-modeler-btn-wrap" slot="footer">
       <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
-      <a-button type="primary" @click="importData" v-show="activeKey === '4'">导入</a-button>
+      <a-upload :customRequest="customRequest" :beforeUpload="handleUploadChange" accept=".xlsx, .xls" :showUploadList="false">
+        <a-button type="primary" v-show="activeKey === '4'">导入</a-button>
+      </a-upload>
       <a-button @click="isGlobal = false">取消</a-button>
       <a-button type="primary" @click="handleOk">保存</a-button>
     </div>
