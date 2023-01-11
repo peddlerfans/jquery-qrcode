@@ -215,11 +215,11 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     setVersion(data : string){
       if(this.mbtData?.modelDefinition){
-        Object.assign(this.mbtData?.modelDefinition , {version:data})
+        Object.assign(this.mbtData?.modelDefinition , {schemaVersion:data})
       }else{
         // @ts-ignore
         this.mbtData.modelDefinition = {}
-        Object.assign(this.mbtData.modelDefinition , {version:data})
+        Object.assign(this.mbtData.modelDefinition , {schemaVersion:data})
       }      
       if(this.mbtData.modelDefinition && this.mbtData.modelDefinition?.props){
         delete this.mbtData.modelDefinition?.props

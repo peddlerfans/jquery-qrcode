@@ -427,16 +427,16 @@ onMounted(async () => {
   )
   rappid.startRappid()
   // 屏蔽浏览器自导ctrl+s 功能
-  document.onkeydown = function (e :any) { 
-	         e=window.event||e; 
-           var key=e.keyCode;
-             if(key== 83 && e.ctrlKey){
+document.onkeydown = function (e :any) { 
+	          e=window.event||e; 
+            var key=e.keyCode;
+            if(key== 83 && e.ctrlKey){
             	   /*延迟，兼容FF浏览器  */
             	    setTimeout(function(){        		  
-            	   },1); 
+            	    },1); 
                     return false;      
        		    }    
-           };
+            };
   if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
   }

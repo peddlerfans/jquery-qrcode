@@ -5,26 +5,29 @@ import {MbtData} from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 
-// import testParser from "@/api/parser.js"
-// console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
+import testParser from "@/api/parser.js"
+console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
+let o = '(LeftRightMove == "-20°" && ExceptResult == "65537") && is_support == "False" || (is_explorer == "False") || ExceptResult == "null" && (DownUpMove == "-20°" && Brightness == "1000lux")'
 
-// let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
+function digui(data:string){
+  if(data.lastIndexOf(")")){
+    let lastindex = data.lastIndexOf("(")
+    console.log(data.lastIndexOf(')') , lastindex ,data.length);
+    
+  }
+}
+digui(o)
+let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
+let childOIbj = []
 
-function ruleData(data: any){
-  // if(data.body && data.body.length > 0 && data.body[0].expression){
-  //   let jiegou = data.body[0].expression
-  //   let child :any = []
-  //   if(jiegou.operator && jiegou.operator == "And" || jiegou.operator == "OR"){
-  //     child.push({})
-  //   }
-  // }
-  if(data.operator && data.operator == "AND" || data.operator == "OR"){
-    if(data.right.operator == "AND" || data.right.operator == "OR"){
-      ruleData(data.right)
-    }else{
-      condition(data.right)
+function child(data:any){
+  let childObj = {}
+  if(data.conditionleft){
+    if(data.conditionleft.conditionleft){
+      child(data.conditionleft.conditionleft)
     }
-
+  }else{
+    Object.assign(childObj , {name:data.left.name , operator:data.operator , value:data.right.name})
   }
 }
 function condition(data :any){
@@ -32,9 +35,7 @@ function condition(data :any){
     return {name:data.left.name , operator:data.operator ,value: data.right.name}
   }
 }
-function leftData(left:any){
-  // if(){}
-}
+
 const store = MbtData()
 const emit = defineEmits(['change'])
 const keys = 1
