@@ -478,9 +478,6 @@ onMounted(async () => {
     rappid.paper.on('blank:pointerdblclick' ,() => {
       isGlobal.value=true
     })
-    if(rappid.graph.toJSON().cells.length > 0){
-      preview(false)
-  }
     toolbarDom.value.firstChild.lastChild.style.display = 'none'
     if(storeRoute.getIsEmbedded){
       storeAw.setUpdateAw(true)
@@ -544,6 +541,9 @@ function checkChange(check:boolean,str:any) {
           storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
             cellIdArr.forEach((cellId: any) => {             
               rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
+              setTimeout(() =>{
+                rappid.graph.getCell(cellId).findView(rappid.paper).unhighlight()
+              } ,5000)
             });
             
           })
@@ -701,6 +701,10 @@ async function querycode(show?: boolean) {
   
 }
 const preview=async (show?:boolean)=>{
+    if(rappid.commandManager.undoStack.length > 0){ 
+      message.warn("当前模型未保存")
+      return
+    }
     searchPreview.mode="all"
     await querycode(show)
 }
