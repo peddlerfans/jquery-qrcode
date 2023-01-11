@@ -14,7 +14,7 @@ import {
 } from "vue";
 import type { FormProps } from "ant-design-vue";
 import { tableSearch, FormState } from "../componentTS/mbtmodeler";
-import {ModelState, statesTs, httpFnList, httpFnEnList, httpNameTrance} from "../componentTS/webHook"
+import {ModelState, statesTs, httpFnList, testMod_httpFnList, httpNameTrance} from "../componentTS/webHook"
 import { Rule } from "ant-design-vue/es/form";
 import { PlusOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
@@ -428,7 +428,7 @@ const handleInputConfirm = () => {
               <a-checkbox-group
                   :disabled="canEdit"
                   v-model:value="topics.checkList"
-                  :options="canEdit ? httpFnList : httpFnEnList"
+                  :options="topics.title === 'test-models' ? testMod_httpFnList : httpFnList"
               ></a-checkbox-group>
             </a-card>
           </a-form-item>

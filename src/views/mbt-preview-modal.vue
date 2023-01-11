@@ -4,12 +4,15 @@ import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
+import http from "@/utils/http";
+import {useRoute} from "vue-router";
 
 const { t } = useI18n()
 let tableData = ref<any>([])
 let tableCol = ref<any>([])
 let script = ref<string>('')
 let previewTree = ref()
+const route = useRoute()
 
 interface Props {
   visible: boolean,
@@ -65,6 +68,13 @@ function selectTreeNode(selectedKeys: any, info: any) {
   script.value = info.node.script
 }
 
+function publish() {
+  const id = route.params?._id
+  http.post(`/api/test-models/${id}/publish`).then(() => {
+    message.success('发布成功')
+  }).catch(() => message.warning('发布失败'))
+}
+
 </script>
 
 <template>
@@ -118,6 +128,10 @@ function selectTreeNode(selectedKeys: any, info: any) {
         </template>
       </div>
     </div>
+    <div class="btn-wrap">
+      <a-button type="primary" @click="publish">发布</a-button>
+      <a-button @click="cancelPreview" style="margin-left: 8px;">关闭</a-button>
+    </div>
   </a-modal>
 </template>
 
@@ -127,7 +141,7 @@ function selectTreeNode(selectedKeys: any, info: any) {
 }
 .preview-wrap {
   display: flex;
-  height: 100%;
+  height: 94%;
   .left-tree {
     height: 100%;
     overflow: auto;
@@ -146,5 +160,9 @@ function selectTreeNode(selectedKeys: any, info: any) {
       }
     }
   }
+}
+.btn-wrap {
+  display: flex;
+  justify-content: end;
 }
 </style>

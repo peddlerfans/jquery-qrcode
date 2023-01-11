@@ -59,7 +59,7 @@ const AWTableQuery = {
   },
 }
 
-let MBTTable = ref<any>(null)
+let MBTTable = ref<any>()
 
 function queryTableData () {
   MBTTable.value.loading = true
