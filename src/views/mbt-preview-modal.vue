@@ -4,6 +4,8 @@ import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
+import http from "@/utils/http";
+import {useRoute} from "vue-router";
 import {saveAs} from '@/utils/fileAction'
 import ExcelJs from 'exceljs'
 import JSZip from "jszip";
@@ -13,6 +15,7 @@ let tableData = ref<any>([])
 let tableCol = ref<any>([])
 let script = ref<string>('')
 let previewTree = ref()
+const route = useRoute()
 
 interface Props {
   visible: boolean,
@@ -66,6 +69,13 @@ function selectTreeNode(selectedKeys: any, info: any) {
   tableData.value.length = 0
   tableData.value.push(info.node.dataRef)
   script.value = info.node.script
+}
+
+function publish() {
+  const id = route.params?._id
+  http.post(`/api/test-models/${id}/publish`).then(() => {
+    message.success('发布成功')
+  }).catch(() => message.warning('发布失败'))
 }
 
 function setExcelCell(workbook: any) {
@@ -171,6 +181,7 @@ async function exportData() {
       <a-divider></a-divider>
       <div class="btn-list">
         <a-button type="primary" @click="exportData">导出</a-button>
+        <a-button type="primary" @click="publish">发布</a-button>
         <a-button @click="cancelPreview">关闭</a-button>
       </div>
     </div>
@@ -183,7 +194,7 @@ async function exportData() {
 }
 .preview-wrap {
   display: flex;
-  height: 100%;
+  height: 94%;
   .left-tree {
     height: 59vh;
     overflow: auto;

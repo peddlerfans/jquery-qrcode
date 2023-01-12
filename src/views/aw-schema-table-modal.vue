@@ -82,13 +82,55 @@ function closeModal () {
   emit('closeModal')
 }
 
+// 获取点击所在节点的整个路径
+function getPathByKey(value: string, key: string, arr: string | any[]) {
+  let temppath: any[] = [];
+  try {
+    function getNodePath(node:any){
+      temppath.push(node);
+      //找到符合条件的节点，通过throw终止掉递归
+      if (node[key] === value) {
+        throw ("GOT IT!");
+      }
+      if (node.children && node.children.length > 0) {
+        for (var i = 0; i < node.children.length; i++) {
+          getNodePath(node.children[i]);
+        }
+        //当前节点的子节点遍历完依旧没找到，则删除路径中的该节点
+        temppath.pop();
+      }
+      else {
+        //找到叶子节点时，删除路径当中的该叶子节点
+        temppath.pop();
+      }
+    }
+    for (let i = 0; i < arr.length; i++) {
+      getNodePath(arr[i]);
+    }
+  } catch (e) {
+    return temppath;
+  }
+}
+
+// 定义一个返回路径的函数
+function getPath(key:any,treearr:any){
+  let rst:any
+  let res=getPathByKey(key,'title',treearr)
+  rst=res?.map((obj:any)=>{
+    return obj.title
+  }).join('/')
+  return rst
+}
+
 function onSelect (selectedKeys: any, info?: any) {
   tableParams.value.page = 1
   if (info.node.dataRef.title === '/') {
     tableParams.value.q = ''
     getTableData()
   } else {
-    tableParams.value.q = `path:/${info.node.dataRef.title}`
+    let str = getPath(info.node.detaRef.title , treeData.value)
+    str=str.substring(1,str.length)
+    tableParams.value.q = `path:/${str}`
     getTableData()
   }
 }

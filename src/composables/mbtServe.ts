@@ -181,13 +181,9 @@ class MbtServe {
     }
     // 获取选择元素内容的函数
     selectPrimaryCell(cellView: joint.dia.CellView) {
-        console.log(cellView);
-
         let cell: any
         cell = cellView.model;
         if (cell.isElement()) {
-
-
             this.selectPrimaryElement(<joint.dia.ElementView>cellView);
         } else {
             this.selectPrimaryLink(<joint.dia.LinkView>cellView);

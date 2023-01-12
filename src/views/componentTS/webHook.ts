@@ -47,20 +47,39 @@ export const httpFnList = [
     }
 ]
 
-export const httpFnEnList = [
+export const testMod_httpFnList = [
     {
-        label: 'post',
+        label: '创建数据',
         value: 'post'
     },
     {
-        label: 'put',
+        label: '修改数据',
         value: 'put'
     },
     {
-        label: 'delete',
+        label: '删除数据',
         value: 'delete'
+    },
+    {
+        label: '发布',
+        value: 'publish'
     }
 ]
+
+// export const httpFnEnList = [
+//     {
+//         label: 'post',
+//         value: 'post'
+//     },
+//     {
+//         label: 'put',
+//         value: 'put'
+//     },
+//     {
+//         label: 'delete',
+//         value: 'delete'
+//     }
+// ]
 
 export const httpNameTrance: any = {
     post: "请求数据",
