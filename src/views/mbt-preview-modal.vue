@@ -196,9 +196,10 @@ async function exportData() {
   display: flex;
   height: 94%;
   .left-tree {
-    height: 59vh;
+    height: 56vh;
     overflow: auto;
     min-width: 140px;
+    overflow: auto;
   }
   .right-detail {
     margin-left: 8px;
