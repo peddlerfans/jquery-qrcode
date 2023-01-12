@@ -1192,6 +1192,21 @@ const rules = {
   position: relative;
 }
 
+
+.mbt-modeler-btn-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: end;
+  .ant-btn {
+    margin-right: 8px;
+  }
+}
+
+
 .joint-navigator{
   width: 330px;
 }
