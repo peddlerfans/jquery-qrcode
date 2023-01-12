@@ -28,6 +28,7 @@ export default {
   template: '模板设置',
   saveError: "保存失败",
   previewError: '代码生成失败',
+  previewLoad: '预览加载中',
   saveSuccess: '保存成功',
   modificationSuccess: '修改成功',
   modificationError: '修改失败',

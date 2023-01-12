@@ -13,6 +13,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-guanbi:before {
+  content: "\e609";
+}
+
 .icon-zhongxinjiazai:before {
   content: "\e7b8";
 }

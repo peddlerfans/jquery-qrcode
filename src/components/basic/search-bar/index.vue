@@ -7,7 +7,7 @@ interface Props {
   params: any
 }
 
-const emit = defineEmits(['search'])
+const emit = defineEmits(['search', 'change'])
 
 const props = withDefaults(defineProps<Props>(), {
   url: '',
@@ -32,6 +32,7 @@ let selectOptions: any = ref([
 
 function inputChange () {
   cascader.value = searchText.value === '@'
+  emit('change', searchText.value)
 }
 
 function loadData (selectedOptions: any) {

@@ -95,6 +95,7 @@ export default {
     dynamicTemplate: 'Dynamic',
     codegenTemplate: 'Codegen',
     account: 'Account',
-    webHook: 'Web Hook'
+    webHook: 'Web Hook',
+    setting: 'Settings'
   }
 };

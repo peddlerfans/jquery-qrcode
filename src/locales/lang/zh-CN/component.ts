@@ -102,6 +102,7 @@ export default {
     dynamicTemplate: '动态数据',
     codegenTemplate: '代码生成',
     account: '账户管理',
-    webHook: '网络钩子'
+    webHook: '网络钩子',
+    setting: '用户管理'
   }
 };
