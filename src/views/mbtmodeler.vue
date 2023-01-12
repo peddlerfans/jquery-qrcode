@@ -16,7 +16,7 @@ import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode, inject } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { cloneDeep, map, sortedIndex } from "lodash";
+import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl} from "@/appConfig";
@@ -36,6 +36,7 @@ import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
 import Preview from "ant-design-vue/lib/vc-image/src/Preview";
+import { debug } from "console";
 
 
 
@@ -53,6 +54,8 @@ let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
 const toolbarDom = ref()
+localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
+localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
 // Aw组件的数据
 let rightSchemaModal = ref()
 let showpaper =ref(false)
@@ -386,15 +389,15 @@ function transformCells(mbtData:any){
      }
    return prop
   } 
-   
+
+async function query(){
+  idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
+  let rst = await request.get(`${realMBTUrl}/${idstr}`)
+  return rst
+}
 
 onMounted(async () => {  
-  if (route.params._id) {
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
-  }
-  if (route.params.name) {
-    localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
-  }
+
   getAllTemplatesByCategory('codegen').then((rst: any) => {
     if (rst && _.isArray(rst)) {
       rst.forEach((rec: any) => {
@@ -409,14 +412,6 @@ onMounted(async () => {
       })
     }
   }).catch((err) => { console.log(err); })
-
-  idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  await store.getMbtmodel(idstr)
-
-  if (store.mbtData._id) {
-    Datafintion(store.mbtData)
-    storeAw.setAllData(store.mbtData)
-  }
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -436,13 +431,21 @@ document.onkeydown = function (e :any) {
             	    },1); 
                     return false;      
        		    }    
-            };
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+};
+  query().then((res:any) => {
+    store.setMbtData(res)
+    if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    }
+    if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+      rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+    }
+    if (store.mbtData._id) {
+    Datafintion(store.mbtData)
+    storeAw.setAllData(store.mbtData)
   }
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-  }
+  })
+
   rappid.graph.on("add", function (el: any) {
     fitAncestors(el)
     storeAw.resetEditingExpectedAw()
@@ -588,57 +591,108 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
   }
 }
 
-async function reload(){
-  await store.getMbtmodel(idstr)
+async function awQueryByPath(name:string ,path:string){
+  let rst = await request.get('/api/hlfs' , {params:{search:`@name:"${name}",@path:"${path}"`,page:1,perPage:10}})
+  if(rst.data){
+    return rst.data
+  }
+}
+
+
+function reload(){
   let sqlstr = ''
   let newProp: { _id: any; prop: any; cell: any; }[] = []
+  let pathNameData:any = []
   if (store.getAlldata.modelDefinition.cellsinfo) {
     rappid.graph.getCells().forEach((item: any) => {
       if (item.attributes.type == "itea.mbt.test.MBTAW") {
         newProp.push({_id:item.id , prop:item.get('prop').custom , cell:item})
-        if (item.get('prop').custom.step.data?._id) {
-          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        if (item.get('prop').custom?.step.data?._id || item.get('prop').custom?.step?.aw?._id) {
+          sqlstr += item.get('prop').custom.step?.data?._id + '|' || item.get('prop').custom?.step?.aw?._id
+        } 
+        if(item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data){
+          let aw = item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data
+            pathNameData.push(awQueryByPath(aw.name, aw.path))
         }
-        if (item.get('prop').custom.expectation.data?._id) {
-          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        if (item.get('prop').custom?.expectation.data?._id || item.get('prop').custom?.expectation?.aw?._id) {
+          sqlstr += item.get('prop').custom?.step?.data?._id + '|' || item.get('prop').custom?.expectation?.aw._id + '|'
+        }
+        if(item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation?.data){
+          let aw = item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation.data
+            pathNameData.push(awQueryByPath(aw.name, aw.path))
         }
       }
     })
     
     sqlstr = sqlstr.slice(0, sqlstr.length - 1);
     let perPage = sqlstr.split('|')
-    let awDatas = awqueryByBatchIds(sqlstr, perPage.length);
+    let awDatas = awqueryByBatchIds(sqlstr, perPage.length)    
     awDatas.then((aws) => {
-      const awById = _.groupBy(aws, "_id")
-      newProp.forEach((obj: any) => {
-      if (obj.prop.step?.data?._id) {
-        if (awById[obj.prop.step?.data?._id]) {
-          obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-          obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
-          obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
-          storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
-          storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
-          storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
-          obj.cell.prop('prop/custom/step' , obj.prop.step)
-        }
-        }
-        if (obj.prop.expectation?.data?._id) {
-        if (awById[obj.prop.expectation?.data?._id]) {
-          obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-          obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
-          obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
-          obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
-        }
+      let awById :any
+      if(perPage == aws.length){
+        awById = _.groupBy(aws, "_id") 
+        newProp.forEach((obj: any) => {
+          if (obj.prop.step?.data?._id) {
+            if (awById[obj.prop.step?.data?._id]) {
+              obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
+              obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
+              storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
+              storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
+              storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
+              obj.cell.prop('prop/custom/step' , obj.prop.step)
+            }
+            }
+            if (obj.prop.expectation?.data?._id) {
+            if (awById[obj.prop.expectation?.data?._id]) {
+              obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
+              obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+              obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
+            }
+          }
+          storeAw.setData(obj.cell)
+          obj.cell.setPropertiesData()
+        })
+      }else{
+        Promise.all(pathNameData).then((res: any)=>{
+          let removeById = _.uniqBy([].concat(...res) , '_id')
+          awById = _.groupBy(removeById, '_id')
+          newProp.forEach((obj: any) => {
+            if (obj.prop.step?.data?._id) {
+              if (awById[obj.prop.step?.data?._id]) {
+                obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
+                obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
+                storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
+                storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
+                storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
+                obj.cell.prop('prop/custom/step' , obj.prop.step)
+              }
+              }
+              if (obj.prop.expectation?.data?._id) {
+              if (awById[obj.prop.expectation?.data?._id]) {
+                obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
+                obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+                obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
+              }
+            }
+            storeAw.setData(obj.cell)
+            obj.cell.setPropertiesData()
+          })
+          }).catch(() =>{})
       }
-      storeAw.setData(obj.cell)
-      obj.cell.setPropertiesData()
-    })
-    })
+      message.success(t("MBTStore.reloadTip"));
+    }).catch(()=>{})
     
-    message.success(t("MBTStore.reloadTip"));
+    
     
   }
 }
@@ -765,6 +819,18 @@ const onDrag = throttle(function (e: MouseEvent) {
 function closePreviewModal() {
   visiblepreciew.value = false
 }
+let data = ref()
+let style = ref()
+
+const inspector = (n:number) =>{ 
+  if(n == 1){
+    data.value.style.display = 'none'
+    style.value.style.display = 'block'
+  }else{
+    data.value.style.display = 'block'
+    style.value.style.display = 'none'
+  }
+}
 
 </script>
 
@@ -789,14 +855,15 @@ function closePreviewModal() {
       <div class="mbtRight"  ref = "scalable">
         <div class="AwtabInspector" v-show="showpaper">
           <ul class="tab_ul">
-            <!-- <li v-if="!show">样式修改</li> -->
+            <li @click="inspector(1)">样式修改</li>
             <li
                 v-if="true"
+                @click="inspector(2)"
             >数据编辑</li>
             <div style="clear:both;"></div>
           </ul>
-          <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
-          <div class="dataStyle">
+          <div ref="style" class="inspector-container"></div>
+          <div ref="data" class="dataStyle">
             <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>
@@ -1052,7 +1119,7 @@ function closePreviewModal() {
     height: calc(100% - 120px);
     .dataStyle{
     top: 50px;
-    display: block;
+    display: none;
     flex: 1;
     bottom: 0;
     width: 100%;

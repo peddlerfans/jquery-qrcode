@@ -294,8 +294,6 @@ export const MbtData = defineStore({
 
 // 高亮提示完后要清理，label要转成rulesData（其实后台只需要存入label，rulesData都是
 
-
-
 // {
 //     "type": "Program",
 //     "body": [
@@ -304,92 +302,108 @@ export const MbtData = defineStore({
 //           "expression": {
 //              "type": "LogicalExpression",
 //              "operator": "OR",
-//              "left": {
+//              "conditionleft": {
 //                 "type": "LogicalExpression",
-//                 "operator": "AND",
-//                 "left": {
+//                 "operator": "OR",
+//                 "conditionleft": {
+//                    "type": "LogicalExpression",
+//                    "operator": "AND",
+//                    "conditionleft": {
+//                       "type": "LogicalExpression",
+//                       "operator": "AND",
+//                       "conditionleft": {
+//                          "type": "BinaryExpression",
+//                          "operator": "==",
+//                          "left": {
+//                             "type": "Identifier",
+//                             "name": "LeftRightMove"
+//                          },
+//                          "right": {
+//                             "type": "Literal",
+//                             "value": "-20°"
+//                          }
+//                       },
+//                       "conditionright": {
+//                          "type": "BinaryExpression",
+//                          "operator": "==",
+//                          "left": {
+//                             "type": "Identifier",
+//                             "name": "ExceptResult"
+//                          },
+//                          "right": {
+//                             "type": "Literal",
+//                             "value": "65537"
+//                          }
+//                       }
+//                    },
+//                    "conditionright": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "is_support"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "False"
+//                       }
+//                    }
+//                 },
+//                 "conditionright": {
 //                    "type": "BinaryExpression",
 //                    "operator": "==",
 //                    "left": {
 //                       "type": "Identifier",
-//                       "name": "url"
+//                       "name": "is_explorer"
 //                    },
 //                    "right": {
 //                       "type": "Literal",
-//                       "value": "a"
-//                    }
-//                 },
-//                 "right": {
-//                    "type": "LogicalExpression",
-//                    "operator": "OR",
-//                    "left": {
-//                       "type": "LogicalExpression",
-//                       "operator": "AND",
-//                       "left": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "file"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "file"
-//                          }
-//                       },
-//                       "right": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "resolution"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "1080P"
-//                          }
-//                       }
-//                    },
-//                    "right": {
-//                       "type": "LogicalExpression",
-//                       "operator": "AND",
-//                       "left": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "str"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "str"
-//                          }
-//                       },
-//                       "right": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "qwe"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "qwe"
-//                          }
-//                       }
+//                       "value": "False"
 //                    }
 //                 }
 //              },
-//              "right": {
-//                 "type": "BinaryExpression",
-//                 "operator": "==",
-//                 "left": {
-//                    "type": "Identifier",
-//                    "name": "videotype"
+//              "conditionright": {
+//                 "type": "LogicalExpression",
+//                 "operator": "AND",
+//                 "conditionleft": {
+//                    "type": "BinaryExpression",
+//                    "operator": "==",
+//                    "left": {
+//                       "type": "Identifier",
+//                       "name": "ExceptResult"
+//                    },
+//                    "right": {
+//                       "type": "Literal",
+//                       "value": "null"
+//                    }
 //                 },
-//                 "right": {
-//                    "type": "Literal",
-//                    "value": "在线视频"
+//                 "conditionright": {
+//                    "type": "LogicalExpression",
+//                    "operator": "AND",
+//                    "conditionleft": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "DownUpMove"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "-20°"
+//                       }
+//                    },
+//                    "conditionright": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "Brightness"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "1000lux"
+//                       }
+//                    }
 //                 }
 //              }
 //           }
