@@ -24,7 +24,7 @@ export default {
     configAW: '配置AW',
     leaveRouter: '当前编辑未保存，是否退出',
     configLink: '设置连接线',
-    varErrTip: '该参数不允许有空格',
+    varErrTip: '输入的值不允许有空格！',
 
     // mbt-modeler-aw-schema
     updateAw: '修改AW',

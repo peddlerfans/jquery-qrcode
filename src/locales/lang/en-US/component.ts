@@ -99,3 +99,4 @@ export default {
     setting: 'Settings'
   }
 };
+// resourceseditableData

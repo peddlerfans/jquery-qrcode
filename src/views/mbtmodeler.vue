@@ -74,7 +74,8 @@ let tableColumnsDirectInput = ref([]);
 
 // resource的数据
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
-const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
+// const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
+const resourceEditing = ref<any>(null)
 interface ResourcesDataItem {
   key: string;
   alias: string;
@@ -200,23 +201,24 @@ const resourceshandleAdd = () => {
 
 // 保存单元格的函数
 const resourcessave = (key: string) => {
-  Object.assign(
-    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
-    resourceseditableData[key]
-  );
-  delete resourceseditableData[key];
-};
+  const reg = new RegExp(/\s+/g)
+  const flag: boolean = Object.keys(resourceEditing.value).some((a: any) => reg.test(resourceEditing.value[a]))
+  if (flag) return message.warning(t('MBTStore.varErrTip'))
+  const index = resourcesdataSource.value.findIndex((a: any) => a.key === key)
+  if (index !== -1) resourcesdataSource.value.splice(index , 1, resourceEditing.value)
+  resourceEditing.value = null
+}
 
 // 修改行的函数
 const resourcesedit = (key: string) => {
-  resourceseditableData[key] = cloneDeep(
+  resourceEditing.value = cloneDeep(
     resourcesdataSource.value.filter((item) => key === item.key)[0]
-  );
+  )
 };
 
 // 取消修改的函数
 const resourcescancel = (key: string) => {
-  delete resourceseditableData[key];
+  resourceEditing.value = null
 };
 
 // 删除行的函数
@@ -846,18 +848,10 @@ async function handleUploadChange(file: any) {
   }
 }
 
-async function checkBlankValue(_rule: Rule, value: string) {
-  const reg = new RegExp(/\s+/g)
-  if (reg.test(value)) {
-    return Promise.reject(t('MBTStore.varErrTip'))
-  } else return Promise.resolve()
-
-}
-
 // 模板编辑弹窗 Resource 校验字段
-const rules = {
-  rules: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
-}
+// const rules = {
+//   rules: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
+// }
 
 </script>
 
@@ -990,21 +984,14 @@ const rules = {
                     >
                       <div class="editable-cell">
                         <div
-                          v-if="resourceseditableData[record.key]"
+                          v-if="resourceEditing"
                           class="editable-cell-input-wrapper"
                         >
-                          <a-form :model="record" ref="nameForm">
-                            <a-form-item v-bind="rules" :name="column.title">
-<!--                              <a-input-->
-<!--                                  v-model:value.trim="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"-->
-<!--                                  @pressEnter="resourcessave(record.key)"-->
-<!--                              />-->
-                              <a-input
-                                  v-model:value.trim="record[column.title]"
-                                  @pressEnter="resourcessave(record.key)"
-                              />
-                            </a-form-item>
-                          </a-form>
+                          <a-input
+                              type="string"
+                              v-model:value.trim="resourceEditing[column.title]"
+                              @pressEnter="resourcessave(record.key)"
+                          />
                         </div>
                         <div v-else class="editable-cell-text-wrapper">
                           {{ text || " " }}
@@ -1013,7 +1000,7 @@ const rules = {
                     </template>
                     <template v-else-if="column.dataIndex === 'operation'">
                       <div class="editable-row-operations">
-                        <span v-if="resourceseditableData[record.key]">
+                        <span v-if="resourceEditing">
                           <a-tooltip placement="bottom">
                             <template #title>
                               <span>{{ $t('common.saveText') }}</span>
