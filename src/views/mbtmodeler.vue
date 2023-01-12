@@ -36,6 +36,9 @@ import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
 import Preview from "ant-design-vue/lib/vc-image/src/Preview";
+import {exportFile, getExcelData} from "@/utils/fileAction";
+import {UploadChangeParam} from "ant-design-vue";
+import {Rule} from "ant-design-vue/es/form";
 
 
 
@@ -71,7 +74,7 @@ let tableColumnsDirectInput = ref([]);
 
 // resource的数据
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
-const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
+const resourceEditing = ref<any>(null)
 interface ResourcesDataItem {
   key: string;
   alias: string;
@@ -197,23 +200,24 @@ const resourceshandleAdd = () => {
 
 // 保存单元格的函数
 const resourcessave = (key: string) => {
-  Object.assign(
-    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
-    resourceseditableData[key]
-  );
-  delete resourceseditableData[key];
-};
+  const reg = new RegExp(/\s+/g)
+  const flag: boolean = Object.keys(resourceEditing.value).some((a: any) => reg.test(resourceEditing.value[a]))
+  if (flag) return message.warning(t('MBTStore.varErrTip'))
+  const index = resourcesdataSource.value.findIndex((a: any) => a.key === key)
+  if (index !== -1) resourcesdataSource.value.splice(index , 1, resourceEditing.value)
+  resourceEditing.value = null
+}
 
 // 修改行的函数
 const resourcesedit = (key: string) => {
-  resourceseditableData[key] = cloneDeep(
+  resourceEditing.value = cloneDeep(
     resourcesdataSource.value.filter((item) => key === item.key)[0]
-  );
+  )
 };
 
 // 取消修改的函数
 const resourcescancel = (key: string) => {
-  delete resourceseditableData[key];
+  resourceEditing.value = null
 };
 
 // 删除行的函数
@@ -482,7 +486,7 @@ onMounted(async () => {
     if(storeRoute.getIsEmbedded){
       storeAw.setUpdateAw(true)
       toolbarDom.value.firstChild.lastChild.style.display = 'block'
-  }    
+  }
 })
 
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
@@ -492,7 +496,7 @@ watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
 })
 watch(() => storePre.getCheck ,(newval: boolean) => {
     if(newval){
-      let index = storePre.getIndex      
+      let index = storePre.getIndex
         checkChange(newval,storePre.getErrList[index]?.err)
     }
 })
@@ -512,16 +516,16 @@ function checkChange(check:boolean,str:any) {
       }
       case 'no_meta':{
         isGlobal.value = true ,
-        activeKey.value = "2" 
+        activeKey.value = "2"
         break
       }
       case 'no_templates_define': {
         isGlobal.value = true ,
-        activeKey.value = "1" 
+        activeKey.value = "1"
         break
       }
       case 'textErr': {
-        if(storePre.getErrmsg){          
+        if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           previewErr.value = true
@@ -539,13 +543,13 @@ function checkChange(check:boolean,str:any) {
       case 'not_start_end': {
         if (storePre.getErrmsg) {
           storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
-            cellIdArr.forEach((cellId: any) => {             
+            cellIdArr.forEach((cellId: any) => {
               rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
               setTimeout(() =>{
                 rappid.graph.getCell(cellId).findView(rappid.paper).unhighlight()
               } ,5000)
             });
-            
+
           })
         }
         break
@@ -554,11 +558,7 @@ function checkChange(check:boolean,str:any) {
   }
 // 离开路由时调用
 onBeforeRouteLeave((to, form, next) => {  
-    if (rappid.commandManager.undoStack.length > 0) {
-      leaveRouter.value = true
-    } else {
-      leaveRouter.value = false
-    }
+    leaveRouter.value = rappid.commandManager.undoStack.length > 0;
   if(leaveRouter.value){
     Modal.confirm({
         icon: createVNode(ExclamationCircleOutlined),
@@ -692,7 +692,7 @@ async function querycode(show?: boolean) {
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     console.log(errMsg);
-    
+
     setErrData(errMsg)
     if (storePre.getErrmsg) {
       showErrCard(errMsg)
@@ -702,7 +702,7 @@ async function querycode(show?: boolean) {
   
 }
 const preview=async (show?:boolean)=>{
-    if(rappid.commandManager.undoStack.length > 0){ 
+    if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
@@ -766,6 +766,97 @@ function closePreviewModal() {
   visiblepreciew.value = false
 }
 
+function exportMeta() {
+  const props = store.getMeta?.schema?.properties
+  const data: any = store.getMeta.data
+  if (!props || _.isEmpty(props)) return message.warning('暂无数据')
+  const cols = [
+    {
+      title: '字段名',
+      key: 'name'
+    },
+    {
+      title: '值',
+      key: 'value'
+    },
+    {
+      title: '输入类型',
+      key: 'type'
+    }
+  ]
+  const arr = Object.keys(props).map((a: any) => {
+    const val = data[a]
+    return {
+      name: a,
+      type: val && val.type === '2' ? '自定义输入' : '选项输入',
+      value: val && val.val ? val.val : ''
+    }
+  })
+  exportFile(cols, arr)
+}
+
+function exportDataPool() {
+  const dataPool = store.getDataPool
+  if (!dataPool) return message.warning('暂无数据')
+  exportFile(dataPool.tableColumns, dataPool.tableData)
+}
+
+function exportResource() {
+  const resource = store.getResource
+  if (!resource || !resource.length) return message.warning('暂无数据')
+  const cols = Object.keys(resource[0]).map((key: string) => {
+    return {
+      title: key
+    }
+  })
+  exportFile(cols, resource)
+}
+
+function exportData() {
+  switch (activeKey.value) {
+    case '2': {
+      exportMeta()
+      break
+    }
+    case '3': {
+      exportDataPool()
+      break
+    }
+    case '4': {
+      exportResource()
+      break
+    }
+  }
+}
+
+function customRequest() {
+  //
+}
+
+async function handleUploadChange(file: any) {
+  let data: any = await getExcelData(file)
+  data = data.flat(Infinity)
+  if (resourcesdataSource.value.length) {
+    Modal.confirm({
+      content: '导入后resources原本数据会被清除，还要进行导入操作吗？',
+      onOk() {
+        resourcesdataSource.value = data
+      },
+      cancelText: '取消',
+      onCancel() {
+        Modal.destroyAll()
+      }
+    })
+  } else {
+    resourcesdataSource.value = data
+  }
+}
+
+// 模板编辑弹窗 Resource 校验字段
+// const rules = {
+//   rules: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
+// }
+
 </script>
 
 <template >
@@ -814,10 +905,12 @@ function closePreviewModal() {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" :title="$t('common.template')" 
+  <a-modal v-model:visible="isGlobal" :title="$t('common.template')"
       @ok="handleOk"
+      :bodyStyle="{paddingBottom: '50px'}"
       :width="1000"
       ok-text="save"
+      :footer="null"
       >
       <div class="infoPanel card-container">
             <a-tabs v-model:activeKey="activeKey" type="card">
@@ -895,30 +988,23 @@ function closePreviewModal() {
                     >
                       <div class="editable-cell">
                         <div
-                          v-if="resourceseditableData[record.key]"
+                          v-if="resourceEditing"
                           class="editable-cell-input-wrapper"
                         >
                           <a-input
-                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
-                            @pressEnter="resourcessave(record.key)"
+                              type="string"
+                              v-model:value.trim="resourceEditing[column.title]"
+                              @pressEnter="resourcessave(record.key)"
                           />
-                          <!-- <check-outlined
-                            class="editable-cell-icon-check"
-                            @click="resourcessave(record.key)"
-                          /> -->
                         </div>
                         <div v-else class="editable-cell-text-wrapper">
                           {{ text || " " }}
-                          <!-- <edit-outlined
-                            class="editable-cell-icon"
-                            @click="resourcesedit(record.key)"
-                          /> -->
                         </div>
                       </div>
                     </template>
                     <template v-else-if="column.dataIndex === 'operation'">
                       <div class="editable-row-operations">
-                        <span v-if="resourceseditableData[record.key]">
+                        <span v-if="resourceEditing">
                           <a-tooltip placement="bottom">
                             <template #title>
                               <span>{{ $t('common.saveText') }}</span>
@@ -965,16 +1051,21 @@ function closePreviewModal() {
                     </template>
                   </template>
                 </a-table>
-                <!-- <a-button type="primary" @click="globalhandlerSubmit">{{
-                  $t("common.saveText")
-                }}</a-button> -->
               </a-tab-pane>
             </a-tabs>
   </div>
+    <div class="mbt-modeler-btn-wrap" slot="footer">
+      <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
+      <a-upload :customRequest="customRequest" :beforeUpload="handleUploadChange" accept=".xlsx, .xls" :showUploadList="false">
+        <a-button type="primary" v-show="activeKey === '4'">导入</a-button>
+      </a-upload>
+      <a-button @click="isGlobal = false">取消</a-button>
+      <a-button type="primary" @click="handleOk">保存</a-button>
+    </div>
 </a-modal>
 <a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
   <!-- preview错误信息 -->
-  <VAceEditor 
+  <VAceEditor
   v-model:value="vaceErr"
   class="aceErr-results"
   :lang="errOutLang"
@@ -1025,8 +1116,6 @@ function closePreviewModal() {
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
-      overflow: auto;
-      height: calc(100% - 55px);
       .ace-result{
       flex: 1;
       font-size: 18px;
@@ -1093,6 +1182,21 @@ function closePreviewModal() {
 .infoPanel{
   position: relative;
 }
+
+
+.mbt-modeler-btn-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: end;
+  .ant-btn {
+    margin-right: 8px;
+  }
+}
+
 
 .joint-navigator{
   width: 330px;

@@ -1,11 +1,14 @@
 <script lang="ts" setup>
-import {nextTick, ref, watch} from "vue";
+import {ref, watch} from "vue";
 import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
 import { VAceEditor } from 'vue3-ace-editor';
 import http from "@/utils/http";
 import {useRoute} from "vue-router";
+import {saveAs} from '@/utils/fileAction'
+import ExcelJs from 'exceljs'
+import JSZip from "jszip";
 
 const { t } = useI18n()
 let tableData = ref<any>([])
@@ -75,6 +78,52 @@ function publish() {
   }).catch(() => message.warning('发布失败'))
 }
 
+function setExcelCell(workbook: any) {
+  const col :Partial<ExcelJs.Column>[] = []
+  let headerList: Array<string> = Object.keys(props.previewData[0]).filter((str: string) => str !== 'script')
+  const workSheet = workbook.addWorksheet('是我')
+  headerList.forEach((head: string) => {
+    col.push({
+      header: head,
+      key: head,
+      width: 120,
+    })
+  })
+  workSheet.columns = col
+  props.previewData.forEach((a: any) => {
+    workSheet.addRow(a)
+  })
+}
+
+async function exportData() {
+  const workbook = new ExcelJs.Workbook()
+  const jsZip = new JSZip()
+  workbook.views = [
+    {
+      x: 0,
+      y: 0,
+      width: 1000,
+      height: 2000,
+      firstSheet: 0,
+      activeTab: 1,
+      visibility: 'visible'
+    }
+  ]
+  setExcelCell(workbook)
+  let excelData = await workbook.xlsx.writeBuffer()
+  let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  jsZip.file('zftext.xlsx', blob)
+  props.previewData.forEach((item: any) => {
+    const txtBlob = new Blob([item.script])
+    jsZip.file(`${item.id}.txt`, txtBlob)
+  })
+  jsZip.generateAsync({
+    type: 'blob'
+  }).then(blob => {
+    saveAs(blob, `zfText.zip`)
+  })
+}
+
 </script>
 
 <template>
@@ -128,9 +177,13 @@ function publish() {
         </template>
       </div>
     </div>
-    <div class="btn-wrap">
-      <a-button type="primary" @click="publish">发布</a-button>
-      <a-button @click="cancelPreview" style="margin-left: 8px;">关闭</a-button>
+    <div class="btn-wrap" slot="footer">
+      <a-divider></a-divider>
+      <div class="btn-list">
+        <a-button type="primary" @click="exportData">导出</a-button>
+        <a-button type="primary" @click="publish">发布</a-button>
+        <a-button @click="cancelPreview">关闭</a-button>
+      </div>
     </div>
   </a-modal>
 </template>
@@ -143,9 +196,10 @@ function publish() {
   display: flex;
   height: 94%;
   .left-tree {
-    height: 100%;
+    height: 56vh;
     overflow: auto;
     min-width: 140px;
+    overflow: auto;
   }
   .right-detail {
     margin-left: 8px;
@@ -162,7 +216,17 @@ function publish() {
   }
 }
 .btn-wrap {
-  display: flex;
-  justify-content: end;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  .btn-list {
+    display: flex;
+    justify-content: end;
+    padding-left: 16px;
+    padding-bottom: 16px;
+    .ant-btn {
+      margin-left: 16px;
+    }
+  }
 }
 </style>

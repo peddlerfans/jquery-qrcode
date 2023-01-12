@@ -107,7 +107,7 @@ function handleChange(str: string) {
 </script>
 
 <template>
-  <main style="height:100%;overflow-x: hidden!important;">
+  <main style="v-show:100%;overflow-x: hidden!important;">
       <header class="block shadow" style="width:100%;margin-bottom: 1rem">
         <a-row>
         <a-col :span="20">

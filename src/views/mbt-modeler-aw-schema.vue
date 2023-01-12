@@ -117,11 +117,11 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   if (tar === 'primary') {
-   _id = schemaValue.value._id || store.getPrimaryAwData._id
-   name = schemaValue.value.name || store.getPrimaryAwData.name
+   _id = schemaValue.value?._id || store.getPrimaryAwData?._id
+   name = schemaValue.value?.name || store.getPrimaryAwData?.name
   } else if (tar === 'expected') {
-    _id = expectedSchemaValue.value._id || store.getExpectedAwData._id
-    name = expectedSchemaValue.value.name || store.getExpectedAwData.name
+    _id = expectedSchemaValue.value?._id || store.getExpectedAwData?._id
+    name = expectedSchemaValue.value?.name || store.getExpectedAwData?.name
   }
   router.push({
     name: 'awupdate',
