@@ -99,9 +99,9 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 .joint-widget.joint-theme-material[data-name="preview"]:after {
     display: block;
     width: 33px;
-    height: 33px;
+    height: 28px;
     font-family: "iconfont";
-    font-size: 1.875rem;
+    font-size: 1.7rem;
     content: '\e636';
     line-height: initial;
 }
@@ -121,7 +121,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     width: 33px;
     height: 33px;
     font-family: "iconfont";
-    font-size: 1.8rem;
+    font-size: 1.725rem;
     content: '\e658';
     line-height: initial;
 }

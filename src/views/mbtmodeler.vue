@@ -36,6 +36,7 @@ import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
 import Preview from "ant-design-vue/lib/vc-image/src/Preview";
+import router from "@/router";
 
 
 
@@ -83,7 +84,14 @@ interface columnDefinition {
   dataIndex: string;
   width?: string;
 }
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([]);
+const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
+  {
+     key: "0",
+    alias: `Resourc`,
+    class: `Class`,
+    resourcetype: `resourceType`,
+  }
+]);
 const resourcescolumns: columnDefinition[] = [
   {
     title: "alias",
@@ -474,6 +482,7 @@ document.onkeydown = function (e :any) {
       'preview:pointerclick': preview.bind(this),
       'reload:pointerclick': reload.bind(this),
       'chooseTem:pointerclick': chooseTem.bind(this),
+      'closeMbt:pointerclick' : close.bind(this)
     })
     rappid.paper.on('blank:pointerdblclick' ,() => {
       isGlobal.value=true
@@ -580,6 +589,11 @@ onBeforeRouteLeave((to, form, next) => {
   }
 })
 
+// 退出当前路由
+function close() {
+  router.push('/mbtstore')
+}
+
 // reload所有aw
 async function awqueryByBatchIds(ids: string ,perPage:number) {
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
@@ -588,9 +602,15 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
   }
 }
 
+async function awQueryByPath(name: string, path: string) {
+  let rst = await request.get(`/api/hlfs` , {params:{search:`@name:${name}`}})
+}
+
+
 async function reload(){
   await store.getMbtmodel(idstr)
   let sqlstr = ''
+  let pathArr: any = []
   let newProp: { _id: any; prop: any; cell: any; }[] = []
   if (store.getAlldata.modelDefinition.cellsinfo) {
     rappid.graph.getCells().forEach((item: any) => {
@@ -599,8 +619,14 @@ async function reload(){
         if (item.get('prop').custom.step.data?._id) {
           sqlstr += item.get('prop').custom.step?.data?._id + '|'
         }
+        if (item.get('prop').custom.step.aw) {
+          pathArr.push({name:item.get('prop').custom.step.aw.name , path:item.get('prop').custom.step.aw.path})
+        }
         if (item.get('prop').custom.expectation.data?._id) {
           sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        }
+        if (item.get('prop').custom.expectation.aw) {
+          pathArr.push({name:item.get('prop').custom.expectation.aw.name , path:item.get('prop').custom.expectation.aw.path})
         }
       }
     })

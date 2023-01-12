@@ -261,7 +261,7 @@ export const MbtData = defineStore({
                         "AWType": isSutType ? 'SUT' : 'string'
                     }
                 }
-                
+
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
@@ -285,7 +285,7 @@ export const MbtData = defineStore({
             }
             return arr
         },
-        setUpdateAw(value:boolean){
+        setUpdateAw(value: boolean) {
             this.isUpdataAw = value
         }
     }
@@ -298,101 +298,117 @@ export const MbtData = defineStore({
 
 // {
 //     "type": "Program",
-//     "body": [
-//        {
-//           "type": "ExpressionStatement",
-//           "expression": {
-//              "type": "LogicalExpression",
-//              "operator": "OR",
-//              "left": {
-//                 "type": "LogicalExpression",
-//                 "operator": "AND",
-//                 "left": {
-//                    "type": "BinaryExpression",
-//                    "operator": "==",
-//                    "left": {
-//                       "type": "Identifier",
-//                       "name": "url"
-//                    },
-//                    "right": {
-//                       "type": "Literal",
-//                       "value": "a"
-//                    }
-//                 },
-//                 "right": {
-//                    "type": "LogicalExpression",
-//                    "operator": "OR",
-//                    "left": {
-//                       "type": "LogicalExpression",
-//                       "operator": "AND",
-//                       "left": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "file"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "file"
-//                          }
-//                       },
-//                       "right": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "resolution"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "1080P"
-//                          }
-//                       }
-//                    },
-//                    "right": {
-//                       "type": "LogicalExpression",
-//                       "operator": "AND",
-//                       "left": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "str"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "str"
-//                          }
-//                       },
-//                       "right": {
-//                          "type": "BinaryExpression",
-//                          "operator": "==",
-//                          "left": {
-//                             "type": "Identifier",
-//                             "name": "qwe"
-//                          },
-//                          "right": {
-//                             "type": "Literal",
-//                             "value": "qwe"
-//                          }
-//                       }
-//                    }
+//         "body": [
+//             {
+//                 "type": "ExpressionStatement",
+//                 "expression": {
+//                     "type": "LogicalExpression",
+//                     "operator": "OR",
+//                     "left": {
+//                         "type": "LogicalExpression",
+//                         "operator": "OR",
+//                         "left": {
+//                             "type": "LogicalExpression",
+//                             "operator": "AND",
+//                             "left": {
+//                                 "type": "LogicalExpression",
+//                                 "operator": "AND",
+//                                 "left": {
+//                                     "type": "BinaryExpression",
+//                                     "operator": "==",
+//                                     "left": {
+//                                         "type": "Identifier",
+//                                         "name": "LeftRightMove"
+//                                     },
+//                                     "right": {
+//                                         "type": "Literal",
+//                                         "value": "-20°"
+//                                     }
+//                                 },
+//                                 "right": {
+//                                     "type": "BinaryExpression",
+//                                     "operator": "==",
+//                                     "left": {
+//                                         "type": "Identifier",
+//                                         "name": "ExceptResult"
+//                                     },
+//                                     "right": {
+//                                         "type": "Literal",
+//                                         "value": "65537"
+//                                     }
+//                                 }
+//                             },
+//                             "right": {
+//                                 "type": "BinaryExpression",
+//                                 "operator": "==",
+//                                 "left": {
+//                                     "type": "Identifier",
+//                                     "name": "is_support"
+//                                 },
+//                                 "right": {
+//                                     "type": "Literal",
+//                                     "value": "False"
+//                                 }
+//                             }
+//                         },
+//                         "right": {
+//                             "type": "BinaryExpression",
+//                             "operator": "==",
+//                             "left": {
+//                                 "type": "Identifier",
+//                                 "name": "is_explorer"
+//                             },
+//                             "right": {
+//                                 "type": "Literal",
+//                                 "value": "False"
+//                             }
+//                         }
+//                     },
+//                     "right": {
+//                         "type": "LogicalExpression",
+//                         "operator": "AND",
+//                         "left": {
+//                             "type": "BinaryExpression",
+//                             "operator": "==",
+//                             "left": {
+//                                 "type": "Identifier",
+//                                 "name": "ExceptResult"
+//                             },
+//                             "right": {
+//                                 "type": "Literal",
+//                                 "value": "null"
+//                             }
+//                         },
+//                         "right": {
+//                             "type": "LogicalExpression",
+//                             "operator": "AND",
+//                             "left": {
+//                                 "type": "BinaryExpression",
+//                                 "operator": "==",
+//                                 "left": {
+//                                     "type": "Identifier",
+//                                     "name": "DownUpMove"
+//                                 },
+//                                 "right": {
+//                                     "type": "Literal",
+//                                     "value": "-20°"
+//                                 }
+//                             },
+//                             "right": {
+//                                 "type": "BinaryExpression",
+//                                 "operator": "==",
+//                                 "left": {
+//                                     "type": "Identifier",
+//                                     "name": "Brightness"
+//                                 },
+//                                 "right": {
+//                                     "type": "Literal",
+//                                     "value": "1000lux"
+//                                 }
+//                             }
+//                         }
+//                     }
 //                 }
-//              },
-//              "right": {
-//                 "type": "BinaryExpression",
-//                 "operator": "==",
-//                 "left": {
-//                    "type": "Identifier",
-//                    "name": "videotype"
-//                 },
-//                 "right": {
-//                    "type": "Literal",
-//                    "value": "在线视频"
-//                 }
-//              }
-//           }
-//        }
-//     ]
-//  }
+//             }
+//         ]
+// }

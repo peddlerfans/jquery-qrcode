@@ -14,10 +14,6 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n()
 
-interface FormState {
-  'range-time-picker': [string, string];
-}
-
 function lineData(arr:any){
   let buckets:any = {}
 arr.forEach((a: { buckets: any[]; }) => a.buckets.forEach(b => buckets[b.key] = {name:b.key,doc_count:"",data:[],type:"line"} ))
@@ -190,7 +186,6 @@ async function query(){
 onMounted(()=>{
   querys()
   query()
-
 })
 const options=ref([
   {label:"Last 30 minutes",value:"Last 30 minutes"  },
