@@ -23,6 +23,7 @@ export default {
     leaveRouter: 'The current edit has not been saved Do you want to exit?',
     // linkTitle: 'Configuration for Link'
     configLink: 'configLink',
+    varErrTip: 'Spaces are not allowed for this parameter',
 
     // mbt-modeler-aw-schema
     updateAw: 'Edit AW',

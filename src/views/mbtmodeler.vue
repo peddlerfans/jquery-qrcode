@@ -36,6 +36,7 @@ import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import {UploadChangeParam} from "ant-design-vue";
+import {Rule} from "ant-design-vue/es/form";
 
 
 
@@ -219,9 +220,9 @@ const handleDirectInput = (data: any) => {
 const resourceshandleAdd = () => {
   const newData = {
     key: `${resourcescount.value}`,
-    alias: `Resource ${resourcescount.value}`,
-    class: `Class. ${resourcescount.value}`,
-    resourcetype: `resource type. ${resourcescount.value}`,
+    alias: `Variable${resourcescount.value}`,
+    class: `Class${resourcescount.value}`,
+    resourcetype: `type`,
   };
   resourcesdataSource.value.push(newData);
 };
@@ -521,13 +522,10 @@ watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
     saveMbt()
   }
 })
+
 // 离开路由时调用
 onBeforeRouteLeave((to, form, next) => {  
-    if (rappid.commandManager.undoStack.length > 0) {
-      leaveRouter.value = true
-    } else {
-      leaveRouter.value = false
-    }
+    leaveRouter.value = rappid.commandManager.undoStack.length > 0;
   if(leaveRouter.value){
     Modal.confirm({
         icon: createVNode(ExclamationCircleOutlined),
@@ -821,6 +819,19 @@ async function handleUploadChange(file: any) {
   }
 }
 
+async function checkBlankValue(_rule: Rule, value: string) {
+  const reg = new RegExp(/\s+/g)
+  if (reg.test(value)) {
+    return Promise.reject(t('MBTStore.varErrTip'))
+  } else return Promise.resolve()
+
+}
+
+// 模板编辑弹窗 Resource 校验字段
+const rules = {
+  name: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
+}
+
 </script>
 
 <template>
@@ -956,8 +967,12 @@ async function handleUploadChange(file: any) {
                           class="editable-cell-input-wrapper"
                         >
                           <a-input
-                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
-                            @pressEnter="resourcessave(record.key)"
+                              v-model:value.trim="record.name"
+                              style="margin: -5px 0"
+                          ></a-input>
+                          <a-input
+                              v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
+                              @pressEnter="resourcessave(record.key)"
                           />
                           <!-- <check-outlined
                             class="editable-cell-icon-check"
