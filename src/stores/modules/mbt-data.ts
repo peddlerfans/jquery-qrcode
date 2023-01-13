@@ -223,7 +223,7 @@ export const MbtData = defineStore({
             if (row.returnType) {
                 Object.assign(schema.properties, {
                     variable: {
-                        title: '变量',
+                        title: '返回变量名',
                         type: 'string'
                     }
                 })
@@ -279,7 +279,7 @@ export const MbtData = defineStore({
             let arr: any = []
             for (let key in awSchema.properties) {
                 const tar = awSchema.properties[key]
-                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '变量') {
+                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
                     arr.push(tar)
                 }
             }

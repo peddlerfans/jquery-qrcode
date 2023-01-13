@@ -39,6 +39,7 @@ import Preview from "ant-design-vue/lib/vc-image/src/Preview";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import {UploadChangeParam} from "ant-design-vue";
 import {Rule} from "ant-design-vue/es/form";
+// import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
 
 
 
@@ -71,6 +72,7 @@ let tableColumns = ref([]);
   // input模板的数据
   let tableDataDirectInput = ref([]);
 let tableColumnsDirectInput = ref([]);
+const metaInfo = ref()
 
 // resource的数据
 const resourcescount = computed(() => resourcesdataSource.value.length + 1);
@@ -119,25 +121,7 @@ const metaformProps = {
   labelWidth: "75px",
   labelSuffix: ":  ",
 };
-const metatemplatecolumns = reactive<Object[]>([
-  {
-    title: "name",
-    dataIndex: "name",
-    key: "name",
-    width: 180,
-  },
-  {
-    title: "description",
-    dataIndex: "description",
-    key: "description",
-    width: 180,
-  },
-  {
-    title: "tag",
-    dataIndex: "tag",
-    key: "tag",
-  },
-]);
+
 
 // attributes的数据
 let globalformData = ref<Stores.mbtView>({
@@ -147,9 +131,9 @@ let globalformData = ref<Stores.mbtView>({
   codegen_text: '',
   codegen_script: '',
 });
-let codegenTextName :any =ref([])
-let codegenScriptName :any =ref([])
-const globalschema = ref({
+// let codegenTextName :any =ref([])
+// let codegenScriptName :any =ref([])
+const defaultGlobalSchema = {
   type: "object",
   properties: {
     name: {
@@ -164,15 +148,16 @@ const globalschema = ref({
     codegen_text: {
       title: "Output Text",
       type: "string",
-      anyOf: codegenTextName.value,
+      anyOf: [],
     },
     codegen_script: {
       title: "Output Script",
       type: "string",
-      anyOf: codegenScriptName.value,
+      anyOf: [],
     },
   },
-});
+}
+const globalschema = ref(_.cloneDeep(defaultGlobalSchema))
 
 // 选择模板的函数
 const chooseTem = () => {
@@ -231,12 +216,25 @@ watch(resourcesdataSource.value ,(newval:any)=>{
     store.saveResources(newval)
   }
 },{deep:true})
-function attrsChange(){
-  store.saveattr(globalformData.value);
-}
 
 // 关闭模态窗的函数
 const handleOk = () => {
+  switch (activeKey.value) {
+    case '1': {
+      store.saveattr(globalformData.value);
+      break
+    }
+    case '2': {
+      store.saveMeta(metaInfo.value.handleChange())
+      break
+    }
+    case '3': {
+      break
+    }
+    case '4': {
+      break
+    }
+  }
   if(resourcesdataSource.value.length>0){
     store.saveResources(resourcesdataSource.value)
   }
@@ -244,8 +242,38 @@ const handleOk = () => {
   // isGlobal.value = false
 }
 
+function closeTemplateModel() {
+  switch (activeKey.value) {
+    case '1': {
+      if(store.changeTemplate?._id){
+        globalformData.value = {...store.changeTemplate}
+      }
+      globalschema.value = _.cloneDeep(defaultGlobalSchema)
+      break
+    }
+    case '2': {
+      if (store.showMetaSchema) {
+        tempschema.value = computed(()=>store.showMetaSchema).value
+        isFormVisible.value = true
+      }
+      if (store.showMetaData) {
+        metatemplatedetailtableData.value = store.showMetaData
+      }
+      break
+    }
+    case '3': {
+      break
+    }
+    case '4': {
+      break
+    }
+  }
+  activeKey.value = '1'
+  isGlobal.value = false
+}
+
 // 回显数据的地方
-function Datafintion(data: any) {  
+function Datafintion(data: any) {
   if(store.changeTemplate?._id){
     globalformData.value = {...store.changeTemplate}
   }
@@ -404,9 +432,10 @@ onMounted(async () => {
       rst.forEach((rec: any) => {
         if(rec.model && rec.model.outputLanguage){
           if(rec.model.outputLanguage == 'yaml'){
-            codegenTextName.value.push({ title: rec.name , const: rec._id})
+            // codegenTextName.value.push({ title: rec.name , const: rec._id})
+            // globalschema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
           }else{
-            codegenScriptName.value.push({ title: rec.name , const: rec._id})
+            // globalschema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
           }
         }
       
@@ -905,164 +934,7 @@ async function handleUploadChange(file: any) {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" :title="$t('common.template')"
-      @ok="handleOk"
-      :bodyStyle="{paddingBottom: '50px'}"
-      :width="1000"
-      ok-text="save"
-      :footer="null"
-      >
-      <div class="infoPanel card-container">
-            <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-      
-                  <div style="padding: 5px" class="attrconfig">
-                    <VueForm
-                      v-model="globalformData"
-                      :schema="globalschema"
-                      :formFooter="{show:false}"
-                      @change = 'attrsChange'
-                    >
-                     </VueForm>
-                  </div>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                >
-                </metainfo>
-              </a-tab-pane>
-
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
-                <a-radio-group
-                  v-model:value="templateRadiovalue"
-                  @change="handleRadioChange(templateRadiovalue)"
-                >
-                  <a-radio :value="1">Dynamic Template</a-radio>
-                  <a-radio :value="2">Static Template</a-radio>
-                  <a-radio :value="3">Input directly</a-radio>
-                </a-radio-group>
-                <template-table
-                  v-if="templateRadiovalue === 1"
-                  :tableColumns="tableColumnsDynamic"
-                  :templateCategory="templateCategory"
-                  :tableData="tableDataDynamic"
-                  
-                ></template-table>
-                <!-- --********---{{tableData}}**
-                  ++++{{tableColumns}}########                   -->
-          
-                  <template-table
-                  v-if="templateRadiovalue === 2"
-                  :tableColumns="tableColumns"
-                  :templateCategory="templateCategory"
-                  :tableData="tableData"
-                  
-                ></template-table>
-                <input-table
-                  :tableColumns="tableColumnsDirectInput"
-                  :tableData="tableDataDirectInput"
-                  v-if="templateRadiovalue === 3"
-                  @update="handleDirectInput"
-                ></input-table>
-              </a-tab-pane>
-              <a-tab-pane key="4" tab="Resources" style="height:550px;">
-                <a-button
-                  class="editable-add-btn"
-                  style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
-                  >Add
-                </a-button>
-                <a-table
-                  bordered
-                  :data-source="resourcesdataSource"
-                  :columns="resourcescolumns"
-                >
-                  <template #bodyCell="{ column, text, record }">
-                    <template
-                      v-if="['alias', 'class', 'resourcetype'].includes(column.dataIndex)"
-                    >
-                      <div class="editable-cell">
-                        <div
-                          v-if="resourceEditing"
-                          class="editable-cell-input-wrapper"
-                        >
-                          <a-input
-                              type="string"
-                              v-model:value.trim="resourceEditing[column.title]"
-                              @pressEnter="resourcessave(record.key)"
-                          />
-                        </div>
-                        <div v-else class="editable-cell-text-wrapper">
-                          {{ text || " " }}
-                        </div>
-                      </div>
-                    </template>
-                    <template v-else-if="column.dataIndex === 'operation'">
-                      <div class="editable-row-operations">
-                        <span v-if="resourceEditing">
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.saveText') }}</span>
-                            </template>
-                            <check-circle-outlined @click="resourcessave(record.key)" class="icon--success-btn" />
-                          </a-tooltip>
-                          <a-divider type="vertical" />
-                          <a-popconfirm
-                            :title="$t('component.message.sureCancel')"
-                            @confirm="resourcescancel(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.cancelText') }}</span>
-                              </template>
-                              <close-circle-outlined @click="resourcescancel(record.key)" class="icon--err-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                        <span v-else>
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.editText') }}</span>
-                            </template>
-                            <edit-outlined @click="resourcesedit(record.key)" class="icon--primary-btn" />
-                          </a-tooltip>
-                        </span>
-                        <a-divider type="vertical" />
-                        <span>
-                          <a-popconfirm
-                            v-if="resourcesdataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onresourcesDelete(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.delText') }}</span>
-                              </template>
-                               <delete-outlined class="icon--primary-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                      </div>
-                    </template>
-                  </template>
-                </a-table>
-              </a-tab-pane>
-            </a-tabs>
-  </div>
-    <div class="mbt-modeler-btn-wrap" slot="footer">
-      <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
-      <a-upload :customRequest="customRequest" :beforeUpload="handleUploadChange" accept=".xlsx, .xls" :showUploadList="false">
-        <a-button type="primary" v-show="activeKey === '4'">导入</a-button>
-      </a-upload>
-      <a-button @click="isGlobal = false">取消</a-button>
-      <a-button type="primary" @click="handleOk">保存</a-button>
-    </div>
-</a-modal>
+<!--  <mbt-modeler-template-setting :show="isGlobal"></mbt-modeler-template-setting>-->
 <a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
   <!-- preview错误信息 -->
   <VAceEditor
@@ -1178,12 +1050,6 @@ async function handleUploadChange(file: any) {
   bottom: 50px;
 }
 
-
-.infoPanel{
-  position: relative;
-}
-
-
 .mbt-modeler-btn-wrap {
   position: absolute;
   bottom: 0;
@@ -1197,59 +1063,8 @@ async function handleUploadChange(file: any) {
   }
 }
 
-
 .joint-navigator{
   width: 330px;
-}
-.card-container p {
-  margin: 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-content {
-  height: 100%;
-  margin-top: -16px;
-}
-.card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  padding: 16px;
-  background: #fff;
-}
-.card-container > .ant-tabs-card > .ant-tabs-nav::before {
-  display: none;
-}
-.card-container > .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
-  border-radius: 6px 6px 0 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab-active,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #fff;
-  border-color: #fff;
-}
-#components-tabs-demo-card-top .code-box-demo {
-  padding: 24px;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-content {
-  height: 120px;
-  margin-top: -8px;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-[data-theme='dark'] #components-tabs-demo-card-top .code-box-demo {
-  background: #000;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  background: #141414;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #141414;
-  border-color: #141414;
 }
 
 

@@ -10,7 +10,6 @@ import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
 import {useRoute, useRouter} from "vue-router";
 import {
