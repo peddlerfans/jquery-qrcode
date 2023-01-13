@@ -395,6 +395,7 @@ let rules: Record<string, Rule[]> = {
       <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">{{$t("common.saveText")}}</a-button>
       <a-button @click="onFinishFailedForm">{{$t("common.back")}}</a-button>
     </div>
+
   </div>
 </template>
 
