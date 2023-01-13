@@ -4,11 +4,11 @@ import { getCookie, setCookie } from '.'
 // import { useRoute, useRouter } from "vue-router";
 import router from '@/router'
 
-// const router = useRouter()
 const request = axios.create({
   // baseURL: import.meta.env.VITE_APP_BASE_API,
   // withCredentials: true,
-  timeout: 60000
+  timeout: 60000,
+  maxContentLength:5000
 })
 
 const token = getCookie('token')
@@ -28,7 +28,6 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   response => {
-
     const { code, msg } = response.data
     if (code == 400) {
       // message.error(`错误码${code}：${msg || '未知错误'}`, 5)

@@ -41,7 +41,7 @@ const getReason = (err: string) => {
     }
 }
 
-export const showErrCard = (errMsg: any) => {
+export const showErrCard = (errMsg: any) => {    
     let errAttrList = Object.keys(errMsg)
     let errTem: any
     let temp: any = []
@@ -62,6 +62,17 @@ export const showErrCard = (errMsg: any) => {
         //     temp = [{errTem , reason: getReason(errTem)}]
         // }
 
+    } else if(errMsg.hasOwnProperty('template error')){
+        errMsg['template error'].forEach((item: any) => {
+            if (item.results && item.results.length > 0 && item.results[0].hasOwnProperty('error')) {
+                if (item.outputLang == 'yaml') {
+                    errTem = 'textErr'
+                } else {
+                    errTem = 'scriptErr'
+                }
+            }
+            temp.push({ err: errTem, reason: getReason(errTem) })
+        });        
     } else {
         temp = errAttrList.map((err: string) => {
             return {
@@ -78,7 +89,7 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
     let outputLang
     let vaceErr
     if (codegenMsg == 'textErr') {
-        let codegenErr = errmsg.errors.filter((item: any) => item.outputLang == 'yaml')
+        let codegenErr = errmsg['template error'].filter((item: any) => item.outputLang == 'yaml')
         codegenErr.forEach((obj: any) => {
             if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
                 outputLang = obj.outputLang
@@ -86,7 +97,7 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
             }
         })
     } else {
-        errmsg.errors.filter((item: any) => item.outputLang !== 'yaml').forEach((obj: any) => {
+        errmsg['template error'].filter((item: any) => item.outputLang !== 'yaml').forEach((obj: any) => {
             if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
                 outputLang = obj.outputLang
                 vaceErr = obj.results[0].error

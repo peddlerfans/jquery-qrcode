@@ -63,6 +63,7 @@ declare module '@vue/runtime-core' {
     IteaTree: typeof import('./src/components/itea-tree.vue')['default']
     JsonSchemaForm: typeof import('./src/components/JsonSchemaForm.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
+    MbtTemplate: typeof import('./src/components/mbtTemplate.vue')['default']
     MenuPanel: typeof import('./src/components/MenuPanel.vue')['default']
     Metainfo: typeof import('./src/components/metainfo.vue')['default']
     MovableArea: typeof import('./src/components/MovableArea.vue')['default']
