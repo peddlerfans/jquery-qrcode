@@ -26,9 +26,7 @@ onBeforeMount(() => { addTab() })
 
 watch(() => route.path, addTab)
 
-function addTab() {
-  console.log(keepAlivePages);
-  
+function addTab() {  
   const tab: RouteLocationNormalizedLoaded = route
   // if (tab.meta?.hidden) return
   if (tab.meta.hiddenTab) return
