@@ -25,8 +25,7 @@ function childright(data:any){
 
 if(data.conditionright && data.conditionright.conditionleft){
   childright(data.conditionright.conditionleft)
-  
-}else{
+  }else{
   console.log(data);
   
   data.conditionright = {name:data.left.name , operator:data.operator , value:data.right?.name}
