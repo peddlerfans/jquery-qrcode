@@ -39,6 +39,7 @@ const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
   (e: "clear", value: object): void;
+  (e: 'change', value: object): void
 }>();
 const props = defineProps<{
   templatedetailtableData?: object;
@@ -281,11 +282,12 @@ watch(() => dataSource.value, (val: any) => {
   } else {
     dataFrom = 'input_template'
    }
-        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom:dataFrom}
-  if (isChoose(dataSource.value)) {
-      store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
-      storeAw.setDataDefinition(dataDefinition)
-    }    
+        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom: dataFrom}
+  // if (isChoose(dataSource.value)) {
+  //     store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+  //     storeAw.setDataDefinition(dataDefinition)
+  //   }
+  emit('change', dataDefinition)
 
 } , {deep:true})
 
@@ -326,6 +328,10 @@ const chooseTemplateFunc = () => {
   chooseTemplate.value=true
   updateTable();
 };
+defineExpose({
+  dataSource,
+  columnsOrigin
+})
 </script>
 
 <template>

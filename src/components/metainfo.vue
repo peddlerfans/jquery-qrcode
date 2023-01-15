@@ -14,6 +14,7 @@ const store = MbtData()
 const storeMbt = MBTStore()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
+  (e: 'change', value: object): void
 }>();
 
 const props = defineProps<{
@@ -133,7 +134,7 @@ const handleChange = () => {
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
   Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
   Object.assign(metaObj, { detail: store.getMetaData.detail });
-  return metaObj
+  emit('change', metaObj)
 }
 
 defineExpose({
@@ -143,7 +144,6 @@ defineExpose({
 </script>
 <template>
   <div style="margin: 5px; padding: 5px">
-<!--    @change = 'handleChange'-->
     <VueForm
       v-if="isFormVisible"
       v-model="metatemplatedetailtableData"
@@ -151,6 +151,7 @@ defineExpose({
       :formProps="metaformProps"
       :formFooter="formExpectedFooter"
       :uiSchema="uiSchema"
+      @change = 'handleChange'
     >
     </VueForm>
   </div>

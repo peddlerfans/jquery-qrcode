@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, UnwrapRef, Ref, computed, toRaw } from "vue";
+import {reactive, ref, UnwrapRef, Ref, computed, toRaw, watch} from "vue";
 import { cloneDeep } from "lodash-es";
 import {
   PlusOutlined,
@@ -30,6 +30,23 @@ interface ColumnItem {
   dataIndex: string;
   key: string;
 }
+
+watch(() => tableData.value, (val) => {
+  console.log(1)
+  emit('update', {
+    tableData: toRaw(tableData.value),
+    tableColumns: toRaw(dynamiccolumns.value),
+    dataFrom: 'input_template'
+  })
+})
+watch(() => dynamiccolumns.value, (val) => {
+  console.log(2)
+  emit('update', {
+    tableData: toRaw(tableData.value),
+    tableColumns: toRaw(dynamiccolumns.value),
+    dataFrom: 'input_template'
+  })
+})
 
 const dynamicschema: Ref<ColumnItem[]> = ref([
   {
@@ -72,6 +89,7 @@ function HandleSubmit() {
   let obj = {};
   Object.assign(obj, { tableData: toRaw(tableData.value) });
   Object.assign(obj, { tableColumns: toRaw(dynamiccolumns.value) });
+  Object.assign(obj, { dataFrom: 'input_template' });
   emit("update", obj);
 }
 
@@ -212,6 +230,11 @@ const saveCol = (key: string) => {
   });
   delete editableHeaderData[key];
 };
+
+defineExpose({
+  tableData,
+  dynamiccolumns
+})
 </script>
 
 <template>
@@ -293,7 +316,7 @@ const saveCol = (key: string) => {
         </template>
       </a-table>
     </div>
-    <a-button type="primary" @click="HandleSubmit()">Save</a-button>
+<!--    <a-button type="primary" @click="HandleSubmit()">Save</a-button>-->
   </main>
 </template>
 

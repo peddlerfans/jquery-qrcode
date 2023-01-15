@@ -8,10 +8,7 @@ import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
-import metainfo from "@/components/metainfo.vue";
-import inputTable from "@/components/inputTable.vue";
-import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined, ExclamationCircleOutlined} from '@ant-design/icons-vue'
-import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
+import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode, inject } from 'vue';
@@ -20,7 +17,6 @@ import { cloneDeep, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl} from "@/appConfig";
-import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
@@ -39,7 +35,7 @@ import Preview from "ant-design-vue/lib/vc-image/src/Preview";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import {UploadChangeParam} from "ant-design-vue";
 import {Rule} from "ant-design-vue/es/form";
-// import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
+import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
 
 
 
@@ -60,262 +56,18 @@ const toolbarDom = ref()
 // Aw组件的数据
 let rightSchemaModal = ref()
 let showpaper =ref(false)
-let metatemplatedetailtableData = ref({});
-const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
-// 静态模板的数据
-let tableData = ref([]);
-let tableColumns = ref([]);
-// 动态模板的数据
-  let tableDataDynamic = ref([]);
-  let tableColumnsDynamic = ref();
-  // input模板的数据
-  let tableDataDirectInput = ref([]);
-let tableColumnsDirectInput = ref([]);
-const metaInfo = ref()
-
-// resource的数据
-const resourcescount = computed(() => resourcesdataSource.value.length + 1);
-const resourceEditing = ref<any>(null)
-interface ResourcesDataItem {
-  key: string;
-  alias: string;
-  class: string;
-  resourcetype: string;
-}
-interface columnDefinition {
-  title: string;
-  dataIndex: string;
-  width?: string;
-}
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([]);
-const resourcescolumns: columnDefinition[] = [
-  {
-    title: "alias",
-    dataIndex: "alias",
-    width: "20%",
-  },
-  {
-    title: "class",
-    dataIndex: "class",
-  },
-  {
-    title: "resourcetype",
-    dataIndex: "resourcetype",
-  },
-  {
-    title: "operation",
-    dataIndex: "operation",
-  },
-];
-
-// meta的数据
-let tempschema = ref({
-  // description: "Config",
-  type: "object",
-  properties: {},
-});
-const metaformProps = {
-  layoutColumn: 2,
-  labelPosition: "left",
-  labelWidth: "75px",
-  labelSuffix: ":  ",
-};
-
-
-// attributes的数据
-let globalformData = ref<Stores.mbtView>({
-  _id: '',
-  name: '',
-  description: '',
-  codegen_text: '',
-  codegen_script: '',
-});
-// let codegenTextName :any =ref([])
-// let codegenScriptName :any =ref([])
-const defaultGlobalSchema = {
-  type: "object",
-  properties: {
-    name: {
-      title: "MBT Name",
-      type: "string",
-      readOnly: true,
-    },
-    description: {
-      title: "Description",
-      type: "string",
-    },
-    codegen_text: {
-      title: "Output Text",
-      type: "string",
-      anyOf: [],
-    },
-    codegen_script: {
-      title: "Output Script",
-      type: "string",
-      anyOf: [],
-    },
-  },
-}
-const globalschema = ref(_.cloneDeep(defaultGlobalSchema))
 
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value = true
 }
 
-// 选择动态，静态模板的函数
-const handleRadioChange: any = (v: any) => {
-  templateCategory.value = v;
-};
-// 保存input模板的函数
-const handleDirectInput = (data: any) => {
-};
-
-// 添加resource列头的函数
-const resourceshandleAdd = () => {
-  const newData = {
-    key: `${resourcescount.value}`,
-    alias: `Resourc${resourcescount.value}`,
-    class: `Class${resourcescount.value}`,
-    resourcetype: `resourceType${resourcescount.value}`,
-  };
-  resourcesdataSource.value.push(newData);
-};
-
-// 保存单元格的函数
-const resourcessave = (key: string) => {
-  const reg = new RegExp(/\s+/g)
-  const flag: boolean = Object.keys(resourceEditing.value).some((a: any) => reg.test(resourceEditing.value[a]))
-  if (flag) return message.warning(t('MBTStore.varErrTip'))
-  const index = resourcesdataSource.value.findIndex((a: any) => a.key === key)
-  if (index !== -1) resourcesdataSource.value.splice(index , 1, resourceEditing.value)
-  resourceEditing.value = null
-}
-
-// 修改行的函数
-const resourcesedit = (key: string) => {
-  resourceEditing.value = cloneDeep(
-    resourcesdataSource.value.filter((item) => key === item.key)[0]
-  )
-};
-
-// 取消修改的函数
-const resourcescancel = (key: string) => {
-  resourceEditing.value = null
-};
-
-// 删除行的函数
-const onresourcesDelete = (key: string) => {
-  resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item: { key: string; }) => item.key !== key
-  );
-};
-watch(resourcesdataSource.value ,(newval:any)=>{
-  if(newval){
-    store.saveResources(newval)
-  }
-},{deep:true})
-
-// 关闭模态窗的函数
-const handleOk = () => {
-  switch (activeKey.value) {
-    case '1': {
-      store.saveattr(globalformData.value);
-      break
-    }
-    case '2': {
-      store.saveMeta(metaInfo.value.handleChange())
-      break
-    }
-    case '3': {
-      break
-    }
-    case '4': {
-      break
-    }
-  }
-  if(resourcesdataSource.value.length>0){
-    store.saveResources(resourcesdataSource.value)
-  }
-  isGlobal.value = false  
-  // isGlobal.value = false
-}
-
 function closeTemplateModel() {
-  switch (activeKey.value) {
-    case '1': {
-      if(store.changeTemplate?._id){
-        globalformData.value = {...store.changeTemplate}
-      }
-      globalschema.value = _.cloneDeep(defaultGlobalSchema)
-      break
-    }
-    case '2': {
-      if (store.showMetaSchema) {
-        tempschema.value = computed(()=>store.showMetaSchema).value
-        isFormVisible.value = true
-      }
-      if (store.showMetaData) {
-        metatemplatedetailtableData.value = store.showMetaData
-      }
-      break
-    }
-    case '3': {
-      break
-    }
-    case '4': {
-      break
-    }
-  }
   activeKey.value = '1'
   isGlobal.value = false
 }
 
-// 回显数据的地方
-function Datafintion(data: any) {
-  if(store.changeTemplate?._id){
-    globalformData.value = {...store.changeTemplate}
-  }
-  if (store.showMetaSchema) {
-    tempschema.value = computed(()=>store.showMetaSchema).value
-    isFormVisible.value = true    
-  }
-  if (store.showMetaData) {
-    metatemplatedetailtableData.value = store.showMetaData
-  }
-  if(data.dataDefinition.resources.length>0){
-    resourcesdataSource.value = data.dataDefinition.resources
-  }
-  
-  if(
-    data &&
-    data.dataDefinition &&
-      data.dataDefinition.data &&
-      data.dataDefinition.data.tableData
-  ) {
-    if(data.dataDefinition.data.dataFrom == 'dynamic_template'){
-      templateRadiovalue.value = 1;
-      templateCategory.value = 1;
-      tableDataDynamic.value = data.dataDefinition.data.tableData
-      tableColumnsDynamic.value = data.dataDefinition.data.tableColumns
-    }else if(data.dataDefinition.data.dataFrom == 'static_template'){
-      templateRadiovalue.value = 2;
-      templateCategory.value = 2;
-      tableData.value = data.dataDefinition.data.tableData
-      tableColumns.value = data.dataDefinition.data.tableColumns
-    }else{
-      templateRadiovalue.value = 3;
-      templateCategory.value = 3;
-      tableDataDirectInput.value  = data.dataDefinition.data.tableData
-      tableColumnsDirectInput.value = data.dataDefinition.data.tableColumns
-    }
-  }
-}
-
-// async function getAw(id: string){
-//   return await request.get(`${awModelUrl}/${id}`) 
-// }
 // 依据uiSchema更新data数据
 function newData(aw: any, data?: any) {
   // debugger
@@ -427,27 +179,10 @@ onMounted(async () => {
   if (route.params.name) {
     localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
   }
-  getAllTemplatesByCategory('codegen').then((rst: any) => {
-    if (rst && _.isArray(rst)) {
-      rst.forEach((rec: any) => {
-        if(rec.model && rec.model.outputLanguage){
-          if(rec.model.outputLanguage == 'yaml'){
-            // codegenTextName.value.push({ title: rec.name , const: rec._id})
-            // globalschema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
-          }else{
-            // globalschema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
-          }
-        }
-      
-      })
-    }
-  }).catch((err) => { console.log(err); })
-
   idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
   await store.getMbtmodel(idstr)
 
   if (store.mbtData._id) {
-    Datafintion(store.mbtData)
     storeAw.setAllData(store.mbtData)
   }
   rappid = new MbtServe(
@@ -690,8 +425,6 @@ const saveMbt = () => {
 
 const visiblepreciew=ref(false)
 const previewData: any = ref({})
-let previewScript = ref("")
-const softwrap=true
 let searchPreview=reactive({
   mode:""
 })
@@ -795,97 +528,6 @@ function closePreviewModal() {
   visiblepreciew.value = false
 }
 
-function exportMeta() {
-  const props = store.getMeta?.schema?.properties
-  const data: any = store.getMeta.data
-  if (!props || _.isEmpty(props)) return message.warning('暂无数据')
-  const cols = [
-    {
-      title: '字段名',
-      key: 'name'
-    },
-    {
-      title: '值',
-      key: 'value'
-    },
-    {
-      title: '输入类型',
-      key: 'type'
-    }
-  ]
-  const arr = Object.keys(props).map((a: any) => {
-    const val = data[a]
-    return {
-      name: a,
-      type: val && val.type === '2' ? '自定义输入' : '选项输入',
-      value: val && val.val ? val.val : ''
-    }
-  })
-  exportFile(cols, arr)
-}
-
-function exportDataPool() {
-  const dataPool = store.getDataPool
-  if (!dataPool) return message.warning('暂无数据')
-  exportFile(dataPool.tableColumns, dataPool.tableData)
-}
-
-function exportResource() {
-  const resource = store.getResource
-  if (!resource || !resource.length) return message.warning('暂无数据')
-  const cols = Object.keys(resource[0]).map((key: string) => {
-    return {
-      title: key
-    }
-  })
-  exportFile(cols, resource)
-}
-
-function exportData() {
-  switch (activeKey.value) {
-    case '2': {
-      exportMeta()
-      break
-    }
-    case '3': {
-      exportDataPool()
-      break
-    }
-    case '4': {
-      exportResource()
-      break
-    }
-  }
-}
-
-function customRequest() {
-  //
-}
-
-async function handleUploadChange(file: any) {
-  let data: any = await getExcelData(file)
-  data = data.flat(Infinity)
-  if (resourcesdataSource.value.length) {
-    Modal.confirm({
-      content: '导入后resources原本数据会被清除，还要进行导入操作吗？',
-      onOk() {
-        resourcesdataSource.value = data
-      },
-      cancelText: '取消',
-      onCancel() {
-        Modal.destroyAll()
-      }
-    })
-  } else {
-    resourcesdataSource.value = data
-  }
-}
-
-// 模板编辑弹窗 Resource 校验字段
-// const rules = {
-//   rules: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
-// }
-
 </script>
 
 <template >
@@ -934,7 +576,7 @@ async function handleUploadChange(file: any) {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-<!--  <mbt-modeler-template-setting :show="isGlobal"></mbt-modeler-template-setting>-->
+  <mbt-modeler-template-setting :show="isGlobal" @close="closeTemplateModel"></mbt-modeler-template-setting>
 <a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
   <!-- preview错误信息 -->
   <VAceEditor
@@ -953,10 +595,6 @@ async function handleUploadChange(file: any) {
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
-
-
-
-
 
 .app-header{
   background-color: #717D98;
