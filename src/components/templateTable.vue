@@ -213,9 +213,7 @@ function showDetailInfo(data: any) {
   if (data && data._id && data.category == "dynamic") {
     hasData.value = true;
     getTemplatePreview(data._id).then((dat: any) => {
-  
       let cust_columns = transfer2Table(dat);
-  
       columnsOrigin.value = cust_columns;
       dataSource.value = dat;
       // columnsOrigin.value = dat.model.schema;
@@ -223,10 +221,9 @@ function showDetailInfo(data: any) {
       message.warning("Please configure this template first")
     });
   } else if (data && data._id && data.category == "static") {
-    
     if (data.model) {
       dataSource.value = data.model.data;
-      columnsOrigin.value = data.model.schema;
+      columnsOrigin.value = data.model.schema.filter((item: { title: string; }) => item.title !== 'action');
     } else {
       message.warning("Pleaes define the params in static template.");
     }

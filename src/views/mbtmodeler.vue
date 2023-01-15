@@ -505,6 +505,13 @@ watch(() => storePre.getCheck ,(newval: boolean) => {
         checkChange(newval,storePre.getErrList[index]?.err)
     }
 })
+watch(() => store.getChooseDataPool, (val: boolean) => {
+  if (val) {
+    isGlobal.value = true
+    activeKey.value = "3" ,
+    templateRadiovalue.value = 1
+  }
+})
 let vaceErr = ref()
 let previewErr = ref(false)
 let errOutLang = ref()
@@ -1090,6 +1097,7 @@ const inspector = (n:number) =>{
 				overflow: hidden;
         width: 100%;
         height: 50px;
+        margin-bottom: 0;
 			}
 			.tab_ul li {
 				padding: 15px;
@@ -1121,35 +1129,7 @@ const inspector = (n:number) =>{
 }
 
 
-.AwtabInspector{
-    display: flex;
-    flex-direction: column;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    width: 100%;
-    box-sizing: border-box;
-    height: -moz-calc(100% - 120px);
-    height: -webkit-calc(100% - 120px);
-    height: calc(100% - 120px);
-    .dataStyle{
-    top: 50px;
-    display: none;
-    flex: 1;
-    bottom: 0;
-    width: 100%;
-    overflow: auto;
-}
-.inspector-container {
-    top: 50px;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
-}
-.joint-inspector {
-  bottom: 50px;
-}
-}
+
 .GroupInspector{
     position: absolute;
     top: 50px;

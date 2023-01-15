@@ -52,4 +52,6 @@ export default {
   permissionManagement: 'Permission Management',
   resourceManagement: 'Resource Management',
   roleManagement: 'Role Management',
+  goDataPool: 'The current complex condition editing is not available. Do you want to select a template first'
+
 };

@@ -31,5 +31,5 @@ export default {
     clearAssert: 'Clear assert',
 
     // mbt-preview-modal.vue
-    selectTip: 'Please select the left node to display the data'
+    selectTip: 'Please select the left node to display the data',
 }

@@ -24,12 +24,13 @@ export function transfer2Table(data: any[]) {
   if (_.isArray(data) && data.length > 0) {
     let columns: any[] = [];
 
-    Object.keys(data[0]).forEach(key => {
+    Object.keys(data[0]).forEach((key:any) => {
       let column = {};
       Object.assign(column, { title: key, dataIndex: key, key: key, width: key.length * 3 })
       columns.push(column);
     })
-    result = columns;
+    
+    result = columns.filter(item => item.title !== 'key');
     // Object.assign(result,{columns:columns})
     // Object.assign(result,{tableData:data})
 

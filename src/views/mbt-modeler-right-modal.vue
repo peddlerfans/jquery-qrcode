@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, createVNode, ref, watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
-import {MbtData} from "@/stores/modules/mbt-data";
+import { MbtData } from "@/stores/modules/mbt-data";
+
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
+
 
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
@@ -53,7 +55,8 @@ function condition(data :any){
   }
 }
 
-const store = MbtData()
+
+const storeAw = MbtData()
 const emit = defineEmits(['change'])
 const keys = 1
 let show = ref(false)
@@ -64,10 +67,11 @@ let schemaData = ref({})
 let data:any = ref({})
 let awSchemaData = ref()
 let props = defineProps(['currentEl'])
+
 awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
-  return store.getDataPoolTableColumns.map((e: any) => {
+  return storeAw.getDataPoolTableColumns.map((e: any) => {
     return {
       value: e.title,
       label: e.title
@@ -76,8 +80,8 @@ let formDatas = computed(() => {
 })
  
 let childValue = computed(() => {
-  return store.getDataPoolTableData.length > 0
-      ? valueOption(store.getDataPoolTableData)
+  return storeAw.getDataPoolTableData.length > 0
+      ? valueOption(storeAw.getDataPoolTableData)
       : []
 })
 let valueData = childValue
@@ -214,8 +218,7 @@ function rulesChange (datas: any, key: string) {
   rulesData.value = datas
 }
 watch(
-  rulesData,
-  
+  rulesData,  
   (newvalue: any) => {
     // debugger
     if (rulesData.value.length > 0) {
@@ -233,17 +236,17 @@ watch(
 );
 
 function handleAwData () {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   const checkAwProps = el.getPropertiesSchema()
-  store.setEditingPrimaryAw(checkAwProps.step)
-  store.setEditingExpectedAw(checkAwProps.expectation)
-  store.setDescription(checkAwProps.description)
+  storeAw.setEditingPrimaryAw(checkAwProps.step)
+  storeAw.setEditingExpectedAw(checkAwProps.expectation)
+  storeAw.setDescription(checkAwProps.description)
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   showDrawer.value = false
   
   if(el.attributes.source && el.attributes.target){
@@ -251,9 +254,6 @@ function handleData() {
     const targetId = el.attributes.target?.id
     if(sourceId){
       const sourceEl = el.graph.getCell(sourceId)
-      // const targetEl = el.graph.getCell(targetId)
-      // const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
-      //   && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
       showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
    
@@ -265,14 +265,14 @@ function handleData() {
     data.value.rulesData = [rulesDataDefaultItem]
   }
   rulesData.value = data.value.rulesData  
-}
-console.log(rulesData.value,data.value);
-
+  
+  }
+  
   show.value = true
 }
 
 function getType () {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   return el?.attributes?.type || ''
 }
 
@@ -338,7 +338,6 @@ defineExpose({
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
-          v-if="store.getDataPoolTableData.length > 0"
           :keys="keys"
           :formDatas="formDatas"
           :valueData="valueData"
