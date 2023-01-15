@@ -64,7 +64,7 @@
                 <component :is="Component" :key="route.meta.title" />
             </Transition>
           </RouterView>
-        </KeepAlive>
+            </KeepAlive>
 
         </ALayoutContent>
       </ALayout>
