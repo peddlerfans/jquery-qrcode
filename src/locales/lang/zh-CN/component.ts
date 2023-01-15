@@ -106,3 +106,4 @@ export default {
     setting: '用户管理'
   }
 };
+
