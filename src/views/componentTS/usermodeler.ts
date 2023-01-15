@@ -25,8 +25,11 @@ export interface paramsobj {
 }
 export interface ModelState {
     key?: number
-    name: string;
-
+    name?: string;
+    rolename?: string;
+    resourceName?: string;
+    email?:string;
+    grantedResource?:any;
     _id: string;
     validationError?: string
 
@@ -34,6 +37,26 @@ export interface ModelState {
 // 添加的表单tags
 export interface statesTs {
     tags: Array<string>
+    inputVisible: Boolean;
+    inputValue: string
+}
+
+export interface statesRole {
+    rolename: String;
+    inputVisible: Boolean;
+    inputValue: string
+}
+
+export interface statesResource {
+    resourceName: String;
+    resourceType?:String;
+    inputVisible: Boolean;
+    inputValue: string
+}
+
+export interface statesUserModel {
+    email: String;
+    role?:String;
     inputVisible: Boolean;
     inputValue: string
 }
