@@ -8,28 +8,46 @@ import _ from "lodash";
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
 let o = '(LeftRightMove == "-20°" && ExceptResult == "65537") && is_support == "False" || (is_explorer == "False") || ExceptResult == "null" && (DownUpMove == "-20°" && Brightness == "1000lux")'
+// let pegData = testParser.parse('(LeftRightMove == "-20°" && ExceptResult == "65537") && is_support == "False" || (is_explorer == "False") || ExceptResult == "null" && (DownUpMove == "-20°" && Brightness == "1000lux")')
 
-function digui(data:string){
-  if(data.lastIndexOf(")")){
-    let lastindex = data.lastIndexOf("(")
-    console.log(data.lastIndexOf(')') , lastindex ,data.length);
-    
-  }
+
+function childleft(data:any){
+
+if(data?.conditionleft?.left){
+  data.conditionleft = {name:data.conditionleft.left.name , operator:data.conditionleft.operator , value:data.conditionleft.right.name}
+}else{
+childleft(data?.conditionleft?.conditionleft)
 }
-digui(o)
-// let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
-let childOIbj = []
 
-function child(data:any){
-  let childObj = {}
-  if(data.conditionleft){
-    if(data.conditionleft.conditionleft){
-      child(data.conditionleft.conditionleft)
-    }
+return data.conditionleft
+}
+function childright(data:any){
+
+if(data.conditionright && data.conditionright.conditionleft){
+  childright(data.conditionright.conditionleft)
+  
+}else{
+  console.log(data);
+  
+  data.conditionright = {name:data.left.name , operator:data.operator , value:data.right?.name}
+}
+return data.conditionright
+}
+
+
+
+function digui(data: any){
+  let obj :any
+  if( data.conditionleft ){
+     obj = Object.assign(data , childleft(data.conditionleft), childright(data.conditionright))
   }else{
-    Object.assign(childObj , {name:data.left.name , operator:data.operator , value:data.right.name})
+    obj = {name:data.left.name , operator:data.operator ,value:data.right.value}
   }
+  return obj
 }
+// console.log(digui(pegData.body[0].expression));
+
+
 function condition(data :any){
   if(data.left && data.right && data.operator){
     return {name:data.left.name , operator:data.operator ,value: data.right.name}
@@ -92,7 +110,7 @@ const rulesDataDefaultItem = {
       operator: '=',
       value: undefined,
       selectvalues: 'AND',
-    },
+    }
   ],
   children: [],
 }

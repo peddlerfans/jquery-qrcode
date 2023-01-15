@@ -145,7 +145,7 @@ function TimeTrans(timestamp: string | number | Date){
 }
 
 // 需要的参数 start   end   interval（x轴时间间隔）
-async function query(){
+async function query(){``
   let rst:any=await request.post(dashboradUrl,search)
   
   if(rst){

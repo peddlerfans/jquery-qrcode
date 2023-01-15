@@ -294,121 +294,119 @@ export const MbtData = defineStore({
 
 // 高亮提示完后要清理，label要转成rulesData（其实后台只需要存入label，rulesData都是
 
-
-
 // {
 //     "type": "Program",
-//         "body": [
-//             {
-//                 "type": "ExpressionStatement",
-//                 "expression": {
-//                     "type": "LogicalExpression",
-//                     "operator": "OR",
-//                     "left": {
-//                         "type": "LogicalExpression",
-//                         "operator": "OR",
-//                         "left": {
-//                             "type": "LogicalExpression",
-//                             "operator": "AND",
-//                             "left": {
-//                                 "type": "LogicalExpression",
-//                                 "operator": "AND",
-//                                 "left": {
-//                                     "type": "BinaryExpression",
-//                                     "operator": "==",
-//                                     "left": {
-//                                         "type": "Identifier",
-//                                         "name": "LeftRightMove"
-//                                     },
-//                                     "right": {
-//                                         "type": "Literal",
-//                                         "value": "-20°"
-//                                     }
-//                                 },
-//                                 "right": {
-//                                     "type": "BinaryExpression",
-//                                     "operator": "==",
-//                                     "left": {
-//                                         "type": "Identifier",
-//                                         "name": "ExceptResult"
-//                                     },
-//                                     "right": {
-//                                         "type": "Literal",
-//                                         "value": "65537"
-//                                     }
-//                                 }
-//                             },
-//                             "right": {
-//                                 "type": "BinaryExpression",
-//                                 "operator": "==",
-//                                 "left": {
-//                                     "type": "Identifier",
-//                                     "name": "is_support"
-//                                 },
-//                                 "right": {
-//                                     "type": "Literal",
-//                                     "value": "False"
-//                                 }
-//                             }
-//                         },
-//                         "right": {
-//                             "type": "BinaryExpression",
-//                             "operator": "==",
-//                             "left": {
-//                                 "type": "Identifier",
-//                                 "name": "is_explorer"
-//                             },
-//                             "right": {
-//                                 "type": "Literal",
-//                                 "value": "False"
-//                             }
-//                         }
-//                     },
-//                     "right": {
-//                         "type": "LogicalExpression",
-//                         "operator": "AND",
-//                         "left": {
-//                             "type": "BinaryExpression",
-//                             "operator": "==",
-//                             "left": {
-//                                 "type": "Identifier",
-//                                 "name": "ExceptResult"
-//                             },
-//                             "right": {
-//                                 "type": "Literal",
-//                                 "value": "null"
-//                             }
-//                         },
-//                         "right": {
-//                             "type": "LogicalExpression",
-//                             "operator": "AND",
-//                             "left": {
-//                                 "type": "BinaryExpression",
-//                                 "operator": "==",
-//                                 "left": {
-//                                     "type": "Identifier",
-//                                     "name": "DownUpMove"
-//                                 },
-//                                 "right": {
-//                                     "type": "Literal",
-//                                     "value": "-20°"
-//                                 }
-//                             },
-//                             "right": {
-//                                 "type": "BinaryExpression",
-//                                 "operator": "==",
-//                                 "left": {
-//                                     "type": "Identifier",
-//                                     "name": "Brightness"
-//                                 },
-//                                 "right": {
-//                                     "type": "Literal",
-//                                     "value": "1000lux"
-//                                 }
-//                             }
-//                         }
-//                     }
+//     "body": [
+//        {
+//           "type": "ExpressionStatement",
+//           "expression": {
+//              "type": "LogicalExpression",
+//              "operator": "OR",
+//              "conditionleft": {
+//                 "type": "LogicalExpression",
+//                 "operator": "OR",
+//                 "conditionleft": {
+//                    "type": "LogicalExpression",
+//                    "operator": "AND",
+//                    "conditionleft": {
+//                       "type": "LogicalExpression",
+//                       "operator": "AND",
+//                       "conditionleft": {
+//                          "type": "BinaryExpression",
+//                          "operator": "==",
+//                          "left": {
+//                             "type": "Identifier",
+//                             "name": "LeftRightMove"
+//                          },
+//                          "right": {
+//                             "type": "Literal",
+//                             "value": "-20°"
+//                          }
+//                       },
+//                       "conditionright": {
+//                          "type": "BinaryExpression",
+//                          "operator": "==",
+//                          "left": {
+//                             "type": "Identifier",
+//                             "name": "ExceptResult"
+//                          },
+//                          "right": {
+//                             "type": "Literal",
+//                             "value": "65537"
+//                          }
+//                       }
+//                    },
+//                    "conditionright": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "is_support"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "False"
+//                       }
+//                    }
+//                 },
+//                 "conditionright": {
+//                    "type": "BinaryExpression",
+//                    "operator": "==",
+//                    "left": {
+//                       "type": "Identifier",
+//                       "name": "is_explorer"
+//                    },
+//                    "right": {
+//                       "type": "Literal",
+//                       "value": "False"
+//                    }
 //                 }
-//             }
-//         ]
-// }
+//              },
+//              "conditionright": {
+//                 "type": "LogicalExpression",
+//                 "operator": "AND",
+//                 "conditionleft": {
+//                    "type": "BinaryExpression",
+//                    "operator": "==",
+//                    "left": {
+//                       "type": "Identifier",
+//                       "name": "ExceptResult"
+//                    },
+//                    "right": {
+//                       "type": "Literal",
+//                       "value": "null"
+//                    }
+//                 },
+//                 "conditionright": {
+//                    "type": "LogicalExpression",
+//                    "operator": "AND",
+//                    "conditionleft": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "DownUpMove"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "-20°"
+//                       }
+//                    },
+//                    "conditionright": {
+//                       "type": "BinaryExpression",
+//                       "operator": "==",
+//                       "left": {
+//                          "type": "Identifier",
+//                          "name": "Brightness"
+//                       },
+//                       "right": {
+//                          "type": "Literal",
+//                          "value": "1000lux"
+//                       }
+//                    }
+//                 }
+//              }
+//           }
+//        }
+//     ]
+//  }

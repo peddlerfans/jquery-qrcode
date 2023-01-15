@@ -130,13 +130,6 @@ export const MBTStore = defineStore('mbtmodel', {
     setMbtData(data: any) {
       this.mbtData = { ...JSON.parse(JSON.stringify(data)) }
     },
-    // 获取后台所有的mbt数据
-    async getMbtmodel(id: any) {
-
-
-      let res = await request.get(`${realMBTUrl}/${id}`)
-      this.setMbtData(res)
-    },
     // 存入后台的数据
     async saveMbtData() {
       if (this.mbtData._id) {

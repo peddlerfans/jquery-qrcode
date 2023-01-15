@@ -23,7 +23,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({ 'icon': 'user' })
-
+        
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
@@ -52,6 +52,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
             'content': labelDesc
         })
+        // this.attr({'label':{text:labelDesc}})
         if (this.get('content')) {
             this.set({ size: { width: 200, height: 80 } })
         }
@@ -68,23 +69,9 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         temp.description = storeAw.getDescription
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
-        console.log(temp)
         this.prop('prop/custom', temp)
         this.reRender()
         fitAncestors(this)
-    }
-    paramsObj(schema: any, data: any) {
-        let params: any = {}
-        for (let key in schema.properties) {
-            const tar = schema.properties[key]
-            if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
-                if (data[key]) {
-                    params[key] = data[key]
-                }
-            }
-        }
-        Object.assign(data, { params })
-        return data
     }
     // 所有schema的出口，以此schema发到定义的大schema组件，自己渲染
     getInspectorSchema() {

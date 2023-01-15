@@ -12808,8 +12808,8 @@ module.exports = /*
           return {
             type: "LogicalExpression",
             operator: element[1] == "&&" ? "AND" : element[1] == "||" ? "OR" : element[1],
-            left: result,
-            right: element[3]
+            conditionleft: result,
+            conditionright: element[3],
           };
         }, head);
       }
