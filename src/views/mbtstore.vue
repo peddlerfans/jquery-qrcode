@@ -61,7 +61,7 @@ const AWTableQuery = {
 
 let MBTTable = ref<any>()
 
-function queryTableData () {
+function queryTableData() {  
   MBTTable.value.loading = true
   http.get(realMBTUrl, {
     params: tableParams.value
@@ -74,7 +74,7 @@ function queryTableData () {
         tableData: data.data
       })
     }
-  }).finally(() => {
+  }).finally(() => {    
     MBTTable.value.loading = false
   })
 }

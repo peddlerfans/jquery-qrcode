@@ -8,19 +8,15 @@ import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
-import metainfo from "@/components/metainfo.vue";
-import inputTable from "@/components/inputTable.vue";
-import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined, ExclamationCircleOutlined} from '@ant-design/icons-vue'
-import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
+import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl} from "@/appConfig";
-import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
@@ -35,6 +31,12 @@ import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
+import Preview from "ant-design-vue/lib/vc-image/src/Preview";
+import {exportFile, getExcelData} from "@/utils/fileAction";
+import {UploadChangeParam} from "ant-design-vue";
+import {Rule} from "ant-design-vue/es/form";
+import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
+
 
 
 const store = MBTStore()
@@ -57,241 +59,18 @@ localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.par
 // Aw组件的数据
 let rightSchemaModal = ref()
 let showpaper =ref(false)
-let metatemplatedetailtableData = ref({});
-const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
-// 静态模板的数据
-let tableData = ref([]);
-let tableColumns = ref([]);
-// 动态模板的数据
-  let tableDataDynamic = ref([]);
-  let tableColumnsDynamic = ref();
-  // input模板的数据
-  let tableDataDirectInput = ref([]);
-let tableColumnsDirectInput = ref([]);
-
-// resource的数据
-const resourcescount = computed(() => resourcesdataSource.value.length + 1);
-const resourceseditableData: UnwrapRef<Record<string, ResourcesDataItem>> = reactive({});
-interface ResourcesDataItem {
-  key: string;
-  alias: string;
-  class: string;
-  resourcetype: string;
-}
-interface columnDefinition {
-  title: string;
-  dataIndex: string;
-  width?: string;
-}
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
-  {
-     key: "0",
-    alias: `Resourc`,
-    class: `Class`,
-    resourcetype: `resourceType`,
-  }
-]);
-const resourcescolumns: columnDefinition[] = [
-  {
-    title: "alias",
-    dataIndex: "alias",
-    width: "20%",
-  },
-  {
-    title: "class",
-    dataIndex: "class",
-  },
-  {
-    title: "resourcetype",
-    dataIndex: "resourcetype",
-  },
-  {
-    title: "operation",
-    dataIndex: "operation",
-  },
-];
-
-// meta的数据
-let tempschema = ref({
-  // description: "Config",
-  type: "object",
-  properties: {},
-});
-const metaformProps = {
-  layoutColumn: 2,
-  labelPosition: "left",
-  labelWidth: "75px",
-  labelSuffix: ":  ",
-};
-const metatemplatecolumns = reactive<Object[]>([
-  {
-    title: "name",
-    dataIndex: "name",
-    key: "name",
-    width: 180,
-  },
-  {
-    title: "description",
-    dataIndex: "description",
-    key: "description",
-    width: 180,
-  },
-  {
-    title: "tag",
-    dataIndex: "tag",
-    key: "tag",
-  },
-]);
-
-// attributes的数据
-let globalformData = ref<Stores.mbtView>({
-  _id: '',
-  name: '',
-  description: '',
-  codegen_text: '',
-  codegen_script: '',
-});
-let codegenTextName :any =ref([])
-let codegenScriptName :any =ref([])
-const globalschema = ref({
-  type: "object",
-  properties: {
-    name: {
-      title: "MBT Name",
-      type: "string",
-      readOnly: true,
-    },
-    description: {
-      title: "Description",
-      type: "string",
-    },
-    codegen_text: {
-      title: "Output Text",
-      type: "string",
-      anyOf: codegenTextName.value,
-    },
-    codegen_script: {
-      title: "Output Script",
-      type: "string",
-      anyOf: codegenScriptName.value,
-    },
-  },
-});
 
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value = true
 }
 
-// 选择动态，静态模板的函数
-const handleRadioChange: any = (v: any) => {
-  templateCategory.value = v;
-};
-// 保存input模板的函数
-const handleDirectInput = (data: any) => {
-};
-
-// 添加resource列头的函数
-const resourceshandleAdd = () => {
-  const newData = {
-    key: `${resourcescount.value}`,
-    alias: `Resourc${resourcescount.value}`,
-    class: `Class${resourcescount.value}`,
-    resourcetype: `resourceType${resourcescount.value}`,
-  };
-  resourcesdataSource.value.push(newData);
-};
-
-// 保存单元格的函数
-const resourcessave = (key: string) => {
-  Object.assign(
-    resourcesdataSource.value.filter((item: { key: string; }) => key === item.key)[0],
-    resourceseditableData[key]
-  );
-  delete resourceseditableData[key];
-};
-
-// 修改行的函数
-const resourcesedit = (key: string) => {
-  resourceseditableData[key] = cloneDeep(
-    resourcesdataSource.value.filter((item) => key === item.key)[0]
-  );
-};
-
-// 取消修改的函数
-const resourcescancel = (key: string) => {
-  delete resourceseditableData[key];
-};
-
-// 删除行的函数
-const onresourcesDelete = (key: string) => {
-  resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item: { key: string; }) => item.key !== key
-  );
-};
-watch(resourcesdataSource.value ,(newval:any)=>{
-  if(newval){
-    store.saveResources(newval)
-  }
-},{deep:true})
-function attrsChange(){
-  store.saveattr(globalformData.value);
+function closeTemplateModel() {
+  activeKey.value = '1'
+  isGlobal.value = false
 }
 
-// 关闭模态窗的函数
-const handleOk = () => {
-  if(resourcesdataSource.value.length>0){
-    store.saveResources(resourcesdataSource.value)
-  }
-  isGlobal.value = false  
-  // isGlobal.value = false
-}
-
-// 回显数据的地方
-function Datafintion(data: any) {  
-  if(store.changeTemplate?._id){
-    globalformData.value = {...store.changeTemplate}
-  }
-  if (store.showMetaSchema) {
-    tempschema.value = computed(()=>store.showMetaSchema).value
-    isFormVisible.value = true    
-  }
-  if (store.showMetaData) {
-    metatemplatedetailtableData.value = store.showMetaData
-  }
-  if(data.dataDefinition.resources.length>0){
-    resourcesdataSource.value = data.dataDefinition.resources
-  }
-  
-  if(
-    data &&
-    data.dataDefinition &&
-      data.dataDefinition.data &&
-      data.dataDefinition.data.tableData
-  ) {
-    if(data.dataDefinition.data.dataFrom == 'dynamic_template'){
-      templateRadiovalue.value = 1;
-      templateCategory.value = 1;
-      tableDataDynamic.value = data.dataDefinition.data.tableData
-      tableColumnsDynamic.value = data.dataDefinition.data.tableColumns
-    }else if(data.dataDefinition.data.dataFrom == 'static_template'){
-      templateRadiovalue.value = 2;
-      templateCategory.value = 2;
-      tableData.value = data.dataDefinition.data.tableData
-      tableColumns.value = data.dataDefinition.data.tableColumns
-    }else{
-      templateRadiovalue.value = 3;
-      templateCategory.value = 3;
-      tableDataDirectInput.value  = data.dataDefinition.data.tableData
-      tableColumnsDirectInput.value = data.dataDefinition.data.tableColumns
-    }
-  }
-}
-
-// async function getAw(id: string){
-//   return await request.get(`${awModelUrl}/${id}`) 
-// }
 // 依据uiSchema更新data数据
 function newData(aw: any, data?: any) {
   // debugger
@@ -340,6 +119,7 @@ function transformCells(mbtData:any){
     return [];
   }
    let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
+    // debugger
     if(mbtData.modelDefinition?.props){
       if(cell.type == 'standard.Link'){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
@@ -354,7 +134,7 @@ function transformCells(mbtData:any){
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     }   
       
-     delete cell.attrs;
+    // delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
 
@@ -402,21 +182,6 @@ async function query(){
 }
 
 onMounted(async () => {  
-
-  getAllTemplatesByCategory('codegen').then((rst: any) => {
-    if (rst && _.isArray(rst)) {
-      rst.forEach((rec: any) => {
-        if(rec.model && rec.model.outputLanguage){
-          if(rec.model.outputLanguage == 'yaml'){
-            codegenTextName.value.push({ title: rec.name , const: rec._id})
-          }else{
-            codegenScriptName.value.push({ title: rec.name , const: rec._id})
-          }
-        }
-      
-      })
-    }
-  }).catch((err) => { console.log(err); })
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -446,7 +211,6 @@ document.onkeydown = function (e :any) {
       rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
     }
     if (store.mbtData._id) {
-    Datafintion(store.mbtData)
     storeAw.setAllData(store.mbtData)
   }
   })
@@ -461,6 +225,8 @@ document.onkeydown = function (e :any) {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log(elementView.model);
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -491,9 +257,9 @@ document.onkeydown = function (e :any) {
     if(storeRoute.getIsEmbedded){
       storeAw.setUpdateAw(true)
       toolbarDom.value.firstChild.lastChild.style.display = 'block'
-  }    
+  }
 })
-
+provide('activeKey',activeKey)
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
   if(val){
     saveMbt()
@@ -501,7 +267,7 @@ watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
 })
 watch(() => storePre.getCheck ,(newval: boolean) => {
     if(newval){
-      let index = storePre.getIndex      
+      let index = storePre.getIndex
         checkChange(newval,storePre.getErrList[index]?.err)
     }
 })
@@ -515,6 +281,7 @@ watch(() => store.getChooseDataPool, (val: boolean) => {
 let vaceErr = ref()
 let previewErr = ref(false)
 let errOutLang = ref()
+let jsonData = ref()
 
 
 function checkChange(check:boolean,str:any) {
@@ -528,18 +295,21 @@ function checkChange(check:boolean,str:any) {
       }
       case 'no_meta':{
         isGlobal.value = true ,
-        activeKey.value = "2" 
+        activeKey.value = "2"
         break
       }
       case 'no_templates_define': {
         isGlobal.value = true ,
-        activeKey.value = "1" 
+        activeKey.value = "1"
         break
       }
       case 'textErr': {
-        if(storePre.getErrmsg){          
+        if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
+          console.log(jsonData.value);
+          
           previewErr.value = true
         }
         break
@@ -548,6 +318,8 @@ function checkChange(check:boolean,str:any) {
         if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'scriptErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
+          console.log(jsonData.value);
           previewErr.value = true
           }
         break
@@ -555,13 +327,13 @@ function checkChange(check:boolean,str:any) {
       case 'not_start_end': {
         if (storePre.getErrmsg) {
           storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
-            cellIdArr.forEach((cellId: any) => {             
+            cellIdArr.forEach((cellId: any) => {
               rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
               setTimeout(() =>{
                 rappid.graph.getCell(cellId).findView(rappid.paper).unhighlight()
               } ,5000)
             });
-            
+
           })
         }
         break
@@ -570,11 +342,7 @@ function checkChange(check:boolean,str:any) {
   }
 // 离开路由时调用
 onBeforeRouteLeave((to, form, next) => {  
-    if (rappid.commandManager.undoStack.length > 0) {
-      leaveRouter.value = true
-    } else {
-      leaveRouter.value = false
-    }
+    leaveRouter.value = rappid.commandManager.undoStack.length > 0;
   if(leaveRouter.value){
     Modal.confirm({
         icon: createVNode(ExclamationCircleOutlined),
@@ -737,8 +505,6 @@ const saveMbt = () => {
 
 const visiblepreciew=ref(false)
 const previewData: any = ref({})
-let previewScript = ref("")
-const softwrap=true
 let searchPreview=reactive({
   mode:""
 })
@@ -768,7 +534,7 @@ async function querycode(show?: boolean) {
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
     console.log(errMsg);
-    
+
     setErrData(errMsg)
     if (storePre.getErrmsg) {
       showErrCard(errMsg)
@@ -778,7 +544,7 @@ async function querycode(show?: boolean) {
   
 }
 const preview=async (show?:boolean)=>{
-    if(rappid.commandManager.undoStack.length > 0){ 
+    if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
@@ -903,175 +669,33 @@ const inspector = (n:number) =>{
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" :title="$t('common.template')" 
-      @ok="handleOk"
-      :width="1000"
-      ok-text="save"
+  <mbt-modeler-template-setting :show="isGlobal" @close="closeTemplateModel"></mbt-modeler-template-setting>
+<a-modal  :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+  <a-row class="previewErr">
+    <a-col :span="12">
+      <VAceEditor
+      class="currentData"
+        v-model:value="jsonData"
+        lang="json"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
       >
-      <div class="infoPanel card-container">
-            <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-      
-                  <div style="padding: 5px" class="attrconfig">
-                    <VueForm
-                      v-model="globalformData"
-                      :schema="globalschema"
-                      :formFooter="{show:false}"
-                      @change = 'attrsChange'
-                    >
-                     </VueForm>
-                  </div>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                >
-                </metainfo>
-              </a-tab-pane>
-
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
-                <a-radio-group
-                  v-model:value="templateRadiovalue"
-                  @change="handleRadioChange(templateRadiovalue)"
-                >
-                  <a-radio :value="1">Dynamic Template</a-radio>
-                  <a-radio :value="2">Static Template</a-radio>
-                  <a-radio :value="3">Input directly</a-radio>
-                </a-radio-group>
-                <template-table
-                  v-if="templateRadiovalue === 1"
-                  :tableColumns="tableColumnsDynamic"
-                  :templateCategory="templateCategory"
-                  :tableData="tableDataDynamic"
-                  
-                ></template-table>
-                <!-- --********---{{tableData}}**
-                  ++++{{tableColumns}}########                   -->
-          
-                  <template-table
-                  v-if="templateRadiovalue === 2"
-                  :tableColumns="tableColumns"
-                  :templateCategory="templateCategory"
-                  :tableData="tableData"
-                  
-                ></template-table>
-                <input-table
-                  :tableColumns="tableColumnsDirectInput"
-                  :tableData="tableDataDirectInput"
-                  v-if="templateRadiovalue === 3"
-                  @update="handleDirectInput"
-                ></input-table>
-              </a-tab-pane>
-              <a-tab-pane key="4" tab="Resources" style="height:550px;">
-                <a-button
-                  class="editable-add-btn"
-                  style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
-                  >Add
-                </a-button>
-                <a-table
-                  bordered
-                  :data-source="resourcesdataSource"
-                  :columns="resourcescolumns"
-                >
-                  <template #bodyCell="{ column, text, record }">
-                    <template
-                      v-if="['alias', 'class', 'resourcetype'].includes(column.dataIndex)"
-                    >
-                      <div class="editable-cell">
-                        <div
-                          v-if="resourceseditableData[record.key]"
-                          class="editable-cell-input-wrapper"
-                        >
-                          <a-input
-                            v-model:value="resourceseditableData[record.key][column.dataIndex as keyof typeof stringLiteral]"
-                            @pressEnter="resourcessave(record.key)"
-                          />
-                          <!-- <check-outlined
-                            class="editable-cell-icon-check"
-                            @click="resourcessave(record.key)"
-                          /> -->
-                        </div>
-                        <div v-else class="editable-cell-text-wrapper">
-                          {{ text || " " }}
-                          <!-- <edit-outlined
-                            class="editable-cell-icon"
-                            @click="resourcesedit(record.key)"
-                          /> -->
-                        </div>
-                      </div>
-                    </template>
-                    <template v-else-if="column.dataIndex === 'operation'">
-                      <div class="editable-row-operations">
-                        <span v-if="resourceseditableData[record.key]">
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.saveText') }}</span>
-                            </template>
-                            <check-circle-outlined @click="resourcessave(record.key)" class="icon--success-btn" />
-                          </a-tooltip>
-                          <a-divider type="vertical" />
-                          <a-popconfirm
-                            :title="$t('component.message.sureCancel')"
-                            @confirm="resourcescancel(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.cancelText') }}</span>
-                              </template>
-                              <close-circle-outlined @click="resourcescancel(record.key)" class="icon--err-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                        <span v-else>
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.editText') }}</span>
-                            </template>
-                            <edit-outlined @click="resourcesedit(record.key)" class="icon--primary-btn" />
-                          </a-tooltip>
-                        </span>
-                        <a-divider type="vertical" />
-                        <span>
-                          <a-popconfirm
-                            v-if="resourcesdataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onresourcesDelete(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.delText') }}</span>
-                              </template>
-                               <delete-outlined class="icon--primary-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                      </div>
-                    </template>
-                  </template>
-                </a-table>
-                <!-- <a-button type="primary" @click="globalhandlerSubmit">{{
-                  $t("common.saveText")
-                }}</a-button> -->
-              </a-tab-pane>
-            </a-tabs>
-  </div>
-</a-modal>
-<a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+      </VAceEditor>
+    </a-col>
+    <a-col :span="10" style=" margin-left: 10px;">
+        <VAceEditor
+        v-model:value="vaceErr"
+        class="aceErr-results"
+        :lang="errOutLang"
+        :wrap="true"
+        :readonly="true"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
+        ></VAceEditor>
+    </a-col>
+  </a-row>
   <!-- preview错误信息 -->
-  <VAceEditor 
-  v-model:value="vaceErr"
-  class="aceErr-results"
-  :lang="errOutLang"
-  :wrap="true"
-  :readonly="true"
-  theme="sqlserver"
-  :options="{ useWorker: true }"
-  ></VAceEditor>
+
 </a-modal>
 </template>
 
@@ -1079,10 +703,6 @@ const inspector = (n:number) =>{
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
-
-
-
-
 
 .app-header{
   background-color: #717D98;
@@ -1111,24 +731,22 @@ const inspector = (n:number) =>{
   padding: 0px;
 }
 .previewModel{
-  height: 50vw;
+  height: 40vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
-      overflow: auto;
-      height: calc(100% - 55px);
+      height: 90%;
       .ace-result{
       flex: 1;
       font-size: 18px;
       border: 1px solid;
       height: 72%;
       width:31.25rem
-}
+      }
+      
     }
   }
 }
-
-
 
 .GroupInspector{
     position: absolute;
@@ -1151,63 +769,21 @@ const inspector = (n:number) =>{
   bottom: 50px;
 }
 
-
-.infoPanel{
-  position: relative;
+.mbt-modeler-btn-wrap {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 12px;
+  display: flex;
+  width: 100%;
+  justify-content: end;
+  .ant-btn {
+    margin-right: 8px;
+  }
 }
 
 .joint-navigator{
   width: 330px;
-}
-.card-container p {
-  margin: 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-content {
-  height: 100%;
-  margin-top: -16px;
-}
-.card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  padding: 16px;
-  background: #fff;
-}
-.card-container > .ant-tabs-card > .ant-tabs-nav::before {
-  display: none;
-}
-.card-container > .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
-  border-radius: 6px 6px 0 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab-active,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #fff;
-  border-color: #fff;
-}
-#components-tabs-demo-card-top .code-box-demo {
-  padding: 24px;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-content {
-  height: 120px;
-  margin-top: -8px;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-[data-theme='dark'] #components-tabs-demo-card-top .code-box-demo {
-  background: #000;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  background: #141414;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #141414;
-  border-color: #141414;
 }
 
 

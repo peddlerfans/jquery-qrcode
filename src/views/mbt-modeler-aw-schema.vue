@@ -10,7 +10,6 @@ import { useI18n } from "vue-i18n";
 import { MbtData } from "@/stores/modules/mbt-data";
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-import {generateSchema} from "@/utils/jsonschemaform";
 import {data2schema} from "@/views/componentTS/schema-constructor";
 import {useRoute, useRouter} from "vue-router";
 import {
@@ -117,11 +116,11 @@ function updateAW (tar: string) {
   let _id: string = ''
   let name: string = ''
   if (tar === 'primary') {
-   _id = schemaValue.value._id || store.getPrimaryAwData._id
-   name = schemaValue.value.name || store.getPrimaryAwData.name
+   _id = schemaValue.value?._id || store.getPrimaryAwData?._id
+   name = schemaValue.value?.name || store.getPrimaryAwData?.name
   } else if (tar === 'expected') {
-    _id = expectedSchemaValue.value._id || store.getExpectedAwData._id
-    name = expectedSchemaValue.value.name || store.getExpectedAwData.name
+    _id = expectedSchemaValue.value?._id || store.getExpectedAwData?._id
+    name = expectedSchemaValue.value?.name || store.getExpectedAwData?.name
   }
   router.push({
     name: 'awupdate',

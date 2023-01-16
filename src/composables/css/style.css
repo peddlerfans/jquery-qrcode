@@ -193,8 +193,15 @@ body {
 } */
 
 .aceErr-results {
-    width: 55.25rem;
-    height: 21.875rem;
+    height: 100%;
+}
+
+.currentData {
+    height: 100%;
+}
+
+.previewErr {
+    height: 500px;
 }
 
 /*遮罩层样式*/
@@ -288,6 +295,7 @@ body {
 }
 
 .dataStyle {
+    margin-left: .3rem;
     top: 50px;
     display: none;
     flex: 1;
@@ -297,6 +305,7 @@ body {
 }
 
 .inspector-container {
+    margin-left: .3rem;
     top: 50px;
     overflow: auto;
     height: 100%;

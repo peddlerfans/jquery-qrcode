@@ -51,7 +51,7 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '变量') {
+        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
             arr.push(tar)
         }
     }
@@ -60,7 +60,6 @@ function getCustomItems (awSchema: any) {
 
 export function string2Obj (schema: any, uiSchema: any) {
     const prop = schema.properties
-    const optionList: Array<any> = store.getMetaData.detail
     let temp: Array<string> = []
     for (let key in prop) {
         const tar = prop[key]
@@ -73,7 +72,7 @@ export function string2Obj (schema: any, uiSchema: any) {
             }
             uiSchema[key] = {
                 "ui:widget": schemaItem,
-                "ui:options": getEnumList(tar.title, optionList)
+                "ui:options": getEnumList(tar.title)
             }
         }
     }
@@ -84,7 +83,8 @@ export function string2Obj (schema: any, uiSchema: any) {
     }
 }
 
-function getEnumList (title: string, optionList: Array<any>) {
+function getEnumList (title: string) {
+    const optionList: Array<any> = store.getMetaData.detail
     if (!optionList) return []
     let res = optionList.filter((a: any) => a.description === title)[0]
     if (res) {

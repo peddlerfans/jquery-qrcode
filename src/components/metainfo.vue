@@ -14,6 +14,7 @@ const store = MbtData()
 const storeMbt = MBTStore()
 const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
+  (e: 'change', value: object): void
 }>();
 
 const props = defineProps<{
@@ -22,7 +23,18 @@ const props = defineProps<{
   schema?: IJSONSchema;
   metaformProps?: object;
   metatemplatecolumns?: IColumn[];
+  showMetaInfo: boolean
 }>();
+
+watch(() => props.showMetaInfo, (val) => {
+  if (val) {
+    tempschema = ref(props.schema);
+    uiSchema = ref({})
+    metatemplatedetailtableData.value = props.metatemplatedetailtableData
+    setSchema(tempschema.value, uiSchema.value)
+  }
+})
+
 
 const formExpectedFooter = {
   show: false, // 是否显示默认底部
@@ -66,6 +78,9 @@ onMounted(() => {
       let temparr = rst;
 
       metatemplatetableData.value = temparr as never[];
+      if(_.isEmpty(tempschema.value?.properties)){
+        isFormVisible.value = false
+      }
     }
   });
 });
@@ -79,7 +94,6 @@ function submitTemplate() {
 }
 
 async function getTemplate(metaId: string, category: string) {
-  
   let currentschema = {
     type: "object",
     properties: {},
@@ -91,8 +105,6 @@ async function getTemplate(metaId: string, category: string) {
     let temparr = rst1.model;
     store.setMetaData(temparr, 'detail')
     store.setMetaData(rst1._id, '_id')
-    // console.log(store.mbtMeta);
-    
     let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
     Object.assign(currentschema, {required: required})
     if (_.isArray(temparr)) {
@@ -101,15 +113,15 @@ async function getTemplate(metaId: string, category: string) {
         Object.assign(currentschema.properties, schemafield);
       });
     }
-    
-    return string2Obj(currentschema, uiSchema.value).schema;
+    return string2Obj(currentschema, uiSchema.value);
   }
 }
-const showJSONSchemeForm = (templdateId: string) => {
+const showJSONSchemeForm = async (templdateId: string) => {
   isFormVisible.value = !isFormVisible.value;
-  getTemplate(templdateId,'meta').then((schema: any) => {
-    setSchema(schema, uiSchema.value)
-  });
+  let res = await getTemplate(templdateId,'meta')
+  if (!res) return
+  tempschema.value = res.schema
+  uiSchema.value = res.uiSchema
 };
 
 const onImportFromMetaTemplate = () => {
@@ -125,10 +137,12 @@ const handleChange = () => {
   Object.assign(metaObj, { schema: toRaw(tempschema.value) });
   Object.assign(metaObj, { data: toRaw(checkDataStructure(metatemplatedetailtableData.value)) });
   Object.assign(metaObj, { detail: store.getMetaData.detail });
-  // console.log(metaObj);
-  
-  storeMbt.saveMeta(metaObj)
+  emit('change', metaObj)
 }
+
+defineExpose({
+  handleChange
+})
 
 </script>
 <template>
