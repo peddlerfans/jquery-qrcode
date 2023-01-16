@@ -209,7 +209,7 @@ onMounted(() => {
 });
 
 function showDetailInfo(data: any) {
-  
+  console.log(data.model)
   if (data && data._id && data.category == "dynamic") {
     hasData.value = true;
     getTemplatePreview(data._id).then((dat: any) => {
@@ -221,7 +221,6 @@ function showDetailInfo(data: any) {
       message.warning("Please configure this template first")
     });
   } else if (data && data._id && data.category == "static") {
-    console.log(data.model)
     if (data.model) {
       dataSource.value = data.model.data;
       columnsOrigin.value = data.model.schema.filter((item: { title: string; }) => item.title !== 'action');

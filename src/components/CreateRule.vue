@@ -7,7 +7,14 @@ export default {
     <script lang="ts" setup>
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
-import { computed, onMounted, ref } from 'vue';
+import { computed, createVNode, onMounted, ref } from 'vue';
+import { MBTStore } from '@/stores/MBTModel'
+import { Modal } from "ant-design-vue";
+import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
+import { useI18n } from 'vue-i18n'
+
+const store = MBTStore()
+const { t } = useI18n()
 onMounted(()=>{
     // changecolor()
 })
@@ -210,6 +217,24 @@ const checkrelation=(obj:any)=>{
     }
     
 }
+
+// 展开下拉菜单的回调
+const openSelect = () => {    
+    if (props.formDatas.length == 0) {
+        Modal.confirm({
+        icon: createVNode(ExclamationCircleOutlined),
+        content: t("common.goDataPool"),
+        onOk() {
+          return new Promise<void>((resolve, reject) => {
+            resolve()
+            store.saveChooseDataPool( true )
+          }).catch(() => console.log('Oops errors!'));
+        },
+        onCancel() {
+        },
+      });
+    }
+}
 </script>
 
 <template>
@@ -236,6 +261,7 @@ const checkrelation=(obj:any)=>{
                     v-model:value="item.name"
                     :options="formDatas"
                     @change="rulesChange"
+                    @focus="openSelect"
                     size="small"
                     placeholder="name"
                 >

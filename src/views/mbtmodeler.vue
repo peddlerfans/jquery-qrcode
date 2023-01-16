@@ -14,10 +14,10 @@ import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,Clos
 import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode, inject } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, concat, map, sortedIndex } from "lodash";
-import {onBeforeRouteLeave, useRoute} from 'vue-router'
+import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl} from "@/appConfig";
 import VueForm from "@lljj/vue3-form-ant";
@@ -35,9 +35,6 @@ import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
-import Preview from "ant-design-vue/lib/vc-image/src/Preview";
-import { debug } from "console";
-
 
 
 const store = MBTStore()
@@ -46,6 +43,7 @@ const storePre = errTipTool()
 const storeRoute = RouteInfo()
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
 let isGlobal = ref(false)
@@ -86,7 +84,14 @@ interface columnDefinition {
   dataIndex: string;
   width?: string;
 }
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([]);
+const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([
+  {
+     key: "0",
+    alias: `Resourc`,
+    class: `Class`,
+    resourcetype: `resourceType`,
+  }
+]);
 const resourcescolumns: columnDefinition[] = [
   {
     title: "alias",
@@ -477,6 +482,7 @@ document.onkeydown = function (e :any) {
       'preview:pointerclick': preview.bind(this),
       'reload:pointerclick': reload.bind(this),
       'chooseTem:pointerclick': chooseTem.bind(this),
+      'closeMbt:pointerclick' : close.bind(this)
     })
     rappid.paper.on('blank:pointerdblclick' ,() => {
       isGlobal.value=true
@@ -498,6 +504,13 @@ watch(() => storePre.getCheck ,(newval: boolean) => {
       let index = storePre.getIndex      
         checkChange(newval,storePre.getErrList[index]?.err)
     }
+})
+watch(() => store.getChooseDataPool, (val: boolean) => {
+  if (val) {
+    isGlobal.value = true
+    activeKey.value = "3" ,
+    templateRadiovalue.value = 1
+  }
 })
 let vaceErr = ref()
 let previewErr = ref(false)
@@ -583,6 +596,11 @@ onBeforeRouteLeave((to, form, next) => {
   }
 })
 
+// 退出当前路由
+function close() {
+  router.push('/mbtstore')
+}
+
 // reload所有aw
 async function awqueryByBatchIds(ids: string ,perPage:number) {
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
@@ -601,6 +619,7 @@ async function awQueryByPath(name:string ,path:string){
 
 function reload(){
   let sqlstr = ''
+  let pathArr: any = []
   let newProp: { _id: any; prop: any; cell: any; }[] = []
   let pathNameData:any = []
   if (store.getAlldata.modelDefinition.cellsinfo) {
@@ -620,6 +639,9 @@ function reload(){
         if(item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation?.data){
           let aw = item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation.data
             pathNameData.push(awQueryByPath(aw.name, aw.path))
+        }
+        if (item.get('prop').custom.expectation.aw) {
+          pathArr.push({name:item.get('prop').custom.expectation.aw.name , path:item.get('prop').custom.expectation.aw.path})
         }
       }
     })
@@ -1075,6 +1097,7 @@ const inspector = (n:number) =>{
 				overflow: hidden;
         width: 100%;
         height: 50px;
+        margin-bottom: 0;
 			}
 			.tab_ul li {
 				padding: 15px;
@@ -1106,35 +1129,7 @@ const inspector = (n:number) =>{
 }
 
 
-.AwtabInspector{
-    display: flex;
-    flex-direction: column;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    width: 100%;
-    box-sizing: border-box;
-    height: -moz-calc(100% - 120px);
-    height: -webkit-calc(100% - 120px);
-    height: calc(100% - 120px);
-    .dataStyle{
-    top: 50px;
-    display: none;
-    flex: 1;
-    bottom: 0;
-    width: 100%;
-    overflow: auto;
-}
-.inspector-container {
-    top: 50px;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
-}
-.joint-inspector {
-  bottom: 50px;
-}
-}
+
 .GroupInspector{
     position: absolute;
     top: 50px;

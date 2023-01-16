@@ -261,7 +261,7 @@ export const MbtData = defineStore({
                         "AWType": isSutType ? 'SUT' : 'string'
                     }
                 }
-                
+
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
@@ -285,7 +285,7 @@ export const MbtData = defineStore({
             }
             return arr
         },
-        setUpdateAw(value:boolean){
+        setUpdateAw(value: boolean) {
             this.isUpdataAw = value
         }
     }

@@ -99,9 +99,9 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
 .joint-widget.joint-theme-material[data-name="preview"]:after {
     display: block;
     width: 33px;
-    height: 33px;
+    height: 28px;
     font-family: "iconfont";
-    font-size: 1.875rem;
+    font-size: 1.7rem;
     content: '\e636';
     line-height: initial;
 }
@@ -121,7 +121,7 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     width: 33px;
     height: 33px;
     font-family: "iconfont";
-    font-size: 1.8rem;
+    font-size: 1.725rem;
     content: '\e658';
     line-height: initial;
 }
@@ -274,6 +274,41 @@ body {
 }
 
 /*  Inspector  */
+.AwtabInspector {
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    right: 0;
+    bottom: 120px;
+    width: 100%;
+    box-sizing: border-box;
+    height: -moz-calc(100% - 120px);
+    height: -webkit-calc(100% - 120px);
+    height: calc(100% - 120px);
+}
+
+.dataStyle {
+    top: 50px;
+    display: none;
+    flex: 1;
+    bottom: 0;
+    width: 100%;
+    overflow: auto;
+}
+
+.inspector-container {
+    top: 50px;
+    overflow: auto;
+    height: 100%;
+    box-sizing: border-box;
+    position: static;
+}
+
+.joint-inspector.joint-theme-material {
+    position: static !important;
+    bottom: 50px;
+}
+
 
 
 .object-property[data-property$="/fill"],
@@ -294,15 +329,6 @@ body {
     width: 190px;
 }
 
-.inspector-container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 100%;
-    bottom: 120px;
-    width: 300px;
-    box-sizing: border-box;
-}
 
 /*  Navigator  */
 .navigator-container {
