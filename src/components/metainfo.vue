@@ -78,6 +78,9 @@ onMounted(() => {
       let temparr = rst;
 
       metatemplatetableData.value = temparr as never[];
+      if(_.isEmpty(tempschema.value?.properties)){
+        isFormVisible.value = false
+      }
     }
   });
 });

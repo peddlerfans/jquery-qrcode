@@ -72,7 +72,7 @@ export default {
     emptyUrl: 'Please input url',
     realUrl: 'Please input real url',
     errTip1: 'Please process the data being edited first',
-    hefaName: "The name format includes Chinese, English,Number,_,$",
+    hefaName: "The name format includes English,Number,_,$",
 
     nocpuData: 'No CPU Data',
     nomemoryData: 'No Memory Data',

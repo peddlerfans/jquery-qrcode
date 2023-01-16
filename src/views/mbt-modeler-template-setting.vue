@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, reactive, Ref, ref, watch} from "vue";
+import {computed, inject, reactive, Ref, ref, watch} from "vue";
 import {Stores} from "../../types/stores";
 import _, {cloneDeep} from "lodash";
 import MetaInfo from "@/components/metainfo.vue";
@@ -17,7 +17,7 @@ interface Props {
   show: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-  show: false
+  show: false,
 })
 
 const emit = defineEmits(['close'])
@@ -74,7 +74,7 @@ watch(
 const dataPoolRadio = ref<number>(1)
 const store = MBTStore()
 const storeAw = MbtData()
-const activeKey = ref('1')
+const activeKey:any = inject('activeKey')
 const dynamicTable = ref()
 const staticTable = ref()
 const inputTable = ref()
@@ -220,6 +220,8 @@ function resourcesHandleAdd() {
     resourcetype: `resourceType${resourcescount.value}`,
   };
   resourcesDataSource.value.push(newData);
+  console.log(store.mbtData.dataDefinition.resources);
+  
 }
 
 // 保存单元格的函数

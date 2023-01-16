@@ -267,7 +267,6 @@ function isChoose(data:any) : boolean{
   return b
 }
 
-let watchData = computed(() => { dataSource.value, columnsOrigin.value })
 
 watch(() => dataSource.value, (val: any) => {
   let dataFrom = ''

@@ -228,7 +228,8 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     saveChooseDataPool(value: boolean) {
-      this.chooseDataPool = value},
+      this.chooseDataPool = value
+    },
     setResource(arr: any) {
       this.mbtData.dataDefinition.resources = arr
     }

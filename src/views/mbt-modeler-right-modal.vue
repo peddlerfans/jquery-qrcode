@@ -2,10 +2,10 @@
 import {computed, createVNode, ref, watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
 import { MbtData } from "@/stores/modules/mbt-data";
-
+import { MBTStore } from '@/stores/MBTModel'
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
-
+import { useI18n } from 'vue-i18n'
 
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
@@ -55,7 +55,8 @@ function condition(data :any){
   }
 }
 
-
+const store = MBTStore()
+const { t } = useI18n()
 const storeAw = MbtData()
 const emit = defineEmits(['change'])
 const keys = 1
@@ -67,7 +68,7 @@ let schemaData = ref({})
 let data:any = ref({})
 let awSchemaData = ref()
 let props = defineProps(['currentEl'])
-
+let showCondition = ref(true)
 awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
@@ -265,7 +266,9 @@ function handleData() {
     data.value.rulesData = [rulesDataDefaultItem]
   }
   rulesData.value = data.value.rulesData  
-  
+  }
+  if(formDatas.value.length == 0){
+    showCondition.value = false
   }
   
   show.value = true
@@ -324,6 +327,10 @@ defineExpose({
   handleShowData
 })
 
+function openSelect(){
+  store.saveChooseDataPool( true )
+}
+
 </script>
 
 <template>
@@ -338,12 +345,17 @@ defineExpose({
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
+          v-show="showCondition"
           :keys="keys"
           :formDatas="formDatas"
           :valueData="valueData"
           :rulesData="rulesData"
           @rulesChange="rulesChange"
         ></create-rule>
+        <div v-show="!showCondition">
+          <p style="color:red">{{ $t('common.goDataPool') }}</p>
+          <a-button size="small" @click="openSelect" type="primary">设置</a-button>
+        </div>
       </div>
     </VueForm>
   </div>

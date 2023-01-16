@@ -23,7 +23,9 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({ 'icon': 'user' })
-        
+        this.attr({'label':{
+            text:''
+        }})
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
@@ -50,10 +52,10 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            'content': labelDesc
+            // 'content': labelDesc
         })
-        // this.attr({'label':{text:labelDesc}})
-        if (this.get('content')) {
+        this.attr({'label':{text:labelDesc,fontSize:16}})
+        if (this.get('attrs')?.label?.text) {
             this.set({ size: { width: 200, height: 80 } })
         }
     }

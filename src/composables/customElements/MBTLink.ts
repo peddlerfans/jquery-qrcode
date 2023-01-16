@@ -36,9 +36,9 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
         const labelText = custom.description ? custom.description : custom?.label || ''
         this.label(0, {
           attrs: {
-            label: {
-              text: labelText
-            }
+            
+              text:{text: labelText}
+            
           }
         })
       }
@@ -49,9 +49,9 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
     const labelText = custom.description ? custom.description : custom?.label || ''
     this.label(0, {
       attrs: {
-        label: {
-          text: labelText
-        }
+        
+          text: {text:labelText}
+        
       }
     })
   }

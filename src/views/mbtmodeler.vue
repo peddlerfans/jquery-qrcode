@@ -11,7 +11,7 @@ import { KeyboardService } from "@/composables/keyboard";
 import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
@@ -119,6 +119,7 @@ function transformCells(mbtData:any){
     return [];
   }
    let cells = mbtData.modelDefinition.cellsinfo.cells.map((cell:any)=>{
+    // debugger
     if(mbtData.modelDefinition?.props){
       if(cell.type == 'standard.Link'){
         cell=  {...cell,type:getShapeTypeMapping(cell.type),prop:getProperty(cell,mbtData)};
@@ -133,7 +134,7 @@ function transformCells(mbtData:any){
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     }   
       
-     delete cell.attrs;
+    // delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
 
@@ -224,6 +225,8 @@ document.onkeydown = function (e :any) {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log(elementView.model);
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -256,7 +259,7 @@ document.onkeydown = function (e :any) {
       toolbarDom.value.firstChild.lastChild.style.display = 'block'
   }
 })
-
+provide('activeKey',activeKey)
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
   if(val){
     saveMbt()
