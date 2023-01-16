@@ -12,6 +12,7 @@ import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined,}
 import {MbtData} from "@/stores/modules/mbt-data";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import InputTable from "@/components/inputTable.vue"
+import MbtModelerTemplateSettingLinkModal from "@/views/mbt-modeler-template-setting-link-modal.vue";
 
 interface Props {
   show: boolean
@@ -46,6 +47,7 @@ watch(
           })
         }
         // meta 初始化数据
+        storeAw.setMetaData(store.getMetaDetail, 'detail')
         if (store.showMetaSchema) tempSchema.value = computed(() => store.showMetaSchema).value
         if (store.showMetaData) metaTemplateDetailTableData.value = store.showMetaData
         // Data Pool 初始化数据
@@ -54,19 +56,30 @@ watch(
             dataPoolRadio.value = 1
             tableDataDynamic.value = store.getDataPoolTableData
             tableColumnsDynamic.value = store.getDataPoolColData
+            tableData.value = []
+            tableColumns.value = []
+            tableDataDirectInput.value = []
+            tableColumnsDirectInput.value = []
           } else if (store.getDataPoolDataForm === 'static_template') {
             dataPoolRadio.value = 2
             tableData.value = store.getDataPoolTableData
             tableColumns.value = store.getDataPoolColData
+            tableDataDynamic.value = []
+            tableColumnsDynamic.value = []
+            tableDataDirectInput.value  = []
+            tableColumnsDirectInput.value = []
           } else {
             dataPoolRadio.value = 3
             tableDataDirectInput.value  = store.getDataPoolTableData
             tableColumnsDirectInput.value = store.getDataPoolColData
+            tableDataDynamic.value = []
+            tableColumnsDynamic.value = []
+            tableData.value = []
+            tableColumns.value = []
           }
         }
         // Resources 初始化数据
-        console.log(store.getResource)
-        resourcesDataSource.value = store.getResource || []
+        resourcesDataSource.value = _.cloneDeep(store.getResource) || []
       }
     }
 )
@@ -122,6 +135,9 @@ const defaultGlobalSchema = {
 }
 const globalSchema = ref(_.cloneDeep(defaultGlobalSchema))
 let metaTemplateDetailTableData = ref({})
+// 超链接列表
+let linkList = ref<Array<any>>([])
+let showLinkModal = ref<boolean>(false)
 // meta的数据
 let tempSchema = ref({
   type: "object",
@@ -202,11 +218,10 @@ function save() {
   if (metaInfo.value) store.saveMeta(metaInfo.value)
   // 保存 Data Pool 数据
   if (dataDefinition.value) {
-    store.saveData(dataDefinition.value.tableData , dataDefinition.value.tableColumns , dataDefinition.value.dataForm)
+    store.saveData(dataDefinition.value.tableData , dataDefinition.value.tableColumns , dataDefinition.value.dataFrom)
     storeAw.setDataDefinition(dataDefinition.value)
   }
   // 保存 Resources 数据
-  debugger
   if (resourcesDataSource.value.length > 0) store.saveResources(resourcesDataSource.value)
   message.success('保存成功！')
 }
@@ -256,7 +271,7 @@ function metaInfoChange(info: any) {
 }
 
 function dataPoolChange(data: any) {
-  data.dataForm = dataPoolRadio.value === 1 ? 'dynamic_template' : 'static_template'
+  data.dataFrom = dataPoolRadio.value === 1 ? 'dynamic_template' : dataPoolRadio.value === 2 ? 'static_template' : 'input_template'
   dataDefinition.value = data
 }
 
@@ -346,6 +361,10 @@ async function handleUploadChange(file: any) {
   }
 }
 
+function addHyperLinke(linkInfo: any) {
+  linkList.value.push(linkInfo)
+}
+
 </script>
 
 <template>
@@ -358,7 +377,10 @@ async function handleUploadChange(file: any) {
      :footer="null">
     <div class="infoPanel card-container">
       <a-tabs v-model:activeKey="activeKey" type="card">
-        <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
+        <a-tab-pane key="1" tab="Attributes" force-render style="height:550px; overflow: auto;">
+          <div class="btn-wrap" style="text-align: right;">
+            <a-button @click="showLinkModal = true">添加超链接</a-button>
+          </div>
           <div style="padding: 5px" class="attrConfig">
             <VueForm
               v-model="globalFormData"
@@ -366,8 +388,18 @@ async function handleUploadChange(file: any) {
               :formFooter="{show:false}"
             ></VueForm>
           </div>
+          <div class="link-wrap">
+            <a-tag>
+              <a
+                  v-for="(info, idx) in linkList"
+                  :key="idx"
+                  :href="info.url"
+                  target="_blank"
+              >{{ info.name }}</a>
+            </a-tag>
+          </div>
         </a-tab-pane>
-        <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
+        <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative; overflow: auto;">
           <meta-info
             v-if="props.show"
             :show-meta-info="activeKey === '2'"
@@ -409,7 +441,7 @@ async function handleUploadChange(file: any) {
               @update="dataPoolChange"
           ></input-table>
         </a-tab-pane>
-        <a-tab-pane key="4" tab="Resources" style="height:550px;">
+        <a-tab-pane key="4" tab="Resources" style="height:550px; overflow: auto;">
           <a-button
               class="editable-add-btn"
               style="margin-bottom: 8px"
@@ -427,7 +459,7 @@ async function handleUploadChange(file: any) {
               >
                 <div class="editable-cell">
                   <div
-                      v-if="resourceEditing"
+                      v-if="resourceEditing?.key === record.key"
                       class="editable-cell-input-wrapper"
                   >
                     <a-input
@@ -495,13 +527,22 @@ async function handleUploadChange(file: any) {
     </div>
     <div class="mbt-modeler-btn-wrap" slot="footer">
       <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
-      <a-upload :customRequest="customRequest" :beforeUpload="handleUploadChange" accept=".xlsx, .xls" :showUploadList="false">
+      <a-upload
+          :customRequest="customRequest"
+          :beforeUpload="handleUploadChange"
+          accept=".xlsx, .xls"
+          :showUploadList="false">
         <a-button type="primary" v-show="activeKey === '4'">导入</a-button>
       </a-upload>
       <a-button @click="closeTemplateModel">取消</a-button>
       <a-button type="primary" @click="save">保存</a-button>
     </div>
   </a-modal>
+  <mbt-modeler-template-setting-link-modal
+      :show="showLinkModal"
+      @close="showLinkModal = false"
+      @add="addHyperLinke"
+  ></mbt-modeler-template-setting-link-modal>
 </template>
 
 <style scoped>

@@ -143,7 +143,7 @@ defineExpose({
 
 </script>
 <template>
-  <div style="margin: 5px; padding: 5px">
+  <div style="margin: 15px 5px 5px; padding: 5px;">
     <VueForm
       v-if="isFormVisible"
       v-model="metatemplatedetailtableData"
@@ -185,7 +185,7 @@ defineExpose({
     </a>
     <!-- <div> -->
       <a-button
-      style="position: absolute; top: -2.25rem; right: 0;"
+      style="position: absolute; top: 0; right: 0;"
       v-if="isFormVisible"
       type="primary"
       size="small"

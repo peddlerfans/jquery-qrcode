@@ -273,36 +273,13 @@ function handleData () {
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
     showAssert.value = false
   } else if (store.getExpectedAw.isAssert) {
-    getAllCustomVar()
+    assertList.value = store.getAllCustomVar()
     rulesData.value = store.getExpectedAw.data
     assertDesc.value = store.getExpectedAw.assertDesc || ''
     showAssert.value = true
   } else {
     initExpectedSchema()
   }
-}
-
-// 获取当前模型所有带有 变量 属性并有 值 的数据
-// 只有 aw 版本为 version 3.0 以上才支持
-function getAllCustomVar () {
-  const cell = store.getShowData
-  if (_.isEmpty(cell)) return
-  let arr = cell.graph.getCells()
-  arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
-  let temp: Array<any> = []
-  arr.forEach((b: any) => {
-    let type = b.attributes.prop?.custom?.step?.aw?.returnType
-    if (Array.isArray(type)) type = type[0] || ''
-    const schemaVal = b.attributes.prop?.custom?.step?.data
-    if (schemaVal?.variable) {
-      temp.push({
-        label: schemaVal.variable,
-        value: schemaVal.variable,
-        type: type ? type : 'string'
-      })
-    }
-  })
-  assertList.value = temp
 }
 
 // 断言数据
@@ -338,7 +315,7 @@ function clearAssert() {
  * */
 function addAssert() {
   if (showAssert.value) return
-  getAllCustomVar()
+  assertList.value = store.getAllCustomVar()
   if (assertList.value.length) {
     expectedSchema.value = {}
     expectedUiSchema.value = {}
