@@ -3,7 +3,8 @@ import Layout from '@/layout/index.vue'
 import {
   GithubOutlined, TableOutlined, HomeOutlined, BlockOutlined, ExportOutlined, FireOutlined,
   DotChartOutlined, BarChartOutlined, FieldBinaryOutlined, LineChartOutlined,
-  AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined
+  AppstoreAddOutlined, CodeOutlined, LayoutOutlined, ApiOutlined, ApartmentOutlined,
+  SettingOutlined, FunctionOutlined
 } from '@ant-design/icons-vue'
 import { RouteInfo } from "@/stores/modules/route";
 
@@ -144,27 +145,7 @@ export const routes: RouteRecordRaw[] = [
       }
 
     ]
-  }
-
-  ,
-
-
-  {
-    path: '/account',
-    name: 'Account',
-    component: Layout,
-    redirect: { name: 'account' },
-    meta: { breadcrumb: false },
-    children: [
-      {
-        path: 'index',
-        name: 'account',
-        component: () => import('@/views/account.vue'),
-        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
-      }
-    ]
-  }
-  ,
+  },
   {
     path: '/awupdate',
     name: 'AWupdate',
@@ -325,17 +306,39 @@ export const routes: RouteRecordRaw[] = [
     path: '/settings',
     name: 'Settings',
     component: Layout,
-    meta: { title:'component.route.account',icon:ExportOutlined },
+    meta: { title:'component.route.setting',icon: SettingOutlined },
     children: [
       {
         path: 'webHook',
         name: 'webHook',
         component: () => import('@/views/settings/webHook.vue'),
-        meta: { title: 'component.route.webHook', icon: FieldBinaryOutlined, keepAlive: true }
+        meta: { title: 'component.route.webHook', icon: FunctionOutlined, keepAlive: true }
+      },
+      {
+        path: 'index',
+        name: 'account',
+        component: () => import('@/views/account.vue'),
+        meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
+      }
+    ]
+  },
+  {
+    path: '/embedding',
+    name: 'embedding',
+    component: Layout,
+    meta: { title:'component.route.embedding',icon: FunctionOutlined },
+    children: [
+      {
+        path: 'index',
+        name: 'embedded',
+        component: () => import('@/views/embedding.vue'),
+        meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
       }
     ]
   }
 ]
+
+
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),

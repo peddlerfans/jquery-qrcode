@@ -127,7 +127,13 @@ export const MBTStore = defineStore('mbtmodel', {
     },
     getRappid: state => state.rappid,
     getPreview: state => state.preview,
-    getChooseDataPool: state => state.chooseDataPool
+    getChooseDataPool: state => state.chooseDataPool,
+    getMeta: state => state.mbtData?.dataDefinition?.meta,
+    getDataPool: state => state.mbtData?.dataDefinition?.data,
+    getResource: state => state.mbtData?.dataDefinition?.resources,
+    getDataPoolDataForm: state => state.mbtData?.dataDefinition?.data?.dataFrom,
+    getDataPoolTableData: state => state.mbtData?.dataDefinition?.data?.tableData || [],
+    getDataPoolColData: state => state.mbtData?.dataDefinition?.data?.tableColumns || [],
   },
   actions: {
     setMbtData(data: any) {
@@ -222,7 +228,9 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     saveChooseDataPool(value: boolean) {
-      this.chooseDataPool = value
+      this.chooseDataPool = value},
+    setResource(arr: any) {
+      this.mbtData.dataDefinition.resources = arr
     }
   }
 })
