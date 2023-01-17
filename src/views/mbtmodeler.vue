@@ -258,6 +258,7 @@ document.onkeydown = function (e :any) {
       toolbarDom.value.firstChild.lastChild.style.display = 'block'
   }
 })
+
 provide('activeKey',activeKey)
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
   if(val){
@@ -650,7 +651,7 @@ const inspector = (n:number) =>{
             <div style="clear:both;"></div>
           </ul>
           <div ref="style" class="inspector-container"></div>
-          <div ref="data" class="dataStyle">
+          <div ref="data" class="dataStyle" style="display:none">
             <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>

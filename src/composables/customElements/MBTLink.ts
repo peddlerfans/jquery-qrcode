@@ -60,7 +60,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
   getInspectorSchema() {
     const options = {
       colorPalette: [
-        { content: 'transparent', icon: '../assets/no-color-icon.svg' },
+        { content: 'transparent', icon: '../src/assets/no-color-icon.svg' },
         { content: '#f6f6f6' },
         { content: '#dcd7d7' },
         { content: '#8f8f8f' },
