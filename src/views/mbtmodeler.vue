@@ -180,19 +180,7 @@ async function query(){
   return rst
 }
 
-onMounted(async () => {  
-  if (route.params._id) {
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
-  }
-  if (route.params.name) {
-    localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
-  }
-  idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  await store.getMbtmodel(idstr)
-
-  if (store.mbtData._id) {
-    storeAw.setAllData(store.mbtData)
-  }
+onMounted(async () => {
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
