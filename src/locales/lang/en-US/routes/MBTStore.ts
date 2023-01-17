@@ -24,6 +24,7 @@ export default {
     leaveRouter: 'The current edit has not been saved Do you want to exit?',
     // linkTitle: 'Configuration for Link'
     configLink: 'configLink',
+    varErrTip: 'The entered value does not allow spaces!',
 
     // mbt-modeler-aw-schema
     updateAw: 'Edit AW',
@@ -31,5 +32,5 @@ export default {
     clearAssert: 'Clear assert',
 
     // mbt-preview-modal.vue
-    selectTip: 'Please select the left node to display the data'
+    selectTip: 'Please select the left node to display the data',
 }

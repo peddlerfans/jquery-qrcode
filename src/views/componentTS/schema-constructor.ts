@@ -1,8 +1,10 @@
 import { MbtData } from "@/stores/modules/mbt-data";
+import { MBTStore } from '@/stores/MBTModel'
 import cloneDeep from "lodash-es/cloneDeep";
 import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
 
 const store = MbtData()
+const mbtStore = MBTStore()
 
 export function data2schema (awSchema: any, uiSchema?: any) {    
     // 可选参数名
@@ -51,7 +53,7 @@ function getCustomItems (awSchema: any) {
     let arr: any = []
     for (let key in awSchema.properties) {
         const tar = awSchema.properties[key]
-        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '变量') {
+        if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
             arr.push(tar)
         }
     }
@@ -60,7 +62,6 @@ function getCustomItems (awSchema: any) {
 
 export function string2Obj (schema: any, uiSchema: any) {
     const prop = schema.properties
-    const optionList: Array<any> = store.getMetaData.detail
     let temp: Array<string> = []
     for (let key in prop) {
         const tar = prop[key]
@@ -73,7 +74,7 @@ export function string2Obj (schema: any, uiSchema: any) {
             }
             uiSchema[key] = {
                 "ui:widget": schemaItem,
-                "ui:options": getEnumList(tar.title, optionList)
+                "ui:options": getEnumList(tar.title)
             }
         }
     }
@@ -84,18 +85,37 @@ export function string2Obj (schema: any, uiSchema: any) {
     }
 }
 
-function getEnumList (title: string, optionList: Array<any>) {
-    if (!optionList) return []
-    let res = optionList.filter((a: any) => a.description === title)[0]
-    if (res) {
-        return (res.enum || []).map((a: any) => {
+function getEnumList (title: string) {
+    const res: Array<any> = []
+    let options: Array<any>
+    let tar: any
+    // 添加枚举值
+    options = store.getMetaData.detail || []
+    tar  = options.filter((a: any) => a.description === title)[0]
+    if (tar) {
+        options = (tar.enum || []).map((a: any) => {
             return {
                 label: a,
                 value: a
             }
         })
-    }
-    else return []
+    } else options = []
+    res.push({
+        label: '枚举',
+        options
+    })
+    // 添加 Data Pool 数据
+    options = mbtStore.getDataPoolColData.map((b: any) => {
+        return {
+            label: b.title,
+            value: b.title
+        }
+    })
+    res.push({
+        label: 'Data Pool数据',
+        options
+    })
+    return res.filter((c: any) => c.options.length)
 }
 
 export function checkDataStructure(data: any) {

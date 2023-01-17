@@ -10,6 +10,7 @@ interface IElementType {
   mbtData: mbtmodel
   rappid: any
   preview: boolean
+  chooseDataPool: boolean
 }
 
 interface codegen {
@@ -36,8 +37,8 @@ interface meta {
 interface cellsinfo {
   paperscale: any
   cellsinfo: any
-  props?:any
-  version?:any
+  props?: any
+  version?: any
 }
 
 interface mbtmodel {
@@ -81,7 +82,8 @@ export const MBTStore = defineStore('mbtmodel', {
         description: "",
       },
       rappid: null,
-      preview: false
+      preview: false,
+      chooseDataPool: false
     }
 
   }
@@ -124,18 +126,19 @@ export const MBTStore = defineStore('mbtmodel', {
       }
     },
     getRappid: state => state.rappid,
-    getPreview: state => state.preview
+    getPreview: state => state.preview,
+    getChooseDataPool: state => state.chooseDataPool,
+    getMeta: state => state.mbtData?.dataDefinition?.meta,
+    getDataPool: state => state.mbtData?.dataDefinition?.data,
+    getResource: state => state.mbtData?.dataDefinition?.resources,
+    getDataPoolDataForm: state => state.mbtData?.dataDefinition?.data?.dataFrom,
+    getDataPoolTableData: state => state.mbtData?.dataDefinition?.data?.tableData || [],
+    getDataPoolColData: state => state.mbtData?.dataDefinition?.data?.tableColumns || [],
+    getMetaDetail: state => state.mbtData?.dataDefinition?.meta?.detail
   },
   actions: {
     setMbtData(data: any) {
       this.mbtData = { ...JSON.parse(JSON.stringify(data)) }
-    },
-    // 获取后台所有的mbt数据
-    async getMbtmodel(id: any) {
-
-
-      let res = await request.get(`${realMBTUrl}/${id}`)
-      this.setMbtData(res)
     },
     // 存入后台的数据
     async saveMbtData() {
@@ -213,18 +216,24 @@ export const MBTStore = defineStore('mbtmodel', {
     showPreview(value: boolean) {
       this.preview = value
     },
-    setVersion(data : string){
-      if(this.mbtData?.modelDefinition){
-        Object.assign(this.mbtData?.modelDefinition , {version:data})
-      }else{
+    setVersion(data: string) {
+      if (this.mbtData?.modelDefinition) {
+        Object.assign(this.mbtData?.modelDefinition, { schemaVersion: data })
+      } else {
         // @ts-ignore
         this.mbtData.modelDefinition = {}
-        Object.assign(this.mbtData.modelDefinition , {version:data})
-      }      
-      if(this.mbtData.modelDefinition && this.mbtData.modelDefinition?.props){
+        Object.assign(this.mbtData.modelDefinition, { schemaVersion: data })
+      }
+      if (this.mbtData.modelDefinition && this.mbtData.modelDefinition?.props) {
         delete this.mbtData.modelDefinition?.props
       }
     },
+    saveChooseDataPool(value: boolean) {
+      this.chooseDataPool = value
+    },
+    setResource(arr: any) {
+      this.mbtData.dataDefinition.resources = arr
+    }
   }
 })
 

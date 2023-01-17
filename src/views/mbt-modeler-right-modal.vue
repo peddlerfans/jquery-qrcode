@@ -1,41 +1,63 @@
 <script setup lang="ts">
-import {computed, ref, watch} from "vue";
+import {computed, createVNode, ref, watch} from "vue";
 import MbtModelerAwSchema from './mbt-modeler-aw-schema.vue'
-import {MbtData} from "@/stores/modules/mbt-data";
+import { MbtData } from "@/stores/modules/mbt-data";
+import { MBTStore } from '@/stores/MBTModel'
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
+import { useI18n } from 'vue-i18n'
 
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
+let o = '(LeftRightMove == "-20°" && ExceptResult == "65537") && is_support == "False" || (is_explorer == "False") || ExceptResult == "null" && (DownUpMove == "-20°" && Brightness == "1000lux")'
+// let pegData = testParser.parse('(LeftRightMove == "-20°" && ExceptResult == "65537") && is_support == "False" || (is_explorer == "False") || ExceptResult == "null" && (DownUpMove == "-20°" && Brightness == "1000lux")')
 
-// let dataJson =testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"')
 
-function ruleData(data: any){
-  // if(data.body && data.body.length > 0 && data.body[0].expression){
-  //   let jiegou = data.body[0].expression
-  //   let child :any = []
-  //   if(jiegou.operator && jiegou.operator == "And" || jiegou.operator == "OR"){
-  //     child.push({})
-  //   }
-  // }
-  if(data.operator && data.operator == "AND" || data.operator == "OR"){
-    if(data.right.operator == "AND" || data.right.operator == "OR"){
-      ruleData(data.right)
-    }else{
-      condition(data.right)
-    }
+function childleft(data:any){
 
-  }
+if(data?.conditionleft?.left){
+  data.conditionleft = {name:data.conditionleft.left.name , operator:data.conditionleft.operator , value:data.conditionleft.right.name}
+}else{
+childleft(data?.conditionleft?.conditionleft)
 }
+
+return data.conditionleft
+}
+function childright(data:any){
+
+if(data.conditionright && data.conditionright.conditionleft){
+  childright(data.conditionright.conditionleft)
+  }else{
+  console.log(data);
+  
+  data.conditionright = {name:data.left.name , operator:data.operator , value:data.right?.name}
+}
+return data.conditionright
+}
+
+
+
+function digui(data: any){
+  let obj :any
+  if( data.conditionleft ){
+     obj = Object.assign(data , childleft(data.conditionleft), childright(data.conditionright))
+  }else{
+    obj = {name:data.left.name , operator:data.operator ,value:data.right.value}
+  }
+  return obj
+}
+// console.log(digui(pegData.body[0].expression));
+
+
 function condition(data :any){
   if(data.left && data.right && data.operator){
     return {name:data.left.name , operator:data.operator ,value: data.right.name}
   }
 }
-function leftData(left:any){
-  // if(){}
-}
-const store = MbtData()
+
+const store = MBTStore()
+const { t } = useI18n()
+const storeAw = MbtData()
 const emit = defineEmits(['change'])
 const keys = 1
 let show = ref(false)
@@ -46,10 +68,11 @@ let schemaData = ref({})
 let data:any = ref({})
 let awSchemaData = ref()
 let props = defineProps(['currentEl'])
+let showCondition = ref(true)
 awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
-  return store.getDataPoolTableColumns.map((e: any) => {
+  return storeAw.getDataPoolTableColumns.map((e: any) => {
     return {
       value: e.title,
       label: e.title
@@ -58,8 +81,8 @@ let formDatas = computed(() => {
 })
  
 let childValue = computed(() => {
-  return store.getDataPoolTableData.length > 0
-      ? valueOption(store.getDataPoolTableData)
+  return storeAw.getDataPoolTableData.length > 0
+      ? valueOption(storeAw.getDataPoolTableData)
       : []
 })
 let valueData = childValue
@@ -91,7 +114,7 @@ const rulesDataDefaultItem = {
       operator: '=',
       value: undefined,
       selectvalues: 'AND',
-    },
+    }
   ],
   children: [],
 }
@@ -196,8 +219,7 @@ function rulesChange (datas: any, key: string) {
   rulesData.value = datas
 }
 watch(
-  rulesData,
-  
+  rulesData,  
   (newvalue: any) => {
     // debugger
     if (rulesData.value.length > 0) {
@@ -215,17 +237,17 @@ watch(
 );
 
 function handleAwData () {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   const checkAwProps = el.getPropertiesSchema()
-  store.setEditingPrimaryAw(checkAwProps.step)
-  store.setEditingExpectedAw(checkAwProps.expectation)
-  store.setDescription(checkAwProps.description)
+  storeAw.setEditingPrimaryAw(checkAwProps.step)
+  storeAw.setEditingExpectedAw(checkAwProps.expectation)
+  storeAw.setDescription(checkAwProps.description)
   showAw.value = true
   AwDom.value.handleData()
 }
 
 function handleData() {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   showDrawer.value = false
   
   if(el.attributes.source && el.attributes.target){
@@ -233,9 +255,6 @@ function handleData() {
     const targetId = el.attributes.target?.id
     if(sourceId){
       const sourceEl = el.graph.getCell(sourceId)
-      // const targetEl = el.graph.getCell(targetId)
-      // const flag = targetEl.attributes.type === 'itea.mbt.test.MBTAW'
-      //   && sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
       showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
    
@@ -247,14 +266,16 @@ function handleData() {
     data.value.rulesData = [rulesDataDefaultItem]
   }
   rulesData.value = data.value.rulesData  
-}
-console.log(rulesData.value,data.value);
-
+  }
+  if(formDatas.value.length == 0){
+    showCondition.value = false
+  }
+  
   show.value = true
 }
 
 function getType () {
-  const el = store.getShowData
+  const el = storeAw.getShowData
   return el?.attributes?.type || ''
 }
 
@@ -306,6 +327,10 @@ defineExpose({
   handleShowData
 })
 
+function openSelect(){
+  store.saveChooseDataPool( true )
+}
+
 </script>
 
 <template>
@@ -320,13 +345,17 @@ defineExpose({
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
         <create-rule
-          v-if="store.getDataPoolTableData.length > 0"
+          v-show="showCondition"
           :keys="keys"
           :formDatas="formDatas"
           :valueData="valueData"
           :rulesData="rulesData"
           @rulesChange="rulesChange"
         ></create-rule>
+        <div v-show="!showCondition">
+          <p style="color:red">{{ $t('common.goDataPool') }}</p>
+          <a-button size="small" @click="openSelect" type="primary">设置</a-button>
+        </div>
       </div>
     </VueForm>
   </div>
