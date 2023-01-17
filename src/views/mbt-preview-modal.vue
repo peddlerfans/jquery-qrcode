@@ -201,16 +201,16 @@ async function exportData() {
     height: 110vh;
     overflow: auto;
     min-width: 140px;
-    overflow: auto;
+    width: 8.75rem;
   }
   .right-detail {
+    width: 90%;
     margin-left: 8px;
     flex: 1;
     display: flex;
     flex-direction: column;
     .previewText{
       width: 100%;
-      height: 100px;
     }
     .bottom {
       flex: 1;

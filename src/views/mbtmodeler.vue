@@ -11,7 +11,7 @@ import { KeyboardService } from "@/composables/keyboard";
 import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n'
 import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
@@ -281,6 +281,7 @@ watch(() => store.getChooseDataPool, (val: boolean) => {
 let vaceErr = ref()
 let previewErr = ref(false)
 let errOutLang = ref()
+let jsonData = ref()
 
 
 function checkChange(check:boolean,str:any) {
@@ -306,6 +307,9 @@ function checkChange(check:boolean,str:any) {
         if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
+          console.log(jsonData.value);
+          
           previewErr.value = true
         }
         break
@@ -314,6 +318,8 @@ function checkChange(check:boolean,str:any) {
         if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'scriptErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
+          console.log(jsonData.value);
           previewErr.value = true
           }
         break
@@ -664,17 +670,32 @@ const inspector = (n:number) =>{
       :out-lang="outLang"
   ></mbt-preview-modal>
   <mbt-modeler-template-setting :show="isGlobal" @close="closeTemplateModel"></mbt-modeler-template-setting>
-<a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+<a-modal  :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+  <a-row class="previewErr">
+    <a-col :span="12">
+      <VAceEditor
+      class="currentData"
+        v-model:value="jsonData"
+        lang="json"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
+      >
+      </VAceEditor>
+    </a-col>
+    <a-col :span="10" style=" margin-left: 10px;">
+        <VAceEditor
+        v-model:value="vaceErr"
+        class="aceErr-results"
+        :lang="errOutLang"
+        :wrap="true"
+        :readonly="true"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
+        ></VAceEditor>
+    </a-col>
+  </a-row>
   <!-- preview错误信息 -->
-  <VAceEditor
-  v-model:value="vaceErr"
-  class="aceErr-results"
-  :lang="errOutLang"
-  :wrap="true"
-  :readonly="true"
-  theme="sqlserver"
-  :options="{ useWorker: true }"
-  ></VAceEditor>
+
 </a-modal>
 </template>
 
@@ -710,22 +731,22 @@ const inspector = (n:number) =>{
   padding: 0px;
 }
 .previewModel{
-  height: 50vw;
+  height: 40vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
+      height: 90%;
       .ace-result{
       flex: 1;
       font-size: 18px;
       border: 1px solid;
       height: 72%;
       width:31.25rem
-}
+      }
+      
     }
   }
 }
-
-
 
 .GroupInspector{
     position: absolute;

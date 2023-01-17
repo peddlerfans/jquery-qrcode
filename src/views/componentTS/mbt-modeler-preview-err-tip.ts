@@ -41,7 +41,7 @@ const getReason = (err: string) => {
     }
 }
 
-export const showErrCard = (errMsg: any) => {    
+export const showErrCard = (errMsg: any) => {
     let errAttrList = Object.keys(errMsg)
     let errTem: any
     let temp: any = []
@@ -54,15 +54,16 @@ export const showErrCard = (errMsg: any) => {
                 } else {
                     errTem = 'scriptErr'
                 }
+                temp.push({ err: errTem, reason: getReason(errTem) })
             }
-            temp.push({ err: errTem, reason: getReason(errTem) })
+
         });
 
         // if(errTem){
         //     temp = [{errTem , reason: getReason(errTem)}]
         // }
 
-    } else if(errMsg.hasOwnProperty('template error')){
+    } else if (errMsg.hasOwnProperty('template error')) {
         errMsg['template error'].forEach((item: any) => {
             if (item.results && item.results.length > 0 && item.results[0].hasOwnProperty('error')) {
                 if (item.outputLang == 'yaml') {
@@ -70,9 +71,10 @@ export const showErrCard = (errMsg: any) => {
                 } else {
                     errTem = 'scriptErr'
                 }
+                temp.push({ err: errTem, reason: getReason(errTem) })
             }
-            temp.push({ err: errTem, reason: getReason(errTem) })
-        });        
+
+        });
     } else {
         temp = errAttrList.map((err: string) => {
             return {
@@ -88,12 +90,14 @@ export const showErrCard = (errMsg: any) => {
 export function CodegenErr(errmsg: any, codegenMsg: string): any {
     let outputLang
     let vaceErr
+    let currentData
     if (codegenMsg == 'textErr') {
         let codegenErr = errmsg['template error'].filter((item: any) => item.outputLang == 'yaml')
         codegenErr.forEach((obj: any) => {
             if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
                 outputLang = obj.outputLang
                 vaceErr = obj.results[0].error
+                currentData = obj.results[0].jsonData
             }
         })
     } else {
@@ -101,10 +105,11 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
             if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
                 outputLang = obj.outputLang
                 vaceErr = obj.results[0].error
+                currentData = obj.results[0].jsonData
             }
         })
     }
-    return { outputLang, vaceErr }
+    return { outputLang, vaceErr, currentData }
 }
 
 export function setErrData(msg: any) {

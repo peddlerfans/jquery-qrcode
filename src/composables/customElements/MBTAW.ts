@@ -23,9 +23,11 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({ 'icon': 'user' })
-        this.attr({'label':{
-            text:''
-        }})
+        this.attr({
+            'label': {
+                text: ''
+            }
+        })
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
@@ -36,14 +38,14 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
-        
+
         const desc = this.get('prop')?.custom?.description
-        let primaryDesc :string
-        let expectedDesc :string
-        if(this.get('prop')?.custom?.step?.aw){
+        let primaryDesc: string
+        let expectedDesc: string
+        if (this.get('prop')?.custom?.step?.aw) {
             primaryDesc = this.get('prop').custom.step.aw.description || ''
             expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
-        }else{
+        } else {
             primaryDesc = this.get('prop')?.custom?.step?.data?.description || ''
             expectedDesc = this.get('prop')?.custom?.expectation?.data?.description || ''
         }
@@ -52,9 +54,9 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            // 'content': labelDesc
+            'content': labelDesc
         })
-        this.attr({'label':{text:labelDesc,fontSize:16}})
+        this.attr({ 'label': { text: labelDesc, fontSize: 16 } })
         if (this.get('attrs')?.label?.text) {
             this.set({ size: { width: 200, height: 80 } })
         }
