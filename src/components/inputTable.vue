@@ -31,21 +31,23 @@ interface ColumnItem {
   key: string;
 }
 
-watch(() => tableData.value, (val) => {
-  console.log(1)
+watch(tableData, (val) => {
   emit('update', {
     tableData: toRaw(tableData.value),
     tableColumns: toRaw(dynamiccolumns.value),
     dataFrom: 'input_template'
   })
+}, {
+  deep: true
 })
-watch(() => dynamiccolumns.value, (val) => {
-  console.log(2)
+watch(dynamiccolumns, (val) => {
   emit('update', {
     tableData: toRaw(tableData.value),
     tableColumns: toRaw(dynamiccolumns.value),
     dataFrom: 'input_template'
   })
+}, {
+  deep: true
 })
 
 const dynamicschema: Ref<ColumnItem[]> = ref([

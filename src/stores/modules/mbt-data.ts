@@ -105,7 +105,7 @@ export const MbtData = defineStore({
             const row = state.editingPrimaryAw.aw
             if (!row) return false
             // @ts-ignore
-            return state.handleSchema(row)
+            return state.handleSchema(row, '1')
         },
         getPrimaryAwData: state => state.editingPrimaryAw.aw,
         getPrimaryAwSchemaValue: state => state.editingPrimaryAw.data,
@@ -114,7 +114,7 @@ export const MbtData = defineStore({
             const row = state.editingExpectedAw.aw
             if (!row) return false
             // @ts-ignore
-            return state.handleSchema(row)
+            return state.handleSchema(row, '2')
         },
         getExpectedAwData: state => state.editingExpectedAw.aw,
         getExpectedAwSchemaValue: state => state.editingExpectedAw.data,
@@ -205,7 +205,8 @@ export const MbtData = defineStore({
         setIfsaveMbt(data: boolean) {
             this.ifsaveMbt = data
         },
-        handleSchema(row: any) {
+        // params: type '1': primary  '2': expected
+        handleSchema(row: any, type: string) {
             let schema = _.cloneDeep(defaultAWSchema)
             schema.title = row.name
             schema.description = row.description
@@ -220,7 +221,7 @@ export const MbtData = defineStore({
                     Object.assign(schema.properties, field)
                 })
             }
-            if (row.returnType) {
+            if (row.returnType && type === '1') {
                 Object.assign(schema.properties, {
                     variable: {
                         title: '返回变量名',
@@ -229,17 +230,9 @@ export const MbtData = defineStore({
                 })
             }
             // @ts-ignore
-            return this.data2schema(schema, {})
+            return this.data2schema(schema, {}, type)
         },
-        data2schema(awSchema: any, uiSchema?: any) {
-            // 可选参数名
-            let enumList: Array<any> = []
-            enumList = this.getDataPoolTableColumns.map((a: any) => {
-                return {
-                    value: `{{${a.title}}}`,
-                    label: a.title
-                }
-            })
+        data2schema(awSchema: any, uiSchema: any, type: string) {
             let sutEnumList: Array<any> = []
             sutEnumList = this.getDataPoolResource.map((a: any) => {
                 return {
@@ -265,7 +258,7 @@ export const MbtData = defineStore({
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
-                        "ui:options": isSutType ? sutEnumList : enumList
+                        "ui:options": isSutType ? sutEnumList : this.getAwParamsOption(type, a.title)
                     }
                 }
             })
@@ -287,6 +280,76 @@ export const MbtData = defineStore({
         },
         setUpdateAw(value: boolean) {
             this.isUpdataAw = value
+        },
+        /**
+         * 可选参数名，包括：
+         * 自身设置的枚举值
+         * Data Pool 的数据
+         * 返回变量名
+         * */
+        getAwParamsOption(type: string, title: string) {
+            const res: Array<any> = []
+            let aw: any
+            let options: Array<any> = []
+            // 自身枚举值
+            if (type === '1') {
+                aw = this.getPrimaryAwData
+                console.log(aw)
+            } else if (type === '2') {
+                aw = this.getExpectedAwData
+            }
+            if (aw) {
+                options = (aw?.params || []).filter((a: any) => a.name === title)
+                options = options[0]?.enum || []
+                options = options.map((a: any) => {
+                    return {
+                        label: a,
+                        value: a
+                    }
+                })
+            }
+            res.push({
+                label: '枚举值',
+                options
+            })
+            // Data Pool 数据
+            res.push({
+                label: 'Data Pool',
+                options: this.getDataPoolTableColumns.map((a: any) => {
+                    return {
+                        value: `{{${a.title}}}`,
+                        label: a.title
+                    }
+                })
+            })
+            // 返回变量名
+            res.push({
+                label: '返回变量名',
+                options: this.getAllCustomVar()
+            })
+            return res.filter((a: any) => a.options.length)
+        },
+        // 获取当前模型所有带有 变量 属性并有 值 的数据
+        // 只有 aw 版本为 version 3.0 以上才支持
+        getAllCustomVar () {
+            const cell = this.getShowData
+            if (_.isEmpty(cell)) return []
+            let arr = cell.graph.getCells()
+            arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
+            let temp: Array<any> = []
+            arr.forEach((b: any) => {
+                let type = b.attributes.prop?.custom?.step?.aw?.returnType
+                if (Array.isArray(type)) type = type[0] || ''
+                const schemaVal = b.attributes.prop?.custom?.step?.data
+                if (schemaVal?.variable) {
+                    temp.push({
+                        label: schemaVal.variable,
+                        value: schemaVal.variable,
+                        type: type ? type : 'string'
+                    })
+                }
+            })
+            return temp
         }
     }
 })
