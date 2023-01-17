@@ -221,10 +221,9 @@ const addNewParams = () => {
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z0-9\$][a-zA-Z0-9\d_]*$/
-  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9$]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(!reg.test(value) && !reg1.test(value)){
+  }else if(!reg.test(value)){
     return Promise.reject(t('component.message.hefaName'))
   }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})

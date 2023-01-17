@@ -184,6 +184,7 @@ async function updateAw(url:string,data:any) {
 let refForm=ref()
 const onFinishForm = () => {
   refForm.value.validate().then(async (res:any)=>{
+    
     modelstates.value.tags=states.tags
     modelstates.value.params = awParamsTable.value.getTableData()
     if (modelstates.value.params.some((a: any) => a.editing))
@@ -229,14 +230,12 @@ let rst:any=route.params.name
 // 表单验证
 let checkName = async (_rule: Rule, value: string) => {
   let reg=/^[a-zA-Z\$][a-zA-Z\d_]*$/
-  let reg1=/^[\u4e00-\u9fa5_a-zA-Z0-9]+$/
   if (!value) {
     return Promise.reject(t('component.message.emptyName'))
-  }else if(rst==value){
-
-
+  }else if(rst == value){
+    disable.value=false
     return Promise.resolve();
-  }else  if(!reg.test(value)  && !reg1.test(value)){
+  }else  if(!reg.test(value) ){
     return Promise.reject(t('component.message.hefaName'))
   }else{
     let rst=await request.get("/api/hlfs",{params:{q:`name:${value}`,search:''}})
@@ -245,6 +244,7 @@ let checkName = async (_rule: Rule, value: string) => {
       // modelstates.value.name=""
       return Promise.reject(t('component.message.depName'))
     }else{
+      disable.value=false
       return Promise.resolve();
 
     }
@@ -256,10 +256,8 @@ let checkDesc = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('component.message.emptyDescription'))
   }else  {
-    // if(!reg.test(value)){
-    //   return Promise.reject('The AW description is not standardized')
-    // }else{
     if(modelstates.value.description==value){
+      disable.value=false
       return Promise.resolve()
     }else{
       let rst=await request.get("/api/hlfs",{params:{search:modelstates.value.description}})
@@ -269,7 +267,7 @@ let checkDesc = async (_rule: Rule, value: string) => {
         return Promise.reject(t('component.message.dupDescription'))
       }
     }
-    // }
+    disable.value=false
     return Promise.resolve();
   }
 
@@ -279,6 +277,7 @@ let checktem = async (_rule: Rule, value: string) => {
   if (!value) {
     return Promise.reject(t('awModeler.emptyTemp'))
   }else{
+    disable.value=false
     return Promise.resolve()
   }
 }
@@ -395,6 +394,7 @@ let rules: Record<string, Rule[]> = {
       <a-button type="primary" @click="onFinishForm" :disabled="disable" v-if="canEdit">{{$t("common.saveText")}}</a-button>
       <a-button @click="onFinishFailedForm">{{$t("common.back")}}</a-button>
     </div>
+
   </div>
 </template>
 

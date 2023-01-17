@@ -79,7 +79,7 @@ export default {
     realUrl: '请输入真实网址',
     errTip1: '请先处理正在编辑的数据',
 
-    hefaName: "名称格式为包含中文,英文,数字,_,$",
+    hefaName: "名称格式为包含英文,数字,_,$",
     updateErr:"修改失败",
     nocpuData: '暂无处理器数据',
     nomemoryData: '暂无内存数据',

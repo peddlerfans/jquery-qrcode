@@ -150,15 +150,17 @@ async function exportData() {
       </div>
       <div class="right-detail">
         <template v-if="tableData.length">
-          <div class="top">
-            <a-table
+          <div class="top" style="width: 100%; overflow-x: hidden">
+            <ATable
+                :scroll="{ x: true }"
+                class="previewText"
                 :data-source="tableData"
                 :columns="tableCol"
                 :pagination="{hideOnSinglePage: true}">
               <template #bodyCell="{text}">
                 <div style="white-space: pre;">{{ text }}</div>
               </template>
-            </a-table>
+            </ATable>
           </div>
           <div class="bottom">
             <VAceEditor
@@ -196,16 +198,20 @@ async function exportData() {
   display: flex;
   height: 94%;
   .left-tree {
-    height: 56vh;
+    height: 110vh;
     overflow: auto;
     min-width: 140px;
-    overflow: auto;
+    width: 8.75rem;
   }
   .right-detail {
+    width: 86%;
     margin-left: 8px;
     flex: 1;
     display: flex;
     flex-direction: column;
+    .previewText{
+      width: 100%;
+    }
     .bottom {
       flex: 1;
       .ace-result {
