@@ -52,6 +52,7 @@
             <HeadBar></HeadBar>
             <TabsBar :withIcons="true"></TabsBar>
           </div>
+        <KeepAlive :include="Array.from(keepAlivePages)" :max="10">
           <RouterView v-slot="{ Component, route }" class="content-view" :key="$route.path">
             <Transition :name="transitions.fadeScale" mode="out-in" appear>
               <!-- 
@@ -59,11 +60,12 @@
                 https://github.com/vuejs/core/pull/5165
                 开发过程注释掉keepalive
               -->
-              <KeepAlive :include="Array.from(keepAlivePages)" :max="10">
+
                 <component :is="Component" :key="route.meta.title" />
-              </KeepAlive>
             </Transition>
           </RouterView>
+            </KeepAlive>
+
         </ALayoutContent>
       </ALayout>
     </ALayout>

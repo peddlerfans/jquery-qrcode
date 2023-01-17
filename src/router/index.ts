@@ -321,8 +321,24 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'component.route.account', icon: ApartmentOutlined, keepAlive: true }
       }
     ]
+  },
+  {
+    path: '/embedding',
+    name: 'embedding',
+    component: Layout,
+    meta: { title:'component.route.embedding',icon: FunctionOutlined },
+    children: [
+      {
+        path: 'index',
+        name: 'embedded',
+        component: () => import('@/views/embedding.vue'),
+        meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
+      }
+    ]
   }
 ]
+
+
 
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),

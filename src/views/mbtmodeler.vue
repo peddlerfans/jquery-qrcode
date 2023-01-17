@@ -8,19 +8,15 @@ import { ToolbarService } from '@/composables/Toolbar';
 import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
-import metainfo from "@/components/metainfo.vue";
-import inputTable from "@/components/inputTable.vue";
-import { CheckOutlined ,EditOutlined , DeleteOutlined , CheckCircleOutlined,CloseCircleOutlined, ExclamationCircleOutlined} from '@ant-design/icons-vue'
-import { booleanLiteral, returnStatement, stringLiteral } from "@babel/types";
+import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
 import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
-import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, provide, createVNode, inject } from 'vue';
+import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { cloneDeep, map, sortedIndex } from "lodash";
-import {onBeforeRouteLeave, useRoute} from 'vue-router'
+import { cloneDeep, concat, map, sortedIndex } from "lodash";
+import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl} from "@/appConfig";
-import VueForm from "@lljj/vue3-form-ant";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
@@ -39,6 +35,7 @@ import Preview from "ant-design-vue/lib/vc-image/src/Preview";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import {UploadChangeParam} from "ant-design-vue";
 import {Rule} from "ant-design-vue/es/form";
+import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
 
 
 
@@ -48,6 +45,7 @@ const storePre = errTipTool()
 const storeRoute = RouteInfo()
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 let rappid : MbtServe
 let apps : HTMLElement | any= ref()
 let isGlobal = ref(false)
@@ -56,238 +54,23 @@ let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
 const toolbarDom = ref()
+localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
+localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
 // Aw组件的数据
 let rightSchemaModal = ref()
 let showpaper =ref(false)
-let metatemplatedetailtableData = ref({});
-const templateCategory = ref(1);
 const templateRadiovalue = ref<number>(1);
-// 静态模板的数据
-let tableData = ref([]);
-let tableColumns = ref([]);
-// 动态模板的数据
-  let tableDataDynamic = ref([]);
-  let tableColumnsDynamic = ref();
-  // input模板的数据
-  let tableDataDirectInput = ref([]);
-let tableColumnsDirectInput = ref([]);
-
-// resource的数据
-const resourcescount = computed(() => resourcesdataSource.value.length + 1);
-const resourceEditing = ref<any>(null)
-interface ResourcesDataItem {
-  key: string;
-  alias: string;
-  class: string;
-  resourcetype: string;
-}
-interface columnDefinition {
-  title: string;
-  dataIndex: string;
-  width?: string;
-}
-const resourcesdataSource: Ref<ResourcesDataItem[]> = ref([]);
-const resourcescolumns: columnDefinition[] = [
-  {
-    title: "alias",
-    dataIndex: "alias",
-    width: "20%",
-  },
-  {
-    title: "class",
-    dataIndex: "class",
-  },
-  {
-    title: "resourcetype",
-    dataIndex: "resourcetype",
-  },
-  {
-    title: "operation",
-    dataIndex: "operation",
-  },
-];
-
-// meta的数据
-let tempschema = ref({
-  // description: "Config",
-  type: "object",
-  properties: {},
-});
-const metaformProps = {
-  layoutColumn: 2,
-  labelPosition: "left",
-  labelWidth: "75px",
-  labelSuffix: ":  ",
-};
-const metatemplatecolumns = reactive<Object[]>([
-  {
-    title: "name",
-    dataIndex: "name",
-    key: "name",
-    width: 180,
-  },
-  {
-    title: "description",
-    dataIndex: "description",
-    key: "description",
-    width: 180,
-  },
-  {
-    title: "tag",
-    dataIndex: "tag",
-    key: "tag",
-  },
-]);
-
-// attributes的数据
-let globalformData = ref<Stores.mbtView>({
-  _id: '',
-  name: '',
-  description: '',
-  codegen_text: '',
-  codegen_script: '',
-});
-let codegenTextName :any =ref([])
-let codegenScriptName :any =ref([])
-const globalschema = ref({
-  type: "object",
-  properties: {
-    name: {
-      title: "MBT Name",
-      type: "string",
-      readOnly: true,
-    },
-    description: {
-      title: "Description",
-      type: "string",
-    },
-    codegen_text: {
-      title: "Output Text",
-      type: "string",
-      anyOf: codegenTextName.value,
-    },
-    codegen_script: {
-      title: "Output Script",
-      type: "string",
-      anyOf: codegenScriptName.value,
-    },
-  },
-});
 
 // 选择模板的函数
 const chooseTem = () => {
     isGlobal.value = true
 }
 
-// 选择动态，静态模板的函数
-const handleRadioChange: any = (v: any) => {
-  templateCategory.value = v;
-};
-// 保存input模板的函数
-const handleDirectInput = (data: any) => {
-};
-
-// 添加resource列头的函数
-const resourceshandleAdd = () => {
-  const newData = {
-    key: `${resourcescount.value}`,
-    alias: `Resourc${resourcescount.value}`,
-    class: `Class${resourcescount.value}`,
-    resourcetype: `resourceType${resourcescount.value}`,
-  };
-  resourcesdataSource.value.push(newData);
-};
-
-// 保存单元格的函数
-const resourcessave = (key: string) => {
-  const reg = new RegExp(/\s+/g)
-  const flag: boolean = Object.keys(resourceEditing.value).some((a: any) => reg.test(resourceEditing.value[a]))
-  if (flag) return message.warning(t('MBTStore.varErrTip'))
-  const index = resourcesdataSource.value.findIndex((a: any) => a.key === key)
-  if (index !== -1) resourcesdataSource.value.splice(index , 1, resourceEditing.value)
-  resourceEditing.value = null
+function closeTemplateModel() {
+  activeKey.value = '1'
+  isGlobal.value = false
 }
 
-// 修改行的函数
-const resourcesedit = (key: string) => {
-  resourceEditing.value = cloneDeep(
-    resourcesdataSource.value.filter((item) => key === item.key)[0]
-  )
-};
-
-// 取消修改的函数
-const resourcescancel = (key: string) => {
-  resourceEditing.value = null
-};
-
-// 删除行的函数
-const onresourcesDelete = (key: string) => {
-  resourcesdataSource.value = resourcesdataSource.value.filter(
-    (item: { key: string; }) => item.key !== key
-  );
-};
-watch(resourcesdataSource.value ,(newval:any)=>{
-  if(newval){
-    store.saveResources(newval)
-  }
-},{deep:true})
-function attrsChange(){
-  store.saveattr(globalformData.value);
-}
-
-// 关闭模态窗的函数
-const handleOk = () => {
-  if(resourcesdataSource.value.length>0){
-    store.saveResources(resourcesdataSource.value)
-  }
-  isGlobal.value = false  
-  // isGlobal.value = false
-}
-
-// 回显数据的地方
-function Datafintion(data: any) {  
-  if(store.changeTemplate?._id){
-    globalformData.value = {...store.changeTemplate}
-  }
-  if (store.showMetaSchema) {
-    tempschema.value = computed(()=>store.showMetaSchema).value
-    isFormVisible.value = true    
-  }
-  if (store.showMetaData) {
-    metatemplatedetailtableData.value = store.showMetaData
-  }
-  if(data.dataDefinition.resources.length>0){
-    resourcesdataSource.value = data.dataDefinition.resources
-  }
-  
-  if(
-    data &&
-    data.dataDefinition &&
-      data.dataDefinition.data &&
-      data.dataDefinition.data.tableData
-  ) {
-    if(data.dataDefinition.data.dataFrom == 'dynamic_template'){
-      templateRadiovalue.value = 1;
-      templateCategory.value = 1;
-      tableDataDynamic.value = data.dataDefinition.data.tableData
-      tableColumnsDynamic.value = data.dataDefinition.data.tableColumns
-    }else if(data.dataDefinition.data.dataFrom == 'static_template'){
-      templateRadiovalue.value = 2;
-      templateCategory.value = 2;
-      tableData.value = data.dataDefinition.data.tableData
-      tableColumns.value = data.dataDefinition.data.tableColumns
-    }else{
-      templateRadiovalue.value = 3;
-      templateCategory.value = 3;
-      tableDataDirectInput.value  = data.dataDefinition.data.tableData
-      tableColumnsDirectInput.value = data.dataDefinition.data.tableColumns
-    }
-  }
-}
-
-// async function getAw(id: string){
-//   return await request.get(`${awModelUrl}/${id}`) 
-// }
 // 依据uiSchema更新data数据
 function newData(aw: any, data?: any) {
   // debugger
@@ -350,7 +133,7 @@ function transformCells(mbtData:any){
       cell=  {...cell,type:getShapeTypeMapping(cell.type)};
     }   
       
-     delete cell.attrs;
+    // delete cell.attrs;
     //  Object.keys(cell.attrs).filter(k => k.startsWith(".")).forEach(k => delete cell.attrs[k])
     return cell
 
@@ -370,7 +153,7 @@ function transformCells(mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
     if (awprop?.aw) {
-        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw).uiSchema}})
+        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, 'primary').uiSchema}})
     } else {
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom,{step : {aw:{}, data:awprop.data,uiParams:{}}})
@@ -381,7 +164,7 @@ function transformCells(mbtData:any){
     
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     if (awprop.aw) {
-      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw).uiSchema} })
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, 'expected').uiSchema} })
     }else{
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom, { expectation: { aw: {}, data: awprop.data, uiParams:{} } })
@@ -390,37 +173,14 @@ function transformCells(mbtData:any){
      }
    return prop
   } 
-   
 
-onMounted(async () => {  
-  if (route.params._id) {
-    localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
-  }
-  if (route.params.name) {
-    localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
-  }
-  getAllTemplatesByCategory('codegen').then((rst: any) => {
-    if (rst && _.isArray(rst)) {
-      rst.forEach((rec: any) => {
-        if(rec.model && rec.model.outputLanguage){
-          if(rec.model.outputLanguage == 'yaml'){
-            codegenTextName.value.push({ title: rec.name , const: rec._id})
-          }else{
-            codegenScriptName.value.push({ title: rec.name , const: rec._id})
-          }
-        }
-      
-      })
-    }
-  }).catch((err) => { console.log(err); })
-
+async function query(){
   idstr = JSON.parse(localStorage.getItem("mbt_" + route.params._id + route.params.name + '_id')!)
-  await store.getMbtmodel(idstr)
+  let rst = await request.get(`${realMBTUrl}/${idstr}`)
+  return rst
+}
 
-  if (store.mbtData._id) {
-    Datafintion(store.mbtData)
-    storeAw.setAllData(store.mbtData)
-  }
+onMounted(async () => {
   rappid = new MbtServe(
     apps.value,
     new StencilService(),
@@ -431,22 +191,29 @@ onMounted(async () => {
   )
   rappid.startRappid()
   // 屏蔽浏览器自导ctrl+s 功能
-  document.onkeydown = function (e :any) { 
-	         e=window.event||e; 
-           var key=e.keyCode;
-             if(key== 83 && e.ctrlKey){
+document.onkeydown = function (e :any) {
+	          e=window.event||e;
+            var key=e.keyCode;
+            if(key== 83 && e.ctrlKey){
             	   /*延迟，兼容FF浏览器  */
             	    setTimeout(function(){        		  
-            	   },1); 
+            	    },1);
                     return false;      
        		    }    
-           };
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
+};
+  query().then((res:any) => {
+    store.setMbtData(res)
+    if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.cellsinfo && store.mbtData.modelDefinition.cellsinfo.cells) {
     rappid.graph.fromJSON(transformCells(JSON.parse(JSON.stringify(store.getAlldata))));
+    }
+    if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
+      rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
+    }
+    if (store.mbtData._id) {
+    storeAw.setAllData(store.mbtData)
   }
-  if (store.mbtData && store.mbtData.modelDefinition && store.mbtData.modelDefinition.hasOwnProperty("paperscale")) {
-    rappid.paper.scale(store.mbtData.modelDefinition.paperscale);
-  }
+  })
+
   rappid.graph.on("add", function (el: any) {
     fitAncestors(el)
     storeAw.resetEditingExpectedAw()
@@ -457,6 +224,8 @@ onMounted(async () => {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
+      console.log(elementView.model);
+
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -478,6 +247,7 @@ onMounted(async () => {
       'preview:pointerclick': preview.bind(this),
       'reload:pointerclick': reload.bind(this),
       'chooseTem:pointerclick': chooseTem.bind(this),
+      'closeMbt:pointerclick' : close.bind(this)
     })
     rappid.paper.on('blank:pointerdblclick' ,() => {
       isGlobal.value=true
@@ -489,6 +259,7 @@ onMounted(async () => {
   }
 })
 
+provide('activeKey',activeKey)
 watch (()=>storeAw.getifsaveMbt,(val:boolean)=>{
   if(val){
     saveMbt()
@@ -500,9 +271,17 @@ watch(() => storePre.getCheck ,(newval: boolean) => {
         checkChange(newval,storePre.getErrList[index]?.err)
     }
 })
+watch(() => store.getChooseDataPool, (val: boolean) => {
+  if (val) {
+    isGlobal.value = true
+    activeKey.value = "3" ,
+    templateRadiovalue.value = 1
+  }
+})
 let vaceErr = ref()
 let previewErr = ref(false)
 let errOutLang = ref()
+let jsonData = ref()
 
 
 function checkChange(check:boolean,str:any) {
@@ -528,6 +307,9 @@ function checkChange(check:boolean,str:any) {
         if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
+          console.log(jsonData.value);
+
           previewErr.value = true
         }
         break
@@ -536,6 +318,8 @@ function checkChange(check:boolean,str:any) {
         if(storePre.getErrmsg){
           vaceErr.value = CodegenErr(storePre.getErrmsg,'scriptErr').vaceErr
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
+          jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
+          console.log(jsonData.value);
           previewErr.value = true
           }
         break
@@ -580,6 +364,11 @@ onBeforeRouteLeave((to, form, next) => {
   }
 })
 
+// 退出当前路由
+function close() {
+  router.push('/mbtstore')
+}
+
 // reload所有aw
 async function awqueryByBatchIds(ids: string ,perPage:number) {
   let rst = await request.get("/api/hlfs?q=_id:" + ids,{params:{page:1,perPage:perPage}});
@@ -588,57 +377,112 @@ async function awqueryByBatchIds(ids: string ,perPage:number) {
   }
 }
 
-async function reload(){
-  await store.getMbtmodel(idstr)
+async function awQueryByPath(name:string ,path:string){
+  let rst = await request.get('/api/hlfs' , {params:{search:`@name:"${name}",@path:"${path}"`,page:1,perPage:10}})
+  if(rst.data){
+    return rst.data
+  }
+}
+
+
+function reload(){
   let sqlstr = ''
+  let pathArr: any = []
   let newProp: { _id: any; prop: any; cell: any; }[] = []
+  let pathNameData:any = []
   if (store.getAlldata.modelDefinition.cellsinfo) {
     rappid.graph.getCells().forEach((item: any) => {
       if (item.attributes.type == "itea.mbt.test.MBTAW") {
         newProp.push({_id:item.id , prop:item.get('prop').custom , cell:item})
-        if (item.get('prop').custom.step.data?._id) {
-          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        if (item.get('prop').custom?.step.data?._id || item.get('prop').custom?.step?.aw?._id) {
+          sqlstr += item.get('prop').custom.step?.data?._id + '|' || item.get('prop').custom?.step?.aw?._id
         }
-        if (item.get('prop').custom.expectation.data?._id) {
-          sqlstr += item.get('prop').custom.step?.data?._id + '|'
+        if(item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data){
+          let aw = item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data
+            pathNameData.push(awQueryByPath(aw.name, aw.path))
+        }
+        if (item.get('prop').custom?.expectation.data?._id || item.get('prop').custom?.expectation?.aw?._id) {
+          sqlstr += item.get('prop').custom?.step?.data?._id + '|' || item.get('prop').custom?.expectation?.aw._id + '|'
+        }
+        if(item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation?.data){
+          let aw = item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation.data
+            pathNameData.push(awQueryByPath(aw.name, aw.path))
+        }
+        if (item.get('prop').custom.expectation.aw) {
+          pathArr.push({name:item.get('prop').custom.expectation.aw.name , path:item.get('prop').custom.expectation.aw.path})
         }
       }
     })
     
     sqlstr = sqlstr.slice(0, sqlstr.length - 1);
     let perPage = sqlstr.split('|')
-    let awDatas = awqueryByBatchIds(sqlstr, perPage.length);
+    let awDatas = awqueryByBatchIds(sqlstr, perPage.length)
     awDatas.then((aws) => {
-      const awById = _.groupBy(aws, "_id")
-      newProp.forEach((obj: any) => {
-      if (obj.prop.step?.data?._id) {
-        if (awById[obj.prop.step?.data?._id]) {
-          obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-          obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
-          obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
-          storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
-          storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
-          storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
-          obj.cell.prop('prop/custom/step' , obj.prop.step)
-        }
-        }
-        if (obj.prop.expectation?.data?._id) {
-        if (awById[obj.prop.expectation?.data?._id]) {
-          obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-          obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
-          obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
-          storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
-          obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
-        }
+      let awById :any
+      if(perPage == aws.length){
+        awById = _.groupBy(aws, "_id")
+        newProp.forEach((obj: any) => {
+          if (obj.prop.step?.data?._id) {
+            if (awById[obj.prop.step?.data?._id]) {
+              obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+              obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
+              storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
+              storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
+              storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
+              obj.cell.prop('prop/custom/step' , obj.prop.step)
+            }
+            }
+            if (obj.prop.expectation?.data?._id) {
+            if (awById[obj.prop.expectation?.data?._id]) {
+              obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+              obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
+              storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+              obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
+            }
+          }
+          storeAw.setData(obj.cell)
+          obj.cell.setPropertiesData()
+        })
+      }else{
+        Promise.all(pathNameData).then((res: any)=>{
+          let removeById = _.uniqBy([].concat(...res) , '_id')
+          awById = _.groupBy(removeById, '_id')
+          newProp.forEach((obj: any) => {
+            if (obj.prop.step?.data?._id) {
+              if (awById[obj.prop.step?.data?._id]) {
+                obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+                obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
+                storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
+                storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
+                storeAw.setEditingPrimaryAw(obj.prop.step.uiParams , 'uiParams')
+                obj.cell.prop('prop/custom/step' , obj.prop.step)
+              }
+              }
+              if (obj.prop.expectation?.data?._id) {
+              if (awById[obj.prop.expectation?.data?._id]) {
+                obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+                obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
+                storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+                obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
+              }
+            }
+            storeAw.setData(obj.cell)
+            obj.cell.setPropertiesData()
+          })
+          }).catch(() =>{})
       }
-      storeAw.setData(obj.cell)
-      obj.cell.setPropertiesData()
-    })
-    })
-    
-    message.success(t("MBTStore.reloadTip"));
+      message.success(t("MBTStore.reloadTip"));
+    }).catch(()=>{})
+
+
     
   }
 }
@@ -661,8 +505,6 @@ const saveMbt = () => {
 
 const visiblepreciew=ref(false)
 const previewData: any = ref({})
-let previewScript = ref("")
-const softwrap=true
 let searchPreview=reactive({
   mode:""
 })
@@ -765,97 +607,18 @@ const onDrag = throttle(function (e: MouseEvent) {
 function closePreviewModal() {
   visiblepreciew.value = false
 }
+let data = ref()
+let style = ref()
 
-function exportMeta() {
-  const props = store.getMeta?.schema?.properties
-  const data: any = store.getMeta.data
-  if (!props || _.isEmpty(props)) return message.warning('暂无数据')
-  const cols = [
-    {
-      title: '字段名',
-      key: 'name'
-    },
-    {
-      title: '值',
-      key: 'value'
-    },
-    {
-      title: '输入类型',
-      key: 'type'
-    }
-  ]
-  const arr = Object.keys(props).map((a: any) => {
-    const val = data[a]
-    return {
-      name: a,
-      type: val && val.type === '2' ? '自定义输入' : '选项输入',
-      value: val && val.val ? val.val : ''
-    }
-  })
-  exportFile(cols, arr)
-}
-
-function exportDataPool() {
-  const dataPool = store.getDataPool
-  if (!dataPool) return message.warning('暂无数据')
-  exportFile(dataPool.tableColumns, dataPool.tableData)
-}
-
-function exportResource() {
-  const resource = store.getResource
-  if (!resource || !resource.length) return message.warning('暂无数据')
-  const cols = Object.keys(resource[0]).map((key: string) => {
-    return {
-      title: key
-    }
-  })
-  exportFile(cols, resource)
-}
-
-function exportData() {
-  switch (activeKey.value) {
-    case '2': {
-      exportMeta()
-      break
-    }
-    case '3': {
-      exportDataPool()
-      break
-    }
-    case '4': {
-      exportResource()
-      break
-    }
+const inspector = (n:number) =>{
+  if(n == 1){
+    data.value.style.display = 'none'
+    style.value.style.display = 'block'
+  }else{
+    data.value.style.display = 'block'
+    style.value.style.display = 'none'
   }
 }
-
-function customRequest() {
-  //
-}
-
-async function handleUploadChange(file: any) {
-  let data: any = await getExcelData(file)
-  data = data.flat(Infinity)
-  if (resourcesdataSource.value.length) {
-    Modal.confirm({
-      content: '导入后resources原本数据会被清除，还要进行导入操作吗？',
-      onOk() {
-        resourcesdataSource.value = data
-      },
-      cancelText: '取消',
-      onCancel() {
-        Modal.destroyAll()
-      }
-    })
-  } else {
-    resourcesdataSource.value = data
-  }
-}
-
-// 模板编辑弹窗 Resource 校验字段
-// const rules = {
-//   rules: [{ required: true, validator: checkBlankValue, trigger: 'blur' }]
-// }
 
 </script>
 
@@ -880,14 +643,15 @@ async function handleUploadChange(file: any) {
       <div class="mbtRight"  ref = "scalable">
         <div class="AwtabInspector" v-show="showpaper">
           <ul class="tab_ul">
-            <!-- <li v-if="!show">样式修改</li> -->
+            <li @click="inspector(1)">样式修改</li>
             <li
                 v-if="true"
+                @click="inspector(2)"
             >数据编辑</li>
             <div style="clear:both;"></div>
           </ul>
-          <!-- <div v-show="!show && !showGroup && !showSection && !showLink" class="inspector-container"></div> -->
-          <div class="dataStyle">
+          <div ref="style" class="inspector-container"></div>
+          <div ref="data" class="dataStyle" style="display:none">
             <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>
@@ -905,175 +669,33 @@ async function handleUploadChange(file: any) {
       :preview-data="previewData"
       :out-lang="outLang"
   ></mbt-preview-modal>
-  <a-modal v-model:visible="isGlobal" :title="$t('common.template')"
-      @ok="handleOk"
-      :bodyStyle="{paddingBottom: '50px'}"
-      :width="1000"
-      ok-text="save"
-      :footer="null"
+  <mbt-modeler-template-setting :show="isGlobal" @close="closeTemplateModel"></mbt-modeler-template-setting>
+<a-modal  :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+  <a-row class="previewErr">
+    <a-col :span="12">
+      <VAceEditor
+      class="currentData"
+        v-model:value="jsonData"
+        lang="json"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
       >
-      <div class="infoPanel card-container">
-            <a-tabs v-model:activeKey="activeKey" type="card">
-              <a-tab-pane key="1" tab="Attributes" force-render style="height:550px;">
-      
-                  <div style="padding: 5px" class="attrconfig">
-                    <VueForm
-                      v-model="globalformData"
-                      :schema="globalschema"
-                      :formFooter="{show:false}"
-                      @change = 'attrsChange'
-                    >
-                     </VueForm>
-                  </div>
-              </a-tab-pane>
-              <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative;">
-                <metainfo
-                  :isFormVisible="isFormVisible"
-                  :metatemplatedetailtableData="metatemplatedetailtableData"
-                  :schema="tempschema"
-                  :metaformProps="metaformProps"
-                  :metatemplatecolumns="metatemplatecolumns"
-                >
-                </metainfo>
-              </a-tab-pane>
-
-              <a-tab-pane key="3" tab="Data Pool" style="height:550px; position: relative;">
-                <a-radio-group
-                  v-model:value="templateRadiovalue"
-                  @change="handleRadioChange(templateRadiovalue)"
-                >
-                  <a-radio :value="1">Dynamic Template</a-radio>
-                  <a-radio :value="2">Static Template</a-radio>
-                  <a-radio :value="3">Input directly</a-radio>
-                </a-radio-group>
-                <template-table
-                  v-if="templateRadiovalue === 1"
-                  :tableColumns="tableColumnsDynamic"
-                  :templateCategory="templateCategory"
-                  :tableData="tableDataDynamic"
-                  
-                ></template-table>
-                <!-- --********---{{tableData}}**
-                  ++++{{tableColumns}}########                   -->
-          
-                  <template-table
-                  v-if="templateRadiovalue === 2"
-                  :tableColumns="tableColumns"
-                  :templateCategory="templateCategory"
-                  :tableData="tableData"
-                  
-                ></template-table>
-                <input-table
-                  :tableColumns="tableColumnsDirectInput"
-                  :tableData="tableDataDirectInput"
-                  v-if="templateRadiovalue === 3"
-                  @update="handleDirectInput"
-                ></input-table>
-              </a-tab-pane>
-              <a-tab-pane key="4" tab="Resources" style="height:550px;">
-                <a-button
-                  class="editable-add-btn"
-                  style="margin-bottom: 8px"
-                  @click="resourceshandleAdd"
-                  >Add
-                </a-button>
-                <a-table
-                  bordered
-                  :data-source="resourcesdataSource"
-                  :columns="resourcescolumns"
-                >
-                  <template #bodyCell="{ column, text, record }">
-                    <template
-                      v-if="['alias', 'class', 'resourcetype'].includes(column.dataIndex)"
-                    >
-                      <div class="editable-cell">
-                        <div
-                          v-if="resourceEditing"
-                          class="editable-cell-input-wrapper"
-                        >
-                          <a-input
-                              type="string"
-                              v-model:value.trim="resourceEditing[column.title]"
-                              @pressEnter="resourcessave(record.key)"
-                          />
-                        </div>
-                        <div v-else class="editable-cell-text-wrapper">
-                          {{ text || " " }}
-                        </div>
-                      </div>
-                    </template>
-                    <template v-else-if="column.dataIndex === 'operation'">
-                      <div class="editable-row-operations">
-                        <span v-if="resourceEditing">
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.saveText') }}</span>
-                            </template>
-                            <check-circle-outlined @click="resourcessave(record.key)" class="icon--success-btn" />
-                          </a-tooltip>
-                          <a-divider type="vertical" />
-                          <a-popconfirm
-                            :title="$t('component.message.sureCancel')"
-                            @confirm="resourcescancel(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.cancelText') }}</span>
-                              </template>
-                              <close-circle-outlined @click="resourcescancel(record.key)" class="icon--err-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                        <span v-else>
-                          <a-tooltip placement="bottom">
-                            <template #title>
-                              <span>{{ $t('common.editText') }}</span>
-                            </template>
-                            <edit-outlined @click="resourcesedit(record.key)" class="icon--primary-btn" />
-                          </a-tooltip>
-                        </span>
-                        <a-divider type="vertical" />
-                        <span>
-                          <a-popconfirm
-                            v-if="resourcesdataSource.length"
-                            title="Sure to delete?"
-                            @confirm="onresourcesDelete(record.key)"
-                          >
-                            <a-tooltip placement="bottom">
-                              <template #title>
-                                <span>{{ $t('common.delText') }}</span>
-                              </template>
-                               <delete-outlined class="icon--primary-btn" />
-                            </a-tooltip>
-                          </a-popconfirm>
-                        </span>
-                      </div>
-                    </template>
-                  </template>
-                </a-table>
-              </a-tab-pane>
-            </a-tabs>
-  </div>
-    <div class="mbt-modeler-btn-wrap" slot="footer">
-      <a-button type="primary" @click="exportData" v-show="activeKey !== '1'">导出</a-button>
-      <a-upload :customRequest="customRequest" :beforeUpload="handleUploadChange" accept=".xlsx, .xls" :showUploadList="false">
-        <a-button type="primary" v-show="activeKey === '4'">导入</a-button>
-      </a-upload>
-      <a-button @click="isGlobal = false">取消</a-button>
-      <a-button type="primary" @click="handleOk">保存</a-button>
-    </div>
-</a-modal>
-<a-modal :width="950" v-model:visible = 'previewErr' :footer="null" :keyboard="true" centered>
+      </VAceEditor>
+    </a-col>
+    <a-col :span="10" style=" margin-left: 10px;">
+        <VAceEditor
+        v-model:value="vaceErr"
+        class="aceErr-results"
+        :lang="errOutLang"
+        :wrap="true"
+        :readonly="true"
+        theme="sqlserver"
+        :options="{ useWorker: true }"
+        ></VAceEditor>
+    </a-col>
+  </a-row>
   <!-- preview错误信息 -->
-  <VAceEditor
-  v-model:value="vaceErr"
-  class="aceErr-results"
-  :lang="errOutLang"
-  :wrap="true"
-  :readonly="true"
-  theme="sqlserver"
-  :options="{ useWorker: true }"
-  ></VAceEditor>
+
 </a-modal>
 </template>
 
@@ -1081,10 +703,6 @@ async function handleUploadChange(file: any) {
 @import "../../node_modules/@clientio/rappid/rappid.css";
 @import '../composables/css/style.css';
 @import "../assets/fonts/iconfont.css";
-
-
-
-
 
 .app-header{
   background-color: #717D98;
@@ -1099,6 +717,7 @@ async function handleUploadChange(file: any) {
 				overflow: hidden;
         width: 100%;
         height: 50px;
+        margin-bottom: 0;
 			}
 			.tab_ul li {
 				padding: 15px;
@@ -1112,51 +731,23 @@ async function handleUploadChange(file: any) {
   padding: 0px;
 }
 .previewModel{
-  height: 50vw;
+  height: 40vw;
   .ant-modal-content{
     height: 100%;
     .ant-modal-body{
+      height: 90%;
       .ace-result{
       flex: 1;
       font-size: 18px;
       border: 1px solid;
       height: 72%;
       width:31.25rem
-}
+      }
+
     }
   }
 }
 
-
-.AwtabInspector{
-    display: flex;
-    flex-direction: column;
-    top: 0;
-    right: 0;
-    bottom: 120px;
-    width: 100%;
-    box-sizing: border-box;
-    height: -moz-calc(100% - 120px);
-    height: -webkit-calc(100% - 120px);
-    height: calc(100% - 120px);
-    .dataStyle{
-    top: 50px;
-    display: block;
-    flex: 1;
-    bottom: 0;
-    width: 100%;
-    overflow: auto;
-}
-.inspector-container {
-    top: 50px;
-    overflow: auto;
-    height: 100%;
-    box-sizing: border-box;
-}
-.joint-inspector {
-  bottom: 50px;
-}
-}
 .GroupInspector{
     position: absolute;
     top: 50px;
@@ -1178,12 +769,6 @@ async function handleUploadChange(file: any) {
   bottom: 50px;
 }
 
-
-.infoPanel{
-  position: relative;
-}
-
-
 .mbt-modeler-btn-wrap {
   position: absolute;
   bottom: 0;
@@ -1197,59 +782,8 @@ async function handleUploadChange(file: any) {
   }
 }
 
-
 .joint-navigator{
   width: 330px;
-}
-.card-container p {
-  margin: 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-content {
-  height: 100%;
-  margin-top: -16px;
-}
-.card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  padding: 16px;
-  background: #fff;
-}
-.card-container > .ant-tabs-card > .ant-tabs-nav::before {
-  display: none;
-}
-.card-container > .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
-  border-radius: 6px 6px 0 0;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-.card-container > .ant-tabs-card .ant-tabs-tab-active,
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #fff;
-  border-color: #fff;
-}
-#components-tabs-demo-card-top .code-box-demo {
-  padding: 24px;
-  overflow: hidden;
-  background: #f5f5f5;
-}
-[data-theme='compact'] .card-container > .ant-tabs-card .ant-tabs-content {
-  height: 120px;
-  margin-top: -8px;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab {
-  background: transparent;
-  border-color: transparent;
-}
-[data-theme='dark'] #components-tabs-demo-card-top .code-box-demo {
-  background: #000;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-content > .ant-tabs-tabpane {
-  background: #141414;
-}
-[data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
-  background: #141414;
-  border-color: #141414;
 }
 
 

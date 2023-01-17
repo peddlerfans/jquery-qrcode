@@ -39,6 +39,7 @@ const emit = defineEmits<{
   (e: "submitTemplate", value: object): void;
   (e: "update", value: object): void;
   (e: "clear", value: object): void;
+  (e: 'change', value: object): void
 }>();
 const props = defineProps<{
   templatedetailtableData?: object;
@@ -209,13 +210,11 @@ onMounted(() => {
 });
 
 function showDetailInfo(data: any) {
-  
+  console.log(data.model)
   if (data && data._id && data.category == "dynamic") {
     hasData.value = true;
     getTemplatePreview(data._id).then((dat: any) => {
-  
       let cust_columns = transfer2Table(dat);
-  
       columnsOrigin.value = cust_columns;
       dataSource.value = dat;
       // columnsOrigin.value = dat.model.schema;
@@ -223,10 +222,9 @@ function showDetailInfo(data: any) {
       message.warning("Please configure this template first")
     });
   } else if (data && data._id && data.category == "static") {
-    // console.log(data.model)
     if (data.model) {
       dataSource.value = data.model.data;
-      columnsOrigin.value = data.model.schema;
+      columnsOrigin.value = data.model.schema.filter((item: { title: string; }) => item.title !== 'action');
     } else {
       message.warning("Pleaes define the params in static template.");
     }
@@ -269,7 +267,6 @@ function isChoose(data:any) : boolean{
   return b
 }
 
-let watchData = computed(() => { dataSource.value, columnsOrigin.value })
 
 watch(() => dataSource.value, (val: any) => {
   let dataFrom = ''
@@ -281,11 +278,12 @@ watch(() => dataSource.value, (val: any) => {
   } else {
     dataFrom = 'input_template'
    }
-        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom:dataFrom}
-  if (isChoose(dataSource.value)) {
-      store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
-      storeAw.setDataDefinition(dataDefinition)
-    }    
+        let dataDefinition = {tableData:dataSource.value,tableColumns: columnsOrigin.value , dataFrom: dataFrom}
+  // if (isChoose(dataSource.value)) {
+  //     store.saveData(dataSource.value , columnsOrigin.value , dataFrom)
+  //     storeAw.setDataDefinition(dataDefinition)
+  //   }
+  emit('change', dataDefinition)
 
 } , {deep:true})
 
@@ -326,6 +324,10 @@ const chooseTemplateFunc = () => {
   chooseTemplate.value=true
   updateTable();
 };
+defineExpose({
+  dataSource,
+  columnsOrigin
+})
 </script>
 
 <template>

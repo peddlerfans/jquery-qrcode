@@ -7,7 +7,9 @@ export default {
     <script lang="ts" setup>
     import { message, SelectProps } from 'ant-design-vue';
 import {DeleteOutlined } from '@ant-design/icons-vue'
-import { computed, onMounted, ref } from 'vue';
+import { computed, createVNode, onMounted, ref } from 'vue';
+
+
 onMounted(()=>{
     // changecolor()
 })
@@ -210,6 +212,7 @@ const checkrelation=(obj:any)=>{
     }
     
 }
+
 </script>
 
 <template>
