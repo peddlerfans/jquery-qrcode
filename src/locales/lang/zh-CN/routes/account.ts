@@ -5,6 +5,9 @@ export default {
   role: '角色',
   action: '操作',
   views: '可见视图',
-  resource: '可见资源',
-  method: '权限设定'
+  resource: '资源',
+  method: '权限设定',
+  type: '资源类型',
+  email:' 账号',
+  visible:'是否可见'
 };
