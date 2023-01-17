@@ -204,7 +204,7 @@ async function exportData() {
     width: 8.75rem;
   }
   .right-detail {
-    width: 90%;
+    width: 86%;
     margin-left: 8px;
     flex: 1;
     display: flex;

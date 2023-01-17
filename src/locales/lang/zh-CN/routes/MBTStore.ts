@@ -9,8 +9,6 @@ export default {
     tip6: '确定删除该测试建模?',
 
     // MBTModeler
-    addAssert: '添加断言',
-    assertTip: '只有该模型至少一个aw节点的操作步骤有设置变量，才能添加断言',
     reloadTip: '测试建模已重新加载',
     start: '开始',
     end: '结束',
@@ -24,11 +22,11 @@ export default {
     configAW: '配置AW',
     leaveRouter: '当前编辑未保存，是否退出',
     configLink: '设置连接线',
-    varErrTip: '输入的值不允许有空格！',
 
     // mbt-modeler-aw-schema
     updateAw: '修改AW',
     deleteAW: '删除AW',
+    reloadAW: '刷新AW',
     clearAssert: '清空断言',
 
     // mbt-preview-modal.vue
