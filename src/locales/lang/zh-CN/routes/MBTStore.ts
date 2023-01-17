@@ -26,6 +26,7 @@ export default {
     // mbt-modeler-aw-schema
     updateAw: '修改AW',
     deleteAW: '删除AW',
+    reloadAW: '刷新AW',
     clearAssert: '清空断言',
 
     // mbt-preview-modal.vue

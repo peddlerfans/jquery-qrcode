@@ -294,7 +294,6 @@ export const MbtData = defineStore({
             // 自身枚举值
             if (type === '1') {
                 aw = this.getPrimaryAwData
-                console.log(aw)
             } else if (type === '2') {
                 aw = this.getExpectedAwData
             }

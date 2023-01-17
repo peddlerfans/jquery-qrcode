@@ -74,7 +74,7 @@ export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeI
                 fill: {
                     type: 'color-palette',
                     options: options.colorPalette,
-                    label: 'Fill',
+                    label: 'fill',
                     group: 'presentation',
                     index: 1
                 }

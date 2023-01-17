@@ -17,12 +17,14 @@ import {
   DeleteOutlined,
   EditOutlined,
   CloseCircleOutlined,
-  PlusSquareOutlined
+  PlusSquareOutlined,
+  RedoOutlined
 } from "@ant-design/icons-vue";
 import AwSchemaTableModal from "@/views/aw-schema-table-modal.vue";
 import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
 import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue"
 import { message } from 'ant-design-vue';
+import  request  from '@/utils/request';
 
 interface Props {
   show: boolean
@@ -160,6 +162,22 @@ function deleteExpected() {
   })
   emit('change')
 }
+
+function reloadPrimary(){
+  let _id: string = ''
+  let name: string = ''
+  // if (tar === 'primary') {
+   _id = schemaValue.value?._id || store.getPrimaryAwData?._id
+   name = schemaValue.value?.name || store.getPrimaryAwData?.name
+   selectAwTar = '1'
+   request.get(`/api/hlfs/${_id}`).then((res) => {
+      showAw(res)      
+   }).catch(() => {
+    message.error('当前AW不存在')
+   })
+  // }
+}
+
 
 function showAw (row: any) {
   showTable.value = false
@@ -387,6 +405,17 @@ defineExpose({
                 class="icon--primary-btn"
                 style="margin-right: 8px;"
             ></delete-outlined>
+          </a-tooltip>
+          <a-tooltip placement="top">
+            <template #title>
+              <span>{{ $t('MBTStore.reloadAW') }}</span>
+            </template>
+            <redo-outlined
+                v-show="!isEmptyPrimarySchema"
+                @click="reloadPrimary"
+                class="icon--primary-btn"
+                style="margin-right: 8px;"
+            ></redo-outlined>
           </a-tooltip>
         </div>
       </div>

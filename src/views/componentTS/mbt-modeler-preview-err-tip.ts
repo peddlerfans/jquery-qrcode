@@ -48,7 +48,7 @@ export const showErrCard = (errMsg: any) => {
     if (!errAttrList || !errAttrList.length) return
     if (errMsg.hasOwnProperty('errors')) {
         errMsg.errors.forEach((item: any) => {
-            if (item.results && item.results.length > 0 && item.results[0].hasOwnProperty('error')) {
+            if (item.results && item.results.length > 0 && item.results.filter((err) => err.hasOwnProperty('error')).length > 0) {
                 if (item.outputLang == 'yaml') {
                     errTem = 'textErr'
                 } else {
@@ -65,7 +65,7 @@ export const showErrCard = (errMsg: any) => {
 
     } else if (errMsg.hasOwnProperty('template error')) {
         errMsg['template error'].forEach((item: any) => {
-            if (item.results && item.results.length > 0 && item.results[0].hasOwnProperty('error')) {
+            if (item.results && item.results.length > 0 && item.results.filter((err) => err.hasOwnProperty('error')).length > 0) {
                 if (item.outputLang == 'yaml') {
                     errTem = 'textErr'
                 } else {
@@ -94,18 +94,20 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
     if (codegenMsg == 'textErr') {
         let codegenErr = errmsg['template error'].filter((item: any) => item.outputLang == 'yaml')
         codegenErr.forEach((obj: any) => {
-            if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
+            let hasErr = obj.results.filter((err) => err.hasOwnProperty('error'))
+            if (hasErr.length > 0 && obj.outputLang) {
                 outputLang = obj.outputLang
-                vaceErr = obj.results[0].error
-                currentData = obj.results[0].jsonData
+                vaceErr = hasErr[0].error
+                currentData = hasErr[0].jsonData
             }
         })
     } else {
         errmsg['template error'].filter((item: any) => item.outputLang !== 'yaml').forEach((obj: any) => {
+            let hasErr = obj.results.filter((err) => err.hasOwnProperty('error'))
             if (obj.results[0].hasOwnProperty('error') && obj.outputLang) {
                 outputLang = obj.outputLang
-                vaceErr = obj.results[0].error
-                currentData = obj.results[0].jsonData
+                vaceErr = hasErr[0].error
+                currentData = hasErr[0].jsonData
             }
         })
     }

@@ -54,7 +54,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            'content': labelDesc
+            // 'content': labelDesc
         })
         this.attr({ 'label': { text: labelDesc, fontSize: 16 } })
         if (this.get('attrs')?.label?.text) {
