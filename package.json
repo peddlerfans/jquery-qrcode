@@ -8,7 +8,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "echo unittest": "vitest --environment jsdom",
+    "unittest": "echo vitest --environment jsdom",
     "stage": "vite --mode staging",
     "prod": "vite --mode production",
     "build": "vue-tsc --noEmit && vite build",
