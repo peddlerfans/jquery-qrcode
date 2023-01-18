@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import _ from "lodash";
 import { generateSchema } from "@/utils/jsonschemaform";
-import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import ConditionItem from '@/components/basic/itea-schema-item/condition-item.vue'
 
 const defaultAWSchema = {
     title: "AW",
@@ -236,31 +237,62 @@ export const MbtData = defineStore({
             return this.data2schema(schema, {}, type)
         },
         data2schema(awSchema: any, uiSchema: any, type: string) {
-            let sutEnumList: Array<any> = []
-            sutEnumList = this.getDataPoolResource.map((a: any) => {
-                return {
-                    value: `{{${a.alias}}}`,
-                    label: a.alias
-                }
-            })
             // 获取属性里面可自定义的表单项
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                let isSutType
+                let options: Array<any> = []
+                /**
+                 * 相关组件的传参
+                 * SUT 类型
+                 * condition 类型
+                 * 默认其他
+                 * */
+                switch (type) {
+                    case 'SUT': {
+                        options = this.getDataPoolResource.map((b: any) => {
+                            return {
+                                value: `{{${b.alias}}}`,
+                                label: b.alias
+                            }
+                        })
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        break
+                    }
+                    case 'condition': {
+                        const options = this.getAwParamsOption(type, a.title)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": ConditionItem,
+                                "ui:options": options
+                            }
+                        }
+                        break
+                    }
+                    default: {
+                        options = this.getAwParamsOption(type, a.title)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        break
+                    }
+                }
                 if (prop[a.title]?.custom) {
-                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    // SUT 类型做标记
+                    let isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
                     prop[a.title] = {
                         "title": a.title,
                         "type": "string",
                         "patternProperties": false,
                         "AWType": isSutType ? 'SUT' : 'string'
-                    }
-                }
-                if (uiSchema) {
-                    uiSchema[a.title] = {
-                        "ui:widget": schemaItem,
-                        "ui:options": isSutType ? sutEnumList : this.getAwParamsOption(type, a.title)
                     }
                 }
             })

@@ -153,7 +153,7 @@ function transformCells(mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
     if (awprop?.aw) {
-        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, 'primary').uiSchema}})
+        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, '1').uiSchema}})
     } else {
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom,{step : {aw:{}, data:awprop.data,uiParams:{}}})
@@ -164,7 +164,7 @@ function transformCells(mbtData:any){
     
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     if (awprop.aw) {
-      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, 'expected').uiSchema} })
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, '2').uiSchema} })
     }else{
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom, { expectation: { aw: {}, data: awprop.data, uiParams:{} } })
@@ -314,7 +314,7 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
-          
+
           previewErr.value = true
         }
         break
@@ -425,7 +425,7 @@ function reload(){
           }
         }
 
-       
+
       }
     })
     
@@ -579,18 +579,18 @@ const preview= (show?:boolean)=>{
               }).catch(() => console.log('Oops errors!'));
             },
             onCancel() {
-              
+
             },
           });
-               
+
         }else{
           searchPreview.mode="all"
           await querycode(show)
         }
       }
     })
-    
-    
+
+
 }
 
 function handleChange(str: string, data: any) {
@@ -605,6 +605,7 @@ function handleChange(str: string, data: any) {
       break
     }
     case 'itea.mbt.test.MBTGroup': {
+      data.type = data.condition ? 'condition' : 'loop'
       storeAw.getShowData?.setPropertiesData(data)
       break
     }
@@ -648,6 +649,7 @@ const onDrag = throttle(function (e: MouseEvent) {
 function closePreviewModal() {
   visiblepreciew.value = false
 }
+
 let data = ref()
 let style = ref()
 
