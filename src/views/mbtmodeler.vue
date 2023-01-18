@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
 import request from "@/utils/request";
-import { realMBTUrl ,awModelUrl} from "@/appConfig";
+import { realMBTUrl ,awModelUrl,templateUrl} from "@/appConfig";
 import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
@@ -305,18 +305,29 @@ function checkChange(check:boolean,str:any) {
       }
       case 'textErr': {
         if(storePre.getErrmsg){
-          vaceErr.value = CodegenErr(storePre.getErrmsg,'textErr').vaceErr
+          if(store.mbtData.attributes.codegen_text){
+            request.get(`${templateUrl}/${store.mbtData.attributes.codegen_text}`,{ params: { category: 'codegen' }}).then((res) =>{
+              if(res && res.templateText){
+                vaceErr.value = res.templateText
+              }
+            })
+          }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
-          console.log(jsonData.value);
-
+          
           previewErr.value = true
         }
         break
       }
       case 'scriptErr': {
         if(storePre.getErrmsg){
-          vaceErr.value = CodegenErr(storePre.getErrmsg,'scriptErr').vaceErr
+          if(store.mbtData.attributes.codegen_script){
+            request.get(`${templateUrl}/${store.mbtData.attributes.codegen_script}`,{ params: { category: 'codegen' }}).then((res) =>{
+              if(res && res.templateText){
+                vaceErr.value = res.templateText
+              }
+            })
+          }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
           console.log(jsonData.value);
@@ -387,30 +398,34 @@ async function awQueryByPath(name:string ,path:string){
 
 function reload(){
   let sqlstr = ''
-  let pathArr: any = []
   let newProp: { _id: any; prop: any; cell: any; }[] = []
   let pathNameData:any = []
   if (store.getAlldata.modelDefinition.cellsinfo) {
     rappid.graph.getCells().forEach((item: any) => {
       if (item.attributes.type == "itea.mbt.test.MBTAW") {
         newProp.push({_id:item.id , prop:item.get('prop').custom , cell:item})
-        if (item.get('prop').custom?.step.data?._id || item.get('prop').custom?.step?.aw?._id) {
-          sqlstr += item.get('prop').custom.step?.data?._id + '|' || item.get('prop').custom?.step?.aw?._id
+        if(item.get('prop').custom && item.get('prop').custom.step){
+          let primary = item.get('prop').custom.step
+            if (primary.data?._id || primary.aw?._id) {
+            sqlstr += primary.data?._id + '|' || primary.aw?._id
+            }
+            if(primary.aw.name || primary.data.name){
+              let aw = primary.aw || primary.data
+                pathNameData.push(awQueryByPath(aw.name, aw.path))
+            }
         }
-        if(item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data){
-          let aw = item.get('prop').custom?.step?.aw || item.get('prop').custom?.step.data
-            pathNameData.push(awQueryByPath(aw.name, aw.path))
+        if(item.get('prop').custom && item.get('prop').custom.expectation){
+          let expected = item.get('prop').custom.expectation
+          if (expected.data?._id || expected.aw?._id) {
+          sqlstr += expected.data?._id + '|' || expected.aw._id + '|'
+          }
+          if(expected.aw.name || expected.data.name){
+            let aw = expected.aw || expected.data
+              pathNameData.push(awQueryByPath(aw.name, aw.path))
+          }
         }
-        if (item.get('prop').custom?.expectation.data?._id || item.get('prop').custom?.expectation?.aw?._id) {
-          sqlstr += item.get('prop').custom?.step?.data?._id + '|' || item.get('prop').custom?.expectation?.aw._id + '|'
-        }
-        if(item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation?.data){
-          let aw = item.get('prop').custom?.expectation?.aw || item.get('prop').custom?.expectation.data
-            pathNameData.push(awQueryByPath(aw.name, aw.path))
-        }
-        if (item.get('prop').custom.expectation.aw) {
-          pathArr.push({name:item.get('prop').custom.expectation.aw.name , path:item.get('prop').custom.expectation.aw.path})
-        }
+
+       
       }
     })
     
@@ -425,7 +440,7 @@ function reload(){
           if (obj.prop.step?.data?._id) {
             if (awById[obj.prop.step?.data?._id]) {
               obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
               obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
               storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
               storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -436,11 +451,11 @@ function reload(){
             if (obj.prop.expectation?.data?._id) {
             if (awById[obj.prop.expectation?.data?._id]) {
               obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
               obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
-              storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
-              storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
-              storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+              storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
+              storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')
+              storeAw.setEditingExpectedAw(obj.prop.expectation.uiParams , 'uiParams')
               obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
             }
           }
@@ -455,7 +470,7 @@ function reload(){
             if (obj.prop.step?.data?._id) {
               if (awById[obj.prop.step?.data?._id]) {
                 obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
                 obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
                 storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
                 storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -466,11 +481,11 @@ function reload(){
               if (obj.prop.expectation?.data?._id) {
               if (awById[obj.prop.expectation?.data?._id]) {
                 obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
                 obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
-                storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
-                storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
-                storeAw.setEditingPrimaryAw(obj.prop.expectation.uiParams , 'uiParams')
+                storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
+                storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')
+                storeAw.setEditingExpectedAw(obj.prop.expectation.uiParams , 'uiParams')
                 obj.cell.prop('prop/custom/expectation' , obj.prop?.expectation)
               }
             }
@@ -543,13 +558,39 @@ async function querycode(show?: boolean) {
   }).finally(() => spinning.value = false)
   
 }
-const preview=async (show?:boolean)=>{
+const preview= (show?:boolean)=>{
+
     if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
-    searchPreview.mode="all"
-    await querycode(show)
+    rappid.graph.getCells().forEach(async (item: any) =>{
+      // debugger
+      if(item.attributes.type == 'itea.mbt.test.MBTAW'){
+          if(_.isEmpty(item.get('prop').custom.step.aw)){
+            Modal.confirm({
+            icon: createVNode(ExclamationCircleOutlined),
+            content: t("MBTStore.previewInput"),
+            onOk() {
+              return new Promise<void>(async (resolve, reject) => {
+                resolve()
+                searchPreview.mode="text"
+                await querycode(show)
+              }).catch(() => console.log('Oops errors!'));
+            },
+            onCancel() {
+              
+            },
+          });
+               
+        }else{
+          searchPreview.mode="all"
+          await querycode(show)
+        }
+      }
+    })
+    
+    
 }
 
 function handleChange(str: string, data: any) {
@@ -643,15 +684,16 @@ const inspector = (n:number) =>{
       <div class="mbtRight"  ref = "scalable">
         <div class="AwtabInspector" v-show="showpaper">
           <ul class="tab_ul">
-            <li @click="inspector(1)">样式修改</li>
+
             <li
                 v-if="true"
                 @click="inspector(2)"
             >数据编辑</li>
+            <li @click="inspector(1)">样式修改</li>
             <div style="clear:both;"></div>
           </ul>
-          <div ref="style" class="inspector-container"></div>
-          <div ref="data" class="dataStyle" style="display:none">
+          <div ref="style" class="inspector-container" style="display:none"></div>
+          <div ref="data" class="dataStyle" >
             <mbt-modeler-right-modal ref="rightSchemaModal" @change="handleChange"></mbt-modeler-right-modal>
           </div>
         </div>
@@ -682,7 +724,7 @@ const inspector = (n:number) =>{
       >
       </VAceEditor>
     </a-col>
-    <a-col :span="10" style=" margin-left: 10px;">
+    <a-col :span="11" style=" margin-left: 10px;">
         <VAceEditor
         v-model:value="vaceErr"
         class="aceErr-results"

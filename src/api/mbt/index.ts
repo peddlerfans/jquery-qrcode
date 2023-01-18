@@ -59,7 +59,7 @@ export async function getTemplatePreview(templateId: string) {
 }
 export async function getAllTemplatesByCategory(category: string) {
   let templatetableData: any[] = []
-  let strsql = `/api/templates?q=category:${category}&search=`;
+  let strsql = `/api/templates?q=category:${category}&search=&page=1&perPage=`;
   let rst: [] = [];
 
   await request

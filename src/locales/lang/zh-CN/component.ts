@@ -76,7 +76,7 @@ export default {
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
     emptyUrl: '请输入网址',
-    realUrl: '请输入真实网址',
+    realUrl: '请输入正确网址',
     errTip1: '请先处理正在编辑的数据',
 
     hefaName: "名称格式为包含英文,数字,_,$",

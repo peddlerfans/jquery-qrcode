@@ -212,6 +212,9 @@ export const MbtData = defineStore({
             schema.description = row.description
             if (_.isArray(row.params) && row.params.length > 0) {
                 let appEndedSchema = generateSchema(row.params)
+                // appEndedSchema = appEndedSchema.filter((a: any) => {
+                //     return Object.keys(a).some((b: any) => a[b].type !== 'condition')
+                // })
                 appEndedSchema.forEach((a: any) => {
                     Object.keys(a).forEach((b: any) => {
                         a[b].custom = 'awParams'
@@ -254,7 +257,6 @@ export const MbtData = defineStore({
                         "AWType": isSutType ? 'SUT' : 'string'
                     }
                 }
-
                 if (uiSchema) {
                     uiSchema[a.title] = {
                         "ui:widget": schemaItem,
@@ -294,7 +296,6 @@ export const MbtData = defineStore({
             // 自身枚举值
             if (type === '1') {
                 aw = this.getPrimaryAwData
-                console.log(aw)
             } else if (type === '2') {
                 aw = this.getExpectedAwData
             }
@@ -350,6 +351,12 @@ export const MbtData = defineStore({
                 }
             })
             return temp
+        },
+        hasCondition() {
+            // @ts-ignore
+            const aw = this.getExpectedAwData
+            if (!aw?.params?.length) return false
+            return aw.params.some((b: any) => b.type === 'condition')
         }
     }
 })
