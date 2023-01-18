@@ -26,8 +26,10 @@ export default {
     // mbt-modeler-aw-schema
     updateAw: '修改AW',
     deleteAW: '删除AW',
+    reloadAW: '刷新AW',
     clearAssert: '清空断言',
 
     // mbt-preview-modal.vue
-    selectTip: '请选择左边节点以展示数据'
+    selectTip: '请选择左边节点以展示数据',
+    previewInput: '当前页面有自定义AW，是否输出为文本'
 }

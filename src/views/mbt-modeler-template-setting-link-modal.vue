@@ -4,16 +4,18 @@
       :footer="null"
       title="添加超链接"
       @cancel="closeModal">
-    <a-form :model="linkInfo">
-      <a-form-item label="超链接名称" name="name">
+    <a-form :model="linkInfo" :rules="rules" @finish="add">
+      <a-form-item label="超链接名称" name="name" :label-col="{span: 5}">
         <a-input v-model:value="linkInfo.name"></a-input>
       </a-form-item>
-      <a-form-item label="连接" name="url">
+      <a-form-item label="链接" name="url" :label-col="{span: 5}">
         <a-input v-model:value="linkInfo.url"></a-input>
       </a-form-item>
       <a-form-item>
-        <a-button type="primary" @click="add">添加</a-button>
-        <a-button @click="closeModal">取消</a-button>
+        <div class="btn-wrap">
+          <a-button type="primary" html-type="submit">添加</a-button>
+          <a-button @click="closeModal">取消</a-button>
+        </div>
       </a-form-item>
     </a-form>
   </a-modal>
@@ -22,6 +24,8 @@
 <script setup lang="ts">
 import {ref} from "vue";
 import {message, Modal} from "ant-design-vue";
+import {checkUrl} from '@/utils/validator'
+import {Rule} from "ant-design-vue/es/form";
 
 interface Props {
   show: boolean
@@ -35,6 +39,10 @@ interface LinkInfo {
 const props = withDefaults(defineProps<Props>(), {
   show: false
 })
+
+const rules: Record<string, Rule[]> = {
+  url: [{ required: true, validator: checkUrl, trigger: 'blur' }]
+}
 
 const emit = defineEmits(['close', 'add'])
 let linkInfo = ref<LinkInfo>({
@@ -58,6 +66,11 @@ function add() {
 
 </script>
 
-<style scoped>
-
+<style scoped lang="less">
+.btn-wrap {
+  text-align: right;
+  .ant-btn {
+    margin-left: 8px;
+  }
+}
 </style>

@@ -29,8 +29,10 @@ export default {
     // mbt-modeler-aw-schema
     updateAw: 'Edit AW',
     deleteAW: 'Delete AW',
+    reloadAW: 'reload AW',
     clearAssert: 'Clear assert',
 
     // mbt-preview-modal.vue
     selectTip: 'Please select the left node to display the data',
+    previewInput: 'The current page has custom AW, whether to output as text'
 }
