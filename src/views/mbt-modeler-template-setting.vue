@@ -398,13 +398,16 @@ function addHyperLinke(linkInfo: any) {
             ></VueForm>
           </div>
           <div class="link-wrap">
+            <div class="title">引用列表：</div>
             <a-tag>
               <a
+                  v-show="linkList.length"
                   v-for="(info, idx) in linkList"
                   :key="idx"
                   :href="info.url"
-                  target="_blank"
-              >{{ info.name }}</a>
+                  target="_blank">
+                <a-button type="link">{{ info.name }}</a-button>
+              </a>
             </a-tag>
           </div>
         </a-tab-pane>
@@ -554,7 +557,7 @@ function addHyperLinke(linkInfo: any) {
   ></mbt-modeler-template-setting-link-modal>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .infoPanel{
   position: relative;
 }
@@ -607,5 +610,10 @@ function addHyperLinke(linkInfo: any) {
 [data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
   background: #141414;
   border-color: #141414;
+}
+.link-wrap {
+  .title {
+    line-height: 26px;
+  }
 }
 </style>

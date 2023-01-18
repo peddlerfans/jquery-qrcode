@@ -433,7 +433,6 @@ function reload(){
     let perPage = sqlstr.split('|')
     let awDatas = awqueryByBatchIds(sqlstr, perPage.length)
     awDatas.then((aws) => {
-      debugger
       let awById :any
       if(perPage == aws.length){
         awById = _.groupBy(aws, "_id")
@@ -441,7 +440,7 @@ function reload(){
           if (obj.prop.step?.data?._id) {
             if (awById[obj.prop.step?.data?._id]) {
               obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
               obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
               storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
               storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -452,7 +451,7 @@ function reload(){
             if (obj.prop.expectation?.data?._id) {
             if (awById[obj.prop.expectation?.data?._id]) {
               obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
               obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
               storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
               storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')
@@ -471,7 +470,7 @@ function reload(){
             if (obj.prop.step?.data?._id) {
               if (awById[obj.prop.step?.data?._id]) {
                 obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
                 obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
                 storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
                 storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -482,7 +481,7 @@ function reload(){
               if (obj.prop.expectation?.data?._id) {
               if (awById[obj.prop.expectation?.data?._id]) {
                 obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
                 obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
                 storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
                 storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')

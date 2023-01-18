@@ -322,20 +322,20 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  {
-    path: '/embedding',
-    name: 'embedding',
-    component: Layout,
-    meta: { title:'component.route.embedding',icon: FunctionOutlined },
-    children: [
-      {
-        path: 'index',
-        name: 'embedded',
-        component: () => import('@/views/embedding.vue'),
-        meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
-      }
-    ]
-  }
+  // {
+  //   path: '/embedding',
+  //   name: 'embedding',
+  //   component: Layout,
+  //   meta: { title:'component.route.embedding',icon: FunctionOutlined },
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       name: 'embedded',
+  //       component: () => import('@/views/embedding.vue'),
+  //       meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
+  //     }
+  //   ]
+  // }
 ]
 
 
