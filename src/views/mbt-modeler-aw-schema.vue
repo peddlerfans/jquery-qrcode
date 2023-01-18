@@ -91,7 +91,7 @@ const formProps = {
   labelSuffix: ':',
 }
 
-let assertDesc = ref<string>('')
+// let assertDesc = ref<string>('')
 let assertList = ref<Array<any>>([])
 
 const hasExpected = computed(() => {
@@ -172,13 +172,13 @@ function showAw (row: any) {
     schemaValue.value = {}
   } else if (selectAwTar === '2') {
     // 清空断言信息
-    store.setEditingExpectedAw(false, 'isAssert')
-    store.setEditingExpectedAw('', 'assertDesc')
+    // store.setEditingExpectedAw(false, 'isAssert')
+    // store.setEditingExpectedAw('', 'assertDesc')
     assertList.value = []
-    showAssert.value = false
     rulesData.value = _.cloneDeep(defaultAssertData)
     store.setEditingExpectedAw(row, 'aw')
     store.setEditingExpectedAw({}, 'data')
+    showAssert.value = store.hasCondition()
     let temp: any = store.getExpectedAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
@@ -199,7 +199,7 @@ function initExpectedSchema () {
   expectedUiSchema.value = {}
   assertList.value = []
   rulesData.value = _.cloneDeep(defaultAssertData)
-  assertDesc.value = ''
+  // assertDesc.value = ''
 }
 
 function initSchema() {
@@ -257,7 +257,7 @@ function handleData () {
    * Expected 有三种情况：
    * 1. 旧数据
    * 2. 新数据
-   * 3. 没添加 Expected AW 但是有断言有值
+   * 3. 新数据，且 aw 至少一个参数设置类型为 condition
    * */
   if (store.getExpectedAw.schema) {
     let schemaTemp1: any = store.getExpectedAw.schema
@@ -273,36 +273,13 @@ function handleData () {
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
     showAssert.value = false
   } else if (store.getExpectedAw.isAssert) {
-    getAllCustomVar()
-    rulesData.value = store.getExpectedAw.data
-    assertDesc.value = store.getExpectedAw.assertDesc || ''
-    showAssert.value = true
+    // assertList.value = store.getAllCustomVar()
+    // rulesData.value = store.getExpectedAw.data
+    // assertDesc.value = store.getExpectedAw.assertDesc || ''
+    // showAssert.value = store.hasCondition
   } else {
     initExpectedSchema()
   }
-}
-
-// 获取当前模型所有带有 变量 属性并有 值 的数据
-// 只有 aw 版本为 version 3.0 以上才支持
-function getAllCustomVar () {
-  const cell = store.getShowData
-  if (_.isEmpty(cell)) return
-  let arr = cell.graph.getCells()
-  arr = arr.filter((a: any) => a.attributes.type === 'itea.mbt.test.MBTAW')
-  let temp: Array<any> = []
-  arr.forEach((b: any) => {
-    let type = b.attributes.prop?.custom?.step?.aw?.returnType
-    if (Array.isArray(type)) type = type[0] || ''
-    const schemaVal = b.attributes.prop?.custom?.step?.data
-    if (schemaVal?.variable) {
-      temp.push({
-        label: schemaVal.variable,
-        value: schemaVal.variable,
-        type: type ? type : 'string'
-      })
-    }
-  })
-  assertList.value = temp
 }
 
 // 断言数据
@@ -315,20 +292,20 @@ function rulesChange() {
   emit('change')
 }
 
-function assertInputChange() {
-  store.setEditingExpectedAw(assertDesc.value, 'assertDesc')
-  emit('change')
-}
+// function assertInputChange() {
+//   store.setEditingExpectedAw(assertDesc.value, 'assertDesc')
+//   emit('change')
+// }
 
-function clearAssert() {
-  assertDesc.value = ''
-  rulesData.value = _.cloneDeep(defaultAssertData)
-  store.setEditingExpectedAw('', 'assertDesc')
-  store.setEditingExpectedAw(false, 'isAssert')
-  store.setEditingExpectedAw(null, 'data')
-  emit('change')
-  showAssert.value = false
-}
+// function clearAssert() {
+//   assertDesc.value = ''
+//   rulesData.value = _.cloneDeep(defaultAssertData)
+//   store.setEditingExpectedAw('', 'assertDesc')
+//   store.setEditingExpectedAw(false, 'isAssert')
+//   store.setEditingExpectedAw(null, 'data')
+//   emit('change')
+//   showAssert.value = false
+// }
 
 /**
  * 显示断言条件：
@@ -336,29 +313,29 @@ function clearAssert() {
  * 2、ExpectedAw未设置
  * 3、模型有PrimaryAw设置了变量
  * */
-function addAssert() {
-  if (showAssert.value) return
-  getAllCustomVar()
-  if (assertList.value.length) {
-    expectedSchema.value = {}
-    expectedUiSchema.value = {}
-    expectedSchemaValue.value = {}
-    store.setEditingExpectedAw({
-      data: _.cloneDeep(defaultAssertData),
-      schema: null,
-      uiParams: null,
-      aw: null,
-      isAssert: true,
-      assertDesc: ''
-    })
-    assertDesc.value = ''
-    rulesData.value = _.cloneDeep(defaultAssertData)
-    showAssert.value = true
-    emit('change')
-  } else {
-    message.warning(t('MBTStore.assertTip'))
-  }
-}
+// function addAssert() {
+//   if (showAssert.value) return
+//   assertList.value = store.getAllCustomVar()
+//   if (assertList.value.length) {
+//     expectedSchema.value = {}
+//     expectedUiSchema.value = {}
+//     expectedSchemaValue.value = {}
+//     store.setEditingExpectedAw({
+//       data: _.cloneDeep(defaultAssertData),
+//       schema: null,
+//       uiParams: null,
+//       aw: null,
+//       isAssert: true,
+//       assertDesc: ''
+//     })
+//     // assertDesc.value = ''
+//     rulesData.value = _.cloneDeep(defaultAssertData)
+//     showAssert.value = true
+//     emit('change')
+//   } else {
+//     message.warning(t('MBTStore.assertTip'))
+//   }
+// }
 
 defineExpose({
   initSchema,
@@ -438,16 +415,16 @@ defineExpose({
                   style="margin-right: 8px;"
               ></plus-circle-outlined>
             </a-tooltip>
-            <a-tooltip placement="top">
-              <template #title>
-                <span>{{ $t('MBTStore.addAssert') }}</span>
-              </template>
-              <plus-square-outlined
-                  @click="addAssert"
-                  class="icon--primary-btn"
-                  style="margin-right: 8px;"
-              ></plus-square-outlined>
-            </a-tooltip>
+<!--            <a-tooltip placement="top">-->
+<!--              <template #title>-->
+<!--                <span>{{ $t('MBTStore.addAssert') }}</span>-->
+<!--              </template>-->
+<!--              <plus-square-outlined-->
+<!--                  @click="addAssert"-->
+<!--                  class="icon&#45;&#45;primary-btn"-->
+<!--                  style="margin-right: 8px;"-->
+<!--              ></plus-square-outlined>-->
+<!--            </a-tooltip>-->
             <a-tooltip placement="top">
               <template #title>
                 <span>{{ $t('MBTStore.updateAw') }}</span>
@@ -470,31 +447,18 @@ defineExpose({
                   style="margin-right: 8px;"
               ></delete-outlined>
             </a-tooltip>
-            <a-tooltip placement="top">
-              <template #title>
-                <span>{{ $t('MBTStore.clearAssert') }}</span>
-              </template>
-              <close-circle-outlined
-                  v-show="showAssert"
-                  @click="clearAssert"
-                  class="icon--primary-btn"
-                  style="margin-right: 8px;"
-              ></close-circle-outlined>
-            </a-tooltip>
+<!--            <a-tooltip placement="top">-->
+<!--              <template #title>-->
+<!--                <span>{{ $t('MBTStore.clearAssert') }}</span>-->
+<!--              </template>-->
+<!--              <close-circle-outlined-->
+<!--                  v-show="showAssert"-->
+<!--                  @click="clearAssert"-->
+<!--                  class="icon&#45;&#45;primary-btn"-->
+<!--                  style="margin-right: 8px;"-->
+<!--              ></close-circle-outlined>-->
+<!--            </a-tooltip>-->
           </div>
-        </div>
-        <div class="setting-assert" v-show="showAssert">
-          <div>
-            <div class="title">断言描述：</div>
-            <a-input v-model:value="assertDesc" @change="assertInputChange"></a-input>
-          </div>
-          <div class="title">设置断言：</div>
-          <mbt-modeler-condition-edit
-            :keys="keys"
-            :formDatas="assertList"
-            :rulesData="rulesData"
-            @rulesChange="rulesChange"
-          ></mbt-modeler-condition-edit>
         </div>
         <VueForm
             v-show="hasExpected"
@@ -507,6 +471,19 @@ defineExpose({
           <div slot-scope="{ expectedSchemaValue }">
           </div>
         </VueForm>
+        <div class="setting-assert" v-show="showAssert">
+          <!--          <div>-->
+          <!--            <div class="title">断言描述：</div>-->
+          <!--            <a-input v-model:value="assertDesc" @change="assertInputChange"></a-input>-->
+          <!--          </div>-->
+          <div class="title">设置断言：</div>
+          <mbt-modeler-condition-edit
+              :keys="keys"
+              :formDatas="assertList"
+              :rulesData="rulesData"
+              @rulesChange="rulesChange"
+          ></mbt-modeler-condition-edit>
+        </div>
         <a-divider />
       </div>
     </div>

@@ -13,7 +13,7 @@ import {
   statesTs,
   typeOptions,
   typeOptions2,
-  tableSelectParams
+  tableSelectParams, typeOptions3
 } from "./common-table"
 import cloneDeep from "lodash-es/cloneDeep";
 import router from "@/router";
@@ -92,7 +92,7 @@ let enumInputRef = ref()
 const checkTypeOption = () => {
   const type = props.columns.filter((a: any) => a.title === 'type')
   const option = type[0]?.option
-  if (option) return option === '1' ? typeOptions : typeOptions2
+  if (option) return option === '1' ? typeOptions : option === '2' ? typeOptions2 : typeOptions3
   else return []
 }
 const typeOption: any = checkTypeOption()

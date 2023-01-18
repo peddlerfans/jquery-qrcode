@@ -70,7 +70,7 @@ export default {
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
     emptyUrl: 'Please input url',
-    realUrl: 'Please input real url',
+    realUrl: 'Please input correct url',
     errTip1: 'Please process the data being edited first',
     hefaName: "The name format includes Chinese, English,Number,_,$",
 

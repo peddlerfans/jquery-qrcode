@@ -134,6 +134,7 @@ export const MBTStore = defineStore('mbtmodel', {
     getDataPoolDataForm: state => state.mbtData?.dataDefinition?.data?.dataFrom,
     getDataPoolTableData: state => state.mbtData?.dataDefinition?.data?.tableData || [],
     getDataPoolColData: state => state.mbtData?.dataDefinition?.data?.tableColumns || [],
+    getMetaDetail: state => state.mbtData?.dataDefinition?.meta?.detail
   },
   actions: {
     setMbtData(data: any) {

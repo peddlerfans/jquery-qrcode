@@ -153,7 +153,7 @@ function transformCells(mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
     if (awprop?.aw) {
-        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw).uiSchema}})
+        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, 'primary').uiSchema}})
     } else {
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom,{step : {aw:{}, data:awprop.data,uiParams:{}}})
@@ -164,7 +164,7 @@ function transformCells(mbtData:any){
     
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     if (awprop.aw) {
-      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw).uiSchema} })
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, 'expected').uiSchema} })
     }else{
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom, { expectation: { aw: {}, data: awprop.data, uiParams:{} } })
@@ -416,7 +416,7 @@ function reload(){
           if (obj.prop.step?.data?._id) {
             if (awById[obj.prop.step?.data?._id]) {
               obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
               obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
               storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
               storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -427,7 +427,7 @@ function reload(){
             if (obj.prop.expectation?.data?._id) {
             if (awById[obj.prop.expectation?.data?._id]) {
               obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
               obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
               storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
               storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')
@@ -446,7 +446,7 @@ function reload(){
             if (obj.prop.step?.data?._id) {
               if (awById[obj.prop.step?.data?._id]) {
                 obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0])
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
                 obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
                 storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
                 storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -457,7 +457,7 @@ function reload(){
               if (obj.prop.expectation?.data?._id) {
               if (awById[obj.prop.expectation?.data?._id]) {
                 obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0])
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
                 obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
                 storeAw.setEditingPrimaryAw(obj.prop.expectation.aw , 'aw')
                 storeAw.setEditingPrimaryAw(obj.prop.expectation.data , 'data')

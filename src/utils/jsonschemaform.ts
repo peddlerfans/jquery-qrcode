@@ -42,6 +42,9 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
       case "SUT":
         typeinschema = "SUT";
         break;
+      case 'condition':
+        typeinschema = 'string'
+        break
       default:
         break;
     }
@@ -64,22 +67,22 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
           },
         };
       }
-      if (mod.description) {
-        tempobj = {
-          [mod.description]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            title: mod.description,
-            // enum: enumVal,
-            // enumNames: enumVal,
-          },
-        };
-      } else if (mod.name) {
+      if (mod.name) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
             title: mod.name,
+            // enum: enumVal,
+            // enumNames: enumVal,
+          },
+        };
+      } else if (mod.description) {
+        tempobj = {
+          [mod.description]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            title: mod.description,
             // enum: enumVal,
             // enumNames: enumVal,
           },

@@ -35,7 +35,7 @@ let awParamsTable = ref<any>(null)
 let awParamsColumn: any = [
   { title: "name", width: 280 },
   { title: "description", width: 100 },
-  { title: "type", width: 60, option: '1' },
+  { title: "type", width: 60, option: '3' },
   { title: "enum", width: 100 },
   { title: "default", width: 100 }
 ]
