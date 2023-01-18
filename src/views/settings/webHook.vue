@@ -308,6 +308,49 @@ const handleInputConfirm = () => {
   })
 }
 
+const opt = [
+  {
+    "label": "枚举值",
+    "options": [
+      {
+        "label": "/loca",
+        "value": "/loca"
+      }
+    ]
+  },
+  {
+    "label": "Data Pool",
+    "options": [
+      {
+        "value": "{{Memory}}",
+        "label": "Memory"
+      },
+      {
+        "value": "{{GPU}}",
+        "label": "GPU"
+      },
+      {
+        "value": "{{DPI}}",
+        "label": "DPI"
+      },
+      {
+        "value": "{{key}}",
+        "label": "key"
+      }
+    ]
+  },
+  {
+    "label": "返回变量名",
+    "options": [
+      {
+        "label": "tt",
+        "value": "tt",
+        "type": "string"
+      }
+    ]
+  }
+]
+
 </script>
 
 <template>
@@ -445,6 +488,7 @@ const handleInputConfirm = () => {
         @detail="(row) => edit(row, true)"
       ></common-table>
     </div>
+    <input-select-item model-value="123" :options="opt"></input-select-item>
   </main>
 </template>
 <style lang="postcss" scoped>
