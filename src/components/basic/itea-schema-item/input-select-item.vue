@@ -28,9 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 function handleChange (e: any) {
-  text.value = e.pop()
   selectVal.value = []
-  emit('update:modelValue', text.value)
+  emit('update:modelValue', e.pop())
 }
 
 function handleBlur (){
@@ -45,17 +44,19 @@ function handleFocus () {
 
 <template>
     <div class="schema-form-item">
-      <a-select
-          class="hide-line-select"
-          v-model:value="selectVal"
-          mode="tags"
-          :open="showOpt"
-          :options="options"
-          @change="handleChange">
-        <template #tagRender="{ value: val, label, closable, onClose, option }" >
-          <span style="margin-left: 6px;">{{ label }}</span>
-        </template>
-      </a-select>
+      <a-form-item-rest>
+        <a-select
+            class="hide-line-select"
+            v-model:value="selectVal"
+            mode="tags"
+            :open="showOpt"
+            :options="options"
+            @change="handleChange">
+          <template #tagRender="{ value: val, label, closable, onClose, option }" >
+            <span style="margin-left: 6px;">{{ label }}</span>
+          </template>
+        </a-select>
+      </a-form-item-rest>
       <a-input
           v-model:value="text"
           @blur="handleBlur"
