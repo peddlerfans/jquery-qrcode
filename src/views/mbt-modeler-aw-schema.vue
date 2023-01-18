@@ -174,6 +174,10 @@ function reloadPrimary(){
       showAw(res)      
    }).catch(() => {
     message.error('当前AW不存在')
+    // request.post('/api/hlfs',schemaValue.value).then((res:any) => {
+    //   showAw(res)
+    //   message.success('新建成功')
+    // })
    })
   // }
 }

@@ -38,7 +38,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     }
 
     reRender() {
-
         const desc = this.get('prop')?.custom?.description
         let primaryDesc: string
         let expectedDesc: string
@@ -54,7 +53,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            // 'content': labelDesc
+            'content': labelDesc
         })
         this.attr({ 'label': { text: labelDesc, fontSize: 16 } })
         if (this.get('attrs')?.label?.text) {
@@ -66,7 +65,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         return this.get('prop').custom
     }
     // setPropertiesData每个函数接受都为统一属性，调用
-
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())

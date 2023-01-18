@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, inject, reactive, Ref, ref, watch} from "vue";
+import {computed, inject, onMounted, reactive, Ref, ref, watch} from "vue";
 import {Stores} from "../../types/stores";
 import _, {cloneDeep} from "lodash";
 import MetaInfo from "@/components/metainfo.vue";
@@ -30,21 +30,9 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
+          
           globalFormData.value = {...store.changeTemplate}
-          getAllTemplatesByCategory('codegen').then((rst: any) => {
-            if (rst && _.isArray(rst)) {
-              rst.forEach((rec: any) => {
-                if (rec.model && rec.model.outputLanguage) {
-                  if (rec.model.outputLanguage == 'yaml') {
-                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
-                  } else {
-                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
-                  }
-                }
-
-              })
-            }
-          })
+          
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -205,6 +193,25 @@ const resourcesColumns: columnDefinition[] = [
 // 如果有改动，这里就应该有数据
 let metaInfo: any = ref(null)
 let dataDefinition: any = ref(null)
+
+
+onMounted(() => {
+  getAllTemplatesByCategory('codegen').then((rst: any) => {
+            if (rst && _.isArray(rst)) {
+              rst.forEach((rec: any) => {
+                if (rec.model && rec.model.outputLanguage) {
+                  if (rec.model.outputLanguage == 'yaml') {
+                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
+                  } else {
+                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
+                  }
+                }
+                
+              })
+            }
+          })
+})
+
 
 function closeTemplateModel() {
   emit('close')

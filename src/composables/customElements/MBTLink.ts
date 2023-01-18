@@ -107,7 +107,7 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
         { value: '10,5', content: 'Dashed' }
       ],
       arrowheadSize: [
-        { value: 'M 0 0 0 0', content: 'None' },
+        // { value: 'M 0 0 0 0', content: 'None' },
         { value: 'M 0 -3 -6 0 0 3 z', content: 'Small' },
         { value: 'M 0 -5 -10 0 0 5 z', content: 'Medium' },
         { value: 'M 0 -10 -15 0 0 10 z', content: 'Large' },
@@ -162,23 +162,23 @@ export class MBTLink extends joint.shapes.bpmn2.Flow implements MBTShapeInterfac
               label: 'Color',
               index: 6
             },
-            sourceMarker: {
-              d: {
-                type: 'select-box',
-                options: options.arrowheadSize,
-                group: 'marker-source',
-                label: 'Source arrowhead',
-                index: 1
-              },
-              fill: {
-                type: 'color-palette',
-                options: options.colorPaletteReset,
-                group: 'marker-source',
-                label: 'Color',
-                when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' } },
-                index: 2
-              }
-            },
+            // sourceMarker: {
+            //   d: {
+            //     type: 'select-box',
+            //     options: options.arrowheadSize,
+            //     group: 'marker-source',
+            //     label: 'Source arrowhead',
+            //     index: 1
+            //   },
+            //   fill: {
+            //     type: 'color-palette',
+            //     options: options.colorPaletteReset,
+            //     group: 'marker-source',
+            //     label: 'Color',
+            //     when: { ne: { 'attrs/line/sourceMarker/d': 'M 0 0 0 0' } },
+            //     index: 2
+            //   }
+            // },
             targetMarker: {
               d: {
                 type: 'select-box',

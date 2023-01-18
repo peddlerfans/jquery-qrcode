@@ -397,7 +397,6 @@ async function awQueryByPath(name:string ,path:string){
 
 
 function reload(){
-  debugger
   let sqlstr = ''
   let newProp: { _id: any; prop: any; cell: any; }[] = []
   let pathNameData:any = []
@@ -560,13 +559,39 @@ async function querycode(show?: boolean) {
   }).finally(() => spinning.value = false)
   
 }
-const preview=async (show?:boolean)=>{
+const preview= (show?:boolean)=>{
+
     if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
-    searchPreview.mode="all"
-    await querycode(show)
+    rappid.graph.getCells().forEach(async (item: any) =>{
+      // debugger
+      if(item.attributes.type == 'itea.mbt.test.MBTAW'){
+          if(_.isEmpty(item.get('prop').custom.step.aw)){
+            Modal.confirm({
+            icon: createVNode(ExclamationCircleOutlined),
+            content: t("MBTStore.previewInput"),
+            onOk() {
+              return new Promise<void>(async (resolve, reject) => {
+                resolve()
+                searchPreview.mode="text"
+                await querycode(show)
+              }).catch(() => console.log('Oops errors!'));
+            },
+            onCancel() {
+              
+            },
+          });
+               
+        }else{
+          searchPreview.mode="all"
+          await querycode(show)
+        }
+      }
+    })
+    
+    
 }
 
 function handleChange(str: string, data: any) {
