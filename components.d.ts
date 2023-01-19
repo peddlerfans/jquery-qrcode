@@ -34,6 +34,7 @@ declare module '@vue/runtime-core' {
     AStep: typeof import('ant-design-vue/es')['Step']
     ASteps: typeof import('ant-design-vue/es')['Steps']
     CommonTable: typeof import('./src/components/basic/common-table/index.vue')['default']
+    ConditionItem: typeof import('./src/components/basic/itea-schema-item/condition-item.vue')['default']
     CreateRule: typeof import('./src/components/CreateRule.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     EchartsModel: typeof import('./src/components/EchartsModel.vue')['default']
