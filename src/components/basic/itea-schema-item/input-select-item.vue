@@ -5,23 +5,19 @@ import {
 } from 'vue'
 
 const emit = defineEmits(['update:modelValue'])
-let inputRef = ref({
-  val: '',
-  type: '1'
-})
-let flag = ref(false)
 interface Props {
   modelValue: string,
   options: any
 }
 
+const text = ref<string>('')
+const showOpt = ref<boolean>(false)
+const selectVal = ref<Array<string>>([])
+
 watch(
     () => props.modelValue,
     (val: any) => {
-      if (!val) return
-      inputRef.value.type = val.type || inputRef.value.type
-      flag.value = inputRef.value.type === '2'
-      inputRef.value.val = val.val || inputRef.value.val
+      text.value = val || ''
     },
     { immediate: true }
 )
@@ -31,19 +27,17 @@ const props = withDefaults(defineProps<Props>(), {
   options: []
 })
 
-function switchChange (e: any) {
-  inputRef.value.type = e ? '2' : '1'
-}
-
 function handleChange (e: any) {
-  inputRef.value.val = e
-  emit('update:modelValue', inputRef.value)
+  selectVal.value = []
+  emit('update:modelValue', e.pop())
 }
 
-function handleInput(e: any) {
-  const tar = (e.target as HTMLInputElement).value
-  inputRef.value.val = tar
-  emit('update:modelValue', inputRef.value)
+function handleBlur (){
+  showOpt.value = false
+}
+
+function handleFocus () {
+  showOpt.value = true
 }
 
 </script>
@@ -51,24 +45,23 @@ function handleInput(e: any) {
 <template>
     <div class="schema-form-item">
       <a-form-item-rest>
-        <a-switch
-            v-model:checked="flag"
-            class="schema-switch"
-            @change="switchChange"
-            checked-children="自定义"
-            un-checked-children="选项"
-        ></a-switch>
+        <a-select
+            class="hide-line-select"
+            v-model:value="selectVal"
+            mode="tags"
+            :open="showOpt"
+            :options="options"
+            @change="handleChange">
+          <template #tagRender="{ value: val, label, closable, onClose, option }" >
+            <span style="margin-left: 6px;">{{ label }}</span>
+          </template>
+        </a-select>
       </a-form-item-rest>
-      <a-select
-          v-if="!flag"
-          :value="inputRef.val"
-          @change="handleChange"
-          :options="options"
-      ></a-select>
       <a-input
-          v-if="flag"
-          :value="inputRef.val"
-          @input="handleInput"
+          v-model:value="text"
+          @blur="handleBlur"
+          @focus="handleFocus"
+          class="show-line-input"
       ></a-input>
     </div>
 </template>
@@ -77,6 +70,12 @@ function handleInput(e: any) {
 .schema-form-item {
   display: flex;
   align-items: center;
+  position: relative;
+  .show-line-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
   .schema-switch {
     margin-right: 8px;
     width: 80px;

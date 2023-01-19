@@ -314,7 +314,7 @@ function handleChange() {
     if(data.value.label == undefined){
       data.value.label = ''
     }
-  }  
+  }
   emit('change', getType(), data.value)  
   // schemaData.value = {}
   // data.value = {}

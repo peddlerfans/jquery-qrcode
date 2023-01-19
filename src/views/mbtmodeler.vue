@@ -153,7 +153,7 @@ function transformCells(mbtData:any){
     let awprop = mbtData.modelDefinition.props[cell.id].props.primaryprops;
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description || ''
     if (awprop?.aw) {
-        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, 'primary').uiSchema}})
+        Object.assign(prop.custom,{step : {aw:awprop.aw, data:newData(awprop.aw,awprop.data),uiParams:storeAw.handleSchema(awprop.aw, '1').uiSchema}})
     } else {
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom,{step : {aw:{}, data:awprop.data,uiParams:{}}})
@@ -164,7 +164,7 @@ function transformCells(mbtData:any){
     
     awprop.schema.description = awprop.aw?.description || awprop.data?.description || awprop.schema.description
     if (awprop.aw) {
-      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, 'expected').uiSchema} })
+      Object.assign(prop.custom, { expectation: { aw: awprop?.aw, data: newData(awprop.aw, awprop.data), uiParams:storeAw.handleSchema(awprop.aw, '2').uiSchema} })
     }else{
       message.error('当前Aw节点无数据,请reload')
       Object.assign(prop.custom, { expectation: { aw: {}, data: awprop.data, uiParams:{} } })
@@ -314,7 +314,6 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
-          
           previewErr.value = true
         }
         break
@@ -397,7 +396,6 @@ async function awQueryByPath(name:string ,path:string){
 
 
 function reload(){
-  debugger
   let sqlstr = ''
   let newProp: { _id: any; prop: any; cell: any; }[] = []
   let pathNameData:any = []
@@ -426,7 +424,6 @@ function reload(){
           }
         }
 
-       
       }
     })
     
@@ -434,7 +431,6 @@ function reload(){
     let perPage = sqlstr.split('|')
     let awDatas = awqueryByBatchIds(sqlstr, perPage.length)
     awDatas.then((aws) => {
-      debugger
       let awById :any
       if(perPage == aws.length){
         awById = _.groupBy(aws, "_id")
@@ -442,7 +438,7 @@ function reload(){
           if (obj.prop.step?.data?._id) {
             if (awById[obj.prop.step?.data?._id]) {
               obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+              obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
               obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
               storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
               storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -453,7 +449,7 @@ function reload(){
             if (obj.prop.expectation?.data?._id) {
             if (awById[obj.prop.expectation?.data?._id]) {
               obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+              obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
               obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
               storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
               storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')
@@ -472,7 +468,7 @@ function reload(){
             if (obj.prop.step?.data?._id) {
               if (awById[obj.prop.step?.data?._id]) {
                 obj.prop.step.aw = awById[obj.prop.step?.data?._id][0]
-                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0], 'primary')
+                obj.prop.step.uiParams = storeAw.handleSchema(awById[obj.prop.step?.data?._id][0],'1')
                 obj.prop.step.data = newData(obj.prop.step.aw , obj.prop.step.data)
                 storeAw.setEditingPrimaryAw(obj.prop.step.aw , 'aw')
                 storeAw.setEditingPrimaryAw(obj.prop.step.data , 'data')
@@ -483,7 +479,7 @@ function reload(){
               if (obj.prop.expectation?.data?._id) {
               if (awById[obj.prop.expectation?.data?._id]) {
                 obj.prop.expectation.aw = awById[obj.prop.expectation?.data?._id][0]
-                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0], 'expected')
+                obj.prop.expectation.uiParams = storeAw.handleSchema(awById[obj.prop.expectation?.data?._id][0],'2')
                 obj.prop.expectation.data = newData(obj.prop.expectation.aw , obj.prop.expectation.data)
                 storeAw.setEditingExpectedAw(obj.prop.expectation.aw , 'aw')
                 storeAw.setEditingExpectedAw(obj.prop.expectation.data , 'data')
@@ -560,13 +556,39 @@ async function querycode(show?: boolean) {
   }).finally(() => spinning.value = false)
   
 }
-const preview=async (show?:boolean)=>{
+const preview= (show?:boolean)=>{
+
     if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
-    searchPreview.mode="all"
-    await querycode(show)
+    rappid.graph.getCells().forEach(async (item: any) =>{
+      // debugger
+      if(item.attributes.type == 'itea.mbt.test.MBTAW'){
+          if(_.isEmpty(item.get('prop').custom.step.aw)){
+            Modal.confirm({
+            icon: createVNode(ExclamationCircleOutlined),
+            content: t("MBTStore.previewInput"),
+            onOk() {
+              return new Promise<void>(async (resolve, reject) => {
+                resolve()
+                searchPreview.mode="text"
+                await querycode(show)
+              }).catch(() => console.log('Oops errors!'));
+            },
+            onCancel() {
+
+            },
+          });
+
+        }else{
+          searchPreview.mode="all"
+          await querycode(show)
+        }
+      }
+    })
+
+
 }
 
 function handleChange(str: string, data: any) {
@@ -581,6 +603,7 @@ function handleChange(str: string, data: any) {
       break
     }
     case 'itea.mbt.test.MBTGroup': {
+      data.type = data.condition ? 'condition' : 'loop'
       storeAw.getShowData?.setPropertiesData(data)
       break
     }

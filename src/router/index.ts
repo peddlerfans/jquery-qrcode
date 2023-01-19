@@ -17,7 +17,7 @@ routeStore.setEmbedded(isEmbedded)
 /**
  * 如果 MBTStore/MBTModeler 路由有 embedded 参数，实现大屏模式
  * */
-function embeddedBigScreen (to: any) {
+function embeddedBigScreen(to: any) {
   if (to.query.hasOwnProperty('embedded') || isEmbedded) {
     isEmbedded = true
     to.matched.forEach((a: any) => {
@@ -109,7 +109,7 @@ export const routes: RouteRecordRaw[] = [
         meta: { title: 'component.route.mtbStore', icon: AppstoreAddOutlined, keepAlive: true }
       }
     ],
-    beforeEnter (to, from, next) {
+    beforeEnter(to, from, next) {
       embeddedBigScreen(to)
       next()
     }
@@ -306,7 +306,7 @@ export const routes: RouteRecordRaw[] = [
     path: '/settings',
     name: 'Settings',
     component: Layout,
-    meta: { title:'component.route.setting',icon: SettingOutlined },
+    meta: { title: 'component.route.setting', icon: SettingOutlined },
     children: [
       {
         path: 'webHook',
@@ -322,20 +322,20 @@ export const routes: RouteRecordRaw[] = [
       }
     ]
   },
-  {
-    path: '/embedding',
-    name: 'embedding',
-    component: Layout,
-    meta: { title:'component.route.embedding',icon: FunctionOutlined },
-    children: [
-      {
-        path: 'index',
-        name: 'embedded',
-        component: () => import('@/views/embedding.vue'),
-        meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
-      }
-    ]
-  }
+  // {
+  //   path: '/embedding',
+  //   name: 'embedding',
+  //   component: Layout,
+  //   meta: { title:'component.route.embedding',icon: FunctionOutlined },
+  //   children: [
+  //     {
+  //       path: 'index',
+  //       name: 'embedded',
+  //       component: () => import('@/views/embedding.vue'),
+  //       meta: { title: '嵌入测试', icon: FunctionOutlined, keepAlive: true }
+  //     }
+  //   ]
+  // }
 ]
 
 

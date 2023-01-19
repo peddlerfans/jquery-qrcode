@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, inject, reactive, Ref, ref, watch} from "vue";
+import {computed, inject, onMounted, reactive, Ref, ref, watch} from "vue";
 import {Stores} from "../../types/stores";
 import _, {cloneDeep} from "lodash";
 import MetaInfo from "@/components/metainfo.vue";
@@ -18,7 +18,7 @@ interface Props {
   show: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-  show: false,
+  show: false
 })
 
 const emit = defineEmits(['close'])
@@ -30,21 +30,9 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
-          globalFormData.value = {...store.changeTemplate}
-          getAllTemplatesByCategory('codegen').then((rst: any) => {
-            if (rst && _.isArray(rst)) {
-              rst.forEach((rec: any) => {
-                if (rec.model && rec.model.outputLanguage) {
-                  if (rec.model.outputLanguage == 'yaml') {
-                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
-                  } else {
-                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
-                  }
-                }
 
-              })
-            }
-          })
+          globalFormData.value = {...store.changeTemplate}
+
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -206,6 +194,25 @@ const resourcesColumns: columnDefinition[] = [
 let metaInfo: any = ref(null)
 let dataDefinition: any = ref(null)
 
+
+onMounted(() => {
+  getAllTemplatesByCategory('codegen').then((rst: any) => {
+            if (rst && _.isArray(rst)) {
+              rst.forEach((rec: any) => {
+                if (rec.model && rec.model.outputLanguage) {
+                  if (rec.model.outputLanguage == 'yaml') {
+                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
+                  } else {
+                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
+                  }
+                }
+
+              })
+            }
+          })
+})
+
+
 function closeTemplateModel() {
   emit('close')
   activeKey.value = '1'
@@ -235,8 +242,6 @@ function resourcesHandleAdd() {
     resourcetype: `resourceType${resourcescount.value}`,
   };
   resourcesDataSource.value.push(newData);
-  console.log(store.mbtData.dataDefinition.resources);
-  
 }
 
 // 保存单元格的函数
@@ -391,13 +396,16 @@ function addHyperLinke(linkInfo: any) {
             ></VueForm>
           </div>
           <div class="link-wrap">
+            <div class="title">引用列表：</div>
             <a-tag>
               <a
+                  v-show="linkList.length"
                   v-for="(info, idx) in linkList"
                   :key="idx"
                   :href="info.url"
-                  target="_blank"
-              >{{ info.name }}</a>
+                  target="_blank">
+                <a-button type="link">{{ info.name }}</a-button>
+              </a>
             </a-tag>
           </div>
         </a-tab-pane>
@@ -547,7 +555,7 @@ function addHyperLinke(linkInfo: any) {
   ></mbt-modeler-template-setting-link-modal>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .infoPanel{
   position: relative;
 }
@@ -600,5 +608,10 @@ function addHyperLinke(linkInfo: any) {
 [data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
   background: #141414;
   border-color: #141414;
+}
+.link-wrap {
+  .title {
+    line-height: 26px;
+  }
 }
 </style>
