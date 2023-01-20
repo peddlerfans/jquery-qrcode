@@ -67,6 +67,7 @@ let modelState = reactive<Model>({
   model: {
     templateEngine: "ejs",
     outputLanguage: "python",
+    outputType: "",
     data: "",
     history: []
   },
@@ -123,6 +124,24 @@ const langName=<any>{
 }
 
 const langOptions = ref<SelectProps['options']>([
+  {
+    value: 'python',
+    label: 'Python',
+  },
+  {
+    value: 'java',
+    label: 'JAVA',
+  },
+  {
+    value: 'yaml',
+    label: 'YAML',
+  },
+  {
+    value: 'javascript',
+    label: 'JavaScript',
+  }
+]);
+const typeOptions = ref<SelectProps['options']>([
   {
     value: 'python',
     label: 'Python',
@@ -388,6 +407,16 @@ const softwrap=true
             <a-col :span="6">
               <a-form-item :label="$t('templateManager.theme')">
                 <a-select v-model:value="states.theme" :options="themeOptions"></a-select>
+              </a-form-item>
+            </a-col>
+            <!-- <a-col :span="6">
+              <a-form-item :label="$t('templateManager.outputType')">
+                <a-select v-model:value="modelState.model.outputType" :options="typeOptions"></a-select>
+              </a-form-item>
+            </a-col> -->
+            <a-col :span="6">
+              <a-form-item :label="$t('templateManager.outputType')">
+                <a-input v-model:value="modelState.model.outputType" :options="typeOptions"></a-input>
               </a-form-item>
             </a-col>
           </a-row>

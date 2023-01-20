@@ -59,6 +59,7 @@ export default {
     timeStamp: '时间戳',
     templateEngine: '模板引擎',
     outLang: '输出格式',
+    outputType: '输出类型',
     theme: '主题',
     editTemp: '编辑模板',
     previewTemp: '预览模板（只读）',
