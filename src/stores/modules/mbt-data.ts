@@ -213,9 +213,6 @@ export const MbtData = defineStore({
             schema.description = row.description
             if (_.isArray(row.params) && row.params.length > 0) {
                 let appEndedSchema = generateSchema(row.params)
-                // appEndedSchema = appEndedSchema.filter((a: any) => {
-                //     return Object.keys(a).some((b: any) => a[b].type !== 'condition')
-                // })
                 appEndedSchema.forEach((a: any) => {
                     Object.keys(a).forEach((b: any) => {
                         a[b].custom = 'awParams'
@@ -233,6 +230,7 @@ export const MbtData = defineStore({
                     }
                 })
             }
+            console.log(schema)
             // @ts-ignore
             return this.data2schema(schema, {}, type)
         },
@@ -248,7 +246,7 @@ export const MbtData = defineStore({
                  * condition 类型
                  * 默认其他
                  * */
-                switch (type) {
+                switch (a.type) {
                     case 'SUT': {
                         options = this.getDataPoolResource.map((b: any) => {
                             return {
@@ -262,16 +260,31 @@ export const MbtData = defineStore({
                                 "ui:options": options
                             }
                         }
+                        a.type = 'string'
                         break
                     }
                     case 'condition': {
                         const options = this.getAwParamsOption(type, a.title)
                         if (uiSchema) {
                             uiSchema[a.title] = {
-                                "ui:widget": ConditionItem,
-                                "ui:options": options
+                                "ui:widget": type === '2' ? ConditionItem : InputSelectItem,
+                                "ui:options": options,
+                                "ui:rulesData": [{
+                                    relation: 'AND',
+                                    id: 1,
+                                    conditions: [
+                                        {
+                                            name: '',
+                                            operator: '',
+                                            value: undefined,
+                                            selectvalues: 'AND',
+                                        },
+                                    ],
+                                    children: [],
+                                }]
                             }
                         }
+                        a.type = 'string'
                         break
                     }
                     default: {
@@ -334,10 +347,12 @@ export const MbtData = defineStore({
             if (aw) {
                 options = (aw?.params || []).filter((a: any) => a.name === title)
                 options = options[0]?.enum || []
+                // 枚举值无 type 类型，默认返回 string
                 options = options.map((a: any) => {
                     return {
                         label: a,
-                        value: a
+                        value: a,
+                        type: 'string'
                     }
                 })
             }
@@ -348,12 +363,13 @@ export const MbtData = defineStore({
             // Data Pool 数据
             res.push({
                 label: 'Data Pool',
+                // 目前 dynamic 的数据类型未返回，而 static 和 directly 没有注定类型，默认全返回 string
                 options: this.getDataPoolTableColumns.map((a: any) => {
                     return {
                         value: `{{${a.title}}}`,
                         label: a.title
                     }
-                })
+                }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
             })
             // 返回变量名
             res.push({
@@ -377,7 +393,7 @@ export const MbtData = defineStore({
                 if (schemaVal?.variable) {
                     temp.push({
                         label: schemaVal.variable,
-                        value: schemaVal.variable,
+                        value: `{{{${schemaVal.variable}}}`,
                         type: type ? type : 'string'
                     })
                 }
