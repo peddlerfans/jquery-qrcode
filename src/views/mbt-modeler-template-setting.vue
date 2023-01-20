@@ -206,7 +206,6 @@ onMounted(() => {
                     globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
                   }
                 }
-
               })
             }
           })
