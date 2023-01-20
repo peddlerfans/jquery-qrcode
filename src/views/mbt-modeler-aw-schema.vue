@@ -200,7 +200,7 @@ function showAw (row: any) {
     rulesData.value = _.cloneDeep(defaultAssertData)
     store.setEditingExpectedAw(row, 'aw')
     store.setEditingExpectedAw({}, 'data')
-    showAssert.value = store.hasCondition()
+    // showAssert.value = store.hasCondition()
     let temp: any = store.getExpectedAwSchema
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
@@ -244,10 +244,10 @@ function handleSchemaValue(schemaValue: any) {
 }
 
 function handleChange () {
-  if (!isEmptyPrimarySchema.value) {
+  if (!isEmptyPrimarySchema.value && schemaValue.value) {
     store.setEditingPrimaryAw(handleSchemaValue(schemaValue.value), 'data')
   }
-  if (hasExpected.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
+  if (hasExpected.value && expectedSchemaValue.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')
   store.setDescription(desc.value)
   emit('change')
 }
@@ -293,7 +293,7 @@ function handleData () {
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
-    showAssert.value = false
+    // showAssert.value = store.hasCondition()
   } else if (store.getExpectedAw.isAssert) {
     // assertList.value = store.getAllCustomVar()
     // rulesData.value = store.getExpectedAw.data
