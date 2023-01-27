@@ -380,7 +380,7 @@ export const MbtData = defineStore({
         },
         // 获取当前模型所有带有 变量 属性并有 值 的数据
         // 只有 aw 版本为 version 3.0 以上才支持
-        getAllCustomVar () {
+        getAllCustomVar() {
             const cell = this.getShowData
             if (_.isEmpty(cell)) return []
             let arr = cell.graph.getCells()
