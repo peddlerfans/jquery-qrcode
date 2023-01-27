@@ -31,5 +31,8 @@ export default {
 
     // mbt-preview-modal.vue
     selectTip: '请选择左边节点以展示数据',
-    previewInput: '当前页面有自定义AW，是否输出为文本'
+    previewInput: '当前页面有自定义AW，是否输出为文本',
+
+    // mbt-modeler-template-setting
+    addHyperLinke: '添加引用'
 }

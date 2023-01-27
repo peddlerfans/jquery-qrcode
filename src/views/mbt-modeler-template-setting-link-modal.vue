@@ -2,10 +2,10 @@
   <a-modal
       v-model:visible="props.show"
       :footer="null"
-      title="添加超链接"
+      title="添加引用"
       @cancel="closeModal">
     <a-form :model="linkInfo" :rules="rules" @finish="add">
-      <a-form-item label="超链接名称" name="name" :label-col="{span: 5}">
+      <a-form-item label="引用名称" name="name" :label-col="{span: 5}">
         <a-input v-model:value="linkInfo.name"></a-input>
       </a-form-item>
       <a-form-item label="链接" name="url" :label-col="{span: 5}">

@@ -32,19 +32,39 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         // this.updateRectangles();
     }
 
+    // 带参数的 description 转化为 字符串
+    customVar2str (desc: string, data: any) {
+        const reg = /{{[\s\S]*}}/g
+        const res = desc.match(reg)
+        const varList = res ? res.map((a: string) => a.slice(2, -2)) : []
+        varList.forEach((a: any) => {
+            let reg1 = new RegExp('{{' + a + '}}', 'g')
+            let reStr = data[a] || ''
+            if (reStr) {
+                desc = desc.replace(reg1, reStr)
+            } else {
+                desc = desc.replace(reg1, '')
+            }
+        })
+        return desc
+    }
+
+    getAwDescription () {
+        let primaryDesc: string = this.get('prop')?.custom?.step?.aw?.description || ''
+        let expectedDesc: string = this.get('prop')?.custom?.expectation?.aw?.description || ''
+        let schemaData: any = this.get('prop')?.custom?.step?.data
+        let expectedData: any = this.get('prop')?.custom?.expected?.data
+        return {
+            primaryDesc: this.customVar2str(primaryDesc, schemaData),
+            expectedDesc: this.customVar2str(expectedDesc, expectedData)
+        }
+    }
+
     reRender() {
         const desc = this.get('prop')?.custom?.description
-        let primaryDesc: string
-        let expectedDesc: string
-        if (this.get('prop')?.custom?.step?.aw) {
-            primaryDesc = this.get('prop').custom.step.aw.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
-        } else {
-            primaryDesc = this.get('prop')?.custom?.step?.data?.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.data?.description || ''
-        }
-        // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
-        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+        let primaryDesc: string = this.getAwDescription().primaryDesc
+        let expectedDesc: string = this.getAwDescription().expectedDesc
+        let awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',

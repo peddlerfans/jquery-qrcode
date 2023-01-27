@@ -8,7 +8,7 @@ import {MBTStore} from '@/stores/MBTModel'
 import {getAllTemplatesByCategory} from "@/api/mbt";
 import {message, Modal} from "ant-design-vue";
 import {useI18n} from "vue-i18n";
-import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined,} from '@ant-design/icons-vue'
+import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusCircleOutlined} from '@ant-design/icons-vue'
 import {MbtData} from "@/stores/modules/mbt-data";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import InputTable from "@/components/inputTable.vue"
@@ -30,9 +30,7 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
-
           globalFormData.value = {...store.changeTemplate}
-
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -384,9 +382,6 @@ function addHyperLinke(linkInfo: any) {
     <div class="infoPanel card-container">
       <a-tabs v-model:activeKey="activeKey" type="card">
         <a-tab-pane key="1" tab="Attributes" force-render style="height:550px; overflow: auto;">
-          <div class="btn-wrap" style="text-align: right;">
-            <a-button @click="showLinkModal = true">添加超链接</a-button>
-          </div>
           <div style="padding: 5px" class="attrConfig">
             <VueForm
               v-model="globalFormData"
@@ -395,10 +390,22 @@ function addHyperLinke(linkInfo: any) {
             ></VueForm>
           </div>
           <div class="link-wrap">
-            <div class="title">引用列表：</div>
-            <a-tag>
+            <div class="title">
+              <div>引用列表：</div>
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>{{ t('MBTStore.addHyperLinke') }}</span>
+                </template>
+                <plus-circle-outlined
+                    @click="showLinkModal = true"
+                    class="icon--primary-btn"
+                    style="margin-right: 8px;"
+                ></plus-circle-outlined>
+              </a-tooltip>
+            </div>
+            <a-button></a-button>
+            <a-tag v-show="linkList.length">
               <a
-                  v-show="linkList.length"
                   v-for="(info, idx) in linkList"
                   :key="idx"
                   :href="info.url"
@@ -609,8 +616,13 @@ function addHyperLinke(linkInfo: any) {
   border-color: #141414;
 }
 .link-wrap {
+  position: relative;
+  z-index: 7;
   .title {
+    display: flex;
+    align-items: center;
     line-height: 26px;
+    margin-top: -32px;
   }
 }
 </style>

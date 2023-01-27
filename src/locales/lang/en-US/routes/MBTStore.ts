@@ -34,5 +34,8 @@ export default {
 
     // mbt-preview-modal.vue
     selectTip: 'Please select the left node to display the data',
-    previewInput: 'The current page has custom AW, whether to output as text'
+    previewInput: 'The current page has custom AW, whether to output as text',
+
+    // mbt-modeler-template-setting
+    addHyperLinke: 'Add reference'
 }

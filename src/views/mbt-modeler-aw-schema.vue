@@ -245,6 +245,11 @@ function handleSchemaValue(schemaValue: any) {
 
 function handleChange () {
   if (!isEmptyPrimarySchema.value && schemaValue.value) {
+    Object.keys(schemaValue.value).forEach((a: any) => {
+      if (schemaValue.value[a] === void 0) {
+        schemaValue.value[a] = ''
+      }
+    })
     store.setEditingPrimaryAw(handleSchemaValue(schemaValue.value), 'data')
   }
   if (hasExpected.value && expectedSchemaValue.value) store.setEditingExpectedAw(expectedSchemaValue.value, 'data')

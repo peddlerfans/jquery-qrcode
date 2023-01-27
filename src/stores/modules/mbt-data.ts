@@ -250,7 +250,7 @@ export const MbtData = defineStore({
                     case 'SUT': {
                         options = this.getDataPoolResource.map((b: any) => {
                             return {
-                                value: `{{${b.alias}}}`,
+                                value: `${b.alias}`,
                                 label: b.alias
                             }
                         })
@@ -366,7 +366,7 @@ export const MbtData = defineStore({
                 // 目前 dynamic 的数据类型未返回，而 static 和 directly 没有注定类型，默认全返回 string
                 options: this.getDataPoolTableColumns.map((a: any) => {
                     return {
-                        value: `{{${a.title}}}`,
+                        value: `${a.title}`,
                         label: a.title
                     }
                 }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
