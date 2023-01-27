@@ -20,6 +20,50 @@ const  relations=[{
   label: "OR",
   value:"OR"
 }]
+
+const allOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<',
+    label: '<',
+  },
+  {
+    value: '>',
+    label: '>',
+  },
+  {
+    value: '<=',
+    label: '<=',
+  },
+  {
+    value: '>=',
+    label: '>=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  },
+  {
+    value: 'LIKE',
+    label: 'LIKE',
+  },
+  {
+    value: 'includes',
+    label: 'includes',
+  },
+  {
+    value: 'indexOf',
+    label: 'indexOf'
+  }
+]
+
 // 条件判断中的比较符号
 const stringOptions = [
   {
@@ -227,12 +271,11 @@ const checkrelation=(obj:any)=>{
   }
 }
 
-function optOption (item: any) {
-  const tar = props.formDatas.map((a: any) => a.options).flat().filter((a: any) => a.value === item.name)[0]
-  if (!tar) return stringOptions
-  return getTypeOption(tar.type)
-
-}
+// function optOption (item: any) {
+//   const tar = props.formDatas.map((a: any) => a.options).flat().filter((a: any) => a.value === item.name)[0]
+//   if (!tar) return stringOptions
+//   return getTypeOption(tar.type)
+// }
 
 </script>
 
@@ -261,7 +304,7 @@ function optOption (item: any) {
               class="condition"
               v-model:value="item.operator"
               @change="rulesChange"
-              :options="optOption(item)"
+              :options="allOptions"
               size="small"
               placeholder="operator"
             ></a-select>

@@ -31,6 +31,7 @@ watch(() => props.showMetaInfo, (val) => {
     tempschema = ref(props.schema);
     uiSchema = ref({})
     metatemplatedetailtableData.value = props.metatemplatedetailtableData
+    debugger
     setSchema(tempschema.value, uiSchema.value)
   }
 })
