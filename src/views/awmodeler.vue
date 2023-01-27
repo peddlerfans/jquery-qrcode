@@ -64,12 +64,43 @@ let searchobj: tableSearch = reactive({
   total: 0
 })
 
+const returnTypeOptions = [
+  {
+    value: 'str',
+    label: 'str',
+  },
+  {
+    value: 'float',
+    label: 'float',
+  },
+  {
+    value: 'boolean',
+    label: 'boolean',
+  },
+  {
+    value: 'number',
+    label: 'number',
+  },
+  {
+    value: 'array',
+    label: 'array'
+  },
+  {
+    value: 'int',
+    label: 'int',
+  },
+  {
+    value: 'SUT',
+    label:'SUT'
+  }
+]
+
 // paramas table
 let awParamsTable = ref<any>(null)
 const AWParamsColumn = [
   { title: "name", width: 280, link: 'custom' },
   { title: "description", width: 100 },
-  { title: "type", width: 60, option: '1' },
+  { title: "type", width: 60, option: '3' },
   { title: "enum", width: 100 },
   { title: "default", width: 100 },
   {
@@ -282,24 +313,12 @@ const handleClose = (removedTag: string) => {
   states.tags = tags;
 };
 
-const handleReturnClose = (removedTag: string) => {
-  const tags = modelstates.value.returnType.filter((tag: string) => tag !== removedTag);
-  modelstates.value.returnType = tags;
-};
-
 const showInput = () => {
   states.inputVisible = true;
   nextTick(() => {
     inputRef.value.focus();
   })
 };
-const showreturnInput = () => {
-  returnVisibal.value = true;
-  nextTick(() => {
-    returnRef.value.focus();
-  })
-};
-
 const handleInputConfirm = () => {
   let tags = states.tags;
   if (states.inputValue && tags.indexOf(states.inputValue) === -1) {
@@ -311,16 +330,6 @@ const handleInputConfirm = () => {
     inputValue: '',
   });
   modelstates.value.tags = [...states.tags]
-}
-
-const handleReturnConfirm = () => {
-  let tags = modelstates.value.returnType;
-  if (returnInput.value && tags.indexOf(returnInput.value) === -1) {
-    modelstates.value.returnType = [...tags, returnInput.value.toUpperCase()];
-  }
-
-  returnInput.value = '',
-  returnVisibal.value = false
 }
 
 // 删除功能
@@ -978,32 +987,11 @@ function handleSearch (keyword: string) {
                   </a-tag>
                 </a-form-item>
                 <a-form-item :label="$t('component.table.returnType')" name="returnType">
-                  <template v-for="tag in modelstates.returnType" :key="tag">
-                    <a-tooltip v-if="tag.length > 20" :title="tag">
-                      <a-tag :closable="true" @close="handleReturnClose(tag)">
-                        {{ `${tag.slice(0, 20)}...` }}
-                      </a-tag>
-                    </a-tooltip>
-                    <a-tag v-else-if="tag.length==0"></a-tag>
-                    <a-tag v-else :closable="true" @close="handleReturnClose(tag)">
-                      {{tag}}
-                    </a-tag>
-                  </template>
-                  <a-input
-                      v-if="returnVisibal"
-                      ref="returnRef"
-                      v-model:value="returnInput"
-                      type="text"
-                      size="small"
-                      :style="{ width: '78px' }"
-                      @blur="handleReturnConfirm"
-                      @keyup.enter="handleReturnConfirm"
-                  />
-                  <a-tag v-else style="background: #fff; border-style: dashed"
-                         @click="showreturnInput">
-                    <plus-outlined />
-                    {{ $t('common.newTag') }}
-                  </a-tag>
+                  <a-select
+                      v-model:value="modelstates.returnType"
+                      :options="returnTypeOptions"
+                      style="width: 120px;"
+                  ></a-select>
                 </a-form-item>
                 <a-form-item
                     :label="$t('component.table.params')"
