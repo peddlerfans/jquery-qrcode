@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {ref, watch} from "vue";
+import {onMounted, reactive, ref, watch} from "vue";
 import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
@@ -15,6 +15,7 @@ let tableData = ref<any>([])
 let tableCol = ref<any>([])
 let script = ref<string>('')
 let previewTree = ref()
+let activeKey = ref('1')
 const route = useRoute()
 
 interface Props {
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   previewData: {},
   outLang: ''
 })
+
 
 function handleTableCol () {
   let temp: any = props.previewData[0]
@@ -52,10 +54,35 @@ watch(() => props.visible, value => {
     }
     // 处理详情表头数据
     handleTableCol()
+    tableData.value = props.previewData
+    script.value = props.previewData[0].script
   } else {
     tableData.value = []
     tableCol.value = []
     script.value = ''
+  }
+})
+
+// 分页数据
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  pageSizeOptions: ['10', '20', '50', '100', '200'],
+  showSizeChanger: true,
+  showQuickJumper: true,
+  showTotal: (total: any, range: any[]) => t('component.table.pageTip', {
+    head: range[0],
+    tail: range[1],
+    total: total
+  }),
+  onShowSizeChange: (page: any, pageSize: any) => {
+    pagination.current = page
+    pagination.pageSize = pageSize
+  },
+  onChange: (page: number, pageSize: number) => {
+    pagination.current = page
+    pagination.pageSize = pageSize
   }
 })
 
@@ -66,6 +93,8 @@ function cancelPreview () {
 }
 
 function selectTreeNode(selectedKeys: any, info: any) {
+  console.log(info.node.dataRef);
+  
   tableData.value.length = 0
   tableData.value.push(info.node.dataRef)
   script.value = info.node.script
@@ -122,6 +151,8 @@ async function exportData() {
   }).then(blob => {
     saveAs(blob, `zfText.zip`)
   })
+
+  
 }
 
 </script>
@@ -136,7 +167,7 @@ async function exportData() {
            centered
            class="previewModel"
            @cancel="cancelPreview">
-    <div class="preview-wrap">
+    <!-- <div class="preview-wrap">
       <div class="left-tree">
         <a-tree
             ref="previewTree"
@@ -178,7 +209,39 @@ async function exportData() {
           <div>{{ $t('MBTStore.selectTip') }}</div>
         </template>
       </div>
-    </div>
+    </div> -->
+      <div class="preview-wrap">
+      <a-tabs v-model:activeKey="activeKey" type="card" style="width:100%">
+        <a-tab-pane key="1" tab="text">
+          <!-- <template v-if="tableData.length"> -->
+            <div class="top" style="width: 100%; overflow-x: hidden ;height:100%" >
+            <ATable
+                
+                class="previewText"
+                :data-source="tableData"
+                :columns="tableCol"
+                :pagination="pagination">
+              <template #bodyCell="{text}">
+                <div style="white-space: pre;">{{ text }}</div>
+              </template>
+            </ATable>
+          </div>
+          <!-- </template> -->
+          
+        </a-tab-pane>
+        <a-tab-pane key="2" tab="script" style="height:500px">
+          <VAceEditor
+                v-model:value="script"
+                class="ace-result"
+                :wrap="true"
+                :readonly="true"
+                :lang="props.outLang"
+                theme="sqlserver"
+                :options="{ useWorker: true }"
+            ></VAceEditor>
+        </a-tab-pane>
+      </a-tabs>
+      </div>
     <div class="btn-wrap" slot="footer">
       <a-divider></a-divider>
       <div class="btn-list">
@@ -194,9 +257,13 @@ async function exportData() {
 .ant-table-cell {
   white-space: pre;
 }
+
 .preview-wrap {
   display: flex;
   height: 94%;
+  .ant-tabs > .ant-tabs-content-holder > .ant-tabs-content {
+  height: 100%!important;
+}
   .left-tree {
     height: 110vh;
     overflow: auto;
@@ -211,6 +278,7 @@ async function exportData() {
     flex-direction: column;
     .previewText{
       width: 100%;
+      height: 100%;
     }
     .bottom {
       flex: 1;
