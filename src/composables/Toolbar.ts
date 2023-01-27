@@ -32,11 +32,11 @@ export class ToolbarService {
                 'zoom': { index: 8 },
                 'grid': { index: 9, default: 10 },
                 'snapline': { index: 10 },
-                'save': { index: 11 },
-                'preview' : { index: 12 },
-                'reload' :{ index: 13 },
-                'chooseTem' :{ index: 14 },
-                'closeMbt': {index: 15}
+                'save': { index: 13 },
+                'preview': { index: 14 },
+                'reload': { index: 12 },
+                'chooseTem': { index: 11 },
+                'closeMbt': { index: 15 }
             },
 
             tools: [

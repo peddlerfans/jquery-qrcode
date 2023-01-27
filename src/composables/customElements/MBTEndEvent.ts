@@ -71,7 +71,7 @@ export class MBTEndEvent extends joint.shapes.bpmn2.Event implements MBTShapeInt
     return {
       inputs: {
         attrs: {
-          circle: {
+          background: {
             fill: {
               type: 'color-palette',
               options: options.colorPalette,
