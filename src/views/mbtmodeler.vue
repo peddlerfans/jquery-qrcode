@@ -781,8 +781,8 @@ const inspector = (n:number) =>{
       flex: 1;
       font-size: 18px;
       border: 1px solid;
-      height: 72%;
-      width:31.25rem
+      height: 100%;
+      width: 100%
       }
 
     }

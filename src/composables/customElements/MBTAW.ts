@@ -23,11 +23,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({ 'icon': 'user' })
-        this.attr({
-            'label': {
-                text: ''
-            }
-        })
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
@@ -53,10 +48,12 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            'content': labelDesc
+            'content': labelDesc,
+
         })
-        this.attr({ 'label': { text: labelDesc, fontSize: 16 } })
-        if (this.get('attrs')?.label?.text) {
+        this.prop('attrs/.content', { html: labelDesc, text: labelDesc })
+        if (this.get('content')) {
+            // debugger
             this.set({ size: { width: 200, height: 80 } })
         }
     }
@@ -217,49 +214,53 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         return {
             inputs: {
                 attrs: {
-                    label: {
+                    '.content': {
                         text: {
                             type: 'content-editable',
                             label: 'Text',
                             group: 'text',
                             index: 1
                         },
-                        fontSize: {
-                            type: 'range',
-                            min: 5,
-                            max: 80,
-                            unit: 'px',
-                            label: 'Font size',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 2
+                        style: {
+                            fontSize: {
+                                type: 'range',
+                                min: 5,
+                                max: 80,
+                                unit: 'px',
+                                label: 'Font size',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 2
+                            },
+                            fontFamily: {
+                                type: 'select-box',
+                                options: options.fontFamily,
+                                label: 'Font family',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 3
+                            },
+                            fontWeight: {
+                                type: 'select-box',
+                                options: options.fontWeight,
+                                label: 'Font thickness',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 4
+                            },
+                            color: {
+                                type: 'color-palette',
+                                options: options.colorPalette,
+                                label: 'Fill',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 5
+                            }
                         },
-                        fontFamily: {
-                            type: 'select-box',
-                            options: options.fontFamily,
-                            label: 'Font family',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 3
-                        },
-                        fontWeight: {
-                            type: 'select-box',
-                            options: options.fontWeight,
-                            label: 'Font thickness',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 4
-                        },
-                        fill: {
-                            type: 'color-palette',
-                            options: options.colorPalette,
-                            label: 'Fill',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 5
-                        }
+
+
                     },
-                    body: {
+                    '.body': {
                         fill: {
                             type: 'color-palette',
                             options: options.colorPalette,
