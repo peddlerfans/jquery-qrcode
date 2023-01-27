@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 function handleChange (e: any) {
   selectVal.value = []
-  emit('update:modelValue', e.pop())
+  emit('update:modelValue', text.value + e.pop())
 }
 
 function handleBlur (){
