@@ -67,6 +67,7 @@ let modelState = reactive<Model>({
   model: {
     templateEngine: "ejs",
     outputLanguage: "python",
+    outputType: "",
     data: "",
     history: []
   },
@@ -138,6 +139,16 @@ const langOptions = ref<SelectProps['options']>([
   {
     value: 'javascript',
     label: 'JavaScript',
+  }
+]);
+const typeOptions = ref<SelectProps['options']>([
+  {
+    value: 'default',
+    label: 'default',
+  },
+  {
+    value: 'testsuite',
+    label: 'testsuite',
   }
 ]);
 const themeOptions = ref<SelectProps['options']>([
@@ -390,6 +401,11 @@ const softwrap=true
                 <a-select v-model:value="states.theme" :options="themeOptions"></a-select>
               </a-form-item>
             </a-col>
+            <a-col :span="6">
+              <a-form-item :label="$t('templateManager.outputType')">
+                <a-select v-model:value="modelState.model.outputType" :options="typeOptions"></a-select>
+              </a-form-item>
+            </a-col>            
           </a-row>
         </a-form>
       </header>

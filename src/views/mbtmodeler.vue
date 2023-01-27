@@ -314,7 +314,6 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
-
           previewErr.value = true
         }
         break
@@ -424,7 +423,6 @@ function reload(){
               pathNameData.push(awQueryByPath(aw.name, aw.path))
           }
         }
-
 
       }
     })
@@ -649,7 +647,6 @@ const onDrag = throttle(function (e: MouseEvent) {
 function closePreviewModal() {
   visiblepreciew.value = false
 }
-
 let data = ref()
 let style = ref()
 
