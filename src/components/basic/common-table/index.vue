@@ -204,7 +204,8 @@ const handleColumn = (obj: any) => {
     key: obj.title,
     width: obj.width,
     link: obj.link ? obj.link : '',
-    require: !!obj.require
+    require: !!obj.require,
+    regs: obj.regs || []
   }
   if (obj.title === 'action') temp.actionList = obj.actionList || []
   return temp
@@ -253,9 +254,13 @@ const descriptionValidate = [
 
 const getRuleData = () => {
   let temp: any = {}
-  if (columns.value.some((a: any) => a.title === 'name' && a.require))
+  const nameRow = columns.value.filter((a: any) => a.title === 'name')[0]
+  const descRow = columns.value.filter((a: any) => a.title === 'description')[0]
+  if (nameRow && nameRow.require) {
     temp.name = nameValidate
-  if (columns.value.some((a: any) => a.title === 'description' && a.require))
+    if (nameRow.regs.length) nameRow.regs.forEach((a: any) => temp.name.push(a))
+  }
+  if (descRow && descRow.require)
     temp.description = descriptionValidate
   return temp
 }

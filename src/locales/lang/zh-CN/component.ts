@@ -89,7 +89,8 @@ export default {
     cantUpItem: '已经处于置顶，无法上移',
     cantDownItem: '已经处于置底，无法下移',
 
-    tableEditingWarn: '表格中的数据正在编辑，请先保存它'
+    tableEditingWarn: '表格中的数据正在编辑，请先保存它',
+    varNameCheck: '名称不合法，只允许含有下划线、数字、字母，且开头不能是数字'
   },
 
   route: {

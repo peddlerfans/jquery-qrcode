@@ -89,6 +89,10 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         temp.expectation = storeAw.getExpectedAw || {}
         temp.step = storeAw.getPrimaryAw || {}
         this.prop('prop/custom', temp)
+        // 不知道 jointjs 有什么毛病，引用数据不能赋值，还得加下面两句
+        const hasArray = temp?.step?.data
+        const array = temp?.step?.data?.array || []
+        if (hasArray && hasArray.hasOwnProperty('array')) this.prop('prop/custom/step/data/array', array)
         this.reRender()
         fitAncestors(this)
     }

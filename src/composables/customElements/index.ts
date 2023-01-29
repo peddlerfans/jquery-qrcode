@@ -1,5 +1,6 @@
 import { MBTLink } from './MBTLink';
 import { MBTGroup } from './MBTGroup';
+import { MBTIfGroup } from "@/composables/customElements/MBTIfGroup";
 import { MBTSection } from './MBTSection';
 import { MBTStartEvent } from './MBTStartEvent';
 import { MBTEndEvent } from './MBTEndEvent';
@@ -10,10 +11,9 @@ import { MBTAW } from './MBTAW';
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 const { dia, g } = joint
 
-
-
 export { MBTAW, namespace as NS_MBTAW } from './MBTAW';
 export { MBTGroup, namespace as NS_MBTGroup } from './MBTGroup';
+export { MBTIfGroup, namespace as NS_MBTIfGroup } from './MBTIfGroup';
 export { MBTSection, namespace as NS_MBTSection } from './MBTSection';
 export { MBTStartEvent, namespace as NS_StartEvent } from './MBTStartEvent';
 export { MBTEndEvent, namespace as NS_EndEvent } from './MBTEndEvent';
@@ -29,7 +29,7 @@ export function getShapesNamespace() {
   let customShapes: any = {};
 
   Object.assign(joint.shapes, { 'itea': { 'mbt': { 'test': customShapes } } });
-  for (let shape of [MBTAW, MBTGroup, MBTSection, MBTStartEvent, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTLink]) {
+  for (let shape of [MBTAW, MBTGroup, MBTIfGroup, MBTSection, MBTStartEvent, MBTEndEvent, MBTExclusiveGateway, MBTParallelGateway, MBTLink]) {
     customShapes[shape.shapeName] = shape;
 
   }

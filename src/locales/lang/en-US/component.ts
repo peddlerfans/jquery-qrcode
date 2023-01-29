@@ -82,7 +82,8 @@ export default {
     cantUpItem: 'Already at the top, unable to move up',
     cantDownItem: 'already at the bottom, unable to move down',
 
-    tableEditingWarn: 'The data in the table is being edited, please save it first'
+    tableEditingWarn: 'The data in the table is being edited, please save it first',
+    varNameCheck: 'The name is illegal, only underscores, numbers, letters are allowed, and the beginning cannot be a number.'
   },
 
   route: {

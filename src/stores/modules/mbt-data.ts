@@ -3,6 +3,8 @@ import _ from "lodash";
 import { generateSchema } from "@/utils/jsonschemaform";
 import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue";
 import ConditionItem from '@/components/basic/itea-schema-item/condition-item.vue'
+import MultipleSelectItem from '@/components/basic/itea-schema-item/multiple-select-item.vue'
+import CustomInput from '@/components/basic/itea-schema-item/custom-input.vue'
 
 const defaultAWSchema = {
     title: "AW",
@@ -166,32 +168,8 @@ export const MbtData = defineStore({
             let enums = temp.enum
             return !enums.includes(val)
         },
-        setExpectedTableRow(row: any) {
-            this.expectedTableRow = row
-        },
         setDataDefinition(data: any) {
             this.allData.dataDefinition.data = data
-        },
-        setLinkData(data: any, key: string) {
-            if (!key) this.LinkData = data
-            else {
-                // @ts-ignore
-                this.LinkData[key] = data
-            }
-        },
-        setGroupData(data: any, key?: string) {
-            if (!key) this.groupData = data
-            else {
-                // @ts-ignore
-                this.groupData[key] = data
-            }
-        },
-        setSectionData(data: any, key?: string) {
-            if (!key) this.sectionData = data
-            else {
-                // @ts-ignore
-                this.sectionData[key] = data
-            }
         },
         resetEditingExpectedAw() {
             this.showData = {}
@@ -226,11 +204,11 @@ export const MbtData = defineStore({
                 Object.assign(schema.properties, {
                     variable: {
                         title: '返回变量名',
-                        type: 'string'
+                        type: 'var',
+                        custom: 'awParams'
                     }
                 })
             }
-            console.log(schema)
             // @ts-ignore
             return this.data2schema(schema, {}, type)
         },
@@ -247,6 +225,16 @@ export const MbtData = defineStore({
                  * 默认其他
                  * */
                 switch (a.type) {
+                    case 'array': {
+                        const options = this.getAwParamsOption(type, a.title)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": MultipleSelectItem,
+                                "ui:options": options,
+                            }
+                        }
+                        break
+                    }
                     case 'SUT': {
                         options = this.getDataPoolResource.map((b: any) => {
                             return {
@@ -287,6 +275,15 @@ export const MbtData = defineStore({
                         a.type = 'string'
                         break
                     }
+                    case 'var': {
+                        if (uiSchema) {
+                            uiSchema['variable'] = {
+                                "ui:widget": CustomInput
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
                     default: {
                         options = this.getAwParamsOption(type, a.title)
                         if (uiSchema) {
@@ -309,6 +306,8 @@ export const MbtData = defineStore({
                     }
                 }
             })
+            console.log(awSchema);
+            console.log(uiSchema)
             return {
                 schema: awSchema,
                 uiSchema
@@ -319,7 +318,7 @@ export const MbtData = defineStore({
             let arr: any = []
             for (let key in awSchema.properties) {
                 const tar = awSchema.properties[key]
-                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
+                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
                     arr.push(tar)
                 }
             }
