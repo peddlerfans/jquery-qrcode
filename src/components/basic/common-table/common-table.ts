@@ -79,6 +79,10 @@ export const typeOptions3 = ref<SelectProps['options']>([
         label: 'int',
     },
     {
+        value: 'array',
+        label: 'array'
+    },
+    {
         value: 'SUT',
         label:'SUT'
     },

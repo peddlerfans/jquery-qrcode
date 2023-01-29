@@ -8,11 +8,12 @@ import {MBTStore} from '@/stores/MBTModel'
 import {getAllTemplatesByCategory} from "@/api/mbt";
 import {message, Modal} from "ant-design-vue";
 import {useI18n} from "vue-i18n";
-import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusCircleOutlined} from '@ant-design/icons-vue'
+import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusCircleOutlined, CloseOutlined} from '@ant-design/icons-vue'
 import {MbtData} from "@/stores/modules/mbt-data";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import InputTable from "@/components/inputTable.vue"
 import MbtModelerTemplateSettingLinkModal from "@/views/mbt-modeler-template-setting-link-modal.vue";
+import {useRoute} from "vue-router";
 
 interface Props {
   show: boolean
@@ -23,6 +24,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits(['close'])
 const { t } = useI18n()
+let route = useRoute()
+const updateInfo = ref<any>(null)
+const index = ref<number>(-1)
 
 watch(
     () => props.show,
@@ -280,7 +284,7 @@ function dataPoolChange(data: any) {
 }
 
 function exportMeta() {
-  const props = store.getMeta?.schema?.properties
+  const details = store.getMeta?.detail
   const data: any = store.getMeta.data
   if (!props || _.isEmpty(props)) return message.warning('暂无数据')
   const cols = [
@@ -291,27 +295,24 @@ function exportMeta() {
     {
       title: '值',
       key: 'value'
-    },
-    {
-      title: '输入类型',
-      key: 'type'
     }
   ]
-  const arr = Object.keys(props).map((a: any) => {
-    const val = data[a]
+  const arr = details.map((a: any) => {
+    let val = data[a.name]
     return {
-      name: a,
-      type: val && val.type === '2' ? '自定义输入' : '选项输入',
-      value: val && val.val ? val.val : ''
+      name: a.name,
+      value: val || ''
     }
   })
-  exportFile(cols, arr)
+  const title = route.params?.name + '-meta'
+  exportFile(cols, arr, title)
 }
 
 function exportDataPool() {
   const dataPool = store.getDataPool
   if (!dataPool) return message.warning('暂无数据')
-  exportFile(dataPool.tableColumns, dataPool.tableData)
+  const title = route.params?.name + '-dataPool'
+  exportFile(dataPool.tableColumns, dataPool.tableData, title)
 }
 
 function exportResource() {
@@ -322,7 +323,8 @@ function exportResource() {
       title: key
     }
   })
-  exportFile(cols, resource)
+  const title = route.params?.name + '-resource'
+  exportFile(cols, resource, title)
 }
 
 function exportData() {
@@ -369,6 +371,22 @@ function addHyperLinke(linkInfo: any) {
   linkList.value.push(linkInfo)
 }
 
+function removeLink(info: any, idx: number) {
+  linkList.value.splice(idx, 1)
+}
+
+function editLink(info: any, idx: number) {
+  updateInfo.value = info
+  index.value = idx
+  showLinkModal.value = true
+}
+
+function updateLink(data: any) {
+  linkList.value[data.index] = data.info
+  updateInfo.value = null
+  index.value = -1
+}
+
 </script>
 
 <template>
@@ -403,16 +421,18 @@ function addHyperLinke(linkInfo: any) {
                 ></plus-circle-outlined>
               </a-tooltip>
             </div>
-            <a-button></a-button>
-            <a-tag v-show="linkList.length">
-              <a
+            <div v-show="addHyperLinke.length" class="link-list-wrap">
+              <div
+                  class="link-item"
                   v-for="(info, idx) in linkList"
-                  :key="idx"
-                  :href="info.url"
-                  target="_blank">
-                <a-button type="link">{{ info.name }}</a-button>
-              </a>
-            </a-tag>
+                  :key="idx">
+                <a :href="info.url" target="_blank">{{ info.name }}</a>
+                <div class="btn-wrap">
+                  <edit-outlined class="edit-icon" @click="editLink(info, idx)"></edit-outlined>
+                  <close-outlined class="remove-icon" @click="removeLink(info, idx)"></close-outlined>
+                </div>
+              </div>
+            </div>
           </div>
         </a-tab-pane>
         <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative; overflow: auto;">
@@ -558,6 +578,9 @@ function addHyperLinke(linkInfo: any) {
       :show="showLinkModal"
       @close="showLinkModal = false"
       @add="addHyperLinke"
+      @update="updateLink"
+      :info="updateInfo"
+      :info-index="index"
   ></mbt-modeler-template-setting-link-modal>
 </template>
 
@@ -623,6 +646,37 @@ function addHyperLinke(linkInfo: any) {
     align-items: center;
     line-height: 26px;
     margin-top: -32px;
+  }
+  .link-list-wrap {
+    display: flex;
+    .link-item {
+      width: 50%;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin: 4px 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      &:hover {
+        background-color: #ccc;
+        .btn-wrap {
+          visibility: visible;
+        }
+      }
+      .btn-wrap {
+        visibility: hidden;
+        .remove-icon, .edit-icon {
+          padding: 4px 6px;
+        }
+        .remove-icon {
+          color: #db5254;
+        }
+        .edit-icon {
+          color: #3e85c7;
+        }
+      }
+    }
   }
 }
 </style>

@@ -16,9 +16,7 @@
 import * as _ from "lodash";
 
 const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
-
   let outputArr: any[] = [];
-
   inputArr.forEach((mod: any) => {
     // let keyname = mod.name;
     let typeinschema = "";
@@ -44,6 +42,9 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
         break;
       case 'condition':
         typeinschema = 'condition'
+        break
+      case 'array':
+        typeinschema = 'array'
         break
       default:
         break;

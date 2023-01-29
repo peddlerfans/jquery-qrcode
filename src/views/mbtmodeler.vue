@@ -73,7 +73,6 @@ function closeTemplateModel() {
 
 // 依据uiSchema更新data数据
 function newData(aw: any, data?: any) {
-  // debugger
   let newdata:any = {}
   if (_.isEmpty(aw)) {
     newdata = {}
@@ -144,7 +143,6 @@ function transformCells(mbtData:any){
 }
 
  function getProperty(cell: any, mbtData: any) {
-  // debugger
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
@@ -556,39 +554,37 @@ async function querycode(show?: boolean) {
   }).finally(() => spinning.value = false)
   
 }
-const preview= (show?:boolean)=>{
+const preview= async (show?:boolean) => {
 
     if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
-    rappid.graph.getCells().forEach(async (item: any) =>{
-      // debugger
-      if(item.attributes.type == 'itea.mbt.test.MBTAW'){
-          if(_.isEmpty(item.get('prop').custom.step.aw)){
-            Modal.confirm({
-            icon: createVNode(ExclamationCircleOutlined),
-            content: t("MBTStore.previewInput"),
-            onOk() {
-              return new Promise<void>(async (resolve, reject) => {
-                resolve()
-                searchPreview.mode="text"
-                await querycode(show)
-              }).catch(() => console.log('Oops errors!'));
-            },
-            onCancel() {
 
-            },
-          });
-
-        }else{
-          searchPreview.mode="all"
-          await querycode(show)
-        }
-      }
+    const flag = rappid.graph.getCells().some((item) => {
+      if (item.attributes.type == 'itea.mbt.test.MBTAW') {
+        return _.isEmpty(item.get('prop').custom.step.aw)
+      } else return false
     })
 
-
+  if (flag) {
+    Modal.confirm({
+      icon: createVNode(ExclamationCircleOutlined),
+      content: t("MBTStore.previewInput"),
+      onOk() {
+        return new Promise<void>(async (resolve, reject) => {
+          resolve()
+          searchPreview.mode = "text"
+          await querycode(show)
+        }).catch(() => console.log('Oops errors!'));
+      },
+      onCancel() {
+      },
+    })
+  } else {
+    searchPreview.mode = "all"
+    await querycode(show)
+  }
 }
 
 function handleChange(str: string, data: any) {
@@ -603,7 +599,10 @@ function handleChange(str: string, data: any) {
       break
     }
     case 'itea.mbt.test.MBTGroup': {
-      data.type = data.condition ? 'condition' : 'loop'
+      storeAw.getShowData?.setPropertiesData(data)
+      break
+    }
+    case 'itea.mbt.test.MBTIfGroup': {
       storeAw.getShowData?.setPropertiesData(data)
       break
     }
@@ -629,7 +628,6 @@ const onDrag = throttle(function (e: MouseEvent) {
   
 }, 20);
   const startDrag = (e: MouseEvent) => {
-    // debugger
     startX = e.clientX;
     scalableLeft.value && (startWidth = parseInt(window.getComputedStyle(scalableLeft.value).width, 10));
     document.documentElement.style.userSelect = 'none';

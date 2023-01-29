@@ -193,9 +193,6 @@ function showAw (row: any) {
     primaryUiSchema.value = temp.uiSchema
     schemaValue.value = {}
   } else if (selectAwTar === '2') {
-    // 清空断言信息
-    // store.setEditingExpectedAw(false, 'isAssert')
-    // store.setEditingExpectedAw('', 'assertDesc')
     assertList.value = []
     rulesData.value = _.cloneDeep(defaultAssertData)
     store.setEditingExpectedAw(row, 'aw')
@@ -276,7 +273,7 @@ function handleData () {
     let temp: any = store.getPrimaryAwSchema
     schema.value = temp.schema
     primaryUiSchema.value = temp.uiSchema
-    schemaValue.value = store.getPrimaryAwSchemaValue
+    schemaValue.value = _.cloneDeep(store.getPrimaryAwSchemaValue)
   } else {
     initPrimarySchema()
   }
@@ -298,12 +295,7 @@ function handleData () {
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
-    // showAssert.value = store.hasCondition()
   } else if (store.getExpectedAw.isAssert) {
-    // assertList.value = store.getAllCustomVar()
-    // rulesData.value = store.getExpectedAw.data
-    // assertDesc.value = store.getExpectedAw.assertDesc || ''
-    // showAssert.value = store.hasCondition
   } else {
     initExpectedSchema()
   }
@@ -318,51 +310,6 @@ function rulesChange() {
   store.setEditingExpectedAw(true, 'isAssert')
   emit('change')
 }
-
-// function assertInputChange() {
-//   store.setEditingExpectedAw(assertDesc.value, 'assertDesc')
-//   emit('change')
-// }
-
-// function clearAssert() {
-//   assertDesc.value = ''
-//   rulesData.value = _.cloneDeep(defaultAssertData)
-//   store.setEditingExpectedAw('', 'assertDesc')
-//   store.setEditingExpectedAw(false, 'isAssert')
-//   store.setEditingExpectedAw(null, 'data')
-//   emit('change')
-//   showAssert.value = false
-// }
-
-/**
- * 显示断言条件：
- * 1、primaryAw存在
- * 2、ExpectedAw未设置
- * 3、模型有PrimaryAw设置了变量
- * */
-// function addAssert() {
-//   if (showAssert.value) return
-//   assertList.value = store.getAllCustomVar()
-//   if (assertList.value.length) {
-//     expectedSchema.value = {}
-//     expectedUiSchema.value = {}
-//     expectedSchemaValue.value = {}
-//     store.setEditingExpectedAw({
-//       data: _.cloneDeep(defaultAssertData),
-//       schema: null,
-//       uiParams: null,
-//       aw: null,
-//       isAssert: true,
-//       assertDesc: ''
-//     })
-//     // assertDesc.value = ''
-//     rulesData.value = _.cloneDeep(defaultAssertData)
-//     showAssert.value = true
-//     emit('change')
-//   } else {
-//     message.warning(t('MBTStore.assertTip'))
-//   }
-// }
 
 defineExpose({
   initSchema,

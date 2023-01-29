@@ -229,7 +229,6 @@ watch(
         if (data.value.label == 'name == undefined ') {          
           data.value.label = ''
         }
-        
       }
     }
   },
@@ -261,16 +260,14 @@ function handleData() {
   }
   schemaData.value = el.getPropertiesSchema()
   data.value = el.getPropertiesData()
+
   if(data.value.rulesData) {
-    if(data.value.rulesData.length == 0){
-    data.value.rulesData = [rulesDataDefaultItem]
+    if (data.value.rulesData.length == 0) {
+      data.value.rulesData = [rulesDataDefaultItem]
+    }
+    rulesData.value = data.value.rulesData
   }
-  rulesData.value = data.value.rulesData  
-  }
-  if(formDatas.value.length == 0){
-    showCondition.value = false
-  }
-  
+  showCondition.value = formDatas.value.length > 0
   show.value = true
 }
 
@@ -295,6 +292,10 @@ function handleShowData () {
       break
     }
     case 'itea.mbt.test.MBTGroup': {
+      handleData()
+      break
+    }
+    case 'itea.mbt.test.MBTIfGroup': {
       handleData()
       break
     }

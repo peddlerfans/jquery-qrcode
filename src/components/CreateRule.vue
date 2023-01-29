@@ -414,6 +414,11 @@ const checkrelation=(obj:any)=>{
         border-top-left-radius: 5px; 
         border-bottom-left-radius: 5px; 
         position: relative;
+      &:hover {
+        .loop-childs > button{
+          visibility: visible;
+        }
+      }
     // & :nth-child(3){
     //     background-color: gray;
     // }
@@ -467,10 +472,6 @@ const checkrelation=(obj:any)=>{
                 // padding:0.28em;
                 margin-right:0.5em;
                 visibility: hidden;
-            }
-
-            &:hover button{
-                visibility: visible;
             }
     }
 </style>
