@@ -15,7 +15,8 @@ interface IElementType {
 
 interface codegen {
   codegen_text: string
-  codegen_script: string
+  codegen_script: string,
+  hyperLinks?: any
 }
 interface dataDafinition {
   data: data
@@ -57,7 +58,8 @@ export const MBTStore = defineStore('mbtmodel', {
       mbtData: {
         attributes: {
           codegen_script: '',
-          codegen_text: ''
+          codegen_text: '',
+          hyperLinks: []
         },
         dataDefinition: {
           data: {
@@ -98,7 +100,8 @@ export const MBTStore = defineStore('mbtmodel', {
         name: '',
         description: '',
         codegen_script: '',
-        codegen_text: ''
+        codegen_text: '',
+        hyperLinks: []
       }
       //  return state.mbtData._id
       if (state.mbtData._id.length > 0) {
@@ -111,6 +114,7 @@ export const MBTStore = defineStore('mbtmodel', {
           state.mbtData.attributes.codegen_script.length > 0) {
           obj.codegen_script = state.mbtData.attributes.codegen_script
           obj.codegen_text = state.mbtData.attributes.codegen_text
+          obj.hyperLinks = state.mbtData.attributes.hyperLinks
         }
         return obj;
       }
@@ -152,7 +156,7 @@ export const MBTStore = defineStore('mbtmodel', {
 
     },
     // 添加attributes的函数
-    saveattr(data: any) {
+    saveattr(data: any, linkList: Array<any>) {
       this.mbtData._id = data?._id
       this.mbtData.name = data?.name
       this.mbtData.description = data?.description
@@ -160,17 +164,18 @@ export const MBTStore = defineStore('mbtmodel', {
         if (data?.codegen_text && data?.codegen_script) {
           this.mbtData.attributes.codegen_script = data?.codegen_script
           this.mbtData.attributes.codegen_text = data?.codegen_text
+          this.mbtData.attributes.hyperLinks = linkList
         }
       } else {
-        let attr = { codegen_text: '', codegen_script: '' }
+        let attr = { codegen_text: '', codegen_script: '', hyperLinks: [] }
         if (data?.codegen_text && data?.codegen_script) {
           attr.codegen_text = data?.codegen_text
           attr.codegen_script = data?.codegen_script
+          // @ts-ignore
+          attr.hyperLinks = linkList
           Object.assign(this.mbtData, { attributes: attr })
         }
-
       }
-
     },
     saveMeta(data: any) {
       this.mbtData.dataDefinition.meta = data

@@ -240,7 +240,13 @@ function childChange(childData: any){
 }
 function rulesChange(rulesData:any,){
   changeObserver()
-  emit("rulesChange", props.rulesData,props.keys)
+  emit("rulesChange", props.rulesData, props.keys)
+}
+
+function inputSelectChange(str: string, index: number, type: number) {
+  if (type === 1) props.rulesData[0].conditions[index].name = str
+  if (type === 2) props.rulesData[0].conditions[index].value = str
+  emit("rulesChange", props.rulesData, props.keys)
 }
 
 function getTypeOption(type: string) {
@@ -295,8 +301,9 @@ const checkrelation=(obj:any)=>{
 <!--          ></a-select>-->
           <input-select-item
               style="width: 100%;"
-            v-model:model-value="item.name"
-            :options="formDatas"
+              v-model:model-value="item.name"
+              :options="formDatas"
+              @update:modelValue="(str: string) => inputSelectChange(str, index, 1)"
           ></input-select-item>
           <template v-if="item.name">
             <a-select
@@ -317,6 +324,7 @@ const checkrelation=(obj:any)=>{
                 style="width: 100%;"
                 v-model:model-value="item.value"
                 :options="formDatas"
+                @update:modelValue="(str: string) => inputSelectChange(str, index, 2)"
             ></input-select-item>
           </template>
           <a-button

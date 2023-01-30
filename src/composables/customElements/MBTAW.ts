@@ -39,7 +39,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         const varList = res ? res.map((a: string) => a.slice(2, -2)) : []
         varList.forEach((a: any) => {
             let reg1 = new RegExp('{{' + a + '}}', 'g')
-            let reStr = data[a] || ''
+            let reStr = data && data[a] ? data[a] : ''
             if (reStr) {
                 desc = desc.replace(reg1, reStr)
             } else {
