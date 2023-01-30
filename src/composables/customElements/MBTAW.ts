@@ -53,7 +53,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         let primaryDesc: string = this.get('prop')?.custom?.step?.aw?.description || ''
         let expectedDesc: string = this.get('prop')?.custom?.expectation?.aw?.description || ''
         let schemaData: any = this.get('prop')?.custom?.step?.data
-        let expectedData: any = this.get('prop')?.custom?.expected?.data
+        let expectedData: any = this.get('prop')?.custom?.expectation?.data
         return {
             primaryDesc: this.customVar2str(primaryDesc, schemaData),
             expectedDesc: this.customVar2str(expectedDesc, expectedData)
@@ -73,7 +73,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         })
         this.prop('attrs/.content', { html: labelDesc, text: labelDesc })
         if (this.get('content')) {
-            // debugger
             this.set({ size: { width: 200, height: 80 } })
         }
     }
@@ -86,13 +85,11 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     setPropertiesData() {
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw || {}
-        temp.step = storeAw.getPrimaryAw || {}
+        temp.expectation = cloneDeep(storeAw.getExpectedAw || {})
+        temp.step = cloneDeep(storeAw.getPrimaryAw || {})
         this.prop('prop/custom', temp)
-        // 不知道 jointjs 有什么毛病，引用数据不能赋值，还得加下面两句
-        const hasArray = temp?.step?.data
-        const array = temp?.step?.data?.array || []
-        if (hasArray && hasArray.hasOwnProperty('array')) this.prop('prop/custom/step/data/array', array)
+        // 不知道 jointjs 有什么毛病，引用数据不能赋值，还得加下面一句
+        this.prop('prop/custom/step/data/array', temp?.step?.data?.array || [])
         this.reRender()
         fitAncestors(this)
     }

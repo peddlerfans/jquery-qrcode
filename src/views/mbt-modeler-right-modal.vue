@@ -305,6 +305,7 @@ function setGroupConditionData() {
     description: temp.description || ''
   }
   ifGroupRulesData.value = temp.rulesData || [_.cloneDeep(rulesDataDefaultItem)]
+  show.value = true
 }
 
 function ifGroupRulesChange(rulesData: any) {
@@ -335,7 +336,7 @@ function handleShowData () {
       break
     }
     case 'itea.mbt.test.MBTIfGroup': {
-      handleData()
+      setGroupConditionData()
       break
     }
     case 'itea.mbt.test.MBTIfGroup': {
@@ -360,12 +361,7 @@ function handleChange() {
       data.value.label = ''
     }
   }
-  emit('change', getType(), data.value)  
-  // schemaData.value = {}
-  // data.value = {}
-  // rulesData.value = [rulesDataDefaultItem]
-  // console.log(rulesData.value);
-  
+  emit('change', getType(), data.value)
 }
 
 defineExpose({

@@ -292,6 +292,7 @@ function handleData () {
     expectedSchemaValue.value = store.getExpectedAw.data || {}
   } else if (store.getExpectedAw.aw) {
     let temp: any = store.getExpectedAwSchema
+    console.log(temp)
     expectedSchema.value = temp.schema
     expectedUiSchema.value = temp.uiSchema
     expectedSchemaValue.value = store.getExpectedAwSchemaValue
@@ -400,16 +401,6 @@ defineExpose({
                   style="margin-right: 8px;"
               ></plus-circle-outlined>
             </a-tooltip>
-<!--            <a-tooltip placement="top">-->
-<!--              <template #title>-->
-<!--                <span>{{ $t('MBTStore.addAssert') }}</span>-->
-<!--              </template>-->
-<!--              <plus-square-outlined-->
-<!--                  @click="addAssert"-->
-<!--                  class="icon&#45;&#45;primary-btn"-->
-<!--                  style="margin-right: 8px;"-->
-<!--              ></plus-square-outlined>-->
-<!--            </a-tooltip>-->
             <a-tooltip placement="top">
               <template #title>
                 <span>{{ $t('MBTStore.updateAw') }}</span>
@@ -432,17 +423,6 @@ defineExpose({
                   style="margin-right: 8px;"
               ></delete-outlined>
             </a-tooltip>
-<!--            <a-tooltip placement="top">-->
-<!--              <template #title>-->
-<!--                <span>{{ $t('MBTStore.clearAssert') }}</span>-->
-<!--              </template>-->
-<!--              <close-circle-outlined-->
-<!--                  v-show="showAssert"-->
-<!--                  @click="clearAssert"-->
-<!--                  class="icon&#45;&#45;primary-btn"-->
-<!--                  style="margin-right: 8px;"-->
-<!--              ></close-circle-outlined>-->
-<!--            </a-tooltip>-->
           </div>
         </div>
         <VueForm
@@ -457,10 +437,6 @@ defineExpose({
           </div>
         </VueForm>
         <div class="setting-assert" v-show="showAssert">
-          <!--          <div>-->
-          <!--            <div class="title">断言描述：</div>-->
-          <!--            <a-input v-model:value="assertDesc" @change="assertInputChange"></a-input>-->
-          <!--          </div>-->
           <div class="title">设置断言：</div>
           <mbt-modeler-condition-edit
               :keys="keys"
