@@ -83,7 +83,8 @@ export default {
     cantDownItem: 'already at the bottom, unable to move down',
 
     tableEditingWarn: 'The data in the table is being edited, please save it first',
-    varNameCheck: 'The name is illegal, only underscores, numbers, letters are allowed, and the beginning cannot be a number.'
+    varNameCheck: 'The name is illegal, only underscores, numbers, letters are allowed, and the beginning cannot be a number.',
+    settingSuccess: 'Setting settingSuccess!'
   },
 
   route: {

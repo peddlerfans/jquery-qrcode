@@ -8,7 +8,8 @@ const request = axios.create({
   // baseURL: import.meta.env.VITE_APP_BASE_API,
   // withCredentials: true,
   timeout: 60000,
-  maxContentLength:5000
+  maxContentLength: 1024 * 1024 * 20,
+  maxBodyLength: 1024 * 1024 * 20
 })
 
 const token = getCookie('token')

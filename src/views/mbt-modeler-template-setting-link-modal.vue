@@ -46,7 +46,6 @@ watch(
           url: props.info.url,
           name: props.info.name,
         }
-        console.log(props.infoIndex)
       }
     }
 )

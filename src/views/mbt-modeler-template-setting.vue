@@ -27,6 +27,9 @@ const { t } = useI18n()
 let route = useRoute()
 const updateInfo = ref<any>(null)
 const index = ref<number>(-1)
+// 超链接列表
+let linkList = ref<Array<any>>([])
+let showLinkModal = ref<boolean>(false)
 
 watch(
     () => props.show,
@@ -34,7 +37,15 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
-          globalFormData.value = {...store.changeTemplate}
+          const temp = _.cloneDeep(store.changeTemplate)
+          linkList.value = temp.hyperLinks || []
+          globalFormData.value = {
+            _id: temp._id,
+            name: temp.name,
+            description: temp.description,
+            codegen_script: temp.codegen_script,
+            codegen_text: temp.codegen_text,
+          }
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -56,11 +67,11 @@ watch(
             tableColumns.value = store.getDataPoolColData
             tableDataDynamic.value = []
             tableColumnsDynamic.value = []
-            tableDataDirectInput.value  = []
+            tableDataDirectInput.value = []
             tableColumnsDirectInput.value = []
           } else {
             dataPoolRadio.value = 3
-            tableDataDirectInput.value  = store.getDataPoolTableData
+            tableDataDirectInput.value = store.getDataPoolTableData
             tableColumnsDirectInput.value = store.getDataPoolColData
             tableDataDynamic.value = []
             tableColumnsDynamic.value = []
@@ -125,9 +136,6 @@ const defaultGlobalSchema = {
 }
 const globalSchema = ref(_.cloneDeep(defaultGlobalSchema))
 let metaTemplateDetailTableData = ref({})
-// 超链接列表
-let linkList = ref<Array<any>>([])
-let showLinkModal = ref<boolean>(false)
 // meta的数据
 let tempSchema = ref({
   type: "object",
@@ -221,7 +229,7 @@ function closeTemplateModel() {
 
 function save() {
   // 保存 Attribute 数据
-  store.saveattr(globalFormData.value)
+  store.saveattr(globalFormData.value, linkList.value)
   // 保存 Meta 数据
   if (metaInfo.value) store.saveMeta(metaInfo.value)
   // 保存 Data Pool 数据
@@ -231,7 +239,7 @@ function save() {
   }
   // 保存 Resources 数据
   if (resourcesDataSource.value.length > 0) store.saveResources(resourcesDataSource.value)
-  message.success('保存成功！')
+  message.success(t('component.message.settingSuccess'))
 }
 
 // 添加resource列头的函数

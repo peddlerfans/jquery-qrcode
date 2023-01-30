@@ -48,13 +48,13 @@ function handleTableCol () {
   })
 }
 
-function splitByFile(script: string) {
+function splitByFile(script: string, id: string) {
   let pos: number = 0
   let result: any = {}
   const tempTableData = _.cloneDeep(tableData.value)
   let r = /^(.*---- filename: (.+)----.*)$/gm
   let res: any = r.exec(script)
-  let defaultName: any = res[2] ? res[2] : tempTableData.unshift().id
+  let defaultName: any = res[2] ? res[2] : id
   do {
     res = r.exec(script)
     if (res) {
@@ -82,11 +82,15 @@ watch(() => props.visible, value => {
     // 处理详情表头数据
     handleTableCol()
     tableData.value = props.previewData
-    script.value = props.previewData[0].script
-    // script 里面可能包含多个文件，需要获取拆分数据
-    scriptPath.value = splitByFile(script.value)
+    const tempObj = {}
+    props.previewData.forEach((a: any) => {
+      if (a?.script) {
+        Object.assign(tempObj, splitByFile(a.script, a.id))
+      }
+    })
+    scriptPath.value = tempObj
     // 生成树形数据
-    treeData.value = arr2Tree(Object.keys(scriptPath.value))
+    treeData.value = arr2Tree(Object.keys(tempObj))
   } else {
     tableData.value = []
     tableCol.value = []
@@ -183,6 +187,7 @@ async function exportData() {
 }
 
 function handleSelect(selectedKeys: any, info: any) {
+  if (!scriptPath.value) return
   // 拼接路径名
   let key: string = ''
   const pNode = info.node.parent.nodes
@@ -292,7 +297,6 @@ function handleSelect(selectedKeys: any, info: any) {
         </a-tabs>
       </div>
     <div class="btn-wrap" slot="footer">
-      <a-divider></a-divider>
       <div class="btn-list">
         <a-button type="primary" @click="exportData">导出</a-button>
         <a-button type="primary" @click="publish">发布</a-button>
