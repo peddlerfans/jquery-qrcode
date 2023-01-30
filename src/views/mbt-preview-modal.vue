@@ -51,25 +51,28 @@ function handleTableCol () {
 function splitByFile(script: string, id: string) {
   let pos: number = 0
   let result: any = {}
-  const tempTableData = _.cloneDeep(tableData.value)
   let r = /^(.*---- filename: (.+)----.*)$/gm
-  let res: any = r.exec(script)
-  let defaultName: any = res[2] ? res[2] : id
+  let res: any
+  let defaultName: any = id
+  let flag = false
   do {
     res = r.exec(script)
     if (res) {
-      if ( pos ===0 && res.index>0) {
+      if (pos === 0 && res.index > 0 && !flag) {
+        flag = true
         result[defaultName] = script.slice(0, res.index)
       } else {
-        result[defaultName] = script.slice(pos + res[1].length + 1, res.index)
+        let txt = script.slice(pos, res.index)
+        if (txt) result[defaultName] = script.slice(pos, res.index)
       }
       defaultName = res[2]
-      pos = res.index
+      pos = res.index + res[1].length + 1
     } else {
       result[defaultName] = script.slice(pos)
     }
-  } while (res)
-  return result
+  } while (res) {
+    return result
+  }
 }
 
 watch(() => props.visible, value => {
@@ -143,7 +146,7 @@ function publish() {
 function setExcelCell(workbook: any) {
   const col :Partial<ExcelJs.Column>[] = []
   let headerList: Array<string> = Object.keys(props.previewData[0]).filter((str: string) => str !== 'script')
-  const workSheet = workbook.addWorksheet('是我')
+  const workSheet = workbook.addWorksheet('tab1')
   headerList.forEach((head: string) => {
     col.push({
       header: head,
@@ -160,6 +163,7 @@ function setExcelCell(workbook: any) {
 async function exportData() {
   const workbook = new ExcelJs.Workbook()
   const jsZip = new JSZip()
+  const title = route.params.name
   workbook.views = [
     {
       x: 0,
@@ -174,7 +178,7 @@ async function exportData() {
   setExcelCell(workbook)
   let excelData = await workbook.xlsx.writeBuffer()
   let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  jsZip.file('zftext.xlsx', blob)
+  jsZip.file(`${title}.xlsx`, blob)
   props.previewData.forEach((item: any) => {
     const txtBlob = new Blob([item.script])
     jsZip.file(`${item.id}.txt`, txtBlob)
@@ -182,7 +186,7 @@ async function exportData() {
   jsZip.generateAsync({
     type: 'blob'
   }).then(blob => {
-    saveAs(blob, `zfText.zip`)
+    saveAs(blob, `${title}.zip`)
   })
 }
 
@@ -190,11 +194,13 @@ function handleSelect(selectedKeys: any, info: any) {
   if (!scriptPath.value) return
   // 拼接路径名
   let key: string = ''
-  const pNode = info.node.parent.nodes
-  pNode.forEach((a: any) => {
-    const v = '/' + (a.title === '/' ? '' : a.title)
-    key +=  v
-  })
+  const pNode = info.node?.parent?.nodes
+  if (pNode) {
+    pNode.forEach((a: any) => {
+      const v = '/' + (a.title === '/' ? '' : a.title)
+      key +=  v
+    })
+  }
   key += '/' + info.node.title
   key = key.slice(1)
   const tempScript = scriptPath.value[key]
