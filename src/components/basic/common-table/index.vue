@@ -429,7 +429,8 @@ const handleInputConfirm = () => {
 const handleFactorEnumConfirm = () => {
   let tags = states.value.enum
   if (states.value.enumInputValue && tags.indexOf(states.value.enumInputValue) === -1) {
-    tags = [...tags, states.value.enumInputValue]
+    let addTags = states.value.enumInputValue.split(',')
+    tags = Array.from(new Set([...tags, ...addTags]))
   }
   states.value.enum = tags
   states.value.enumInputValue = ''

@@ -76,7 +76,8 @@ export class MBTIfGroup extends MBTGroupBase {
                 },
                 condition: {
                     title: 'If condition',
-                    type: 'string'
+                    type: 'string',
+                    readOnly: true
                 }
             }
         }
