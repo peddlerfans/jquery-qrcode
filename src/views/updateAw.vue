@@ -11,7 +11,7 @@ import { AnyKindOfDictionary } from "lodash";
 import { identifier } from "@babel/types";
 import { CommonTable } from '@/components/basic/common-table'
 import {func} from "vue-types";
-import {checkVarName} from "@/utils/validate";
+import {checkVarName} from "@/utils/validator";
 
 const { t } = useI18n()
 

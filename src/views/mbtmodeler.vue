@@ -312,6 +312,7 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
+          console.log(jsonData.value)
           previewErr.value = true
         }
         break
@@ -327,7 +328,6 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
-          console.log(jsonData.value);
           previewErr.value = true
           }
         break
@@ -713,7 +713,7 @@ const inspector = (n:number) =>{
   <a-row class="previewErr">
     <a-col :span="12">
       <VAceEditor
-      class="currentData"
+        class="currentData"
         v-model:value="jsonData"
         lang="json"
         theme="sqlserver"

@@ -13,7 +13,7 @@ import {
   watch,
   ref
 } from "vue";
-import {checkVarName} from "@/utils/validate";
+import {checkVarName} from "@/utils/validator";
 
 interface Props {
   modelValue: string

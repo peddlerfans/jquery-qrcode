@@ -91,6 +91,7 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
     let outputLang
     let vaceErr
     let currentData
+    debugger
     if (codegenMsg == 'textErr') {
         let codegenErr = errmsg['template error'].filter((item: any) => item.outputLang == 'yaml')
         codegenErr.forEach((obj: any) => {

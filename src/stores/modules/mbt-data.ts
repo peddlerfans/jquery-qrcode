@@ -252,7 +252,7 @@ export const MbtData = defineStore({
                         break
                     }
                     case 'condition': {
-                        const options = this.getAwParamsOption(type, a.title, 1)
+                        const options = this.getAwParamsOption(type, a.title, 2)
                         if (uiSchema) {
                             uiSchema[a.title] = {
                                 "ui:widget": type === '2' ? ConditionItem : InputSelectItem,
@@ -390,7 +390,7 @@ export const MbtData = defineStore({
                 if (schemaVal?.variable) {
                     temp.push({
                         label: schemaVal.variable,
-                        value: opt === 2 ? `{{{${schemaVal.variable}}}` : schemaVal.variable,
+                        value: opt === 2 ? `{{${schemaVal.variable}}}` : schemaVal.variable,
                         type: type ? type : 'string'
                     })
                 }

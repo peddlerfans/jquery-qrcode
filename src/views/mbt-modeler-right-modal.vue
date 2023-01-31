@@ -187,6 +187,18 @@ function selectvalue(value: any) {
   }
   return values;
 }
+
+function expr2js(expr: string) {
+  if (/^{{([a-zA-Z0-9_]+)}}$/.test(expr)) {
+    // @ts-ignore
+    return /^{{([a-zA-Z0-9_]+)}}$/.exec(expr)[1]
+  } else if (/{{([a-zA-Z0-9_]+)}}/gm.test(expr)) {
+    return "`" + expr.replaceAll(/{{([a-zA-Z0-9_]+)}}/gm, "${$1}") + "`"
+  } else {
+    return JSON.stringify(expr)
+  }
+}
+
 // 解决括号链接
 const conditionstr = (arr: any) => {
   let ifcondition = null;
@@ -201,13 +213,9 @@ const conditionstr = (arr: any) => {
       if (item.selectvalues == "OR") {
         item.selectvalues = "||";
       }
-      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${
-        item.selectvalues
-      } `;
-      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      return `${expr2js(item.name)} ${item.operator} ${expr2js(item.value)} ${item.selectvalues} `;
     } else {
-      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
-      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `;
+      return `${expr2js(item.name)} ${item.operator} ${expr2js(item.value)} `;
     }
   });
 
@@ -282,14 +290,14 @@ function setGroupConditionData() {
   // 当前模型变量名
   arr.push({
     label: '返回变量名',
-    options: storeAw.getAllCustomVar()
+    options: storeAw.getAllCustomVar(2)
   })
   // data pool 数据
   arr.push({
     label: 'Data Pool',
     options: storeAw.getDataPoolTableColumns.map((a: any) => {
       return {
-        value: `${a.title}`,
+        value: `{{${a.title}}}`,
         label: a.title
       }
     }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
@@ -306,6 +314,10 @@ function setGroupConditionData() {
   }
   ifGroupRulesData.value = temp.rulesData || [_.cloneDeep(rulesDataDefaultItem)]
   show.value = true
+}
+
+function result2Condition(arr: any) {
+
 }
 
 function ifGroupRulesChange(rulesData: any) {
@@ -336,11 +348,6 @@ function handleShowData () {
       break
     }
     case 'itea.mbt.test.MBTIfGroup': {
-      setGroupConditionData()
-      break
-    }
-    case 'itea.mbt.test.MBTIfGroup': {
-      handleData()
       setGroupConditionData()
       break
     }
