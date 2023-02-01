@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import http from "@/utils/http";
-import {nextTick, ref, watch} from "vue";
+import {nextTick, onMounted, ref, watch} from "vue";
 import {objToArr} from "@/utils/treeData";
 import {message} from "ant-design-vue/es";
 import request from "@/utils/request";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from 'vue-router'
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 const emit = defineEmits(['select', 'addAW'])
 
 interface Props {
@@ -27,6 +30,7 @@ let expandedKeys = ref<(string | number)[]>([])
 let updateTreeData=ref('')
 // 获取修改节点的dom
 let updDom = ref()
+let selectKeys = ref<any>([])
 
 // 给树形数据添加属性
 const addKey: any = (arr: any[]) => (arr??[]).map(item => ({
@@ -40,16 +44,25 @@ function getTreeData() {
   if (!url) return
   http.get(url + '/_tree').then(({ data }) => {
     treeData.value = addKey(objToArr(data))
+    selectTreeNode()
   })
 }
 
-function onSelect(selectedKeys: any, info?: any) {
-  if(info.node.dataRef.title === '/'){
+function onSelect(selectedKeys: any, info: any) {
+  const pNodes = info.node?.parent?.nodes || []
+  let path: string = String(
+      pNodes.map((a: any) => a.title).join('/') + '/' + info.node.title
+  ).slice(1)
+  router.push({
+    path: '/mbtstore/index',
+    query: {
+      treePath: encodeURIComponent(path)
+    }
+  })
+  if (info.node.dataRef.title === '/') {
     emit('select', '')
   } else {
-    let str = getPath(info.node.dataRef.title, treeData.value)
-    str = str.substring(1, str.length)
-    emit('select', `path:${str}`)
+    emit('select', `path:${path}`)
   }
 }
 
@@ -90,7 +103,30 @@ watch(
     }
 )
 
-getTreeData()
+function selectTreeNode() {
+  const path: string = decodeURIComponent(String(route.query.treePath || ''))
+  const pathList = path.split('/').filter((a: any) => a)
+  const title = (pathList.pop() || '')
+  if (!title) return
+  let tar: any = treeData.value[0].children
+  expandedKeys.value.push(treeData.value[0].key)
+  if (pathList.length) {
+    pathList.forEach((b: any) => {
+      tar = tar.filter((c: any) => c.title === b)[0]
+      expandedKeys.value.push(tar.key)
+      tar = tar?.children
+    })
+  }
+  tar = tar.filter((c: any) => c.title === title)[0]
+  if (!tar?.key) return
+  selectKeys.value = [tar.key]
+  expandedKeys.value.push(tar.key)
+  emit('select', `path:${path}`)
+}
+
+onMounted(() => {
+  getTreeData()
+})
 
 // 递归查询当前节点的对象
 const getTreeDataByItem=(childs: any, findKey: any):any=> {
@@ -377,6 +413,7 @@ const onExpand = (keys: any) => {
       :show-line="true"
       :tree-data="treeData"
       :expanded-keys="expandedKeys"
+      v-model:selected-keys="selectKeys"
       @select="onSelect"
       @expand="onExpand"
       :auto-expand-parent="autoExpandParent">
