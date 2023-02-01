@@ -108,7 +108,7 @@ function getEnumList (title: string) {
     options = mbtStore.getDataPoolColData.map((b: any) => {
         return {
             label: b.title,
-            value: `{{${b.title}}`
+            value: `{{${b.title}}}`
         }
     })
     res.push({
