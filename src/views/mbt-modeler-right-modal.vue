@@ -267,12 +267,12 @@ function handleData() {
       showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
   }
-  schemaData.value = el.getPropertiesSchema()
-  data.value = el.getPropertiesData()
+  schemaData.value = _.cloneDeep(el.getPropertiesSchema())
+  data.value = _.cloneDeep(el.getPropertiesData())
 
   if(data.value.rulesData) {
     if (data.value.rulesData.length == 0) {
-      data.value.rulesData = [rulesDataDefaultItem]
+      data.value.rulesData = [_.cloneDeep(rulesDataDefaultItem)]
     }
     rulesData.value = data.value.rulesData
   }
@@ -363,7 +363,7 @@ function handleChange() {
       data.value.description = ''
     }
   if( _.has(data.value , 'rulesData')){
-    data.value.rulesData = rulesData.value 
+    data.value.rulesData = rulesData.value
     if(data.value.label == undefined){
       data.value.label = ''
     }

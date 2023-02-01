@@ -137,7 +137,6 @@ function transformCells(mbtData:any){
     return cell
 
    })
-   console.log(cells);
    
    return {cells};
 }
@@ -222,8 +221,6 @@ document.onkeydown = function (e :any) {
     }
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
-      console.log(elementView.model);
-
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -544,7 +541,6 @@ async function querycode(show?: boolean) {
   }).catch((err)=>{
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
-    console.log(errMsg);
 
     setErrData(errMsg)
     if (storePre.getErrmsg) {

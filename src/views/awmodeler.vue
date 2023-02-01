@@ -128,7 +128,7 @@ async function query() {
   let res = rst.data
   if (res.data) {
     searchobj.total = res.total
-    awModelTable.value.setTableData({
+    awModelTable && awModelTable.value.setTableData({
       tableData: res.data,
       total: res.total,
       currentPage: searchobj.page,
@@ -429,6 +429,8 @@ let clickKey=<clickobj>{}
 
 // 根据点击的树节点筛选表格的数据
 const onSelect: TreeProps['onSelect'] =async ( selectedKeys: any,info?:any) => {
+  console.log(selectedKeys)
+  console.log(info)
   searchobj.page = 1
   if(info.node.dataRef.title=='/'){
     await query()
@@ -783,16 +785,16 @@ const copyOk=()=>{
   unref(refCopy).validate().then(async ()=>{
     awModelTable.value.loading=true
     delete copyData.value._id
-   request.post('/api/hlfs',copyData.value).then((rst :any)=>{
-     let tableList = awModelTable.value.getTableData()
-     tableList = tableList.unshift(rst)
-     awModelTable.value.setTableData(tableList.pop())
-     copyVisible.value = false
-     awModelTable.value.loading=false
-   }).catch(() => {
-    message.error(t('commont.cloneError'))
-    copyVisible.value = false
-     awModelTable.value.loading=false
+    request.post('/api/hlfs',copyData.value).then((rst :any)=>{
+      let tableList = awModelTable.value.getTableData()
+      tableList = tableList.unshift(rst)
+      awModelTable.value.setTableData(tableList.pop())
+      copyVisible.value = false
+      awModelTable.value.loading=false
+    }).catch(() => {
+      message.error(t('commont.cloneError'))
+      copyVisible.value = false
+      awModelTable.value.loading=false
    })
 
   })
@@ -881,13 +883,6 @@ function handleSearch (keyword: string) {
                   </a-menu>
                 </template>
               </a-dropdown>
-
-
-
-
-              <!-- </template> -->
-
-              <!-- </a-tooltip>   -->
             </template>
           </a-tree>
         </template>
@@ -1029,7 +1024,6 @@ function handleSearch (keyword: string) {
                 </a-form-item>
               </AForm>
             </a-modal>
-
           </div>
         </template>
       </SplitPanel>
