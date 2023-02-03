@@ -3,6 +3,8 @@ import _ from "lodash";
 import { generateSchema } from "@/utils/jsonschemaform";
 import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue";
 import ConditionItem from '@/components/basic/itea-schema-item/condition-item.vue'
+import MultipleSelectItem from '@/components/basic/itea-schema-item/multiple-select-item.vue'
+import CustomInput from '@/components/basic/itea-schema-item/custom-input.vue'
 
 const defaultAWSchema = {
     title: "AW",
@@ -166,32 +168,8 @@ export const MbtData = defineStore({
             let enums = temp.enum
             return !enums.includes(val)
         },
-        setExpectedTableRow(row: any) {
-            this.expectedTableRow = row
-        },
         setDataDefinition(data: any) {
             this.allData.dataDefinition.data = data
-        },
-        setLinkData(data: any, key: string) {
-            if (!key) this.LinkData = data
-            else {
-                // @ts-ignore
-                this.LinkData[key] = data
-            }
-        },
-        setGroupData(data: any, key?: string) {
-            if (!key) this.groupData = data
-            else {
-                // @ts-ignore
-                this.groupData[key] = data
-            }
-        },
-        setSectionData(data: any, key?: string) {
-            if (!key) this.sectionData = data
-            else {
-                // @ts-ignore
-                this.sectionData[key] = data
-            }
         },
         resetEditingExpectedAw() {
             this.showData = {}
@@ -226,11 +204,11 @@ export const MbtData = defineStore({
                 Object.assign(schema.properties, {
                     variable: {
                         title: '返回变量名',
-                        type: 'string'
+                        type: 'var',
+                        custom: 'awParams'
                     }
                 })
             }
-            console.log(schema)
             // @ts-ignore
             return this.data2schema(schema, {}, type)
         },
@@ -247,10 +225,20 @@ export const MbtData = defineStore({
                  * 默认其他
                  * */
                 switch (a.type) {
+                    case 'array': {
+                        const options = this.getAwParamsOption(type, a.title, 2)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": MultipleSelectItem,
+                                "ui:options": options,
+                            }
+                        }
+                        break
+                    }
                     case 'SUT': {
                         options = this.getDataPoolResource.map((b: any) => {
                             return {
-                                value: `{{${b.alias}}}`,
+                                value: `${b.alias}`,
                                 label: b.alias
                             }
                         })
@@ -264,7 +252,7 @@ export const MbtData = defineStore({
                         break
                     }
                     case 'condition': {
-                        const options = this.getAwParamsOption(type, a.title)
+                        const options = this.getAwParamsOption(type, a.title, 2)
                         if (uiSchema) {
                             uiSchema[a.title] = {
                                 "ui:widget": type === '2' ? ConditionItem : InputSelectItem,
@@ -287,8 +275,17 @@ export const MbtData = defineStore({
                         a.type = 'string'
                         break
                     }
+                    case 'var': {
+                        if (uiSchema) {
+                            uiSchema['variable'] = {
+                                "ui:widget": CustomInput
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
                     default: {
-                        options = this.getAwParamsOption(type, a.title)
+                        options = this.getAwParamsOption(type, a.title, 2)
                         if (uiSchema) {
                             uiSchema[a.title] = {
                                 "ui:widget": InputSelectItem,
@@ -319,7 +316,7 @@ export const MbtData = defineStore({
             let arr: any = []
             for (let key in awSchema.properties) {
                 const tar = awSchema.properties[key]
-                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
+                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
                     arr.push(tar)
                 }
             }
@@ -334,7 +331,7 @@ export const MbtData = defineStore({
          * Data Pool 的数据
          * 返回变量名
          * */
-        getAwParamsOption(type: string, title: string) {
+        getAwParamsOption(type: string, title: string, opt?: number) {
             const res: Array<any> = []
             let aw: any
             let options: Array<any> = []
@@ -366,7 +363,7 @@ export const MbtData = defineStore({
                 // 目前 dynamic 的数据类型未返回，而 static 和 directly 没有注定类型，默认全返回 string
                 options: this.getDataPoolTableColumns.map((a: any) => {
                     return {
-                        value: `{{${a.title}}}`,
+                        value: opt === 2 ? `{{${a.title}}}` : a.title,
                         label: a.title
                     }
                 }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
@@ -374,13 +371,13 @@ export const MbtData = defineStore({
             // 返回变量名
             res.push({
                 label: '返回变量名',
-                options: this.getAllCustomVar()
+                options: this.getAllCustomVar(opt)
             })
             return res.filter((a: any) => a.options.length)
         },
         // 获取当前模型所有带有 变量 属性并有 值 的数据
         // 只有 aw 版本为 version 3.0 以上才支持
-        getAllCustomVar() {
+        getAllCustomVar(opt?: number) {
             const cell = this.getShowData
             if (_.isEmpty(cell)) return []
             let arr = cell.graph.getCells()
@@ -393,7 +390,7 @@ export const MbtData = defineStore({
                 if (schemaVal?.variable) {
                     temp.push({
                         label: schemaVal.variable,
-                        value: `{{{${schemaVal.variable}}}`,
+                        value: opt === 2 ? `{{${schemaVal.variable}}}` : schemaVal.variable,
                         type: type ? type : 'string'
                     })
                 }

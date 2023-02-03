@@ -292,7 +292,7 @@ const saveModel = async () => {
 
       /**
        * For the error message,
-       * (1.split by \n
+       * (1. split by \n
        * (2. remove all the empty element in the array
        * (3. get the first element
        * (4. split by :

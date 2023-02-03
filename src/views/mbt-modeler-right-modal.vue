@@ -6,6 +6,7 @@ import { MBTStore } from '@/stores/MBTModel'
 import VueForm from "@lljj/vue3-form-ant";
 import _ from "lodash";
 import { useI18n } from 'vue-i18n'
+import MbtModelerConditionEdit from "@/views/mbt-modeler-condition-edit.vue";
 
 // import testParser from "@/api/parser.js"
 // console.log(testParser.parse('url == "a" && (file == "file" && resolution == "1080P") && videotype == "在线视频"'));
@@ -59,6 +60,19 @@ const store = MBTStore()
 const { t } = useI18n()
 const storeAw = MbtData()
 const emit = defineEmits(['change'])
+const rulesDataDefaultItem = {
+  relation: 'AND',
+  id: 1,
+  conditions: [
+    {
+      name: 'name',
+      operator: '=',
+      value: undefined,
+      selectvalues: 'AND',
+    }
+  ],
+  children: [],
+}
 const keys = 1
 let show = ref(false)
 let showAw = ref<boolean>(false)
@@ -69,6 +83,9 @@ let data:any = ref({})
 let awSchemaData = ref()
 let props = defineProps(['currentEl'])
 let showCondition = ref(true)
+const ifGroupRulesData = ref<any>([_.cloneDeep(rulesDataDefaultItem)])
+const ifGroupOption = ref<any>([])
+const isIfGroup = ref<boolean>(false)
 awSchemaData.value = props.currentEl
 // 复杂条件编辑的逻辑
 let formDatas = computed(() => {
@@ -103,20 +120,6 @@ function valueOption(arr: any) {
     }
   })
   return setArr
-}
-
-const rulesDataDefaultItem = {
-  relation: 'AND',
-  id: 1,
-  conditions: [
-    {
-      name: 'name',
-      operator: '=',
-      value: undefined,
-      selectvalues: 'AND',
-    }
-  ],
-  children: [],
 }
 
 // 递归改变if结构
@@ -184,6 +187,18 @@ function selectvalue(value: any) {
   }
   return values;
 }
+
+function expr2js(expr: string) {
+  if (/^{{([a-zA-Z0-9_]+)}}$/.test(expr)) {
+    // @ts-ignore
+    return /^{{([a-zA-Z0-9_]+)}}$/.exec(expr)[1]
+  } else if (/{{([a-zA-Z0-9_]+)}}/gm.test(expr)) {
+    return "`" + expr.replaceAll(/{{([a-zA-Z0-9_]+)}}/gm, "${$1}") + "`"
+  } else {
+    return JSON.stringify(expr)
+  }
+}
+
 // 解决括号链接
 const conditionstr = (arr: any) => {
   let ifcondition = null;
@@ -198,13 +213,9 @@ const conditionstr = (arr: any) => {
       if (item.selectvalues == "OR") {
         item.selectvalues = "||";
       }
-      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} ${
-        item.selectvalues
-      } `;
-      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '+item.selectvalue+' '
+      return `${expr2js(item.name)} ${item.operator} ${expr2js(item.value)} ${item.selectvalues} `;
     } else {
-      // return '['+item.name+']'+' '+item.operator+' '+'{'+item.value+'}'+' '
-      return `${item.name} ${item.operator} ${JSON.stringify(item.value)} `;
+      return `${expr2js(item.name)} ${item.operator} ${expr2js(item.value)} `;
     }
   });
 
@@ -221,15 +232,13 @@ function rulesChange (datas: any, key: string) {
 watch(
   rulesData,  
   (newvalue: any) => {
-    // debugger
     if (rulesData.value.length > 0) {
       if ( showDrawer.value && _.has(data.value , 'label')){
         data.value.label = ifdata(newvalue);
         rulesData.value = newvalue
-        if (data.value.label == 'name == undefined ') {          
+        if (data.value.label == '"name" == undefined ') {          
           data.value.label = ''
         }
-        
       }
     }
   },
@@ -250,27 +259,24 @@ function handleData() {
   const el = storeAw.getShowData
   showDrawer.value = false
   
-  if(el.attributes.source && el.attributes.target){
+  if (el.attributes.source && el.attributes.target) {
     const sourceId = el.attributes.source.id
     const targetId = el.attributes.target?.id
-    if(sourceId){
+    if (sourceId) {
       const sourceEl = el.graph.getCell(sourceId)
       showDrawer.value = sourceEl.attributes.type === 'itea.mbt.test.MBTExclusiveGateway'
     }
-   
   }
-  schemaData.value = el.getPropertiesSchema()
-  data.value = el.getPropertiesData()
+  schemaData.value = _.cloneDeep(el.getPropertiesSchema())
+  data.value = _.cloneDeep(el.getPropertiesData())
+
   if(data.value.rulesData) {
-    if(data.value.rulesData.length == 0){
-    data.value.rulesData = [rulesDataDefaultItem]
+    if (data.value.rulesData.length == 0) {
+      data.value.rulesData = [_.cloneDeep(rulesDataDefaultItem)]
+    }
+    rulesData.value = data.value.rulesData
   }
-  rulesData.value = data.value.rulesData  
-  }
-  if(formDatas.value.length == 0){
-    showCondition.value = false
-  }
-  
+  showCondition.value = formDatas.value.length > 0
   show.value = true
 }
 
@@ -279,11 +285,54 @@ function getType () {
   return el?.attributes?.type || ''
 }
 
+function setGroupConditionData() {
+  const arr: any = []
+  // 当前模型变量名
+  arr.push({
+    label: '返回变量名',
+    options: storeAw.getAllCustomVar(2)
+  })
+  // data pool 数据
+  arr.push({
+    label: 'Data Pool',
+    options: storeAw.getDataPoolTableColumns.map((a: any) => {
+      return {
+        value: `{{${a.title}}}`,
+        label: a.title
+      }
+    }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
+  })
+  ifGroupOption.value = arr
+  isIfGroup.value = true
+  const el = storeAw.getShowData
+  showDrawer.value = false
+  schemaData.value = el.getPropertiesSchema()
+  const temp = el.getPropertiesData()
+  data.value = {
+    condition: temp.condition || '',
+    description: temp.description || ''
+  }
+  ifGroupRulesData.value = temp.rulesData || [_.cloneDeep(rulesDataDefaultItem)]
+  show.value = true
+}
+
+function result2Condition(arr: any) {
+
+}
+
+function ifGroupRulesChange(rulesData: any) {
+  ifGroupRulesData.value = rulesData
+  data.value.condition = ifdata(rulesData)
+  emit('change', getType(), Object.assign({
+    rulesData: rulesData,
+  }, data.value))
+}
+
 function handleShowData () {
-  
   showAw.value = false
   show.value = false
   const type = getType()
+  isIfGroup.value = false
   switch (type) {
     case 'itea.mbt.test.MBTAW': {
       handleAwData()
@@ -298,6 +347,10 @@ function handleShowData () {
       handleData()
       break
     }
+    case 'itea.mbt.test.MBTIfGroup': {
+      setGroupConditionData()
+      break
+    }
     case 'itea.mbt.test.MBTSection': {
       handleData()
       break
@@ -310,17 +363,12 @@ function handleChange() {
       data.value.description = ''
     }
   if( _.has(data.value , 'rulesData')){
-    data.value.rulesData = rulesData.value 
+    data.value.rulesData = rulesData.value
     if(data.value.label == undefined){
       data.value.label = ''
     }
   }
-  emit('change', getType(), data.value)  
-  // schemaData.value = {}
-  // data.value = {}
-  // rulesData.value = [rulesDataDefaultItem]
-  // console.log(rulesData.value);
-  
+  emit('change', getType(), data.value)
 }
 
 defineExpose({
@@ -336,11 +384,11 @@ function openSelect(){
 <template>
   <div class="mbt-modeler-right-modal-wrap">
     <mbt-modeler-aw-schema 
-    v-show="showAw" 
-    ref="AwDom" 
-    :show="showAw" 
-    @change="handleChange"
-    :awSchemaData = "awSchemaData"
+      v-show="showAw"
+      ref="AwDom"
+      :show="showAw"
+      @change="handleChange"
+      :awSchemaData = "awSchemaData"
     ></mbt-modeler-aw-schema>
     <VueForm  v-show="show" :schema="schemaData" v-model="data" @change="handleChange">
       <div v-if="showDrawer" slot-scope="{ linkSchemaValue }">
@@ -357,6 +405,13 @@ function openSelect(){
           <a-button size="small" @click="openSelect" type="primary">设置</a-button>
         </div>
       </div>
+      <mbt-modeler-condition-edit
+        v-if="isIfGroup"
+        key="1"
+        :form-datas="ifGroupOption"
+        :rules-data="ifGroupRulesData"
+        @rulesChange="ifGroupRulesChange"
+      ></mbt-modeler-condition-edit>
     </VueForm>
   </div>
 </template>

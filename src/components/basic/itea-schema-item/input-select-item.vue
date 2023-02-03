@@ -32,6 +32,10 @@ function handleChange (e: any) {
   emit('update:modelValue', text.value + e.pop())
 }
 
+function inputChange () {
+  emit('update:modelValue', text.value)
+}
+
 function handleBlur (){
   showOpt.value = false
 }
@@ -61,6 +65,7 @@ function handleFocus () {
           v-model:value="text"
           @blur="handleBlur"
           @focus="handleFocus"
+          @change="inputChange"
           class="show-line-input"
       ></a-input>
     </div>

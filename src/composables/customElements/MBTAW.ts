@@ -32,19 +32,39 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         // this.updateRectangles();
     }
 
+    // 带参数的 description 转化为 字符串
+    customVar2str (desc: string, data: any) {
+        const reg = /{{[\s\S]*}}/g
+        const res = desc.match(reg)
+        const varList = res ? res.map((a: string) => a.slice(2, -2)) : []
+        varList.forEach((a: any) => {
+            let reg1 = new RegExp('{{' + a + '}}', 'g')
+            let reStr = data && data[a] ? data[a] : ''
+            if (reStr) {
+                desc = desc.replace(reg1, reStr)
+            } else {
+                desc = desc.replace(reg1, '')
+            }
+        })
+        return desc
+    }
+
+    getAwDescription () {
+        let primaryDesc: string = this.get('prop')?.custom?.step?.aw?.description || ''
+        let expectedDesc: string = this.get('prop')?.custom?.expectation?.aw?.description || ''
+        let schemaData: any = this.get('prop')?.custom?.step?.data
+        let expectedData: any = this.get('prop')?.custom?.expectation?.data
+        return {
+            primaryDesc: this.customVar2str(primaryDesc, schemaData),
+            expectedDesc: this.customVar2str(expectedDesc, expectedData)
+        }
+    }
+
     reRender() {
         const desc = this.get('prop')?.custom?.description
-        let primaryDesc: string
-        let expectedDesc: string
-        if (this.get('prop')?.custom?.step?.aw) {
-            primaryDesc = this.get('prop').custom.step.aw.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
-        } else {
-            primaryDesc = this.get('prop')?.custom?.step?.data?.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.data?.description || ''
-        }
-        // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
-        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+        let primaryDesc: string = this.getAwDescription().primaryDesc
+        let expectedDesc: string = this.getAwDescription().expectedDesc
+        let awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
@@ -53,7 +73,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         })
         this.prop('attrs/.content', { html: labelDesc, text: labelDesc })
         if (this.get('content')) {
-            // debugger
             this.set({ size: { width: 200, height: 80 } })
         }
     }
@@ -66,9 +85,11 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     setPropertiesData() {
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw || {}
-        temp.step = storeAw.getPrimaryAw || {}
+        temp.expectation = cloneDeep(storeAw.getExpectedAw || {})
+        temp.step = cloneDeep(storeAw.getPrimaryAw || {})
         this.prop('prop/custom', temp)
+        // 不知道 jointjs 有什么毛病，引用数据不能赋值，还得加下面一句
+        this.prop('prop/custom/step/data/array', temp?.step?.data?.array || [])
         this.reRender()
         fitAncestors(this)
     }
@@ -215,12 +236,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
             inputs: {
                 attrs: {
                     '.content': {
-                        text: {
-                            type: 'content-editable',
-                            label: 'Text',
-                            group: 'text',
-                            index: 1
-                        },
                         style: {
                             fontSize: {
                                 type: 'range',
@@ -232,19 +247,20 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
                                 when: { ne: { 'attrs/label/text': '' } },
                                 index: 2
                             },
-                            fontFamily: {
-                                type: 'select-box',
-                                options: options.fontFamily,
-                                label: 'Font family',
-                                group: 'text',
-                                when: { ne: { 'attrs/label/text': '' } },
-                                index: 3
-                            },
+                            // fontFamily: {
+                            //     type: 'select-box',
+                            //     options: options.fontFamily,
+                            //     label: 'Font family',
+                            //     group: 'text',
+                            //     when: { ne: { 'attrs/label/text': '' } },
+                            //     index: 3
+                            // },
                             fontWeight: {
                                 type: 'select-box',
                                 options: options.fontWeight,
                                 label: 'Font thickness',
                                 group: 'text',
+                                defaultValue: 'Normal',
                                 when: { ne: { 'attrs/label/text': '' } },
                                 index: 4
                             },
@@ -284,7 +300,7 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
                             unit: 'px',
                             label: 'Outline thickness',
                             group: 'presentation',
-                            when: { ne: { 'attrs/body/stroke': 'transparent' } },
+                            // when: { ne: { 'attrs/body/stroke': 'transparent' } },
                             index: 3
                         },
                         strokeDasharray: {

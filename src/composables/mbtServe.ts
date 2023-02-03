@@ -321,11 +321,10 @@ class MbtServe {
         stencilService.stencil.on('element:drop', (elementView: joint.dia.ElementView) => {
 
             var type = elementView.model?.get('type');
-            if (type == 'itea.mbt.test.MBTGroup') {
-                elementView.model?.set('size', { width: 150, height: 100 })
-            } else if (type == 'itea.mbt.test.MBTSection') {
-                elementView.model?.set('size', { width: 150, height: 100 })
-            }
+            const flag = type === 'itea.mbt.test.MBTGroup'
+                || type === 'itea.mbt.test.MBTSection'
+                || type === 'itea.mbt.test.MBTIfGroup'
+            if (flag) elementView.model?.set('size', { width: 150, height: 100 })
             fitAncestors(elementView.model)
             this.selection.collection.reset([elementView.model]);
         });

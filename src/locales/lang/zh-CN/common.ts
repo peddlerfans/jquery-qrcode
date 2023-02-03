@@ -50,6 +50,6 @@ export default {
   newTag: '添加标签',
   newValue: '添加值',
   clone: '复制',
-  goDataPool: '当前复杂条件编辑不可用，是否先设置模板'
+  goDataPool: '当前复杂条件编辑不可用，请先在模板设置页面添加data pool数据'
 };
 

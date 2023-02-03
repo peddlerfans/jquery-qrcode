@@ -14,6 +14,8 @@ interface errMsg {
     textErr: string
     scriptErr: string
     uncaught_exception: string
+    error_conditions:string
+    not_reachable:string
 }
 
 // 错误信息的属性名对应的原因
@@ -24,7 +26,9 @@ const errObj: errMsg = {
     not_start_end: '模型连接线连接节点有断点，请仔细检查',
     textErr: '代码生成文本模板出错',
     scriptErr: '代码生成脚本模板出错',
-    uncaught_exception: '当前模型部分Aw无数据'
+    uncaught_exception: '当前模型部分Aw无数据',
+    error_conditions:'条件表达式异常',
+    not_reachable:'路径无法通过'
 }
 
 const getReason = (err: string) => {
@@ -35,6 +39,8 @@ const getReason = (err: string) => {
         case 'textErr':
         case 'scriptErr':
         case 'uncaught_exception':
+        case 'error_conditions':
+        case 'not_reachable':
         case 'not_start_end': {
             return errObj[err]
         }
@@ -91,6 +97,7 @@ export function CodegenErr(errmsg: any, codegenMsg: string): any {
     let outputLang
     let vaceErr
     let currentData
+    debugger
     if (codegenMsg == 'textErr') {
         let codegenErr = errmsg['template error'].filter((item: any) => item.outputLang == 'yaml')
         codegenErr.forEach((obj: any) => {

@@ -73,7 +73,6 @@ function closeTemplateModel() {
 
 // 依据uiSchema更新data数据
 function newData(aw: any, data?: any) {
-  // debugger
   let newdata:any = {}
   if (_.isEmpty(aw)) {
     newdata = {}
@@ -138,13 +137,11 @@ function transformCells(mbtData:any){
     return cell
 
    })
-   console.log(cells);
    
    return {cells};
 }
 
  function getProperty(cell: any, mbtData: any) {
-  // debugger
   let prop = {custom:{}}
   if (mbtData.modelDefinition.props[cell.id]?.props?.label && mbtData.modelDefinition.props[cell.id]?.props?.label.trim()) {
     Object.assign(prop.custom,{description:'',label:mbtData.modelDefinition.props[cell.id]?.props?.label, rulesData:mbtData.modelDefinition.props[cell.id]?.props?.ruleData})
@@ -225,7 +222,7 @@ document.onkeydown = function (e :any) {
   })
     rappid.paper.on('cell:pointerdown', (elementView: joint.dia.CellView) => {
       console.log(elementView.model);
-
+      
       storeAw.setData(elementView.model)
       rightSchemaModal.value.handleShowData()
       showpaper.value = true
@@ -283,6 +280,26 @@ let previewErr = ref(false)
 let errOutLang = ref()
 let jsonData = ref()
 
+function rappidHighLight(str:string){
+  if (storePre.getErrmsg) {
+          storePre.getErrmsg[str].forEach((cellIdArr: any) => {
+            if(Array.isArray(cellIdArr)){
+              cellIdArr.forEach((cellId: any) => {
+              rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
+              setTimeout(() =>{
+                rappid.graph.getCell(cellId).findView(rappid.paper).unhighlight()
+              } ,5000)
+            });
+            }else{
+              rappid.graph.getCell(cellIdArr).findView(rappid.paper).highlight()
+              setTimeout(() =>{
+                rappid.graph.getCell(cellIdArr).findView(rappid.paper).unhighlight()
+              } ,5000)
+            }     
+
+          })
+      }
+}
 
 function checkChange(check:boolean,str:any) {
   storePre.setCheck(false)
@@ -314,6 +331,7 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'textErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'textErr').currentData) , null,2)
+          console.log(jsonData.value)
           previewErr.value = true
         }
         break
@@ -329,23 +347,18 @@ function checkChange(check:boolean,str:any) {
           }
           errOutLang.value = CodegenErr(storePre.getErrmsg,'scriptErr').outputLang
           jsonData.value = JSON.stringify(toRaw(CodegenErr(storePre.getErrmsg, 'scriptErr').currentData), null ,2)
-          console.log(jsonData.value);
           previewErr.value = true
           }
         break
       }
+      case 'error_conditions':{
+        rappidHighLight(str)
+      }
+      case 'not_reachable' :{
+        rappidHighLight(str)
+      }
       case 'not_start_end': {
-        if (storePre.getErrmsg) {
-          storePre.getErrmsg[str].forEach((cellIdArr: Array<Array<string>>) => {
-            cellIdArr.forEach((cellId: any) => {
-              rappid.graph.getCell(cellId).findView(rappid.paper).highlight()
-              setTimeout(() =>{
-                rappid.graph.getCell(cellId).findView(rappid.paper).unhighlight()
-              } ,5000)
-            });
-
-          })
-        }
+        rappidHighLight(str)
         break
       }
     }
@@ -546,7 +559,6 @@ async function querycode(show?: boolean) {
   }).catch((err)=>{
     // 这里提示用户详细错误问题
     const errMsg = err.response.data
-    console.log(errMsg);
 
     setErrData(errMsg)
     if (storePre.getErrmsg) {
@@ -556,39 +568,37 @@ async function querycode(show?: boolean) {
   }).finally(() => spinning.value = false)
   
 }
-const preview= (show?:boolean)=>{
+const preview= async (show?:boolean) => {
 
     if(rappid.commandManager.undoStack.length > 0){
       message.warn("当前模型未保存")
       return
     }
-    rappid.graph.getCells().forEach(async (item: any) =>{
-      // debugger
-      if(item.attributes.type == 'itea.mbt.test.MBTAW'){
-          if(_.isEmpty(item.get('prop').custom.step.aw)){
-            Modal.confirm({
-            icon: createVNode(ExclamationCircleOutlined),
-            content: t("MBTStore.previewInput"),
-            onOk() {
-              return new Promise<void>(async (resolve, reject) => {
-                resolve()
-                searchPreview.mode="text"
-                await querycode(show)
-              }).catch(() => console.log('Oops errors!'));
-            },
-            onCancel() {
 
-            },
-          });
-
-        }else{
-          searchPreview.mode="all"
-          await querycode(show)
-        }
-      }
+    const flag = rappid.graph.getCells().some((item) => {
+      if (item.attributes.type == 'itea.mbt.test.MBTAW') {
+        return _.isEmpty(item.get('prop').custom.step.aw)
+      } else return false
     })
 
-
+  if (flag) {
+    Modal.confirm({
+      icon: createVNode(ExclamationCircleOutlined),
+      content: t("MBTStore.previewInput"),
+      onOk() {
+        return new Promise<void>(async (resolve, reject) => {
+          resolve()
+          searchPreview.mode = "text"
+          await querycode(show)
+        }).catch(() => console.log('Oops errors!'));
+      },
+      onCancel() {
+      },
+    })
+  } else {
+    searchPreview.mode = "all"
+    await querycode(show)
+  }
 }
 
 function handleChange(str: string, data: any) {
@@ -603,7 +613,10 @@ function handleChange(str: string, data: any) {
       break
     }
     case 'itea.mbt.test.MBTGroup': {
-      data.type = data.condition ? 'condition' : 'loop'
+      storeAw.getShowData?.setPropertiesData(data)
+      break
+    }
+    case 'itea.mbt.test.MBTIfGroup': {
       storeAw.getShowData?.setPropertiesData(data)
       break
     }
@@ -629,7 +642,6 @@ const onDrag = throttle(function (e: MouseEvent) {
   
 }, 20);
   const startDrag = (e: MouseEvent) => {
-    // debugger
     startX = e.clientX;
     scalableLeft.value && (startWidth = parseInt(window.getComputedStyle(scalableLeft.value).width, 10));
     document.documentElement.style.userSelect = 'none';
@@ -715,7 +727,7 @@ const inspector = (n:number) =>{
   <a-row class="previewErr">
     <a-col :span="12">
       <VAceEditor
-      class="currentData"
+        class="currentData"
         v-model:value="jsonData"
         lang="json"
         theme="sqlserver"
@@ -727,9 +739,9 @@ const inspector = (n:number) =>{
         <VAceEditor
         v-model:value="vaceErr"
         class="aceErr-results"
-        :lang="errOutLang"
+        lang="ejs"
         :wrap="true"
-        :readonly="true"
+
         theme="sqlserver"
         :options="{ useWorker: true }"
         ></VAceEditor>

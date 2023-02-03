@@ -38,7 +38,7 @@ const column3 = [
   { title: "tags", width: 100 },
   { title: "action", width: 100, actionList: ['edit', 'delete', 'clone']},
 ]
-
+const visible = ref(false)
 interface TableParams {
   search: string,
   q: string,
@@ -245,6 +245,12 @@ function handleSearch(keyword: string) {
   queryTableData()
 }
 
+function saveTemModal(){
+  request.get('/api/test-models/_tags').then((res) => {
+    
+  })
+}
+
 </script>
 
 <template>
@@ -261,11 +267,17 @@ function handleSearch(keyword: string) {
               <search-bar url="/api/test-models/_tags" @search="handleSearch"></search-bar>
             </a-col>
             <a-col :span="4">
-              <a-button type="primary" @click="showModal">
+              <a-popover v-model:visible="visible" trigger="click" placement="right">
+                <template #content>
+                  <p><a @click="showModal">新增建模</a></p>
+                  <p><a @click="saveTemModal">从模板建模</a></p>
+                </template>
+                <a-button type="primary">
                 <template #icon>
                   <plus-outlined />
                 </template>
               </a-button>
+            </a-popover>
             </a-col>
           </a-row>
         </header>

@@ -2,7 +2,7 @@
 // import { optimizeDeps } from "vite";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import * as appShapes from './app-shapes';
-import { MBTGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway } from '@/composables/customElements/';
+import { MBTGroup, MBTIfGroup, MBTAW, MBTSection, MBTStartEvent, MBTEndEvent, MBTParallelGateway, MBTExclusiveGateway} from '@/composables/customElements/';
 import { i18n } from "@/locales";
 const { t } = i18n.global
 
@@ -22,9 +22,9 @@ export class StencilService {
         return {
           // background: { color: '#2B2C30' },
           model: new joint.dia.Graph({}, {
-            cellNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
+            cellNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{MBTIfGroup}, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
           }),
-          cellViewNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
+          cellViewNamespace: { ...appShapes, ...{ itea: { mbt: { test: { ...{ MBTAW }, ...{ MBTGroup }, ...{MBTIfGroup}, ...{ MBTSection }, ...{ MBTStartEvent }, ...{ MBTEndEvent }, ...{ MBTParallelGateway }, ...{ MBTExclusiveGateway } } } } } }
         };
       },
       search: {
@@ -220,7 +220,7 @@ export class StencilService {
           allowOrthogonalResize: false,
           attrs: {
             root: {
-              dataTooltip: 'Group',
+              dataTooltip: 'Loop Group',
               dataTooltipPosition: 'left',
               dataTooltipPositionSelector: '.joint-stencil'
             },
@@ -231,7 +231,7 @@ export class StencilService {
               strokeDasharray: '0',
             },
             label: {
-              text: 'Group',
+              text: 'Loop Group',
               fill: '#c6c7e2',
               fontFamily: 'Roboto Condensed',
               fontWeight: 'Normal',
@@ -247,7 +247,32 @@ export class StencilService {
           //   ]
           // }
         },
-
+        {
+          type: 'itea.mbt.test.MBTIfGroup',
+          size: {width: 50, height: 35},
+          allowOrthogonalResize: false,
+          attrs: {
+            root: {
+              dataTooltip: 'If Group',
+              dataTooltipPosition: 'left',
+              dataTooltipPositionSelector: '.joint-stencil'
+            },
+            body: {
+              fill: 'transparent',
+              stroke: '#31d0c6',
+              strokeWidth: 2,
+              strokeDasharray: '0',
+            },
+            label: {
+              text: 'If Group',
+              fill: '#c6c7e2',
+              fontFamily: 'Roboto Condensed',
+              fontWeight: 'Normal',
+              fontSize: 11,
+              strokeWidth: 0
+            }
+          }
+        },
         {
           type: 'itea.mbt.test.MBTSection',
           size: { width: 50, height: 35 },

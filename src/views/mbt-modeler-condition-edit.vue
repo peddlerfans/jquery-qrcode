@@ -20,6 +20,50 @@ const  relations=[{
   label: "OR",
   value:"OR"
 }]
+
+const allOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<',
+    label: '<',
+  },
+  {
+    value: '>',
+    label: '>',
+  },
+  {
+    value: '<=',
+    label: '<=',
+  },
+  {
+    value: '>=',
+    label: '>=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  },
+  {
+    value: 'LIKE',
+    label: 'LIKE',
+  },
+  {
+    value: 'includes',
+    label: 'includes',
+  },
+  {
+    value: 'indexOf',
+    label: 'indexOf'
+  }
+]
+
 // 条件判断中的比较符号
 const stringOptions = [
   {
@@ -102,39 +146,6 @@ function addCondition(){
     selectvalues: '',
   })
   rulesChange(props.rulesData)
-  // let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
-  //
-  // if(conditionName){
-  //   if(props.rulesData[0].conditions.length>0){
-  //     let length= props.rulesData[0].conditions.length
-  //     let str=props.rulesData[0].conditions[length-1]
-  //     if(str.name && str.operator && str.value){
-  //       props.rulesData[0].conditions.push({
-  //         name: conditionName,
-  //         operator:"=",
-  //         value:undefined ,
-  //         selectvalues:selectvalue.value,
-  //       })
-  //     }else{
-  //       message.warning('Please complete condition editing first')
-  //     }
-  //   }else{
-  //     props.rulesData[0].conditions.push({
-  //       name: conditionName,
-  //       operator:undefined,
-  //       value:undefined,
-  //       selectvalues:selectvalue.value,
-  //     })
-  //   }
-  //
-  //
-  //   rulesChange(props.rulesData)
-  // }else{
-  //   message.warning("Please get the condition data first!")
-  // }
-
-
-
 }
 
 function addChild(){
@@ -152,30 +163,6 @@ function addChild(){
     children:[]
   })
   rulesChange(props.rulesData)
-  // let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
-  // if(props.rulesData[0].relation){
-  //   if(conditionName){
-  //     let childrelation="AND"
-  //     props.rulesData[0].children.push({
-  //       relation: childrelation,
-  //       id:props.rulesData[0].id+1,
-  //       conditions:[
-  //         {
-  //           name: conditionName,
-  //           operator:undefined,
-  //           value:undefined,
-  //           selectvalues:selectvalue.value,
-  //         }
-  //       ],
-  //       children:[]
-  //     })
-  //     changeObserver()//监测组件是否改变的方法,组件改变不等于条件改变的ruleChange方法
-  //   }else{
-  //     message.warning("Please get the condition data first!")
-  //   }
-  // }else{
-  //   message.warning('Please select the conditional link keyword first')
-  // }
 }
 function deleteChild (index: any){
   let conditionDelete = props.topDatas && props.topDatas[0].children && props.topDatas[0].children.length > 0
@@ -196,7 +183,13 @@ function childChange(childData: any){
 }
 function rulesChange(rulesData:any,){
   changeObserver()
-  emit("rulesChange", props.rulesData,props.keys)
+  emit("rulesChange", props.rulesData, props.keys)
+}
+
+function inputSelectChange(str: string, index: number, type: number) {
+  if (type === 1) props.rulesData[0].conditions[index].name = str
+  if (type === 2) props.rulesData[0].conditions[index].value = str
+  emit("rulesChange", props.rulesData, props.keys)
 }
 
 function getTypeOption(type: string) {
@@ -214,6 +207,7 @@ function getTypeOption(type: string) {
 }
 
 const checkrelation=(obj:any)=>{
+  debugger
   if (!obj) return
   if(obj=="AND" || obj=="&&"){
     props.rulesData[0].relation="OR"
@@ -227,13 +221,6 @@ const checkrelation=(obj:any)=>{
   }
 }
 
-function optOption (item: any) {
-  const tar = props.formDatas.map((a: any) => a.options).flat().filter((a: any) => a.value === item.name)[0]
-  if (!tar) return stringOptions
-  return getTypeOption(tar.type)
-
-}
-
 </script>
 
 <template>
@@ -242,40 +229,27 @@ function optOption (item: any) {
     <div class="ant-card-body" >
       <template v-for="(item, index) in rulesData[0]?.conditions || []" :key="'condition'+index">
         <a-row  class="loop-child">
-<!--          <a-select-->
-<!--            class="condition"-->
-<!--            v-model:value="item.name"-->
-<!--            :options="formDatas"-->
-<!--            @change="rulesChange"-->
-<!--            size="small"-->
-<!--            placeholder="name"-->
-<!--          ></a-select>-->
           <input-select-item
               style="width: 100%;"
-            v-model:model-value="item.name"
-            :options="formDatas"
+              v-model:model-value="item.name"
+              :options="formDatas"
+              @update:modelValue="(str: string) => inputSelectChange(str, index, 1)"
           ></input-select-item>
-          <template v-if="item.name">
-            <a-select
-                style="width: 100%;"
+          <a-select
+              style="width: 100%;"
               class="condition"
               v-model:value="item.operator"
               @change="rulesChange"
-              :options="optOption(item)"
+              :options="allOptions"
               size="small"
               placeholder="operator"
-            ></a-select>
-<!--            <a-input-->
-<!--                v-model:value="item.value"-->
-<!--                class="condition"-->
-<!--                @change="rulesChange"-->
-<!--            ></a-input>-->
-            <input-select-item
-                style="width: 100%;"
-                v-model:model-value="item.value"
-                :options="formDatas"
-            ></input-select-item>
-          </template>
+          ></a-select>
+          <input-select-item
+              style="width: 100%;"
+              v-model:model-value="item.value"
+              :options="formDatas"
+              @update:modelValue="(str: string) => inputSelectChange(str, index, 2)"
+          ></input-select-item>
           <a-button
               class="button-select"
               @click="daeteCondition(index)"
