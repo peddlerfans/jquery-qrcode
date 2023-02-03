@@ -64,6 +64,10 @@ const returnTypeOptions = [
     label: 'number',
   },
   {
+    value: 'array',
+    label: 'array'
+  },
+  {
     value: 'int',
     label: 'int',
   },

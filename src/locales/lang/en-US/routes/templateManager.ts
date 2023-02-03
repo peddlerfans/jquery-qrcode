@@ -57,6 +57,7 @@ export default {
     timeStamp: 'Time Stamp',
     templateEngine: 'Template Engine',
     outLang: 'Output Language',
+    outputType: 'Output Tupe',
     theme: 'theme',
     editTemp: 'Edit Template',
     previewTemp: 'Preview Result (Read-only)',

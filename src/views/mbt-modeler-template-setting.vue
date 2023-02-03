@@ -18,7 +18,7 @@ interface Props {
   show: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-  show: false,
+  show: false
 })
 
 const emit = defineEmits(['close'])
@@ -30,9 +30,9 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
-          
+
           globalFormData.value = {...store.changeTemplate}
-          
+
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -206,7 +206,6 @@ onMounted(() => {
                     globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
                   }
                 }
-                
               })
             }
           })
@@ -242,8 +241,6 @@ function resourcesHandleAdd() {
     resourcetype: `resourceType${resourcescount.value}`,
   };
   resourcesDataSource.value.push(newData);
-  console.log(store.mbtData.dataDefinition.resources);
-  
 }
 
 // 保存单元格的函数

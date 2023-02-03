@@ -1,52 +1,53 @@
 import joint from "../../../node_modules/@clientio/rappid/rappid.js"
 
-import {i18n} from "@/locales";
+import { i18n } from "@/locales";
 
-import {MBTShapeInterface} from "./MBTShapeInterface"
+import { MBTShapeInterface } from "./MBTShapeInterface"
 const { t } = i18n.global
 
 window.joint = joint
 
 export const name = 'startevent';
-export const namespace='itea.mbt.test.'+name;
-export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeInterface  {
+export const namespace = 'itea.mbt.test.' + name;
+export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeInterface {
   static shapeName = name;
-  constructor(e : Element,o: any) {
-      super(e,o);
-        
-        this.attr(   {
-        // 'background': { fill: '#454549' },
-        // 'icon': { iconType: 'link2' },
-        // {  borderType: 'double'},
-        // 'border': 
-        // {
-        //       borderType: 'thick',
-        //       borderStyle: 'dashed'
-        //   },
-        'label': { text: 'startevent' },
-        // 'stroke': '#fe854f',
-        // 'body': {
-        //   stroke: '#fe854f',
-        //   border: {
-        //     borderType: 'double',
-        //     borderStyle: 'dashed'
-        // }
+  constructor(e: Element, o: any) {
+    super(e, o);
+
+    this.attr({
+      // 'background': { fill: '#454549' },
+      // 'icon': { iconType: 'link2' },
+      // {  borderType: 'double'},
+      // 'border': 
+      // {
+      //       borderType: 'thick',
+      //       borderStyle: 'dashed'
+      //   },
+      'label': { text: 'startevent' },
+      'circle': { fill: '#dcd7d7' }
+      // 'stroke': '#fe854f',
+      // 'body': {
+      //   stroke: '#fe854f',
+      //   border: {
+      //     borderType: 'double',
+      //     borderStyle: 'dashed'
+      // }
       // },
-      })
-    this.on('change',(evt:any)=> {
+    })
+    this.on('change', (evt: any) => {
       if (evt.changed && evt.changed.custom && evt.changed.custom) {
         // attrs['.mbt-step-' + 'step' + '-text'] = evt.changed.custom.step;
-        this.updateRectangles();
-        this.attr('label/text/0',"test")
+        // this.updateRectangles();
+        // this.attr('label/text/0', "test")
       }
-      
+
     })
- 
-   this.updateRectangles();
+
+    // this.updateRectangles();
   }
 
   // static namespace = 'itea.mbt.test.group';
-  getInspectorSchema(){
+  getInspectorSchema() {
     const options = {
       colorPalette: [
         { content: 'transparent', icon: '../src/assets/transparent-icon.svg' },
@@ -65,62 +66,62 @@ export class MBTStartEvent extends joint.shapes.bpmn2.Event implements MBTShapeI
         { content: '#3c4260' },
         { content: '#33334e' },
         { content: '#222138' }
-    ],
+      ],
     }
     return {
       inputs: {
         attrs: {
-            circle: {
-                fill: {
-                    type: 'color-palette',
-                    options: options.colorPalette,
-                    label: 'fill',
-                    group: 'presentation',
-                    index: 1
-                }
+          background: {
+            fill: {
+              type: 'color-palette',
+              options: options.colorPalette,
+              label: 'fill',
+              group: 'presentation',
+              index: 1
             }
+          }
         }
-    },
-    groups: {
+      },
+      groups: {
         presentation: {
-            label: 'Presentation',
-            index: 1
+          label: 'Presentation',
+          index: 1
         }
-    }
+      }
     }
 
   }
 
-  setInspectorData(){
-    
+  setInspectorData() {
+
   }
-  
+
   updateRectangles() {
 
     var attrs = this.get('attrs');
     var rects = [
-      { type: 'step', text: this.prop('custom/step') || 'BBB'},
+      { type: 'step', text: this.prop('custom/step') || 'BBB' },
       { type: 'expectation', text: this.prop('custom/expectation') },
       // { type: 'methods', text: this.get('methods') }
-  ];
+    ];
 
-  var offsetY = 0;
+    var offsetY = 0;
 
-}
-setSizeFromContent() {
-  // delete this.cache.layout;
-  const {
-    width,
-    height
-  } = this.layout();
-  this.resize(width, height);
-}
+  }
+  setSizeFromContent() {
+    // delete this.cache.layout;
+    const {
+      width,
+      height
+    } = this.layout();
+    this.resize(width, height);
+  }
   defaults() {
     return {
-        ...super.defaults,
-        type: 'itea.mbt.test'
-     
-   
+      ...super.defaults,
+      type: 'itea.mbt.test'
+
+
     }
   }
 

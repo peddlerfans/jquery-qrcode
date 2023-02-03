@@ -33,7 +33,6 @@ export class MBTGroup extends MBTGroupBase {
       if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
         this.reRender();
       }
-
     })
 
     // this.reRender();
@@ -66,6 +65,8 @@ export class MBTGroup extends MBTGroupBase {
   }
   setPropertiesData(data: any) {
     const group = store.getGroupData
+    console.log(data);
+    if (!data.condition) data.condition = ''
     this.prop('prop/custom', data)
     // this.reRender();
   }
@@ -103,6 +104,10 @@ export class MBTGroup extends MBTGroupBase {
         loopCount: {
           title: "Loop Count",
           type: "integer",
+        },
+        condition: {
+          title: 'If condition',
+          type: 'string'
         }
       }
     }
@@ -135,7 +140,9 @@ export class MBTGroup extends MBTGroupBase {
       prop: {
         custom: {
           description: "",
-          loopCount: "1"
+          loopCount: "1",
+          condition: '',
+          type: 'loop'
         }
       }
     }

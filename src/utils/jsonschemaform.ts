@@ -43,7 +43,7 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
         typeinschema = "SUT";
         break;
       case 'condition':
-        typeinschema = 'string'
+        typeinschema = 'condition'
         break
       default:
         break;
@@ -124,15 +124,7 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
       }
 
     } else {
-      if (mod.description) {
-        tempobj = {
-          [mod.name]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            title: mod.description,
-          }
-        }
-      } else {
+      if (mod.name) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
@@ -140,8 +132,15 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
             title: mod.name,
           }
         }
+      } else if (mod.description) {
+        tempobj = {
+          [mod.name]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            title: mod.description,
+          }
+        }
       }
-
 
     }
     Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})

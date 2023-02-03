@@ -8,7 +8,7 @@ export interface ModelState {
     templateText: string;
 }
 
-export interface Model{
+export interface Model {
     _id: any;
     name: any;
     category: any;
@@ -18,17 +18,18 @@ export interface Model{
         templateEngine: any;
         outputLanguage: any;
         data: any;
+        outputType: string
         history: Array<any>;
     };
     templateText: any;
 }
 
-export interface AceState{
+export interface AceState {
     theme: string;
     lang: string;
     result: string;
 }
 
-export interface AceEditor{
+export interface AceEditor {
     _editor: any;
 }

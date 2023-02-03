@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import _ from "lodash";
 import { generateSchema } from "@/utils/jsonschemaform";
-import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import ConditionItem from '@/components/basic/itea-schema-item/condition-item.vue'
 
 const defaultAWSchema = {
     title: "AW",
@@ -212,9 +213,6 @@ export const MbtData = defineStore({
             schema.description = row.description
             if (_.isArray(row.params) && row.params.length > 0) {
                 let appEndedSchema = generateSchema(row.params)
-                // appEndedSchema = appEndedSchema.filter((a: any) => {
-                //     return Object.keys(a).some((b: any) => a[b].type !== 'condition')
-                // })
                 appEndedSchema.forEach((a: any) => {
                     Object.keys(a).forEach((b: any) => {
                         a[b].custom = 'awParams'
@@ -232,35 +230,82 @@ export const MbtData = defineStore({
                     }
                 })
             }
+            console.log(schema)
             // @ts-ignore
             return this.data2schema(schema, {}, type)
         },
         data2schema(awSchema: any, uiSchema: any, type: string) {
-            let sutEnumList: Array<any> = []
-            sutEnumList = this.getDataPoolResource.map((a: any) => {
-                return {
-                    value: `{{${a.alias}}}`,
-                    label: a.alias
-                }
-            })
             // 获取属性里面可自定义的表单项
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                let isSutType
+                let options: Array<any> = []
+                /**
+                 * 相关组件的传参
+                 * SUT 类型
+                 * condition 类型
+                 * 默认其他
+                 * */
+                switch (a.type) {
+                    case 'SUT': {
+                        options = this.getDataPoolResource.map((b: any) => {
+                            return {
+                                value: `{{${b.alias}}}`,
+                                label: b.alias
+                            }
+                        })
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
+                    case 'condition': {
+                        const options = this.getAwParamsOption(type, a.title)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": type === '2' ? ConditionItem : InputSelectItem,
+                                "ui:options": options,
+                                "ui:rulesData": [{
+                                    relation: 'AND',
+                                    id: 1,
+                                    conditions: [
+                                        {
+                                            name: '',
+                                            operator: '',
+                                            value: undefined,
+                                            selectvalues: 'AND',
+                                        },
+                                    ],
+                                    children: [],
+                                }]
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
+                    default: {
+                        options = this.getAwParamsOption(type, a.title)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        break
+                    }
+                }
                 if (prop[a.title]?.custom) {
-                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    // SUT 类型做标记
+                    let isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
                     prop[a.title] = {
                         "title": a.title,
                         "type": "string",
                         "patternProperties": false,
                         "AWType": isSutType ? 'SUT' : 'string'
-                    }
-                }
-                if (uiSchema) {
-                    uiSchema[a.title] = {
-                        "ui:widget": schemaItem,
-                        "ui:options": isSutType ? sutEnumList : this.getAwParamsOption(type, a.title)
                     }
                 }
             })
@@ -302,10 +347,12 @@ export const MbtData = defineStore({
             if (aw) {
                 options = (aw?.params || []).filter((a: any) => a.name === title)
                 options = options[0]?.enum || []
+                // 枚举值无 type 类型，默认返回 string
                 options = options.map((a: any) => {
                     return {
                         label: a,
-                        value: a
+                        value: a,
+                        type: 'string'
                     }
                 })
             }
@@ -316,12 +363,13 @@ export const MbtData = defineStore({
             // Data Pool 数据
             res.push({
                 label: 'Data Pool',
+                // 目前 dynamic 的数据类型未返回，而 static 和 directly 没有注定类型，默认全返回 string
                 options: this.getDataPoolTableColumns.map((a: any) => {
                     return {
                         value: `{{${a.title}}}`,
                         label: a.title
                     }
-                })
+                }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
             })
             // 返回变量名
             res.push({
@@ -332,7 +380,7 @@ export const MbtData = defineStore({
         },
         // 获取当前模型所有带有 变量 属性并有 值 的数据
         // 只有 aw 版本为 version 3.0 以上才支持
-        getAllCustomVar () {
+        getAllCustomVar() {
             const cell = this.getShowData
             if (_.isEmpty(cell)) return []
             let arr = cell.graph.getCells()
@@ -345,7 +393,7 @@ export const MbtData = defineStore({
                 if (schemaVal?.variable) {
                     temp.push({
                         label: schemaVal.variable,
-                        value: schemaVal.variable,
+                        value: `{{{${schemaVal.variable}}}`,
                         type: type ? type : 'string'
                     })
                 }
