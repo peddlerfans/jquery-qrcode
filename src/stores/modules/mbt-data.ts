@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia'
 import _ from "lodash";
 import { generateSchema } from "@/utils/jsonschemaform";
-import schemaItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import InputSelectItem from "@/components/basic/itea-schema-item/input-select-item.vue";
+import ConditionItem from '@/components/basic/itea-schema-item/condition-item.vue'
+import MultipleSelectItem from '@/components/basic/itea-schema-item/multiple-select-item.vue'
+import CustomInput from '@/components/basic/itea-schema-item/custom-input.vue'
 
 const defaultAWSchema = {
     title: "AW",
@@ -165,32 +168,8 @@ export const MbtData = defineStore({
             let enums = temp.enum
             return !enums.includes(val)
         },
-        setExpectedTableRow(row: any) {
-            this.expectedTableRow = row
-        },
         setDataDefinition(data: any) {
             this.allData.dataDefinition.data = data
-        },
-        setLinkData(data: any, key: string) {
-            if (!key) this.LinkData = data
-            else {
-                // @ts-ignore
-                this.LinkData[key] = data
-            }
-        },
-        setGroupData(data: any, key?: string) {
-            if (!key) this.groupData = data
-            else {
-                // @ts-ignore
-                this.groupData[key] = data
-            }
-        },
-        setSectionData(data: any, key?: string) {
-            if (!key) this.sectionData = data
-            else {
-                // @ts-ignore
-                this.sectionData[key] = data
-            }
         },
         resetEditingExpectedAw() {
             this.showData = {}
@@ -225,7 +204,8 @@ export const MbtData = defineStore({
                 Object.assign(schema.properties, {
                     variable: {
                         title: '返回变量名',
-                        type: 'string'
+                        type: 'var',
+                        custom: 'awParams'
                     }
                 })
             }
@@ -233,32 +213,96 @@ export const MbtData = defineStore({
             return this.data2schema(schema, {}, type)
         },
         data2schema(awSchema: any, uiSchema: any, type: string) {
-            let sutEnumList: Array<any> = []
-            sutEnumList = this.getDataPoolResource.map((a: any) => {
-                return {
-                    value: `{{${a.alias}}}`,
-                    label: a.alias
-                }
-            })
             // 获取属性里面可自定义的表单项
             let customInSchema: any = this.getCustomItems(awSchema)
             customInSchema.forEach((a: any) => {
                 let prop = awSchema.properties
-                let isSutType
+                let options: Array<any> = []
+                /**
+                 * 相关组件的传参
+                 * SUT 类型
+                 * condition 类型
+                 * 默认其他
+                 * */
+                switch (a.type) {
+                    case 'array': {
+                        const options = this.getAwParamsOption(type, a.title, 2)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": MultipleSelectItem,
+                                "ui:options": options,
+                            }
+                        }
+                        break
+                    }
+                    case 'SUT': {
+                        options = this.getDataPoolResource.map((b: any) => {
+                            return {
+                                value: `${b.alias}`,
+                                label: b.alias
+                            }
+                        })
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
+                    case 'condition': {
+                        const options = this.getAwParamsOption(type, a.title, 2)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": type === '2' ? ConditionItem : InputSelectItem,
+                                "ui:options": options,
+                                "ui:rulesData": [{
+                                    relation: 'AND',
+                                    id: 1,
+                                    conditions: [
+                                        {
+                                            name: '',
+                                            operator: '',
+                                            value: undefined,
+                                            selectvalues: 'AND',
+                                        },
+                                    ],
+                                    children: [],
+                                }]
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
+                    case 'var': {
+                        if (uiSchema) {
+                            uiSchema['variable'] = {
+                                "ui:widget": CustomInput
+                            }
+                        }
+                        a.type = 'string'
+                        break
+                    }
+                    default: {
+                        options = this.getAwParamsOption(type, a.title, 2)
+                        if (uiSchema) {
+                            uiSchema[a.title] = {
+                                "ui:widget": InputSelectItem,
+                                "ui:options": options
+                            }
+                        }
+                        break
+                    }
+                }
                 if (prop[a.title]?.custom) {
-                    isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
+                    // SUT 类型做标记
+                    let isSutType = a.type === 'SUT' || prop[a.title].AWType === 'SUT'
                     prop[a.title] = {
                         "title": a.title,
                         "type": "string",
                         "patternProperties": false,
                         "AWType": isSutType ? 'SUT' : 'string'
-                    }
-                }
-
-                if (uiSchema) {
-                    uiSchema[a.title] = {
-                        "ui:widget": schemaItem,
-                        "ui:options": isSutType ? sutEnumList : this.getAwParamsOption(type, a.title)
                     }
                 }
             })
@@ -272,7 +316,7 @@ export const MbtData = defineStore({
             let arr: any = []
             for (let key in awSchema.properties) {
                 const tar = awSchema.properties[key]
-                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly') && tar.title !== '返回变量名') {
+                if (!tar.hasOwnProperty('ui:hidden') && !tar.hasOwnProperty('readOnly')) {
                     arr.push(tar)
                 }
             }
@@ -287,24 +331,25 @@ export const MbtData = defineStore({
          * Data Pool 的数据
          * 返回变量名
          * */
-        getAwParamsOption(type: string, title: string) {
+        getAwParamsOption(type: string, title: string, opt?: number) {
             const res: Array<any> = []
             let aw: any
             let options: Array<any> = []
             // 自身枚举值
             if (type === '1') {
                 aw = this.getPrimaryAwData
-                console.log(aw)
             } else if (type === '2') {
                 aw = this.getExpectedAwData
             }
             if (aw) {
                 options = (aw?.params || []).filter((a: any) => a.name === title)
                 options = options[0]?.enum || []
+                // 枚举值无 type 类型，默认返回 string
                 options = options.map((a: any) => {
                     return {
                         label: a,
-                        value: a
+                        value: a,
+                        type: 'string'
                     }
                 })
             }
@@ -315,23 +360,24 @@ export const MbtData = defineStore({
             // Data Pool 数据
             res.push({
                 label: 'Data Pool',
+                // 目前 dynamic 的数据类型未返回，而 static 和 directly 没有注定类型，默认全返回 string
                 options: this.getDataPoolTableColumns.map((a: any) => {
                     return {
-                        value: `{{${a.title}}}`,
+                        value: opt === 2 ? `{{${a.title}}}` : a.title,
                         label: a.title
                     }
-                })
+                }).filter((b: any) => b.label !== 'action' && b.label !== 'key')
             })
             // 返回变量名
             res.push({
                 label: '返回变量名',
-                options: this.getAllCustomVar()
+                options: this.getAllCustomVar(opt)
             })
             return res.filter((a: any) => a.options.length)
         },
         // 获取当前模型所有带有 变量 属性并有 值 的数据
         // 只有 aw 版本为 version 3.0 以上才支持
-        getAllCustomVar () {
+        getAllCustomVar(opt?: number) {
             const cell = this.getShowData
             if (_.isEmpty(cell)) return []
             let arr = cell.graph.getCells()
@@ -344,12 +390,18 @@ export const MbtData = defineStore({
                 if (schemaVal?.variable) {
                     temp.push({
                         label: schemaVal.variable,
-                        value: schemaVal.variable,
+                        value: opt === 2 ? `{{${schemaVal.variable}}}` : schemaVal.variable,
                         type: type ? type : 'string'
                     })
                 }
             })
             return temp
+        },
+        hasCondition() {
+            // @ts-ignore
+            const aw = this.getExpectedAwData
+            if (!aw?.params?.length) return false
+            return aw.params.some((b: any) => b.type === 'condition')
         }
     }
 })

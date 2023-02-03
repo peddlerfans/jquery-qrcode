@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {ref, watch} from "vue";
+import {onMounted, reactive, ref, watch} from "vue";
 import _ from "lodash";
 import {message} from "ant-design-vue/es";
 import {useI18n} from "vue-i18n";
@@ -9,13 +9,17 @@ import {useRoute} from "vue-router";
 import {saveAs} from '@/utils/fileAction'
 import ExcelJs from 'exceljs'
 import JSZip from "jszip";
+import {arr2Tree} from "@/utils/treeData";
 
 const { t } = useI18n()
 let tableData = ref<any>([])
 let tableCol = ref<any>([])
 let script = ref<string>('')
 let previewTree = ref()
+let activeKey = ref('1')
 const route = useRoute()
+const treeData = ref()
+const scriptPath = ref()
 
 interface Props {
   visible: boolean,
@@ -27,6 +31,7 @@ const props = withDefaults(defineProps<Props>(), {
   previewData: {},
   outLang: ''
 })
+
 
 function handleTableCol () {
   let temp: any = props.previewData[0]
@@ -43,6 +48,33 @@ function handleTableCol () {
   })
 }
 
+function splitByFile(script: string, id: string) {
+  let pos: number = 0
+  let result: any = {}
+  let r = /^(.*---- filename: (.+)----.*)$/gm
+  let res: any
+  let defaultName: any = id
+  let flag = false
+  do {
+    res = r.exec(script)
+    if (res) {
+      if (pos === 0 && res.index > 0 && !flag) {
+        flag = true
+        result[defaultName] = script.slice(0, res.index)
+      } else {
+        let txt = script.slice(pos, res.index)
+        if (txt) result[defaultName] = script.slice(pos, res.index)
+      }
+      defaultName = res[2]
+      pos = res.index + res[1].length + 1
+    } else {
+      result[defaultName] = script.slice(pos)
+    }
+  } while (res) {
+    return result
+  }
+}
+
 watch(() => props.visible, value => {
   if (value) {
     if (_.isEmpty(props.previewData)) {
@@ -52,10 +84,43 @@ watch(() => props.visible, value => {
     }
     // 处理详情表头数据
     handleTableCol()
+    tableData.value = props.previewData
+    const tempObj = {}
+    props.previewData.forEach((a: any) => {
+      if (a?.script) {
+        Object.assign(tempObj, splitByFile(a.script, a.id))
+      }
+    })
+    scriptPath.value = tempObj
+    // 生成树形数据
+    treeData.value = arr2Tree(Object.keys(tempObj))
   } else {
     tableData.value = []
     tableCol.value = []
     script.value = ''
+  }
+})
+
+// 分页数据
+const pagination = reactive({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  pageSizeOptions: ['10', '20', '50', '100', '200'],
+  showSizeChanger: true,
+  showQuickJumper: true,
+  showTotal: (total: any, range: any[]) => t('component.table.pageTip', {
+    head: range[0],
+    tail: range[1],
+    total: total
+  }),
+  onShowSizeChange: (page: any, pageSize: any) => {
+    pagination.current = page
+    pagination.pageSize = pageSize
+  },
+  onChange: (page: number, pageSize: number) => {
+    pagination.current = page
+    pagination.pageSize = pageSize
   }
 })
 
@@ -81,7 +146,7 @@ function publish() {
 function setExcelCell(workbook: any) {
   const col :Partial<ExcelJs.Column>[] = []
   let headerList: Array<string> = Object.keys(props.previewData[0]).filter((str: string) => str !== 'script')
-  const workSheet = workbook.addWorksheet('是我')
+  const workSheet = workbook.addWorksheet('tab1')
   headerList.forEach((head: string) => {
     col.push({
       header: head,
@@ -98,6 +163,7 @@ function setExcelCell(workbook: any) {
 async function exportData() {
   const workbook = new ExcelJs.Workbook()
   const jsZip = new JSZip()
+  const title = route.params.name
   workbook.views = [
     {
       x: 0,
@@ -112,7 +178,7 @@ async function exportData() {
   setExcelCell(workbook)
   let excelData = await workbook.xlsx.writeBuffer()
   let blob = new Blob([excelData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  jsZip.file('zftext.xlsx', blob)
+  jsZip.file(`${title}.xlsx`, blob)
   props.previewData.forEach((item: any) => {
     const txtBlob = new Blob([item.script])
     jsZip.file(`${item.id}.txt`, txtBlob)
@@ -120,8 +186,25 @@ async function exportData() {
   jsZip.generateAsync({
     type: 'blob'
   }).then(blob => {
-    saveAs(blob, `zfText.zip`)
+    saveAs(blob, `${title}.zip`)
   })
+}
+
+function handleSelect(selectedKeys: any, info: any) {
+  if (!scriptPath.value) return
+  // 拼接路径名
+  let key: string = ''
+  const pNode = info.node?.parent?.nodes
+  if (pNode) {
+    pNode.forEach((a: any) => {
+      const v = '/' + (a.title === '/' ? '' : a.title)
+      key +=  v
+    })
+  }
+  key += '/' + info.node.title
+  key = key.slice(1)
+  const tempScript = scriptPath.value[key]
+  if (tempScript) script.value = tempScript
 }
 
 </script>
@@ -136,7 +219,7 @@ async function exportData() {
            centered
            class="previewModel"
            @cancel="cancelPreview">
-    <div class="preview-wrap">
+    <!-- <div class="preview-wrap">
       <div class="left-tree">
         <a-tree
             ref="previewTree"
@@ -178,9 +261,48 @@ async function exportData() {
           <div>{{ $t('MBTStore.selectTip') }}</div>
         </template>
       </div>
-    </div>
+    </div> -->
+      <div class="preview-wrap">
+        <a-tabs v-model:activeKey="activeKey" type="card" class="mbt-preview-modal-tab">
+          <a-tab-pane key="1" tab="text">
+            <!-- <template v-if="tableData.length"> -->
+              <div class="top" style="width: 100%;height:100%" >
+                <ATable
+                  class="previewText"
+                  :data-source="tableData"
+                  :columns="tableCol"
+                  :pagination="pagination">
+                <template #bodyCell="{text}">
+                  <div style="white-space: pre;">{{ text }}</div>
+                </template>
+              </ATable>
+            </div>
+            <!-- </template> -->
+
+          </a-tab-pane>
+          <a-tab-pane key="2" tab="script" style="height:500px">
+            <div class="script-wrap">
+              <a-tree
+                  :defaultExpandAll="true"
+                  class="script-tree"
+                  :tree-data="treeData"
+                  @select="handleSelect"
+              ></a-tree>
+              <a-divider type="vertical" />
+              <VAceEditor
+                  v-model:value="script"
+                  class="ace-result"
+                  :wrap="true"
+                  :readonly="true"
+                  :lang="props.outLang"
+                  theme="sqlserver"
+                  :options="{ useWorker: true }"
+              ></VAceEditor>
+            </div>
+          </a-tab-pane>
+        </a-tabs>
+      </div>
     <div class="btn-wrap" slot="footer">
-      <a-divider></a-divider>
       <div class="btn-list">
         <a-button type="primary" @click="exportData">导出</a-button>
         <a-button type="primary" @click="publish">发布</a-button>
@@ -194,9 +316,30 @@ async function exportData() {
 .ant-table-cell {
   white-space: pre;
 }
+
 .preview-wrap {
   display: flex;
   height: 94%;
+  .ant-tabs > .ant-tabs-content-holder > .ant-tabs-content {
+    height: 100%!important;
+  }
+  .mbt-preview-modal-tab {
+    width: 100%;
+  }
+  /deep/ .script-wrap {
+    display: flex;
+    height: 100%;
+    .script-tree {
+      width: 180px;
+      overflow: auto;
+    }
+    .ace-result {
+      height: 100%;
+    }
+  }
+  /deep/ .ant-tabs-content-holder {
+    overflow: auto;
+  }
   .left-tree {
     height: 110vh;
     overflow: auto;
@@ -211,6 +354,7 @@ async function exportData() {
     flex-direction: column;
     .previewText{
       width: 100%;
+      height: 100%;
     }
     .bottom {
       flex: 1;

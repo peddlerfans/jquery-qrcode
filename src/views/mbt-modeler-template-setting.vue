@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, inject, reactive, Ref, ref, watch} from "vue";
+import {computed, inject, onMounted, reactive, Ref, ref, watch} from "vue";
 import {Stores} from "../../types/stores";
 import _, {cloneDeep} from "lodash";
 import MetaInfo from "@/components/metainfo.vue";
@@ -8,21 +8,28 @@ import {MBTStore} from '@/stores/MBTModel'
 import {getAllTemplatesByCategory} from "@/api/mbt";
 import {message, Modal} from "ant-design-vue";
 import {useI18n} from "vue-i18n";
-import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined,} from '@ant-design/icons-vue'
+import {CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusCircleOutlined, CloseOutlined} from '@ant-design/icons-vue'
 import {MbtData} from "@/stores/modules/mbt-data";
 import {exportFile, getExcelData} from "@/utils/fileAction";
 import InputTable from "@/components/inputTable.vue"
 import MbtModelerTemplateSettingLinkModal from "@/views/mbt-modeler-template-setting-link-modal.vue";
+import {useRoute} from "vue-router";
 
 interface Props {
   show: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
-  show: false,
+  show: false
 })
 
 const emit = defineEmits(['close'])
 const { t } = useI18n()
+let route = useRoute()
+const updateInfo = ref<any>(null)
+const index = ref<number>(-1)
+// 超链接列表
+let linkList = ref<Array<any>>([])
+let showLinkModal = ref<boolean>(false)
 
 watch(
     () => props.show,
@@ -30,21 +37,15 @@ watch(
       if (val) {
         // Attribute 初始化数据
         if (store.changeTemplate?._id) {
-          globalFormData.value = {...store.changeTemplate}
-          getAllTemplatesByCategory('codegen').then((rst: any) => {
-            if (rst && _.isArray(rst)) {
-              rst.forEach((rec: any) => {
-                if (rec.model && rec.model.outputLanguage) {
-                  if (rec.model.outputLanguage == 'yaml') {
-                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
-                  } else {
-                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
-                  }
-                }
-
-              })
-            }
-          })
+          const temp = _.cloneDeep(store.changeTemplate)
+          linkList.value = temp.hyperLinks || []
+          globalFormData.value = {
+            _id: temp._id,
+            name: temp.name,
+            description: temp.description,
+            codegen_script: temp.codegen_script,
+            codegen_text: temp.codegen_text,
+          }
         }
         // meta 初始化数据
         storeAw.setMetaData(store.getMetaDetail, 'detail')
@@ -66,11 +67,11 @@ watch(
             tableColumns.value = store.getDataPoolColData
             tableDataDynamic.value = []
             tableColumnsDynamic.value = []
-            tableDataDirectInput.value  = []
+            tableDataDirectInput.value = []
             tableColumnsDirectInput.value = []
           } else {
             dataPoolRadio.value = 3
-            tableDataDirectInput.value  = store.getDataPoolTableData
+            tableDataDirectInput.value = store.getDataPoolTableData
             tableColumnsDirectInput.value = store.getDataPoolColData
             tableDataDynamic.value = []
             tableColumnsDynamic.value = []
@@ -135,9 +136,6 @@ const defaultGlobalSchema = {
 }
 const globalSchema = ref(_.cloneDeep(defaultGlobalSchema))
 let metaTemplateDetailTableData = ref({})
-// 超链接列表
-let linkList = ref<Array<any>>([])
-let showLinkModal = ref<boolean>(false)
 // meta的数据
 let tempSchema = ref({
   type: "object",
@@ -206,6 +204,24 @@ const resourcesColumns: columnDefinition[] = [
 let metaInfo: any = ref(null)
 let dataDefinition: any = ref(null)
 
+
+onMounted(() => {
+  getAllTemplatesByCategory('codegen').then((rst: any) => {
+            if (rst && _.isArray(rst)) {
+              rst.forEach((rec: any) => {
+                if (rec.model && rec.model.outputLanguage) {
+                  if (rec.model.outputLanguage == 'yaml') {
+                    globalSchema.value.properties.codegen_text.anyOf.push({ title: rec.name , const: rec._id})
+                  } else {
+                    globalSchema.value.properties.codegen_script.anyOf.push({ title: rec.name , const: rec._id})
+                  }
+                }
+              })
+            }
+          })
+})
+
+
 function closeTemplateModel() {
   emit('close')
   activeKey.value = '1'
@@ -213,7 +229,7 @@ function closeTemplateModel() {
 
 function save() {
   // 保存 Attribute 数据
-  store.saveattr(globalFormData.value)
+  store.saveattr(globalFormData.value, linkList.value)
   // 保存 Meta 数据
   if (metaInfo.value) store.saveMeta(metaInfo.value)
   // 保存 Data Pool 数据
@@ -223,7 +239,7 @@ function save() {
   }
   // 保存 Resources 数据
   if (resourcesDataSource.value.length > 0) store.saveResources(resourcesDataSource.value)
-  message.success('保存成功！')
+  message.success(t('component.message.settingSuccess'))
 }
 
 // 添加resource列头的函数
@@ -235,8 +251,6 @@ function resourcesHandleAdd() {
     resourcetype: `resourceType${resourcescount.value}`,
   };
   resourcesDataSource.value.push(newData);
-  console.log(store.mbtData.dataDefinition.resources);
-  
 }
 
 // 保存单元格的函数
@@ -278,7 +292,7 @@ function dataPoolChange(data: any) {
 }
 
 function exportMeta() {
-  const props = store.getMeta?.schema?.properties
+  const details = store.getMeta?.detail
   const data: any = store.getMeta.data
   if (!props || _.isEmpty(props)) return message.warning('暂无数据')
   const cols = [
@@ -289,27 +303,24 @@ function exportMeta() {
     {
       title: '值',
       key: 'value'
-    },
-    {
-      title: '输入类型',
-      key: 'type'
     }
   ]
-  const arr = Object.keys(props).map((a: any) => {
-    const val = data[a]
+  const arr = details.map((a: any) => {
+    let val = data[a.name]
     return {
-      name: a,
-      type: val && val.type === '2' ? '自定义输入' : '选项输入',
-      value: val && val.val ? val.val : ''
+      name: a.name,
+      value: val || ''
     }
   })
-  exportFile(cols, arr)
+  const title = route.params?.name + '-meta'
+  exportFile(cols, arr, title)
 }
 
 function exportDataPool() {
   const dataPool = store.getDataPool
   if (!dataPool) return message.warning('暂无数据')
-  exportFile(dataPool.tableColumns, dataPool.tableData)
+  const title = route.params?.name + '-dataPool'
+  exportFile(dataPool.tableColumns, dataPool.tableData, title)
 }
 
 function exportResource() {
@@ -320,7 +331,8 @@ function exportResource() {
       title: key
     }
   })
-  exportFile(cols, resource)
+  const title = route.params?.name + '-resource'
+  exportFile(cols, resource, title)
 }
 
 function exportData() {
@@ -367,6 +379,22 @@ function addHyperLinke(linkInfo: any) {
   linkList.value.push(linkInfo)
 }
 
+function removeLink(info: any, idx: number) {
+  linkList.value.splice(idx, 1)
+}
+
+function editLink(info: any, idx: number) {
+  updateInfo.value = info
+  index.value = idx
+  showLinkModal.value = true
+}
+
+function updateLink(data: any) {
+  linkList.value[data.index] = data.info
+  updateInfo.value = null
+  index.value = -1
+}
+
 </script>
 
 <template>
@@ -380,9 +408,6 @@ function addHyperLinke(linkInfo: any) {
     <div class="infoPanel card-container">
       <a-tabs v-model:activeKey="activeKey" type="card">
         <a-tab-pane key="1" tab="Attributes" force-render style="height:550px; overflow: auto;">
-          <div class="btn-wrap" style="text-align: right;">
-            <a-button @click="showLinkModal = true">添加超链接</a-button>
-          </div>
           <div style="padding: 5px" class="attrConfig">
             <VueForm
               v-model="globalFormData"
@@ -391,14 +416,31 @@ function addHyperLinke(linkInfo: any) {
             ></VueForm>
           </div>
           <div class="link-wrap">
-            <a-tag>
-              <a
+            <div class="title">
+              <div>引用列表：</div>
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>{{ t('MBTStore.addHyperLinke') }}</span>
+                </template>
+                <plus-circle-outlined
+                    @click="showLinkModal = true"
+                    class="icon--primary-btn"
+                    style="margin-right: 8px;"
+                ></plus-circle-outlined>
+              </a-tooltip>
+            </div>
+            <div v-show="addHyperLinke.length" class="link-list-wrap">
+              <div
+                  class="link-item"
                   v-for="(info, idx) in linkList"
-                  :key="idx"
-                  :href="info.url"
-                  target="_blank"
-              >{{ info.name }}</a>
-            </a-tag>
+                  :key="idx">
+                <a :href="info.url" target="_blank">{{ info.name }}</a>
+                <div class="btn-wrap">
+                  <edit-outlined class="edit-icon" @click="editLink(info, idx)"></edit-outlined>
+                  <close-outlined class="remove-icon" @click="removeLink(info, idx)"></close-outlined>
+                </div>
+              </div>
+            </div>
           </div>
         </a-tab-pane>
         <a-tab-pane key="2" tab="Meta" style="height:550px; position: relative; overflow: auto;">
@@ -544,10 +586,13 @@ function addHyperLinke(linkInfo: any) {
       :show="showLinkModal"
       @close="showLinkModal = false"
       @add="addHyperLinke"
+      @update="updateLink"
+      :info="updateInfo"
+      :info-index="index"
   ></mbt-modeler-template-setting-link-modal>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .infoPanel{
   position: relative;
 }
@@ -600,5 +645,46 @@ function addHyperLinke(linkInfo: any) {
 [data-theme='dark'] .card-container > .ant-tabs-card .ant-tabs-tab-active {
   background: #141414;
   border-color: #141414;
+}
+.link-wrap {
+  position: relative;
+  z-index: 7;
+  .title {
+    display: flex;
+    align-items: center;
+    line-height: 26px;
+    margin-top: -32px;
+  }
+  .link-list-wrap {
+    display: flex;
+    .link-item {
+      width: 50%;
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin: 4px 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      &:hover {
+        background-color: #ccc;
+        .btn-wrap {
+          visibility: visible;
+        }
+      }
+      .btn-wrap {
+        visibility: hidden;
+        .remove-icon, .edit-icon {
+          padding: 4px 6px;
+        }
+        .remove-icon {
+          color: #db5254;
+        }
+        .edit-icon {
+          color: #3e85c7;
+        }
+      }
+    }
+  }
 }
 </style>

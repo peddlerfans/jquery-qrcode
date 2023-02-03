@@ -10,6 +10,8 @@ import { tableSearch, FormState, paramsobj, ModelState, statesTs ,clickobj} from
 import { AnyKindOfDictionary } from "lodash";
 import { identifier } from "@babel/types";
 import { CommonTable } from '@/components/basic/common-table'
+import {func} from "vue-types";
+import {checkVarName} from "@/utils/validator";
 
 const { t } = useI18n()
 
@@ -32,10 +34,17 @@ let canEdit = ref(!router.currentRoute.value.query?.canEdit)
 
 // table data
 let awParamsTable = ref<any>(null)
+const regs: any = [
+  {
+    required: true,
+    validator: checkVarName,
+    trigger: 'blur'
+  }
+]
 let awParamsColumn: any = [
-  { title: "name", width: 280 },
+  { title: "name", width: 280, require: true, regs },
   { title: "description", width: 100 },
-  { title: "type", width: 60, option: '1' },
+  { title: "type", width: 60, option: '3' },
   { title: "enum", width: 100 },
   { title: "default", width: 100 }
 ]
@@ -62,6 +71,10 @@ const returnTypeOptions = [
   {
     value: 'number',
     label: 'number',
+  },
+  {
+    value: 'array',
+    label: 'array'
   },
   {
     value: 'int',

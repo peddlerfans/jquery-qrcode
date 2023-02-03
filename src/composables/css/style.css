@@ -297,7 +297,7 @@ body {
 .dataStyle {
     margin-left: .3rem;
     top: 50px;
-    display: none;
+    display: block;
     flex: 1;
     bottom: 0;
     width: 100%;

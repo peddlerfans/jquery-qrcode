@@ -23,11 +23,6 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
     constructor(e: Element, o: any) {
         super(e, o);
         this.set({ 'icon': 'user' })
-        this.attr({
-            'label': {
-                text: ''
-            }
-        })
         this.on('change', (evt: any) => {
             if (evt.changed && evt.changed.prop && evt.changed.prop.custom) {
                 this.reRender();
@@ -37,27 +32,47 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         // this.updateRectangles();
     }
 
-    reRender() {
+    // 带参数的 description 转化为 字符串
+    customVar2str (desc: string, data: any) {
+        const reg = /{{[\s\S]*}}/g
+        const res = desc.match(reg)
+        const varList = res ? res.map((a: string) => a.slice(2, -2)) : []
+        varList.forEach((a: any) => {
+            let reg1 = new RegExp('{{' + a + '}}', 'g')
+            let reStr = data && data[a] ? data[a] : ''
+            if (reStr) {
+                desc = desc.replace(reg1, reStr)
+            } else {
+                desc = desc.replace(reg1, '')
+            }
+        })
+        return desc
+    }
 
-        const desc = this.get('prop')?.custom?.description
-        let primaryDesc: string
-        let expectedDesc: string
-        if (this.get('prop')?.custom?.step?.aw) {
-            primaryDesc = this.get('prop').custom.step.aw.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.aw?.description || ''
-        } else {
-            primaryDesc = this.get('prop')?.custom?.step?.data?.description || ''
-            expectedDesc = this.get('prop')?.custom?.expectation?.data?.description || ''
+    getAwDescription () {
+        let primaryDesc: string = this.get('prop')?.custom?.step?.aw?.description || ''
+        let expectedDesc: string = this.get('prop')?.custom?.expectation?.aw?.description || ''
+        let schemaData: any = this.get('prop')?.custom?.step?.data
+        let expectedData: any = this.get('prop')?.custom?.expectation?.data
+        return {
+            primaryDesc: this.customVar2str(primaryDesc, schemaData),
+            expectedDesc: this.customVar2str(expectedDesc, expectedData)
         }
-        // console.log("----p-e",primaryDesc,expectedDesc,this.get('prop')?.custom)
-        const awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
+    }
+
+    reRender() {
+        const desc = this.get('prop')?.custom?.description
+        let primaryDesc: string = this.getAwDescription().primaryDesc
+        let expectedDesc: string = this.getAwDescription().expectedDesc
+        let awSchemaStr = primaryDesc && expectedDesc ? primaryDesc + '/' + expectedDesc : primaryDesc + expectedDesc
         const labelDesc = desc ? desc : awSchemaStr ? awSchemaStr : ''
         this.set({
             'icon': (primaryDesc || expectedDesc) ? 'service' : 'user',
-            'content': labelDesc
+            'content': labelDesc,
+
         })
-        this.attr({ 'label': { text: labelDesc, fontSize: 16 } })
-        if (this.get('attrs')?.label?.text) {
+        this.prop('attrs/.content', { html: labelDesc, text: labelDesc })
+        if (this.get('content')) {
             this.set({ size: { width: 200, height: 80 } })
         }
     }
@@ -66,14 +81,15 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         return this.get('prop').custom
     }
     // setPropertiesData每个函数接受都为统一属性，调用
-
     // setPropertiesData(schema?:any,data?:any,uiParams?:any) {
     setPropertiesData() {
         const temp = cloneDeep(storeAw.getShowData.getPropertiesSchema())
         temp.description = storeAw.getDescription
-        temp.expectation = storeAw.getExpectedAw || {}
-        temp.step = storeAw.getPrimaryAw || {}
+        temp.expectation = cloneDeep(storeAw.getExpectedAw || {})
+        temp.step = cloneDeep(storeAw.getPrimaryAw || {})
         this.prop('prop/custom', temp)
+        // 不知道 jointjs 有什么毛病，引用数据不能赋值，还得加下面一句
+        this.prop('prop/custom/step/data/array', temp?.step?.data?.array || [])
         this.reRender()
         fitAncestors(this)
     }
@@ -219,49 +235,53 @@ export class MBTAW extends joint.shapes.bpmn.Activity implements MBTShapeInterfa
         return {
             inputs: {
                 attrs: {
-                    label: {
+                    '.content': {
                         text: {
                             type: 'content-editable',
                             label: 'Text',
                             group: 'text',
                             index: 1
                         },
-                        fontSize: {
-                            type: 'range',
-                            min: 5,
-                            max: 80,
-                            unit: 'px',
-                            label: 'Font size',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 2
+                        style: {
+                            fontSize: {
+                                type: 'range',
+                                min: 5,
+                                max: 80,
+                                unit: 'px',
+                                label: 'Font size',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 2
+                            },
+                            fontFamily: {
+                                type: 'select-box',
+                                options: options.fontFamily,
+                                label: 'Font family',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 3
+                            },
+                            fontWeight: {
+                                type: 'select-box',
+                                options: options.fontWeight,
+                                label: 'Font thickness',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 4
+                            },
+                            color: {
+                                type: 'color-palette',
+                                options: options.colorPalette,
+                                label: 'Fill',
+                                group: 'text',
+                                when: { ne: { 'attrs/label/text': '' } },
+                                index: 5
+                            }
                         },
-                        fontFamily: {
-                            type: 'select-box',
-                            options: options.fontFamily,
-                            label: 'Font family',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 3
-                        },
-                        fontWeight: {
-                            type: 'select-box',
-                            options: options.fontWeight,
-                            label: 'Font thickness',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 4
-                        },
-                        fill: {
-                            type: 'color-palette',
-                            options: options.colorPalette,
-                            label: 'Fill',
-                            group: 'text',
-                            when: { ne: { 'attrs/label/text': '' } },
-                            index: 5
-                        }
+
+
                     },
-                    body: {
+                    '.body': {
                         fill: {
                             type: 'color-palette',
                             options: options.colorPalette,

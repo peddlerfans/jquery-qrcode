@@ -31,6 +31,7 @@ watch(() => props.showMetaInfo, (val) => {
     tempschema = ref(props.schema);
     uiSchema = ref({})
     metatemplatedetailtableData.value = props.metatemplatedetailtableData
+    debugger
     setSchema(tempschema.value, uiSchema.value)
   }
 })
@@ -108,7 +109,13 @@ async function getTemplate(metaId: string, category: string) {
     let required: any[] = temparr.filter((a: any) => a.requerd).map((b: any) => b.description)
     Object.assign(currentschema, {required: required})
     if (_.isArray(temparr)) {
-      let schemafileds = generateSchema(temparr,metaId);
+      console.log(temparr)
+      // 多出使用 generateSchema公共函数，但是生成的title字段指定不一致
+      let t = temparr.map((a: any) => {
+        a.name = a.description
+        return a
+      })
+      let schemafileds = generateSchema(t,metaId);
       schemafileds.forEach((schemafield: any) => {
         Object.assign(currentschema.properties, schemafield);
       });

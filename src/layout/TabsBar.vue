@@ -25,8 +25,20 @@ const props = withDefaults(defineProps<{
 onBeforeMount(() => { addTab() })
 
 watch(() => route.path, addTab)
+watch(() => route.fullPath, addQuery)
 
-function addTab() {  
+function addQuery() {
+  const tab: RouteLocationNormalizedLoaded = route
+  const tabQuery = tab.query
+  if (!tabQuery.hasOwnProperty('treePath')) return
+  const idx = tabs.value.findIndex((a: any) => a.path === tab.path)
+  const query = tabs.value[idx].query
+  tabs.value[idx].query = Object.assign(query, {
+    treePath: tabQuery.treePath
+  })
+}
+
+function addTab() {
   const tab: RouteLocationNormalizedLoaded = route
   // if (tab.meta?.hidden) return
   if (tab.meta.hiddenTab) return
@@ -145,7 +157,7 @@ function showTabMenu(e: MouseEvent, tab: RouteLocationNormalizedLoaded) {
 <template>
   <Scrollbar ref="scrollbarDom" height="2rem" direction="horizontal" :speed="3">
     <div class="tabs">
-      <RouterLink ref="tabDoms" v-for="tab in tabs" :key="tab.path" :to="tab.path" class="tab"
+      <RouterLink ref="tabDoms" v-for="(tab, index) in tabs" :key="tab.path" :to="{path: tab.path, query: tab.query || {}}" class="tab"
         :class="{ active: tab.path === route.path }" @click.right.prevent="showTabMenu($event, tab)">
         <template v-if="props.withIcons && tab.meta.icon">
           <SvgIcon v-if="typeof tab.meta.icon === 'string'" :icon-name="(tab.meta.icon as string)"></SvgIcon>

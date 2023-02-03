@@ -16,9 +16,7 @@
 import * as _ from "lodash";
 
 const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
-
   let outputArr: any[] = [];
-
   inputArr.forEach((mod: any) => {
     // let keyname = mod.name;
     let typeinschema = "";
@@ -42,6 +40,12 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
       case "SUT":
         typeinschema = "SUT";
         break;
+      case 'condition':
+        typeinschema = 'condition'
+        break
+      case 'array':
+        typeinschema = 'array'
+        break
       default:
         break;
     }
@@ -64,22 +68,22 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
           },
         };
       }
-      if (mod.description) {
-        tempobj = {
-          [mod.description]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            title: mod.description,
-            // enum: enumVal,
-            // enumNames: enumVal,
-          },
-        };
-      } else if (mod.name) {
+      if (mod.name) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
             title: mod.name,
+            // enum: enumVal,
+            // enumNames: enumVal,
+          },
+        };
+      } else if (mod.description) {
+        tempobj = {
+          [mod.description]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            title: mod.description,
             // enum: enumVal,
             // enumNames: enumVal,
           },
@@ -121,15 +125,7 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
       }
 
     } else {
-      if (mod.description) {
-        tempobj = {
-          [mod.name]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            title: mod.description,
-          }
-        }
-      } else {
+      if (mod.name) {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
@@ -137,8 +133,15 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
             title: mod.name,
           }
         }
+      } else if (mod.description) {
+        tempobj = {
+          [mod.name]: {
+            type: `${typeinschema}`,
+            // description: mod.description,
+            title: mod.description,
+          }
+        }
       }
-
 
     }
     Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})

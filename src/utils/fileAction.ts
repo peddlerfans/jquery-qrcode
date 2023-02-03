@@ -107,8 +107,9 @@ export function getExcelData(blob: any) {
  * @description 导出单个文件
  * @param {array} cols
  * @param {array} data
+ * @param title
  */
-export function exportFile(cols: Array<any>, data: Array<any>) {
+export function exportFile(cols: Array<any>, data: Array<any>, title?: string) {
   const workBook = new ExcelJs.Workbook()
   workBook.views = [
     {
@@ -136,6 +137,6 @@ export function exportFile(cols: Array<any>, data: Array<any>) {
   // 输出
   workBook.xlsx.writeBuffer().then((data: any) => {
     let blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-    saveAs(blob, `zfText.xlsx`)
+    saveAs(blob, `${title ? title : '表格'}.xlsx`)
   })
 }

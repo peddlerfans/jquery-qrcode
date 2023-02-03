@@ -7,6 +7,7 @@ export default {
 <script lang="ts" setup>
 import { message, SelectProps } from 'ant-design-vue';
 import { computed, onMounted, ref } from 'vue';
+import InputSelectItem from '@/components/basic/itea-schema-item/input-select-item.vue'
 
 let props=defineProps(['rulesData','keys','formDatas','topDatas','enableDeleteChild','autoIndex'])
 let emit=defineEmits(['changeObserver','rulesChange'])
@@ -19,6 +20,50 @@ const  relations=[{
   label: "OR",
   value:"OR"
 }]
+
+const allOptions = [
+  {
+    value: '=',
+    label: '=',
+  },
+  {
+    value: '<',
+    label: '<',
+  },
+  {
+    value: '>',
+    label: '>',
+  },
+  {
+    value: '<=',
+    label: '<=',
+  },
+  {
+    value: '>=',
+    label: '>=',
+  },
+  {
+    value: '<>',
+    label: '<>',
+  },
+  {
+    value: 'IN',
+    label: 'IN',
+  },
+  {
+    value: 'LIKE',
+    label: 'LIKE',
+  },
+  {
+    value: 'includes',
+    label: 'includes',
+  },
+  {
+    value: 'indexOf',
+    label: 'indexOf'
+  }
+]
+
 // 条件判断中的比较符号
 const stringOptions = [
   {
@@ -38,6 +83,18 @@ const stringOptions = [
     label: 'LIKE',
   }
 ]
+
+const arrayOptions = [
+  {
+    value: 'includes',
+    label: 'includes',
+  },
+  {
+    value: 'indexOf',
+    label: 'indexOf'
+  }
+]
+
 const numberOptions = [
   {
     value: '=',
@@ -82,67 +139,30 @@ const changeObserver=()=>{
 }
 
 function addCondition(){
-  let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
-
-  if(conditionName){
-    if(props.rulesData[0].conditions.length>0){
-      let length= props.rulesData[0].conditions.length
-      let str=props.rulesData[0].conditions[length-1]
-      if(str.name && str.operator && str.value){
-        props.rulesData[0].conditions.push({
-          name: conditionName,
-          operator:"=",
-          value:undefined ,
-          selectvalues:selectvalue.value,
-        })
-      }else{
-        message.warning('Please complete condition editing first')
-      }
-    }else{
-      props.rulesData[0].conditions.push({
-        name: conditionName,
-        operator:undefined,
-        value:undefined,
-        selectvalues:selectvalue.value,
-      })
-    }
-
-
-    rulesChange(props.rulesData)
-  }else{
-    message.warning("Please get the condition data first!")
-  }
-
-
-
+  props.rulesData[0].conditions.push({
+    name: '',
+    operator: '',
+    value: '' ,
+    selectvalues: '',
+  })
+  rulesChange(props.rulesData)
 }
 
 function addChild(){
-  let conditionName = props.formDatas && props.formDatas[0] && props.formDatas[0].label
-  if(props.rulesData[0].relation){
-    if(conditionName){
-      let childrelation="AND"
-      props.rulesData[0].children.push({
-        relation: childrelation,
-        id:props.rulesData[0].id+1,
-        conditions:[
-          {
-
-            name: conditionName,
-            operator:undefined,
-            value:undefined,
-            selectvalues:selectvalue.value,
-          }
-        ],
-        children:[]
-      })
-      changeObserver()//监测组件是否改变的方法,组件改变不等于条件改变的ruleChange方法
-    }else{
-      message.warning("Please get the condition data first!")
-    }
-  }else{
-    message.warning('Please select the conditional link keyword first')
-  }
+  props.rulesData[0].children.push({
+    relation: '',
+    id: props.rulesData[0].id+1,
+    conditions:[
+      {
+        name: '',
+        operator: '',
+        value: '',
+        selectvalues: '',
+      }
+    ],
+    children:[]
+  })
+  rulesChange(props.rulesData)
 }
 function deleteChild (index: any){
   let conditionDelete = props.topDatas && props.topDatas[0].children && props.topDatas[0].children.length > 0
@@ -163,7 +183,27 @@ function childChange(childData: any){
 }
 function rulesChange(rulesData:any,){
   changeObserver()
-  emit("rulesChange", props.rulesData,props.keys)
+  emit("rulesChange", props.rulesData, props.keys)
+}
+
+function inputSelectChange(str: string, index: number, type: number) {
+  if (type === 1) props.rulesData[0].conditions[index].name = str
+  if (type === 2) props.rulesData[0].conditions[index].value = str
+  emit("rulesChange", props.rulesData, props.keys)
+}
+
+function getTypeOption(type: string) {
+  switch (type) {
+    case 'string': {
+      return stringOptions
+    }
+    case 'array': {
+      return arrayOptions
+    }
+    default: {
+      return numberOptions
+    }
+  }
 }
 
 const checkrelation=(obj:any)=>{
@@ -180,13 +220,6 @@ const checkrelation=(obj:any)=>{
   }
 }
 
-function optOption (item: any) {
-  const tar = props.formDatas.filter((a: any) => a.value === item.name)[0]
-  if (!tar) return
-  return tar.type === 'string' ? stringOptions : numberOptions
-
-}
-
 </script>
 
 <template>
@@ -195,29 +228,27 @@ function optOption (item: any) {
     <div class="ant-card-body" >
       <template v-for="(item, index) in rulesData[0]?.conditions || []" :key="'condition'+index">
         <a-row  class="loop-child">
+          <input-select-item
+              style="width: 100%;"
+              v-model:model-value="item.name"
+              :options="formDatas"
+              @update:modelValue="(str: string) => inputSelectChange(str, index, 1)"
+          ></input-select-item>
           <a-select
-            class="condition"
-            v-model:value="item.name"
-            :options="formDatas"
-            @change="rulesChange"
-            size="small"
-            placeholder="name"
-          ></a-select>
-          <template v-if="item.name">
-            <a-select
+              style="width: 100%;"
               class="condition"
               v-model:value="item.operator"
               @change="rulesChange"
-              :options="optOption(item)"
+              :options="allOptions"
               size="small"
               placeholder="operator"
-            ></a-select>
-            <a-input
-                v-model:value="item.value"
-                class="condition"
-                @change="rulesChange"
-            ></a-input>
-          </template>
+          ></a-select>
+          <input-select-item
+              style="width: 100%;"
+              v-model:model-value="item.value"
+              :options="formDatas"
+              @update:modelValue="(str: string) => inputSelectChange(str, index, 2)"
+          ></input-select-item>
           <a-button
               class="button-select"
               @click="daeteCondition(index)"

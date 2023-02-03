@@ -76,7 +76,7 @@ export default {
     emptyName: '请输入名称',
     depName: '名称不能和现有数据的名称重复',
     emptyUrl: '请输入网址',
-    realUrl: '请输入真实网址',
+    realUrl: '请输入正确网址',
     errTip1: '请先处理正在编辑的数据',
 
     hefaName: "名称格式为包含英文,数字,_,$",
@@ -89,7 +89,9 @@ export default {
     cantUpItem: '已经处于置顶，无法上移',
     cantDownItem: '已经处于置底，无法下移',
 
-    tableEditingWarn: '表格中的数据正在编辑，请先保存它'
+    tableEditingWarn: '表格中的数据正在编辑，请先保存它',
+    varNameCheck: '名称不合法，只允许含有下划线、数字、字母，且开头不能是数字',
+    settingSuccess: '设置成功！'
   },
 
   route: {

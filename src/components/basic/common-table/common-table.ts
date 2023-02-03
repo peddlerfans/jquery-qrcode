@@ -56,6 +56,42 @@ export const typeOptions2 = ref<SelectProps['options']>([
     }
 ])
 
+// 表格 type 可选类型3
+export const typeOptions3 = ref<SelectProps['options']>([
+    {
+        value: 'str',
+        label: 'str',
+    },
+    {
+        value: 'float',
+        label: 'float',
+    },
+    {
+        value: 'boolean',
+        label: 'boolean',
+    },
+    {
+        value: 'number',
+        label: 'number',
+    },
+    {
+        value: 'int',
+        label: 'int',
+    },
+    {
+        value: 'array',
+        label: 'array'
+    },
+    {
+        value: 'SUT',
+        label:'SUT'
+    },
+    {
+        value: 'condition',
+        label: 'condition'
+    }
+])
+
 // 表格复选框设置常量
 export const tableSelectParams = {
     all: Table.SELECTION_ALL,

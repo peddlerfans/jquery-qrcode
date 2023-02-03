@@ -13,7 +13,7 @@ import {
   statesTs,
   typeOptions,
   typeOptions2,
-  tableSelectParams
+  tableSelectParams, typeOptions3
 } from "./common-table"
 import cloneDeep from "lodash-es/cloneDeep";
 import router from "@/router";
@@ -92,7 +92,7 @@ let enumInputRef = ref()
 const checkTypeOption = () => {
   const type = props.columns.filter((a: any) => a.title === 'type')
   const option = type[0]?.option
-  if (option) return option === '1' ? typeOptions : typeOptions2
+  if (option) return option === '1' ? typeOptions : option === '2' ? typeOptions2 : typeOptions3
   else return []
 }
 const typeOption: any = checkTypeOption()
@@ -204,7 +204,8 @@ const handleColumn = (obj: any) => {
     key: obj.title,
     width: obj.width,
     link: obj.link ? obj.link : '',
-    require: !!obj.require
+    require: !!obj.require,
+    regs: obj.regs || []
   }
   if (obj.title === 'action') temp.actionList = obj.actionList || []
   return temp
@@ -253,9 +254,13 @@ const descriptionValidate = [
 
 const getRuleData = () => {
   let temp: any = {}
-  if (columns.value.some((a: any) => a.title === 'name' && a.require))
+  const nameRow = columns.value.filter((a: any) => a.title === 'name')[0]
+  const descRow = columns.value.filter((a: any) => a.title === 'description')[0]
+  if (nameRow && nameRow.require) {
     temp.name = nameValidate
-  if (columns.value.some((a: any) => a.title === 'description' && a.require))
+    if (nameRow.regs.length) nameRow.regs.forEach((a: any) => temp.name.push(a))
+  }
+  if (descRow && descRow.require)
     temp.description = descriptionValidate
   return temp
 }
@@ -424,7 +429,8 @@ const handleInputConfirm = () => {
 const handleFactorEnumConfirm = () => {
   let tags = states.value.enum
   if (states.value.enumInputValue && tags.indexOf(states.value.enumInputValue) === -1) {
-    tags = [...tags, states.value.enumInputValue]
+    let addTags = states.value.enumInputValue.split(',')
+    tags = Array.from(new Set([...tags, ...addTags]))
   }
   states.value.enum = tags
   states.value.enumInputValue = ''

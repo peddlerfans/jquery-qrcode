@@ -70,7 +70,7 @@ export default {
     emptyName: 'Please input your name',
     depName: 'Duplicate name',
     emptyUrl: 'Please input url',
-    realUrl: 'Please input real url',
+    realUrl: 'Please input correct url',
     errTip1: 'Please process the data being edited first',
     hefaName: "The name format includes English,Number,_,$",
 
@@ -82,7 +82,9 @@ export default {
     cantUpItem: 'Already at the top, unable to move up',
     cantDownItem: 'already at the bottom, unable to move down',
 
-    tableEditingWarn: 'The data in the table is being edited, please save it first'
+    tableEditingWarn: 'The data in the table is being edited, please save it first',
+    varNameCheck: 'The name is illegal, only underscores, numbers, letters are allowed, and the beginning cannot be a number.',
+    settingSuccess: 'Setting settingSuccess!'
   },
 
   route: {
