@@ -30,6 +30,7 @@ import { CommonTable } from '@/components/basic/common-table'
 import { SearchBar } from '@/components/basic/search-bar'
 import http from "@/utils/http";
 import {Table} from "ant-design-vue";
+import { select } from "underscore";
 
 // 表格数据
 const column3 = [
@@ -38,7 +39,21 @@ const column3 = [
   { title: "tags", width: 100 },
   { title: "action", width: 100, actionList: ['edit', 'delete', 'clone']},
 ]
-const visible = ref(false)
+const temData:any = ref()
+let selectOption = ref<any>('新增建模')
+let options: any = ref([
+  {
+    value: '新增建模',
+    label: '新增建模',
+    // 
+  },
+  {
+    value: '模板建模',
+    label: '模板建模',
+    isLeaf: false,
+  },
+])
+
 interface TableParams {
   search: string,
   q: string,
@@ -145,9 +160,7 @@ let copyData:any = ref ({
 })
 let copyVisible = ref<boolean>(false)
 const clone = (record:any) => {
-
-    copyData.value.name = `${record.name}_clone`
-    
+    copyData.value.name = `${record.name}_clone` 
     
     copyData.value = {...record,name:copyData.value.name}
     copyVisible.value = true
@@ -245,10 +258,44 @@ function handleSearch(keyword: string) {
   queryTableData()
 }
 
-function saveTemModal(){
-  request.get('/api/test-models/_tags').then((res) => {
-    
+function saveTemModal(selectedOptions:any){
+  console.log(MBTTable.value.returnTotal());
+  tableParams.value.perPage = MBTTable.value.returnTotal()
+  request.get(realMBTUrl , {params : tableParams.value}).then((res:any) => {
+    const targetOption = selectedOptions[0]
+    targetOption.loading = true
+      if(res.data.length > 0){
+         let rst = res.data.filter((item:any) => {
+          if(item.tags.length > 0){
+            return item.tags.includes('template') || item.tags.includes('TEMPALTE')
+          }          
+        })
+        temData.value = rst
+        targetOption.children = rst.map((item: any) => ({ value: item.name, label: item.name }))
+      }
+      targetOption.loading = false
+      options.value = [...options.value]
   })
+}
+
+function onChange(item:any){
+  
+  if(item[0] == '新增建模'){
+    showModal()
+  }else{
+    if(temData.value.length > 0){
+     let save = temData.value.filter((obj:any) => obj.name != item[0])
+     save[0].name = `${save[0].name}_tem`
+     console.log(save);
+     delete save[0]._id
+     request.post(realMBTUrl,save[0]).then((rst :any)=>{
+    let tableData = MBTTable.value.getTableData()
+    tableData.unshift(rst)
+    MBTTable.value.setTableData(tableData)    
+   })
+  }
+  }
+  
 }
 
 </script>
@@ -267,17 +314,37 @@ function saveTemModal(){
               <search-bar url="/api/test-models/_tags" @search="handleSearch"></search-bar>
             </a-col>
             <a-col :span="4">
-              <a-popover v-model:visible="visible" trigger="click" placement="right">
+              <!-- <a-popover v-model:visible="visible" trigger="click" placement="right">
                 <template #content>
                   <p><a @click="showModal">新增建模</a></p>
-                  <p><a @click="saveTemModal">从模板建模</a></p>
+                  <a-popover v-model:visible="temVisible" trigger="click" placement="right">
+                    <template #content v-if="temData.length > 0">
+                      <p v-for="item in temData">
+                        <span @click="getItem(item)">{{ item.name }}</span>
+                      </p>
+                    </template>
+                      <p><a @click="saveTemModal">模板建模</a></p>
+                    
+                  </a-popover>
+                  
                 </template>
                 <a-button type="primary">
                 <template #icon>
                   <plus-outlined />
                 </template>
               </a-button>
-            </a-popover>
+            </a-popover> -->
+            <a-cascader v-model:value="selectOption"
+              :options="options"
+              @change="onChange"
+              :load-data="saveTemModal"
+            >
+              <a-button type="primary">
+                <template #icon>
+                  <plus-outlined />
+                </template>
+              </a-button>
+            </a-cascader>
             </a-col>
           </a-row>
         </header>

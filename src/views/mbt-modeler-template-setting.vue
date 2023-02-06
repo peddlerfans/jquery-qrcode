@@ -239,6 +239,8 @@ function save() {
   }
   // 保存 Resources 数据
   if (resourcesDataSource.value.length > 0) store.saveResources(resourcesDataSource.value)
+  console.log(metaInfo.value);
+  
   message.success(t('component.message.settingSuccess'))
 }
 

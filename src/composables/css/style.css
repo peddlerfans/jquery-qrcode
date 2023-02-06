@@ -125,6 +125,15 @@ file, You can obtain one at http://jointjs.com/license/rappid_v2.txt
     content: '\e658';
     line-height: initial;
 }
+.joint-widget.joint-theme-material[data-name="instructions"]:after {
+    display: block;
+    width: 33px;
+    height: 33px;
+    font-family: "iconfont";
+    font-size: 1.725rem;
+    content: '\e6c0';
+    line-height: initial;
+}
 
 .joint-widget.joint-theme-material[data-name="closeMbt"]:after {
     display: block;

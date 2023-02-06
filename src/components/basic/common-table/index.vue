@@ -157,6 +157,10 @@ const query = async (searchText?: string) => {
   pagination.total = rst.total
 }
 
+const returnTotal = () => {
+  return pagination.total
+}
+
 const getSearchRes = async (name: string) => {
   let url = props.fetchObj.url || props.checkUrl
   if (!url) return []
@@ -525,6 +529,7 @@ defineExpose({
   changeColumn,
   loading,
   selectionList,
+  returnTotal
 })
 
 </script>

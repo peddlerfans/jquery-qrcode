@@ -112,7 +112,7 @@ async function getTemplate(metaId: string, category: string) {
       console.log(temparr)
       // 多出使用 generateSchema公共函数，但是生成的title字段指定不一致
       let t = temparr.map((a: any) => {
-        a.name = a.description
+        // a.name = a.description
         return a
       })
       let schemafileds = generateSchema(t,metaId);

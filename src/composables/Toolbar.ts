@@ -36,7 +36,8 @@ export class ToolbarService {
                 'preview': { index: 14 },
                 'reload': { index: 12 },
                 'chooseTem': { index: 11 },
-                'closeMbt': { index: 15 }
+                'instructions': { index: 15 },
+                'closeMbt': { index: 16 }
             },
 
             tools: [
@@ -225,6 +226,19 @@ export class ToolbarService {
                         button: {
                             // id: 'btn-save',
                             'data-tooltip': 'Choose Template',
+                            'data-tooltip-position': 'top',
+                            'data-tooltip-position-selector': '.toolbar-container'
+                        }
+                    }
+                },
+                {
+                    type: 'button',
+                    name: 'instructions',
+                    group: 'instructions',
+                    attrs: {
+                        button: {
+                            // id: 'btn-save',
+                            'data-tooltip': '使用说明',
                             'data-tooltip-position': 'top',
                             'data-tooltip-position-selector': '.toolbar-container'
                         }

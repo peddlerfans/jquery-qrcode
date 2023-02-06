@@ -15,7 +15,7 @@
 //    }]
 import * as _ from "lodash";
 
-const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
+const generateSchema = (inputArr: Array<Object>,metaId?:string) => {  
   let outputArr: any[] = [];
   inputArr.forEach((mod: any) => {
     // let keyname = mod.name;
@@ -73,21 +73,21 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title: mod.name,
-            // enum: enumVal,
-            // enumNames: enumVal,
-          },
-        };
-      } else if (mod.description) {
-        tempobj = {
-          [mod.description]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
             title: mod.description,
             // enum: enumVal,
             // enumNames: enumVal,
           },
         };
+      } else if (mod.description) {
+        // tempobj = {
+        //   [mod.description]: {
+        //     type: `${typeinschema}`,
+        //     // description: mod.description,
+        //     title: mod.description,
+        //     // enum: enumVal,
+        //     // enumNames: enumVal,
+        //   },
+        // };
       }
     } else if (
       mod.hasOwnProperty("enum") &&
@@ -101,22 +101,22 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
         enumVal.push(parseInt(tempenumVal[i]));
       }
       if (mod.description) {
-        tempobj = {
-          [mod.name]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
-            title: mod.description,
-            // enum: enumVal,
-            // enumNames: enumVal,
-          },
-        };
+        // tempobj = {
+        //   [mod.description]: {
+        //     type: `${typeinschema}`,
+        //     // description: mod.description,
+        //     title: mod.description,
+        //     // enum: enumVal,
+        //     // enumNames: enumVal,
+        //   },
+        // };
 
       } else {
         tempobj = {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title: mod.name,
+            title: mod.description,
             // enum: enumVal,
             // enumNames: enumVal,
           },
@@ -130,24 +130,25 @@ const generateSchema = (inputArr: Array<Object>,metaId?:string) => {
           [mod.name]: {
             type: `${typeinschema}`,
             // description: mod.description,
-            title: mod.name,
-          }
-        }
-      } else if (mod.description) {
-        tempobj = {
-          [mod.name]: {
-            type: `${typeinschema}`,
-            // description: mod.description,
             title: mod.description,
           }
         }
+      } else if (mod.description) {
+        // tempobj = {
+        //   [mod.name]: {
+        //     type: `${typeinschema}`,
+        //     // description: mod.description,
+        //     title: mod.description,
+        //   }
+        // }
       }
 
     }
     Object.assign({tempobj} , {_id:{type:'string' , title:metaId ,"ui:hidden":true , default : metaId}})
     outputArr.push(tempobj);
   });
-
+  console.log(outputArr);
+  
   return outputArr;
 };
 

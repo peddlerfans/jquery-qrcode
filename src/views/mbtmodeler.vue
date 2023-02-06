@@ -9,15 +9,12 @@ import { HaloService } from "@/composables/haloService";
 import { InspectorService } from "@/composables/inspector";
 import { KeyboardService } from "@/composables/keyboard";
 import { ExclamationCircleOutlined} from '@ant-design/icons-vue'
-import { Stores } from "../../types/stores";
 import joint from "../../node_modules/@clientio/rappid/rappid.js"
 import { computed, watch, onMounted, reactive, Ref, ref, UnwrapRef, createVNode, provide, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n'
-import { cloneDeep, concat, map, sortedIndex } from "lodash";
 import {onBeforeRouteLeave, useRoute , useRouter} from 'vue-router'
 import request from "@/utils/request";
 import { realMBTUrl ,awModelUrl,templateUrl} from "@/appConfig";
-import {getTemplate, getAllTemplatesByCategory, IColumn, IJSONSchema,} from "@/api/mbt/index";
 import _ from "lodash";
 import { MBTStore } from "@/stores/MBTModel"
 import { MbtData } from '@/stores/modules/mbt-data'
@@ -31,12 +28,8 @@ import { throttle } from "lodash-es";
 import { fitAncestors,isValidKey } from "@/utils/jointFun"
 import MbtPreviewModal from "@/views/mbt-preview-modal.vue";
 import { VAceEditor } from 'vue3-ace-editor';
-import Preview from "ant-design-vue/lib/vc-image/src/Preview";
-import {exportFile, getExcelData} from "@/utils/fileAction";
-import {UploadChangeParam} from "ant-design-vue";
-import {Rule} from "ant-design-vue/es/form";
 import MbtModelerTemplateSetting from "@/views/mbt-modeler-template-setting.vue";
-
+import mbtModelerInstructions from "./mbt-modeler-instructions.vue";
 
 
 const store = MBTStore()
@@ -54,6 +47,7 @@ let spinning = ref<boolean>(false)
 const activeKey = ref("1")
 const isFormVisible = ref(false);
 const toolbarDom = ref()
+let instructionsVisible = ref(false)
 localStorage.setItem("mbt_" + route.params._id + route.params.name + '_id', JSON.stringify(route.params._id))
 localStorage.setItem("mbt_" + route.params.name + 'aw', JSON.stringify(route.params.name))
 // Aw组件的数据
@@ -244,6 +238,7 @@ document.onkeydown = function (e :any) {
       'preview:pointerclick': preview.bind(this),
       'reload:pointerclick': reload.bind(this),
       'chooseTem:pointerclick': chooseTem.bind(this),
+      'instructions:pointerclick' : directions.bind(this),
       'closeMbt:pointerclick' : close.bind(this)
     })
     rappid.paper.on('blank:pointerdblclick' ,() => {
@@ -275,6 +270,10 @@ watch(() => store.getChooseDataPool, (val: boolean) => {
     templateRadiovalue.value = 1
   }
 })
+function directions(){
+  instructionsVisible.value = true
+}
+
 let vaceErr = ref()
 let previewErr = ref(false)
 let errOutLang = ref()
@@ -672,6 +671,8 @@ const inspector = (n:number) =>{
   }
 }
 
+
+
 </script>
 
 <template >
@@ -712,8 +713,6 @@ const inspector = (n:number) =>{
       </div>
 
     </div>
-
-
   </main>
 
   <mbt-preview-modal
@@ -750,6 +749,7 @@ const inspector = (n:number) =>{
   <!-- preview错误信息 -->
 
 </a-modal>
+  <mbt-modeler-instructions :instructionsVisible="instructionsVisible"></mbt-modeler-instructions>
 </template>
 
 <style lang="scss" >

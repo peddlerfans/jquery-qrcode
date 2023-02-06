@@ -207,7 +207,6 @@ function getTypeOption(type: string) {
 }
 
 const checkrelation=(obj:any)=>{
-  debugger
   if (!obj) return
   if(obj=="AND" || obj=="&&"){
     props.rulesData[0].relation="OR"

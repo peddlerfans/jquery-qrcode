@@ -12,6 +12,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.icon-qunfengshiyongshuoming:before {
+  content: "\e6c0";
+}
 
 .icon-guanbi:before {
   content: "\e609";
